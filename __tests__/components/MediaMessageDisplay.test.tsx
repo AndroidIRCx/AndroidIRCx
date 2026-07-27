@@ -213,4 +213,61 @@ describe('MediaMessageDisplay', () => {
       expect(UNSAFE_root.findAllByType('Video')).toHaveLength(1);
     });
   });
+
+  it('loads media only once despite translation-function churn (guards the reload loop)', async () => {
+    const { useT } = require('../../src/i18n/transifex');
+    // Simulate @transifex/react handing back a NEW `t` reference on every
+    // render (e.g. after the TRANSLATIONS_FETCHED event). That churns the
+    // loadMedia useCallback identity and re-runs the load effect. The load
+    // guard must keep the download from re-firing — the fragility that could
+    // otherwise trip "Maximum update depth exceeded".
+    (useT as jest.Mock).mockImplementation(() => (key: string) => key);
+
+    mockDownload.downloadMediaWithRetry.mockResolvedValue({
+      success: true,
+      uri: '/tmp/loop.jpg',
+      mimeType: 'image/jpeg',
+    });
+
+    const { rerender } = await render(
+      <MediaMessageDisplay
+        mediaId="id-loop"
+        network="net"
+        tabId="channel::net::#chan"
+      />,
+    );
+
+    await waitFor(async () => {
+      expect(mockDownload.downloadMediaWithRetry).toHaveBeenCalledTimes(1);
+    });
+
+    // Re-render (new `t` each time) with the same mediaId/retry: no reload.
+    rerender(
+      <MediaMessageDisplay
+        mediaId="id-loop"
+        network="net"
+        tabId="channel::net::#chan"
+        caption="x"
+      />,
+    );
+    rerender(
+      <MediaMessageDisplay
+        mediaId="id-loop"
+        network="net"
+        tabId="channel::net::#chan"
+        caption="y"
+      />,
+    );
+
+    await waitFor(async () => {
+      expect(mockDownload.downloadMediaWithRetry).toHaveBeenCalledTimes(1);
+    });
+
+    // Restore the stable translation mock for any later tests.
+    (useT as jest.Mock).mockReturnValue((key: string, params?: any) =>
+      key === 'Downloading... {progress}%'
+        ? `Downloading... ${params?.progress}%`
+        : key,
+    );
+  });
 });

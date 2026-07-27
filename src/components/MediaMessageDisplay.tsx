@@ -13,7 +13,7 @@
  * - Encryption indicator (🔒) if enabled
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -190,9 +190,22 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
     }
   }, [mediaId, network, tabId, t]);
 
+  // Load once per (mediaId, retryCount). `loadMedia` is a dependency so the
+  // exhaustive-deps rule stays satisfied, but its identity churns whenever
+  // `t` (translations) re-memoizes — e.g. after the TRANSLATIONS_FETCHED
+  // event. Without this guard that churn re-runs the effect and re-enters the
+  // loading→ready cycle repeatedly (perpetual re-download, and a setState
+  // storm that can trip "Maximum update depth exceeded"). The ref makes the
+  // effect a no-op unless the media or the retry counter actually changed.
+  const loadedKeyRef = useRef<string | null>(null);
   useEffect(() => {
+    const loadKey = `${mediaId}::${retryCount}`;
+    if (loadedKeyRef.current === loadKey) {
+      return;
+    }
+    loadedKeyRef.current = loadKey;
     loadMedia();
-  }, [loadMedia, retryCount]);
+  }, [loadMedia, mediaId, retryCount]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
