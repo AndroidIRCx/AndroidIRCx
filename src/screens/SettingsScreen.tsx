@@ -3163,16 +3163,26 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       return;
     }
 
-    const nextExpandedTitles = filteredSections.map(section => section.title);
+    const nextExpanded = new Set(
+      filteredSections.map(section => section.title),
+    );
     setExpandedSections(prev => {
+      // Compare Set-to-Set by size + membership. `filteredSections` is rebuilt
+      // every render (unmemoized), so this effect runs after every commit;
+      // returning `prev` unchanged is what lets React bail out and converge.
+      // Comparing against the deduped Set (not the raw array length) is
+      // essential: if two sections ever share a title, an array-length check
+      // never matches the deduped `prev.size`, so a fresh Set would be set on
+      // every render — an infinite setState loop ("Maximum update depth
+      // exceeded"). Set-to-Set comparison converges regardless of duplicates.
       if (
-        prev.size === nextExpandedTitles.length &&
-        nextExpandedTitles.every(title => prev.has(title))
+        prev.size === nextExpanded.size &&
+        [...nextExpanded].every(title => prev.has(title))
       ) {
         return prev;
       }
 
-      return new Set(nextExpandedTitles);
+      return nextExpanded;
     });
 
     if (term !== lastSearchTermRef.current) {

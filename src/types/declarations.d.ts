@@ -30,3 +30,9 @@ declare module 'text-encoding' {
     decode(input?: ArrayBuffer | ArrayBufferView): string;
   }
 }
+
+// react-native-iap 15.6.x (src/kit-api.ts) is type-checked from source via its
+// `react-native` export condition and references the DOM global `HeadersInit`.
+// React Native's fetch typings expose the same shape under `HeadersInit_`, so
+// alias it. Type-only shim — the compiled runtime (lib/module) is unaffected.
+declare type HeadersInit = HeadersInit_;
