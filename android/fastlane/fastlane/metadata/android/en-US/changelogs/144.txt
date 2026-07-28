@@ -1,0 +1,3 @@
+What's new in v1.9.38:
+- Updated app dependencies to their latest compatible releases for better stability and security
+- Refreshed React Native, the camera and barcode scanner, in-app purchases and developer tooling
