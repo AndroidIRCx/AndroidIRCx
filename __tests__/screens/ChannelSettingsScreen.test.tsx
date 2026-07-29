@@ -560,8 +560,7 @@ describe('ChannelSettingsScreen', () => {
     mockSettingsService.getSetting.mockImplementation(
       (key: string, fallback: unknown) => {
         if (key === 'topicStyleId') return Promise.resolve('cleanid');
-        if (key === 'topicStyles')
-          return Promise.resolve(['cleanstyle']);
+        if (key === 'topicStyles') return Promise.resolve(['cleanstyle']);
         return Promise.resolve(fallback);
       },
     );
@@ -676,7 +675,9 @@ describe('ChannelSettingsScreen', () => {
     await fireEvent.press(getByText('Refresh Exception List'));
     await fireEvent.press(getByText('Refresh Invite List'));
     expect(mockChannelManagementService.requestBanList).toHaveBeenCalled();
-    expect(mockChannelManagementService.requestExceptionList).toHaveBeenCalled();
+    expect(
+      mockChannelManagementService.requestExceptionList,
+    ).toHaveBeenCalled();
     expect(mockChannelManagementService.requestInviteList).toHaveBeenCalled();
   });
 
@@ -860,7 +861,10 @@ describe('ChannelSettingsScreen', () => {
 
     await fireEvent.press(getByText('Manage Topic Styles'));
     await fireEvent.press(await findByText('Add style'));
-    await fireEvent.changeText(await findByPlaceholderText('Use <TOPIC>'), '   ');
+    await fireEvent.changeText(
+      await findByPlaceholderText('Use <TOPIC>'),
+      '   ',
+    );
     await fireEvent.press(getByText('Save'));
     // Editor stays open because empty values are ignored.
     expect(await findByPlaceholderText('Use <TOPIC>')).toBeTruthy();
@@ -882,7 +886,8 @@ describe('ChannelSettingsScreen', () => {
 
   it('falls back to singleton services when the connection is missing', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
-    const originalImpl = connectionManager.getConnection.getMockImplementation();
+    const originalImpl =
+      connectionManager.getConnection.getMockImplementation();
     connectionManager.getConnection.mockReturnValue(undefined);
 
     try {

@@ -570,7 +570,9 @@ describe('ScriptingService', () => {
     );
     await (AsyncStorage as any).setItem(
       '@AndroidIRCX:scriptLog',
-      JSON.stringify([{ id: 'l1', ts: 1, level: 'info', message: 'persisted' }]),
+      JSON.stringify([
+        { id: 'l1', ts: 1, level: 'info', message: 'persisted' },
+      ]),
     );
 
     await (scriptingService as any).loadSettings();
@@ -603,7 +605,9 @@ describe('ScriptingService', () => {
     });
 
     await scriptingService.setEnabled('en', true);
-    expect(scriptingService.list().find(s => s.id === 'en')?.enabled).toBe(true);
+    expect(scriptingService.list().find(s => s.id === 'en')?.enabled).toBe(
+      true,
+    );
     expect(mockAdRewardService.startUsageTracking).toHaveBeenCalled();
 
     await scriptingService.setEnabled('en', false);
@@ -623,9 +627,7 @@ describe('ScriptingService', () => {
 
     const svc = scriptingService as any;
     svc.scripts = svc.scripts.map((s: any) =>
-      s.id === builtIns[0].id
-        ? { ...s, enabled: true, config: { x: 1 } }
-        : s,
+      s.id === builtIns[0].id ? { ...s, enabled: true, config: { x: 1 } } : s,
     );
 
     await scriptingService.installBuiltIns(builtIns);

@@ -904,7 +904,7 @@ describe('ScriptingScreen', () => {
 
   it('renders Prism syntax highlighting and syncs scroll offset', async () => {
     scriptingService.list.mockReturnValue([]);
-    
+
     const { findByText, getAllByDisplayValue, getAllByRole } = await render(
       <ScriptingScreen
         visible
@@ -936,7 +936,7 @@ describe('ScriptingScreen', () => {
 
   it('falls back to manual highlighting when Prism grammar is unavailable', async () => {
     scriptingService.list.mockReturnValue([]);
-        const Prism = require('prismjs');
+    const Prism = require('prismjs');
     const originalGrammar = Prism.languages.javascript;
     Prism.languages.javascript = undefined;
 
@@ -969,12 +969,10 @@ describe('ScriptingScreen', () => {
 
   it('falls back to manual highlighting when Prism tokenize throws', async () => {
     scriptingService.list.mockReturnValue([]);
-        const Prism = require('prismjs');
-    const tokenizeSpy = jest
-      .spyOn(Prism, 'tokenize')
-      .mockImplementation(() => {
-        throw new Error('tokenize boom');
-      });
+    const Prism = require('prismjs');
+    const tokenizeSpy = jest.spyOn(Prism, 'tokenize').mockImplementation(() => {
+      throw new Error('tokenize boom');
+    });
 
     try {
       const { findByText, getAllByDisplayValue, getAllByRole } = await render(

@@ -186,15 +186,17 @@ describe('QueryEncryptionMenu', () => {
 
     deferredShareBackTimers.length = 0;
     const realSetTimeout = global.setTimeout;
-    setTimeoutSpy = jest
-      .spyOn(global, 'setTimeout')
-      .mockImplementation(((fn: any, delay?: number, ...args: any[]) => {
-        if (delay === 500) {
-          deferredShareBackTimers.push(() => fn(...args));
-          return 0 as any;
-        }
-        return (realSetTimeout as any)(fn, delay, ...args);
-      }) as any);
+    setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+      fn: any,
+      delay?: number,
+      ...args: any[]
+    ) => {
+      if (delay === 500) {
+        deferredShareBackTimers.push(() => fn(...args));
+        return 0 as any;
+      }
+      return (realSetTimeout as any)(fn, delay, ...args);
+    }) as any);
 
     const irc = {
       sendRaw,
@@ -1026,7 +1028,9 @@ describe('QueryEncryptionMenu', () => {
       ),
     );
 
-    const replaceButtons = (Alert.alert as jest.Mock).mock.calls.slice(-1)[0][2];
+    const replaceButtons = (Alert.alert as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][2];
     const replace = replaceButtons.find((b: any) => b.text === 'Replace');
     await replace.onPress();
     expect(mockAcceptExternalBundleForNetwork).toHaveBeenCalledWith(
@@ -1051,9 +1055,7 @@ describe('QueryEncryptionMenu', () => {
     );
 
     await fireEvent.press(getByText('Import Key File'));
-    await waitFor(() =>
-      expect(getByText('Invalid key payload')).toBeTruthy(),
-    );
+    await waitFor(() => expect(getByText('Invalid key payload')).toBeTruthy());
   });
 
   it('handles NFC share failure after supported check', async () => {

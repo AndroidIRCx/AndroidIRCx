@@ -5,12 +5,7 @@
 
 import React from 'react';
 import { Alert, AppState, Switch, TextInput } from 'react-native';
-import {
-  render,
-  waitFor,
-  fireEvent,
-  act,
-} from '@testing-library/react-native';
+import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { ConnectionNetworkSection } from '../../../src/components/settings/sections/ConnectionNetworkSection';
 import { pick, isErrorWithCode } from '@react-native-documents/picker';
 
@@ -1795,9 +1790,7 @@ describe('ConnectionNetworkSection', () => {
     let call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
       String(c[0]).includes('Auto-Get Mode'),
     );
-    await call?.[2]
-      ?.find((b: any) => b.text === 'Accept')
-      ?.onPress?.();
+    await call?.[2]?.find((b: any) => b.text === 'Accept')?.onPress?.();
     await call?.[2]
       ?.find((b: any) => String(b.text).includes("Don't send"))
       ?.onPress?.();
@@ -1812,7 +1805,9 @@ describe('ConnectionNetworkSection', () => {
     await call?.[2]
       ?.find((b: any) => String(b.text).includes('1 - Always'))
       ?.onPress?.();
-    await call?.[2]?.find((b: any) => String(b.text).includes('3 - Ops'))?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('3 - Ops'))
+      ?.onPress?.();
     await call?.[2]
       ?.find((b: any) => String(b.text).includes('4 - Auto Op'))
       ?.onPress?.();
@@ -1904,19 +1899,19 @@ describe('ConnectionNetworkSection', () => {
     const lag = quality.submenuItems.find(
       (x: any) => x.id === 'quality-lag-monitoring',
     );
-    lag.submenuItems.find((x: any) => x.id === 'lag-monitoring-method').onPress();
+    lag.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-method')
+      .onPress();
     const call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
       String(c[0]).includes('Lag Check Method'),
     );
-    await call?.[2]
-      ?.find((b: any) => b.text === 'Server Ping')
-      ?.onPress?.();
+    await call?.[2]?.find((b: any) => b.text === 'Server Ping')?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('lagCheckMethod', 'server');
   });
 
   it('uses the default auto-voice config when none exists', async () => {
-    const autoVoice = require('../../../src/services/AutoVoiceService')
-      .autoVoiceService;
+    const autoVoice =
+      require('../../../src/services/AutoVoiceService').autoVoiceService;
     autoVoice.getConfig.mockReturnValueOnce(null).mockReturnValueOnce(null);
 
     await render(
@@ -2091,9 +2086,7 @@ describe('ConnectionNetworkSection', () => {
     await waitFor(() => expect(getByText('Rate Limiting')).toBeTruthy());
     fireEvent.press(getByText('Rate Limiting'));
 
-    await waitFor(() =>
-      expect(getByText('Enable Rate Limiting')).toBeTruthy(),
-    );
+    await waitFor(() => expect(getByText('Enable Rate Limiting')).toBeTruthy());
 
     const switches = UNSAFE_getAllByType(Switch);
     await act(async () => {
@@ -2575,9 +2568,7 @@ describe('ConnectionNetworkSection', () => {
     fireEvent.press(getByTestId('setting-connection-quality'));
     await waitFor(() => expect(getByText('Rate Limiting')).toBeTruthy());
     fireEvent.press(getByText('Rate Limiting'));
-    await waitFor(() =>
-      expect(getByText('Enable Rate Limiting')).toBeTruthy(),
-    );
+    await waitFor(() => expect(getByText('Enable Rate Limiting')).toBeTruthy());
 
     const switches = UNSAFE_getAllByType(Switch);
     await act(async () => {
@@ -2668,8 +2659,6 @@ describe('ConnectionNetworkSection', () => {
     await act(async () => {
       fireEvent.press(getByText('Cancel'));
     });
-    await waitFor(() =>
-      expect(queryByText('Set PIN')).toBeNull(),
-    );
+    await waitFor(() => expect(queryByText('Set PIN')).toBeNull());
   });
 });

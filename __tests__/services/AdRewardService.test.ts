@@ -356,7 +356,8 @@ describe('AdRewardService', () => {
   });
 
   it('applyVersionBonus swallows storage errors', async () => {
-    const AsyncStorageMock = require('@react-native-async-storage/async-storage').default;
+    const AsyncStorageMock =
+      require('@react-native-async-storage/async-storage').default;
     AsyncStorageMock.getItem.mockRejectedValueOnce(new Error('read fail'));
     await expect(
       (adRewardService as any).applyVersionBonus(),
@@ -364,7 +365,8 @@ describe('AdRewardService', () => {
   });
 
   it('save swallows storage errors', async () => {
-    const AsyncStorageMock = require('@react-native-async-storage/async-storage').default;
+    const AsyncStorageMock =
+      require('@react-native-async-storage/async-storage').default;
     AsyncStorageMock.setItem.mockRejectedValueOnce(new Error('write fail'));
     await expect((adRewardService as any).save()).resolves.toBeUndefined();
   });
@@ -380,7 +382,9 @@ describe('AdRewardService', () => {
     const handleSpy = jest
       .spyOn(adRewardService as any, 'handleLoadError')
       .mockImplementation(() => undefined);
-    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(
+      mockRewardedAd,
+    );
 
     (adRewardService as any).setupRewardedAd();
     (adRewardService as any).loadTimeoutId = setTimeout(() => undefined, 1000);
@@ -394,7 +398,9 @@ describe('AdRewardService', () => {
 
   it('cleans up a pending initial load timeout and schedules a fresh one', () => {
     mockRewardedAd.addAdEventListener.mockImplementation(() => jest.fn());
-    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(
+      mockRewardedAd,
+    );
     const previous = setTimeout(() => undefined, 10000);
     (adRewardService as any).initialLoadTimeoutId = previous;
 
@@ -561,7 +567,9 @@ describe('AdRewardService', () => {
   it('covers fallback ad-unit, personalized-ads and default-reward branches', () => {
     const { consentService } = require('../../src/services/ConsentService');
     consentService.canShowPersonalizedAds.mockReturnValue(true);
-    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(
+      mockRewardedAd,
+    );
 
     const handlers: Record<string, Function> = {};
     mockRewardedAd.addAdEventListener.mockImplementation(

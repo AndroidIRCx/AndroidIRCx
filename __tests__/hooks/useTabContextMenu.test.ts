@@ -1304,7 +1304,9 @@ describe('useTabContextMenu', () => {
       encryptedDMService,
     } = require('../../src/services/EncryptedDMService');
     channelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(false);
-    channelEncryptionSettingsService.toggleAlwaysEncrypt.mockResolvedValue(true);
+    channelEncryptionSettingsService.toggleAlwaysEncrypt.mockResolvedValue(
+      true,
+    );
     // Clear any leftover one-time queued values from prior tests.
     encryptedDMService.isEncryptedForNetwork.mockReset();
     encryptedDMService.isEncryptedForNetwork.mockResolvedValue(false);
@@ -1578,9 +1580,7 @@ describe('useTabContextMenu', () => {
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :DEOP #test');
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :VOICE #test');
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :DEVOICE #test');
-    expect(sendRaw).toHaveBeenCalledWith(
-      'PRIVMSG ChanServ :KICK #test target',
-    );
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :KICK #test target');
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :BAN #test target');
     expect(sendRaw).toHaveBeenCalledWith(
       'PRIVMSG ChanServ :UNBAN #test target',
@@ -1589,9 +1589,7 @@ describe('useTabContextMenu', () => {
       'PRIVMSG ChanServ :TOPIC #test target',
     );
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :INFO #test');
-    expect(sendRaw).toHaveBeenCalledWith(
-      'PRIVMSG ChanServ :AKICK #test LIST',
-    );
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :AKICK #test LIST');
   });
 
   it('runs the final Cancel action of a channel menu', async () => {
@@ -1609,7 +1607,9 @@ describe('useTabContextMenu', () => {
       await result.current.handleTabLongPress(channelTab);
     });
     const options = latestOptions();
-    const cancel = options.filter((o: any) => o.style === 'cancel').slice(-1)[0];
+    const cancel = options
+      .filter((o: any) => o.style === 'cancel')
+      .slice(-1)[0];
     cancel.onPress();
     expect(mockUIStore.setShowTabOptionsModal).toHaveBeenCalledWith(false);
   });

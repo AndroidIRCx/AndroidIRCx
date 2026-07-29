@@ -441,7 +441,9 @@ describe('IRCService coverage - SASL setup', () => {
       sasl: { account: 'acct', password: 'p'.repeat(600) },
     };
     await (irc as any).startSASL();
-    expect(socket.writes.some(w => w.includes('AUTHENTICATE PLAIN'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('AUTHENTICATE PLAIN'))).toBe(
+      true,
+    );
     await (irc as any).sendSASLCredentials();
     const authLines = socket.writes.filter(
       w => w.includes('AUTHENTICATE') && !w.includes('PLAIN'),
@@ -627,10 +629,7 @@ describe('IRCService coverage - protection & blacklist', () => {
       { action: 'gline', reason: 'spam', duration: '0' },
       ctx,
     );
-    (irc as any).runBlacklistAction(
-      { action: 'shun', reason: 'spam' },
-      ctx,
-    );
+    (irc as any).runBlacklistAction({ action: 'shun', reason: 'spam' }, ctx);
     (irc as any).runBlacklistAction(
       {
         action: 'custom',
@@ -645,14 +644,8 @@ describe('IRCService coverage - protection & blacklist', () => {
   it('runBlacklistAction ignores self and empty nick', () => {
     const { irc, socket } = makeConnected();
     irc.setUserManagementService(fakeUserMgmt() as any);
-    (irc as any).runBlacklistAction(
-      { action: 'akill' },
-      { nick: '' },
-    );
-    (irc as any).runBlacklistAction(
-      { action: 'akill' },
-      { nick: 'tester' },
-    );
+    (irc as any).runBlacklistAction({ action: 'akill' }, { nick: '' });
+    (irc as any).runBlacklistAction({ action: 'akill' }, { nick: 'tester' });
     expect(socket.writes.length).toBe(0);
   });
 
@@ -1209,9 +1202,9 @@ describe('IRCService coverage - connect() transport paths', () => {
         ip: '1.2.3.4',
       },
     });
-    expect(socket.writes.some(w => w.startsWith('WEBIRC pw gw h 1.2.3.4'))).toBe(
-      true,
-    );
+    expect(
+      socket.writes.some(w => w.startsWith('WEBIRC pw gw h 1.2.3.4')),
+    ).toBe(true);
     irc.disconnect();
     jest.advanceTimersByTime(200);
   });
@@ -1375,7 +1368,10 @@ describe('IRCService coverage - proxy tunnels', () => {
     socket.emit('data', Buffer.from([0x05, 0x00]));
     await tick();
     // connect reply: ver, rep=0, rsv, atyp=1 (ipv4), 4 addr bytes + 2 port
-    socket.emit('data', Buffer.from([0x05, 0x00, 0x00, 0x01, 127, 0, 0, 1, 0, 0]));
+    socket.emit(
+      'data',
+      Buffer.from([0x05, 0x00, 0x00, 0x01, 127, 0, 0, 1, 0, 0]),
+    );
     await p;
     expect(socket.writes.length).toBeGreaterThanOrEqual(0);
   });
@@ -1391,7 +1387,10 @@ describe('IRCService coverage - proxy tunnels', () => {
     await tick();
     socket.emit('data', Buffer.from([0x01, 0x00])); // auth success
     await tick();
-    socket.emit('data', Buffer.from([0x05, 0x00, 0x00, 0x01, 127, 0, 0, 1, 0, 0]));
+    socket.emit(
+      'data',
+      Buffer.from([0x05, 0x00, 0x00, 0x01, 127, 0, 0, 1, 0, 0]),
+    );
     await p;
     expect(socket.write).toHaveBeenCalled();
   });
@@ -1491,9 +1490,7 @@ describe('IRCService coverage - proxy connect', () => {
       return proxySocket;
     });
     const irc = new IRCService();
-    jest
-      .spyOn(irc as any, 'establishProxyTunnel')
-      .mockResolvedValue(undefined);
+    jest.spyOn(irc as any, 'establishProxyTunnel').mockResolvedValue(undefined);
     const p = irc.connect({
       ...baseConfig,
       tls: false,
@@ -1515,9 +1512,7 @@ describe('IRCService coverage - proxy connect', () => {
     });
     mockTLSSocketCtor.mockReturnValue(tlsSocket);
     const irc = new IRCService();
-    jest
-      .spyOn(irc as any, 'establishProxyTunnel')
-      .mockResolvedValue(undefined);
+    jest.spyOn(irc as any, 'establishProxyTunnel').mockResolvedValue(undefined);
     const p = irc.connect({
       ...baseConfig,
       tls: true,
@@ -1569,9 +1564,9 @@ describe('IRCService coverage - extra branches', () => {
       protIrcopDuration: '7200',
     } as any);
     (irc as any).handleProtectionBlock('x', 'Bad', 'u', 'h', null);
-    expect(socket.writes.some(w => w.includes('GLINE') && w.includes('7200'))).toBe(
-      true,
-    );
+    expect(
+      socket.writes.some(w => w.includes('GLINE') && w.includes('7200')),
+    ).toBe(true);
   });
 
   it('parseServerCommand handles -m and -n window switches', () => {

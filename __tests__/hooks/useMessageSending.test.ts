@@ -848,7 +848,9 @@ describe('useMessageSending', () => {
       useMessageSending(createMockParams()),
     );
     await act(async () => {
-      await result.current.handleSendMessage('/dcc send Alice /tmp/file.bin 8000');
+      await result.current.handleSendMessage(
+        '/dcc send Alice /tmp/file.bin 8000',
+      );
     });
     expect(dccFileService.sendFile).toHaveBeenCalledWith(
       expect.any(Object),
@@ -911,9 +913,7 @@ describe('useMessageSending', () => {
     mockTabStore.tabs = [activeTab];
     const setTabs = runningSetTabs([activeTab, { id: 'other', messages: [] }]);
     const { result } = await renderHook(() =>
-      useMessageSending(
-        createMockParams({ isConnected: false, setTabs }),
-      ),
+      useMessageSending(createMockParams({ isConnected: false, setTabs })),
     );
     await act(async () => {
       await result.current.handleSendMessage('queued msg');
@@ -1021,9 +1021,9 @@ describe('useMessageSending', () => {
     (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
       true,
     );
-    (channelEncryptionService.encryptMessage as jest.Mock).mockRejectedValueOnce(
-      new Error('chan boom'),
-    );
+    (
+      channelEncryptionService.encryptMessage as jest.Mock
+    ).mockRejectedValueOnce(new Error('chan boom'));
     const activeTab = {
       id: 'tab-1',
       name: '#room',
@@ -1100,9 +1100,13 @@ describe('useMessageSending', () => {
     await act(async () => {
       await result.current.handleSendMessage('reply body');
     });
-    expect(mockSendMessageWithTags).toHaveBeenCalledWith('#test', 'reply body', {
-      replyTo: 'abc123',
-    });
+    expect(mockSendMessageWithTags).toHaveBeenCalledWith(
+      '#test',
+      'reply body',
+      {
+        replyTo: 'abc123',
+      },
+    );
     expect(mockSendMessage).not.toHaveBeenCalled();
   });
 
@@ -1129,9 +1133,7 @@ describe('useMessageSending', () => {
   });
 
   it('appends dcc-tab message via updater and logs when history save fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (messageHistoryService.saveMessage as jest.Mock).mockRejectedValueOnce(
       new Error('db'),
     );
@@ -1162,9 +1164,7 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving an offline pending message fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (messageHistoryService.saveMessage as jest.Mock).mockRejectedValueOnce(
       new Error('db'),
     );
@@ -1189,9 +1189,7 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving an encrypted DM to history fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (
       encryptedDMService.isEncryptedForNetwork as jest.Mock
     ).mockResolvedValueOnce(true);
@@ -1224,9 +1222,7 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving an encrypted DM error message to history fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (
       encryptedDMService.isEncryptedForNetwork as jest.Mock
     ).mockResolvedValueOnce(true);
@@ -1259,9 +1255,7 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving an encrypted channel message to history fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
       true,
     );
@@ -1294,15 +1288,13 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving a channel encryption error message to history fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
       true,
     );
-    (channelEncryptionService.encryptMessage as jest.Mock).mockRejectedValueOnce(
-      new Error('chan boom'),
-    );
+    (
+      channelEncryptionService.encryptMessage as jest.Mock
+    ).mockRejectedValueOnce(new Error('chan boom'));
     (messageHistoryService.saveMessage as jest.Mock).mockRejectedValueOnce(
       new Error('db'),
     );
@@ -1329,9 +1321,7 @@ describe('useMessageSending', () => {
   });
 
   it('logs when saving a channel no-key error message to history fails', async () => {
-    const errorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
       false,
     );

@@ -2267,7 +2267,9 @@ describe('UserList', () => {
     it('imports a new DM key bundle when nick matches', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-bundle',
         nick: 'Alice',
@@ -2313,7 +2315,9 @@ describe('UserList', () => {
     it('replaces an existing DM key bundle', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-bundle',
         nick: 'Alice',
@@ -2361,7 +2365,9 @@ describe('UserList', () => {
     it('warns on mismatched nick payload', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-bundle',
         nick: 'Somebody',
@@ -2382,7 +2388,9 @@ describe('UserList', () => {
     it('handles fingerprint payload with matching stored key', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-fingerprint',
         nick: 'Alice',
@@ -2418,7 +2426,9 @@ describe('UserList', () => {
     it('handles fingerprint payload with mismatched stored key', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-fingerprint',
         nick: 'Alice',
@@ -2437,14 +2447,18 @@ describe('UserList', () => {
       );
       expect(fpCall).toBeTruthy();
       // Mismatch => only a Close button
-      expect(fpCall[2].every((b: any) => b.text !== 'Mark Verified')).toBe(true);
+      expect(fpCall[2].every((b: any) => b.text !== 'Mark Verified')).toBe(
+        true,
+      );
       timeoutSpy.mockRestore();
     });
 
     it('handles fingerprint payload with no stored key', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockReturnValue({
         type: 'encdm-fingerprint',
         nick: 'Alice',
@@ -2456,15 +2470,17 @@ describe('UserList', () => {
       await longPressFirstUser(tree);
       await importPayload(tree);
 
-      expect(
-        Alert.alert.mock.calls.some((c: any[]) => c[0] === 'No Key'),
-      ).toBe(true);
+      expect(Alert.alert.mock.calls.some((c: any[]) => c[0] === 'No Key')).toBe(
+        true,
+      );
       timeoutSpy.mockRestore();
     });
 
     it('reports an invalid key payload', async () => {
       const timeoutSpy = immediateTimeout();
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.parseExternalPayload.mockImplementation(() => {
         throw new Error('bad');
       });
@@ -2482,7 +2498,9 @@ describe('UserList', () => {
     it('shows verify dialog and marks verified / copies fingerprints', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.getVerificationStatusForNetwork.mockResolvedValue({
         fingerprint: 'peer-fp',
         verified: false,
@@ -2519,7 +2537,9 @@ describe('UserList', () => {
     it('handles already-verified status and no-key status', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.getVerificationStatusForNetwork
         .mockResolvedValueOnce({ fingerprint: 'peer-fp', verified: true })
         .mockResolvedValueOnce({ fingerprint: null, verified: false });
@@ -2551,17 +2571,24 @@ describe('UserList', () => {
     it('uses non-network verification status when no network prop', async () => {
       const timeoutSpy = immediateTimeout();
       const Alert = require('react-native').Alert;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.getVerificationStatus.mockResolvedValue({
         fingerprint: 'peer-fp',
         verified: false,
       });
 
-      (performanceService.getConfig as jest.Mock).mockReturnValue(SIMPLE_CONFIG);
+      (performanceService.getConfig as jest.Mock).mockReturnValue(
+        SIMPLE_CONFIG,
+      );
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[{ nick: 'Alice', modes: [] }]} channelName="#test" />,
+          <UserList
+            users={[{ nick: 'Alice', modes: [] }]}
+            channelName="#test"
+          />,
         );
       });
       await longPressFirstUser(tree!);
@@ -2580,7 +2607,9 @@ describe('UserList', () => {
 
     it('handles enc_verify failure', async () => {
       const timeoutSpy = immediateTimeout();
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.getVerificationStatusForNetwork.mockRejectedValue(
         new Error('fail'),
       );
@@ -2617,9 +2646,9 @@ describe('UserList', () => {
       await act(async () => {
         sendButton.onPress('   ');
       });
-      expect(
-        Alert.alert.mock.calls.some((c: any[]) => c[0] === 'Error'),
-      ).toBe(true);
+      expect(Alert.alert.mock.calls.some((c: any[]) => c[0] === 'Error')).toBe(
+        true,
+      );
       expect(irc.sendCommand).not.toHaveBeenCalledWith(
         expect.stringContaining('KILL Alice'),
       );
@@ -2695,7 +2724,9 @@ describe('UserList', () => {
     it('handles failures in share/qr/channel actions', async () => {
       const timeoutSpy = immediateTimeout();
       const irc = require('../src/services/IRCService').ircService;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       const {
         channelEncryptionService,
       } = require('../src/services/ChannelEncryptionService');
@@ -2732,7 +2763,9 @@ describe('UserList', () => {
       const NfcManager = require('react-native-nfc-manager').default;
       const RNFS = require('react-native-fs');
       const Picker = require('@react-native-documents/picker');
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
 
       NfcManager.isSupported.mockResolvedValue(false);
       RNFS.writeFile.mockRejectedValueOnce(new Error('write fail'));
@@ -2813,7 +2846,9 @@ describe('UserList', () => {
     it('opens the scanner and processes barcode + error callbacks', async () => {
       const timeoutSpy = immediateTimeout();
       const camera = require('react-native-vision-camera');
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       camera.useCameraDevice.mockReturnValue({ id: 'back' });
       camera.useCameraPermission.mockReturnValue({
         hasPermission: true,
@@ -2919,7 +2954,9 @@ describe('UserList', () => {
   describe('QR modal', () => {
     it('renders QR modal, copies payload and closes', async () => {
       const timeoutSpy = immediateTimeout();
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       encryptedDMService.exportBundlePayload.mockResolvedValue('qr-data');
 
       const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
@@ -2971,9 +3008,7 @@ describe('UserList', () => {
 
   describe('settings subscriptions', () => {
     it('subscribes to security setting changes and unsubscribes on unmount', async () => {
-      const {
-        settingsService,
-      } = require('../src/services/SettingsService');
+      const { settingsService } = require('../src/services/SettingsService');
       const unsub = jest.fn();
       settingsService.onSettingChange.mockImplementation(
         (_key: string, cb: (v: any) => void) => {
@@ -3050,22 +3085,18 @@ describe('UserList', () => {
   describe('blacklist modal pickers and templates', () => {
     it('opens mask and action pickers, selects custom, and adds with template', async () => {
       const timeoutSpy = immediateTimeout();
-      const {
-        settingsService,
-      } = require('../src/services/SettingsService');
+      const { settingsService } = require('../src/services/SettingsService');
       const userMgmt =
         require('../src/services/UserManagementService').userManagementService;
-      settingsService.getSetting.mockImplementation(
-        (key: string, def: any) => {
-          if (key === 'blacklistTemplates') {
-            return Promise.resolve({
-              global: { gline: 'GLINE {hostmask} :{reason}' },
-              testnet: { gline: 'LOCAL GLINE {hostmask}' },
-            });
-          }
-          return Promise.resolve(def === undefined ? true : def);
-        },
-      );
+      settingsService.getSetting.mockImplementation((key: string, def: any) => {
+        if (key === 'blacklistTemplates') {
+          return Promise.resolve({
+            global: { gline: 'GLINE {hostmask} :{reason}' },
+            testnet: { gline: 'LOCAL GLINE {hostmask}' },
+          });
+        }
+        return Promise.resolve(def === undefined ? true : def);
+      });
 
       const tree = await renderSimple([
         { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
@@ -3304,7 +3335,8 @@ describe('UserList', () => {
       });
       const clearButton = tree.root
         .findAll(
-          (node: any) => node?.props && typeof node.props.onPress === 'function',
+          (node: any) =>
+            node?.props && typeof node.props.onPress === 'function',
         )
         .find((node: any) => {
           try {
@@ -3387,7 +3419,9 @@ describe('UserList', () => {
     it('handles NFC share and receive failures after start', async () => {
       const timeoutSpy = immediateTimeout();
       const NfcManager = require('react-native-nfc-manager').default;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       NfcManager.isSupported.mockResolvedValue(true);
       NfcManager.requestTechnology.mockRejectedValue(new Error('tech fail'));
       encryptedDMService.exportBundlePayload.mockResolvedValue('payload');
@@ -3407,7 +3441,9 @@ describe('UserList', () => {
     it('invokes all modal dismiss handlers', async () => {
       const timeoutSpy = immediateTimeout();
       const camera = require('react-native-vision-camera');
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
       camera.useCameraDevice.mockReturnValue({ id: 'back' });
       camera.useCameraPermission.mockReturnValue({
         hasPermission: true,

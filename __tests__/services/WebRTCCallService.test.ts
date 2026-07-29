@@ -1547,7 +1547,9 @@ describe('WebRTCCallService', () => {
       (webRtcCallService as any).extractCandidateProtocol(undefined),
     ).toBeNull();
     expect((webRtcCallService as any).extractCandidateProtocol('')).toBeNull();
-    expect((webRtcCallService as any).extractCandidateProtocol('a b')).toBeNull();
+    expect(
+      (webRtcCallService as any).extractCandidateProtocol('a b'),
+    ).toBeNull();
   });
 
   it('delay resolves after the configured timeout', async () => {
@@ -1671,7 +1673,10 @@ describe('WebRTCCallService', () => {
   it('snapOverlayToEdge snaps to the right edge when overlay is past center', () => {
     mockCallState.overlayX = 300;
     webRtcCallService.snapOverlayToEdge(400, 120, 40);
-    expect(mockSetPartial).toHaveBeenCalledWith({ overlayX: 268, overlayY: 40 });
+    expect(mockSetPartial).toHaveBeenCalledWith({
+      overlayX: 268,
+      overlayY: 40,
+    });
   });
 
   it('loadOverlayPreferences falls back to defaults for non-numeric values', async () => {
@@ -1712,7 +1717,9 @@ describe('WebRTCCallService', () => {
     const counts = (webRtcCallService as any).countCandidateTypes(sdp);
     expect(counts.unknown).toBe(2);
     expect(
-      (webRtcCallService as any).extractCandidateType('a=candidate:no-typ-here'),
+      (webRtcCallService as any).extractCandidateType(
+        'a=candidate:no-typ-here',
+      ),
     ).toBeNull();
   });
 

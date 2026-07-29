@@ -859,9 +859,11 @@ describe('BackupScreen', () => {
   });
 
   it('surfaces an error when restore checks throw', async () => {
-    (dataBackupService.isEncryptedBackup as jest.Mock).mockImplementation(() => {
-      throw new Error('restore boom');
-    });
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockImplementation(
+      () => {
+        throw new Error('restore boom');
+      },
+    );
 
     const { findByText, findByPlaceholderText } = await render(
       <BackupScreen visible={true} onClose={onClose} />,
@@ -1083,8 +1085,12 @@ describe('BackupScreen', () => {
     (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
 
     try {
-      const { findByText, queryByText, findByPlaceholderText, UNSAFE_getAllByType } =
-        await render(<BackupScreen visible={true} onClose={onClose} />);
+      const {
+        findByText,
+        queryByText,
+        findByPlaceholderText,
+        UNSAFE_getAllByType,
+      } = await render(<BackupScreen visible={true} onClose={onClose} />);
 
       await fireEvent.press(await findByText('Restore from Backup'));
       await fireEvent.changeText(

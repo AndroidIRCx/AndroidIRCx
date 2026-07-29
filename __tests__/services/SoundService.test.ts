@@ -569,9 +569,7 @@ describe('SoundService', () => {
       soundService.isInitialized = false;
       await soundService.initialize();
 
-      expect(
-        soundService.getSchemes().find(s => s.id === 'c1'),
-      ).toBeDefined();
+      expect(soundService.getSchemes().find(s => s.id === 'c1')).toBeDefined();
     });
 
     it('saveSettings swallows AsyncStorage failures', async () => {
@@ -705,9 +703,9 @@ describe('SoundService', () => {
     });
 
     it('handles focus request rejection in catch block', async () => {
-      (audioFocusService.requestTransientFocus as jest.Mock).mockRejectedValueOnce(
-        new Error('focus-fail'),
-      );
+      (
+        audioFocusService.requestTransientFocus as jest.Mock
+      ).mockRejectedValueOnce(new Error('focus-fail'));
       jest
         .spyOn(soundService as any, 'getSoundInfo')
         .mockResolvedValue({ filename: 'mention', basePath: '' });

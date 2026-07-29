@@ -867,9 +867,7 @@ describe('ConnectionManager', () => {
     });
 
     it('logs errors thrown by connection-created callbacks', async () => {
-      const errSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       connectionManager.onConnectionCreated(() => {
         throw new Error('callback boom');
       });
@@ -935,7 +933,9 @@ describe('ConnectionManager', () => {
           baseConnectionConfig,
         );
 
-        expect(mockIRCForegroundService.updateNotification).toHaveBeenCalledWith(
+        expect(
+          mockIRCForegroundService.updateNotification,
+        ).toHaveBeenCalledWith(
           'IRC Connected',
           expect.stringContaining('Connected to test-network'),
         );
@@ -1131,7 +1131,9 @@ describe('ConnectionManager', () => {
 
         // No commands executed for a missing profile.
         expect(mockIRCService.addRawMessage).not.toHaveBeenCalledWith(
-          expect.stringContaining('on-connect command(s) from identity profile'),
+          expect.stringContaining(
+            'on-connect command(s) from identity profile',
+          ),
           'connection',
         );
       });
@@ -1178,7 +1180,9 @@ describe('ConnectionManager', () => {
         await flush();
 
         expect(mockIRCService.addRawMessage).not.toHaveBeenCalledWith(
-          expect.stringContaining('on-connect command(s) from identity profile'),
+          expect.stringContaining(
+            'on-connect command(s) from identity profile',
+          ),
           'connection',
         );
       });
@@ -1257,7 +1261,9 @@ describe('ConnectionManager', () => {
         handler(finalId, { serviceType: 'atheme', confidence: 0.5 });
         await flush();
 
-        expect(mockIRCService.setWhoisUseDoubleNick).toHaveBeenCalledWith(false);
+        expect(mockIRCService.setWhoisUseDoubleNick).toHaveBeenCalledWith(
+          false,
+        );
         expect(logSpy).toHaveBeenCalledWith(
           expect.stringContaining('Auto-auth not attempted: no credentials'),
         );

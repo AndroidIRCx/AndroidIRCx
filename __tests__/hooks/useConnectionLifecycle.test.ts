@@ -1185,7 +1185,8 @@ describe('useConnectionLifecycle', () => {
   // ---------------------------------------------------------------------------
 
   const IRC = () => require('../../src/services/IRCService').ircService;
-  const CM = () => require('../../src/services/ConnectionManager').connectionManager;
+  const CM = () =>
+    require('../../src/services/ConnectionManager').connectionManager;
   const SETTINGS = () =>
     require('../../src/services/SettingsService').settingsService;
   const SOUND = () => require('../../src/services/SoundService').soundService;
@@ -1973,9 +1974,9 @@ describe('useConnectionLifecycle', () => {
   });
 
   it('reconnect with existing tabs returns early when currentConnectionId is null', async () => {
-    CM().getActiveNetworkId.mockReturnValueOnce(null).mockReturnValue(
-      'test-network',
-    );
+    CM()
+      .getActiveNetworkId.mockReturnValueOnce(null)
+      .mockReturnValue('test-network');
     const setTabs = jest.fn();
     const params = {
       ...mockParams,
@@ -2001,9 +2002,9 @@ describe('useConnectionLifecycle', () => {
   });
 
   it('reconnect returns early when currentConnectionId is null but tabs missing', async () => {
-    CM().getActiveNetworkId.mockReturnValueOnce(null).mockReturnValue(
-      'test-network',
-    );
+    CM()
+      .getActiveNetworkId.mockReturnValueOnce(null)
+      .mockReturnValue('test-network');
     const setTabs = jest.fn();
     const params = {
       ...mockParams,
@@ -2128,9 +2129,7 @@ describe('useConnectionLifecycle', () => {
     const {
       userActivityService,
     } = require('../../src/services/UserActivityService');
-    const {
-      scriptingService,
-    } = require('../../src/services/ScriptingService');
+    const { scriptingService } = require('../../src/services/ScriptingService');
     await renderHook(() => useConnectionLifecycle(mockParams));
     const { connection } = captureHandlers();
     await act(async () => {
@@ -2159,9 +2158,7 @@ describe('useConnectionLifecycle', () => {
     const setTabs = jest.fn((fn: any) => {
       if (typeof fn === 'function') fn(tabs);
     });
-    await renderHook(() =>
-      useConnectionLifecycle({ ...mockParams, setTabs }),
-    );
+    await renderHook(() => useConnectionLifecycle({ ...mockParams, setTabs }));
     await act(async () => {
       cb('bob');
     });
@@ -2182,13 +2179,18 @@ describe('useConnectionLifecycle', () => {
     await renderHook(() => useConnectionLifecycle(mockParams));
     // key change offer
     await act(async () => {
-      cb('bob', {}, {
-        reason: 'change',
-        newFingerprint: 'aabb',
-        existingFingerprint: 'ccdd',
-      });
+      cb(
+        'bob',
+        {},
+        {
+          reason: 'change',
+          newFingerprint: 'aabb',
+          existingFingerprint: 'ccdd',
+        },
+      );
     });
-    let call = mockAlert.alert.mock.calls[mockAlert.alert.mock.calls.length - 1];
+    let call =
+      mockAlert.alert.mock.calls[mockAlert.alert.mock.calls.length - 1];
     await act(async () => {
       await call[2][0].onPress(); // reject / keep existing
       await call[2][1].onPress(); // accept / replace
@@ -2228,9 +2230,7 @@ describe('useConnectionLifecycle', () => {
     const setTabs = jest.fn((fn: any) => {
       if (typeof fn === 'function') fn(tabs);
     });
-    await renderHook(() =>
-      useConnectionLifecycle({ ...mockParams, setTabs }),
-    );
+    await renderHook(() => useConnectionLifecycle({ ...mockParams, setTabs }));
     channelEncryptionService.hasChannelKey.mockResolvedValueOnce(true);
     await act(async () => {
       await cb('#test', 'test-network');
@@ -2433,7 +2433,9 @@ describe('useConnectionLifecycle', () => {
       expect.objectContaining({ text: '*** DNS A for {hostname}: <none>' }),
     );
     expect(IRC().addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** DNS AAAA for {hostname}: {records}' }),
+      expect.objectContaining({
+        text: '*** DNS AAAA for {hostname}: {records}',
+      }),
     );
   });
 

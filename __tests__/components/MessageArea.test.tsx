@@ -1991,7 +1991,8 @@ describe('MessageArea', () => {
       const origImpl = layoutService.getConfig.getMockImplementation();
       const merged = { ...layoutService.getConfig(), ...cfg };
       layoutService.getConfig.mockImplementation(() => merged);
-      restoreLayout = () => layoutService.getConfig.mockImplementation(origImpl);
+      restoreLayout = () =>
+        layoutService.getConfig.mockImplementation(origImpl);
     };
 
     afterEach(() => {
@@ -2215,9 +2216,7 @@ describe('MessageArea', () => {
       });
       const openLinkCall = alertSpy.mock.calls.find(c => c[0] === 'Open Link');
       expect(openLinkCall).toBeTruthy();
-      const openBtn = (openLinkCall![2] as any[]).find(
-        b => b.text === 'Open',
-      );
+      const openBtn = (openLinkCall![2] as any[]).find(b => b.text === 'Open');
       openBtn.onPress();
       expect(openSpy).toHaveBeenCalledWith('https://example.com');
 
@@ -2370,9 +2369,7 @@ describe('MessageArea', () => {
     // ── monitor toggle (already monitoring) + dcc chat ────────────────────────
     it('unmonitors an already-monitored nick and starts a DCC chat', async () => {
       mockActiveIrc.isMonitoring.mockReturnValue(true);
-      const {
-        dccChatService,
-      } = require('../../src/services/DCCChatService');
+      const { dccChatService } = require('../../src/services/DCCChatService');
       const messages = [makeMsg({ from: 'Alice', text: 'dcc please' })];
       const { getAllByText } = await renderAndSettle(
         <MessageArea {...baseProps} messages={messages} />,
@@ -2508,9 +2505,9 @@ describe('MessageArea', () => {
       await act(async () => {
         await mockNickContextMenuProps.onAction('enc_import_file');
       });
-      expect(
-        alertSpy.mock.calls.some(c => c[0] === 'Mismatched Nick'),
-      ).toBe(true);
+      expect(alertSpy.mock.calls.some(c => c[0] === 'Mismatched Nick')).toBe(
+        true,
+      );
 
       // 2) fingerprint payload, no stored key
       encryptedDMService.parseExternalPayload.mockReturnValueOnce({
@@ -2587,9 +2584,9 @@ describe('MessageArea', () => {
       await act(async () => {
         await mockNickContextMenuProps.onAction('enc_import_file');
       });
-      expect(
-        alertSpy.mock.calls.some(c => c[0] === 'Replace DM Key'),
-      ).toBe(true);
+      expect(alertSpy.mock.calls.some(c => c[0] === 'Replace DM Key')).toBe(
+        true,
+      );
 
       // 6) invalid payload -> parse throws
       encryptedDMService.parseExternalPayload.mockImplementationOnce(() => {
@@ -2999,7 +2996,10 @@ describe('MessageArea', () => {
           : Promise.resolve(fallback),
       );
       const { getByText } = await renderAndSettle(
-        <MessageArea {...baseProps} messages={[makeMsg({ text: 'hi there' })]} />,
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg({ text: 'hi there' })]}
+        />,
       );
       await act(async () => {
         await fireEvent.press(getByText('Icon'));
@@ -3956,7 +3956,12 @@ describe('MessageArea', () => {
           text: 'Message listener registered for #general',
           isRaw: true,
         }),
-        makeMsg({ id: 'keep-raw', type: 'raw', text: 'PING :srv', isRaw: true }),
+        makeMsg({
+          id: 'keep-raw',
+          type: 'raw',
+          text: 'PING :srv',
+          isRaw: true,
+        }),
       ];
       const { queryByText, getByText } = await renderAndSettle(
         <MessageArea
@@ -4008,9 +4013,7 @@ describe('MessageArea', () => {
       const {
         messageHistoryService,
       } = require('../../src/services/MessageHistoryService');
-      const errSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       messageHistoryService.loadMessages.mockRejectedValueOnce(
         new Error('history fail'),
       );

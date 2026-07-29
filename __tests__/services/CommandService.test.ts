@@ -326,9 +326,7 @@ describe('CommandService', () => {
     ).resolves.toBeUndefined();
 
     AsyncStorage.setItem.mockRejectedValueOnce(new Error('x'));
-    await expect(
-      service.processCommand('/quote PING'),
-    ).resolves.toBeNull();
+    await expect(service.processCommand('/quote PING')).resolves.toBeNull();
   });
 
   it('handles invalid certificate fingerprint for /certfp', async () => {
@@ -370,7 +368,10 @@ describe('CommandService', () => {
   });
 
   it('applies /ban except, invite, and quiet switches', async () => {
-    await service.processCommand('/ban -rbeiq #chan target 2 reason here', '#chan');
+    await service.processCommand(
+      '/ban -rbeiq #chan target 2 reason here',
+      '#chan',
+    );
 
     expect(sendRaw).toHaveBeenCalledWith('MODE #chan +b *!*@target');
     expect(sendRaw).toHaveBeenCalledWith('MODE #chan +e *!*@target');

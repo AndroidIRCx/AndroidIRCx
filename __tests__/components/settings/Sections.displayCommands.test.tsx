@@ -691,9 +691,7 @@ describe('DisplayUISection additional coverage', () => {
       expect(mockCapturedItems.has('display-adaptive-layout')).toBe(true),
     );
 
-    await mockCapturedItems
-      .get('display-adaptive-layout')
-      .onValueChange(false);
+    await mockCapturedItems.get('display-adaptive-layout').onValueChange(false);
     expect(mockSetSetting).toHaveBeenCalledWith('adaptiveLayoutEnabled', false);
 
     await mockCapturedItems
@@ -757,7 +755,10 @@ describe('DisplayUISection additional coverage', () => {
       .get('display-banner-position')
       .submenuItems.find((x: any) => x.id === 'banner-pos-input-above')
       .onPress();
-    expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'input_above');
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'input_above',
+    );
 
     // Toggle raw category switches (also fires the visibility change effect)
     const rawCats = mockCapturedItems.get('display-raw-categories');
