@@ -13,11 +13,14 @@ import { performanceService } from '../src/services/PerformanceService';
 
 let mockNickContextMenuProps: any = null;
 
-// Mock Alert
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-  prompt: jest.fn(),
-}));
+// Mock Alert. Provide both default and named exports backed by the same
+// jest.fn()s so the source (which imports `Alert` from 'react-native') and the
+// tests (which require this module) observe the same calls.
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = jest.fn();
+  const prompt = jest.fn();
+  return { __esModule: true, default: { alert, prompt }, alert, prompt };
+});
 
 jest.mock('../src/components/NickContextMenu', () => {
   const React = require('react');
@@ -188,6 +191,8 @@ jest.mock('react-native-share', () => ({
     open: jest.fn(() => Promise.resolve()),
   },
 }));
+
+jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 jest.mock('react-native-vision-camera', () => ({
   useCameraDevice: jest.fn(() => null),
@@ -2182,6 +2187,1284 @@ describe('UserList', () => {
       });
 
       expect(searchInput.props.value).toBe('xyz123');
+    });
+  });
+
+  // ---- Additional coverage tests ----
+
+  const SIMPLE_CONFIG = {
+    userListType: 'simple',
+    userListSearchDebounceMs: 0,
+    userListInitialRenderCount: 50,
+    userListEnableChunkLoading: false,
+    userListChunkSize: 100,
+    userListSkipSortThreshold: 1000,
+    userListGrouping: true,
+    userListAutoDisableGroupingThreshold: 1000,
+  };
+
+  const immediateTimeout = () =>
+    jest.spyOn(global, 'setTimeout').mockImplementation(((fn: any) => {
+      if (typeof fn === 'function') fn();
+      return 0 as any;
+    }) as any);
+
+  const renderSimple = async (users: ChannelUser[], props: any = {}) => {
+    (performanceService.getConfig as jest.Mock).mockReturnValue(SIMPLE_CONFIG);
+    let tree: TestRenderer.ReactTestRenderer;
+    await act(async () => {
+      tree = TestRenderer.create(
+        <UserList
+          users={users}
+          channelName="#test"
+          network="testnet"
+          {...props}
+        />,
+      );
+    });
+    return tree!;
+  };
+
+  const longPressFirstUser = async (tree: TestRenderer.ReactTestRenderer) => {
+    const userTouchable = tree.root.findAll(
+      (node: any) =>
+        node?.props && typeof node.props.onLongPress === 'function',
+    )[0];
+    await act(async () => {
+      userTouchable?.props.onLongPress();
+    });
+  };
+
+  const findPressableByLabel = (
+    tree: TestRenderer.ReactTestRenderer,
+    label: string,
+  ) => {
+    const pressables = tree.root.findAll(
+      (node: any) => node?.props && typeof node.props.onPress === 'function',
+    );
+    return pressables.find((node: any) => {
+      try {
+        return node
+          .findAllByType('Text')
+          .some((txt: any) => txt.props?.children === label);
+      } catch {
+        return false;
+      }
+    });
+  };
+
+  describe('handleExternalPayload flows', () => {
+    const importPayload = async (_tree: TestRenderer.ReactTestRenderer) => {
+      const Picker = require('@react-native-documents/picker');
+      Picker.pick.mockResolvedValue([
+        { uri: 'file:///tmp/key.json', fileCopyUri: 'file:///tmp/copy.json' },
+      ]);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+    };
+
+    it('imports a new DM key bundle when nick matches', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-bundle',
+        nick: 'Alice',
+        bundle: { k: 1 },
+        fingerprint: 'newfp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(null);
+      encryptedDMService.exportBundlePayload.mockResolvedValue('share-payload');
+
+      const tree = await renderSimple([
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      const importCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Import DM Key',
+      );
+      expect(importCall).toBeTruthy();
+      const acceptButton = importCall[2].find((b: any) => b.text === 'Accept');
+      await act(async () => {
+        await acceptButton.onPress();
+      });
+      expect(
+        encryptedDMService.acceptExternalBundleForNetwork,
+      ).toHaveBeenCalledWith('testnet', 'Alice', { k: 1 }, false);
+
+      // The follow-up "Share Your Key?" prompt fires via setTimeout(immediate)
+      const shareCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Share Your Key?',
+      );
+      expect(shareCall).toBeTruthy();
+      const showQrButton = shareCall[2].find(
+        (b: any) => b.text === 'Show QR Code',
+      );
+      await act(async () => {
+        await showQrButton.onPress();
+      });
+      expect(encryptedDMService.exportBundlePayload).toHaveBeenCalled();
+      timeoutSpy.mockRestore();
+    });
+
+    it('replaces an existing DM key bundle', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-bundle',
+        nick: 'Alice',
+        bundle: { k: 2 },
+        fingerprint: 'newfp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(
+        'oldfp',
+      );
+      // Make the follow-up share QR export fail to cover its catch branch.
+      encryptedDMService.exportBundlePayload.mockRejectedValue(
+        new Error('nope'),
+      );
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      const replaceCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Replace DM Key',
+      );
+      expect(replaceCall).toBeTruthy();
+      const replaceButton = replaceCall[2].find(
+        (b: any) => b.text === 'Replace',
+      );
+      await act(async () => {
+        await replaceButton.onPress();
+      });
+      expect(
+        encryptedDMService.acceptExternalBundleForNetwork,
+      ).toHaveBeenCalledWith('testnet', 'Alice', { k: 2 }, true);
+
+      const shareCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Share Your Key?',
+      );
+      const showQrButton = shareCall[2].find(
+        (b: any) => b.text === 'Show QR Code',
+      );
+      await act(async () => {
+        await showQrButton.onPress();
+      });
+      timeoutSpy.mockRestore();
+    });
+
+    it('warns on mismatched nick payload', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-bundle',
+        nick: 'Somebody',
+        bundle: {},
+        fingerprint: 'fp',
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      expect(
+        Alert.alert.mock.calls.some((c: any[]) => c[0] === 'Mismatched Nick'),
+      ).toBe(true);
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles fingerprint payload with matching stored key', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'match-fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(
+        'match-fp',
+      );
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      const fpCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Fingerprint Check',
+      );
+      expect(fpCall).toBeTruthy();
+      const markVerified = fpCall[2].find(
+        (b: any) => b.text === 'Mark Verified',
+      );
+      expect(markVerified).toBeTruthy();
+      await act(async () => {
+        await markVerified.onPress();
+      });
+      expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith(
+        'testnet',
+        'Alice',
+        true,
+      );
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles fingerprint payload with mismatched stored key', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'incoming-fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(
+        'stored-fp',
+      );
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      const fpCall = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Fingerprint Check',
+      );
+      expect(fpCall).toBeTruthy();
+      // Mismatch => only a Close button
+      expect(fpCall[2].every((b: any) => b.text !== 'Mark Verified')).toBe(true);
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles fingerprint payload with no stored key', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'incoming-fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(null);
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+
+      expect(
+        Alert.alert.mock.calls.some((c: any[]) => c[0] === 'No Key'),
+      ).toBe(true);
+      timeoutSpy.mockRestore();
+    });
+
+    it('reports an invalid key payload', async () => {
+      const timeoutSpy = immediateTimeout();
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockImplementation(() => {
+        throw new Error('bad');
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await importPayload(tree);
+      // Should not throw; feedback message set internally.
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('enc_verify action', () => {
+    it('shows verify dialog and marks verified / copies fingerprints', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.getVerificationStatusForNetwork.mockResolvedValue({
+        fingerprint: 'peer-fp',
+        verified: false,
+      });
+      encryptedDMService.getSelfFingerprint.mockResolvedValue('self-fp');
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_verify');
+      });
+
+      const call = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Verify DM Key',
+      );
+      expect(call).toBeTruthy();
+      const markVerified = call[2].find((b: any) => b.text === 'Mark Verified');
+      const copyBtn = call[2].find((b: any) => b.text === 'Copy Fingerprints');
+      await act(async () => {
+        await markVerified.onPress();
+        await copyBtn.onPress();
+      });
+      expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith(
+        'testnet',
+        'Alice',
+        true,
+      );
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        expect.stringContaining('Alice:'),
+      );
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles already-verified status and no-key status', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.getVerificationStatusForNetwork
+        .mockResolvedValueOnce({ fingerprint: 'peer-fp', verified: true })
+        .mockResolvedValueOnce({ fingerprint: null, verified: false });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_verify');
+      });
+      const call = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Verify DM Key',
+      );
+      const verifiedBtn = call[2].find((b: any) => b.text === 'Verified');
+      expect(verifiedBtn).toBeTruthy();
+      await act(async () => {
+        await verifiedBtn.onPress();
+      });
+
+      // Second invocation: no key stored
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_verify');
+      });
+      expect(
+        encryptedDMService.getVerificationStatusForNetwork,
+      ).toHaveBeenCalledTimes(2);
+      timeoutSpy.mockRestore();
+    });
+
+    it('uses non-network verification status when no network prop', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.getVerificationStatus.mockResolvedValue({
+        fingerprint: 'peer-fp',
+        verified: false,
+      });
+
+      (performanceService.getConfig as jest.Mock).mockReturnValue(SIMPLE_CONFIG);
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={[{ nick: 'Alice', modes: [] }]} channelName="#test" />,
+        );
+      });
+      await longPressFirstUser(tree!);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_verify');
+      });
+      expect(encryptedDMService.getVerificationStatus).toHaveBeenCalledWith(
+        'Alice',
+      );
+      const call = Alert.alert.mock.calls.find(
+        (c: any[]) => c[0] === 'Verify DM Key',
+      );
+      expect(call).toBeTruthy();
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles enc_verify failure', async () => {
+      const timeoutSpy = immediateTimeout();
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.getVerificationStatusForNetwork.mockRejectedValue(
+        new Error('fail'),
+      );
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_verify');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('kill action', () => {
+    it('prompts and sends KILL with a reason', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Alert = require('react-native').Alert;
+      const irc = require('../src/services/IRCService').ircService;
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('kill');
+      });
+
+      const promptCall = Alert.prompt.mock.calls.find((c: any[]) =>
+        String(c[0]).includes('KILL'),
+      );
+      expect(promptCall).toBeTruthy();
+      const sendButton = promptCall[2].find((b: any) => b.text === 'Send');
+
+      // Empty reason -> error alert, no command sent
+      await act(async () => {
+        sendButton.onPress('   ');
+      });
+      expect(
+        Alert.alert.mock.calls.some((c: any[]) => c[0] === 'Error'),
+      ).toBe(true);
+      expect(irc.sendCommand).not.toHaveBeenCalledWith(
+        expect.stringContaining('KILL Alice'),
+      );
+
+      // Valid reason -> command sent
+      await act(async () => {
+        sendButton.onPress('spamming');
+      });
+      expect(irc.sendCommand).toHaveBeenCalledWith('KILL Alice :spamming');
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('WHOIS modal mode', () => {
+    it('opens the WHOIS modal via the ui store', async () => {
+      const timeoutSpy = immediateTimeout();
+      const uiStore = require('../src/stores/uiStore').useUIStore;
+      const setWhoisNick = jest.fn();
+      const setShowWHOIS = jest.fn();
+      uiStore.getState.mockReturnValue({
+        whoisDisplayMode: 'modal',
+        setWhoisNick,
+        setShowWHOIS,
+        setDccSendTarget: jest.fn(),
+        setShowDccSendModal: jest.fn(),
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('whois');
+      });
+      expect(setWhoisNick).toHaveBeenCalledWith('Alice');
+      expect(setShowWHOIS).toHaveBeenCalledWith(true);
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('long press fallback and default action', () => {
+    it('falls back to MODE command when sendSilentMode is unavailable', async () => {
+      const timeoutSpy = immediateTimeout();
+      const irc = require('../src/services/IRCService').ircService;
+      const originalSilent = irc.sendSilentMode;
+      irc.getCurrentNick.mockReturnValue('currentUser');
+      irc.sendSilentMode = undefined;
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE currentUser');
+
+      irc.sendSilentMode = originalSilent;
+      timeoutSpy.mockRestore();
+    });
+
+    it('ignores unknown actions and clears prior feedback', async () => {
+      const timeoutSpy = immediateTimeout();
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      // First action sets a feedback message (flushed on its own).
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('copy');
+      });
+      // Second action with a stale feedback message triggers the reset timeout.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('unknown_action_xyz');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('error/catch branches for actions', () => {
+    it('handles failures in share/qr/channel actions', async () => {
+      const timeoutSpy = immediateTimeout();
+      const irc = require('../src/services/IRCService').ircService;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        channelEncryptionService,
+      } = require('../src/services/ChannelEncryptionService');
+
+      encryptedDMService.exportBundle.mockRejectedValueOnce(new Error('x'));
+      encryptedDMService.exportFingerprintPayload.mockRejectedValueOnce(
+        new Error('x'),
+      );
+      encryptedDMService.exportBundlePayload.mockRejectedValueOnce(
+        new Error('x'),
+      );
+      channelEncryptionService.exportChannelKey.mockRejectedValueOnce(
+        new Error('chan fail'),
+      );
+      irc.sendRaw.mockImplementationOnce(() => {
+        throw new Error('raw fail');
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share');
+        await mockNickContextMenuProps.onAction('enc_qr_show_fingerprint');
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+        await mockNickContextMenuProps.onAction('chan_share');
+        await mockNickContextMenuProps.onAction('chan_request');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles NFC unsupported and file/nfc failures', async () => {
+      const timeoutSpy = immediateTimeout();
+      const NfcManager = require('react-native-nfc-manager').default;
+      const RNFS = require('react-native-fs');
+      const Picker = require('@react-native-documents/picker');
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+
+      NfcManager.isSupported.mockResolvedValue(false);
+      RNFS.writeFile.mockRejectedValueOnce(new Error('write fail'));
+      encryptedDMService.exportBundlePayload.mockResolvedValue('payload');
+      Picker.pick.mockRejectedValueOnce(new Error('pick fail'));
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share_file');
+        await mockNickContextMenuProps.onAction('enc_import_file');
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      expect(NfcManager.isSupported).toHaveBeenCalled();
+      NfcManager.isSupported.mockResolvedValue(true);
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles cancelled file import (OPERATION_CANCELED)', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Picker = require('@react-native-documents/picker');
+      Picker.isErrorWithCode.mockReturnValue(true);
+      Picker.pick.mockRejectedValueOnce({
+        code: Picker.errorCodes.OPERATION_CANCELED,
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      Picker.isErrorWithCode.mockReturnValue(false);
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles empty file import result and no-NFC-payload', async () => {
+      const timeoutSpy = immediateTimeout();
+      const Picker = require('@react-native-documents/picker');
+      const NfcManager = require('react-native-nfc-manager').default;
+      Picker.pick.mockResolvedValueOnce([]);
+      NfcManager.getTag.mockResolvedValueOnce({ ndefMessage: [] });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('enc_qr_scan camera flows', () => {
+    it('denies scanning without camera permission', async () => {
+      const timeoutSpy = immediateTimeout();
+      const camera = require('react-native-vision-camera');
+      const requestPermission = jest.fn(() => Promise.resolve(false));
+      camera.useCameraDevice.mockReturnValue(null);
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission,
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(requestPermission).toHaveBeenCalled();
+      // Scan modal should not be open (fallback path).
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+
+    it('opens the scanner and processes barcode + error callbacks', async () => {
+      const timeoutSpy = immediateTimeout();
+      const camera = require('react-native-vision-camera');
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      camera.useCameraDevice.mockReturnValue({ id: 'back' });
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: true,
+        requestPermission: jest.fn(() => Promise.resolve(true)),
+      });
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-bundle',
+        nick: 'Alice',
+        bundle: {},
+        fingerprint: 'fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(null);
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+
+      const scanner = tree.root.findAll(
+        (node: any) =>
+          node?.props && typeof node.props.onBarcodeScanned === 'function',
+      )[0];
+      expect(scanner).toBeTruthy();
+
+      // Error callback
+      await act(async () => {
+        scanner.props.onError(new Error('scan boom'));
+      });
+      // Successful barcode scan
+      await act(async () => {
+        scanner.props.onBarcodeScanned([{ rawValue: 'scanned-code' }]);
+      });
+      expect(encryptedDMService.parseExternalPayload).toHaveBeenCalledWith(
+        'scanned-code',
+      );
+
+      // Reset camera mocks for other tests.
+      camera.useCameraDevice.mockReturnValue(null);
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+      timeoutSpy.mockRestore();
+    });
+
+    it('shows fallback text when camera permission granted but no device', async () => {
+      const timeoutSpy = immediateTimeout();
+      const camera = require('react-native-vision-camera');
+      camera.useCameraDevice.mockReturnValue(null);
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: true,
+        requestPermission: jest.fn(() => Promise.resolve(true)),
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      // Close the scan modal via its close button.
+      const closeButton = findPressableByLabel(tree, 'Close');
+      if (closeButton) {
+        await act(async () => {
+          closeButton.props.onPress();
+        });
+      }
+      expect(tree.toJSON()).not.toBeNull();
+
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles camera permission request throwing', async () => {
+      const timeoutSpy = immediateTimeout();
+      const camera = require('react-native-vision-camera');
+      camera.useCameraDevice.mockReturnValue(null);
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(() => {
+          throw new Error('perm boom');
+        }),
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(tree.toJSON()).not.toBeNull();
+
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('QR modal', () => {
+    it('renders QR modal, copies payload and closes', async () => {
+      const timeoutSpy = immediateTimeout();
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      encryptedDMService.exportBundlePayload.mockResolvedValue('qr-data');
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+      });
+
+      // Note: the modal overlay (activeOpacity === 1) also contains the
+      // "Copy Payload" text as a descendant, so exclude it and target the
+      // actual button.
+      const copyButton = tree.root
+        .findAll(
+          (node: any) =>
+            node?.props &&
+            typeof node.props.onPress === 'function' &&
+            node.props.activeOpacity !== 1,
+        )
+        .find((node: any) => {
+          try {
+            return node
+              .findAllByType('Text')
+              .some((t: any) => t.props?.children === 'Copy Payload');
+          } catch {
+            return false;
+          }
+        });
+      expect(copyButton).toBeTruthy();
+      await act(async () => {
+        copyButton!.props.onPress();
+      });
+      expect(Clipboard.setString).toHaveBeenCalledWith('qr-data');
+
+      // The overlay TouchableOpacity closes the modal.
+      const overlay = tree.root.findAll(
+        (node: any) =>
+          node?.props &&
+          typeof node.props.onPress === 'function' &&
+          node.props.activeOpacity === 1,
+      )[0];
+      if (overlay) {
+        await act(async () => {
+          overlay.props.onPress();
+        });
+      }
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('settings subscriptions', () => {
+    it('subscribes to security setting changes and unsubscribes on unmount', async () => {
+      const {
+        settingsService,
+      } = require('../src/services/SettingsService');
+      const unsub = jest.fn();
+      settingsService.onSettingChange.mockImplementation(
+        (_key: string, cb: (v: any) => void) => {
+          cb(false);
+          return unsub;
+        },
+      );
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+        'securityAllowQrVerification',
+        expect.any(Function),
+      );
+      await act(async () => {
+        tree.unmount();
+      });
+      expect(unsub).toHaveBeenCalled();
+
+      settingsService.onSettingChange.mockImplementation(() => jest.fn());
+    });
+  });
+
+  describe('grouped view toggling and blacklist template', () => {
+    beforeEach(() => {
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'grouped',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+    });
+
+    it('toggles every group header collapse/expand', async () => {
+      const users: ChannelUser[] = [
+        { nick: 'Owner', modes: ['q'] },
+        { nick: 'Admin', modes: ['a'] },
+        { nick: 'Op', modes: ['o'] },
+        { nick: 'HalfOp', modes: ['h'] },
+        { nick: 'Voice', modes: ['v'] },
+        { nick: 'Regular', modes: [] },
+      ];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />,
+        );
+      });
+
+      const headers = tree!.root.findAll(
+        (node: any) =>
+          node?.props &&
+          typeof node.props.onPress === 'function' &&
+          !node.props.onLongPress &&
+          node.props.activeOpacity === 0.7,
+      );
+      expect(headers.length).toBeGreaterThan(0);
+      // Collapse then expand each group.
+      for (const header of headers) {
+        await act(async () => {
+          header.props.onPress();
+        });
+      }
+      await act(async () => {
+        headers[0].props.onPress();
+      });
+      expect(tree!.toJSON()).not.toBeNull();
+    });
+  });
+
+  describe('blacklist modal pickers and templates', () => {
+    it('opens mask and action pickers, selects custom, and adds with template', async () => {
+      const timeoutSpy = immediateTimeout();
+      const {
+        settingsService,
+      } = require('../src/services/SettingsService');
+      const userMgmt =
+        require('../src/services/UserManagementService').userManagementService;
+      settingsService.getSetting.mockImplementation(
+        (key: string, def: any) => {
+          if (key === 'blacklistTemplates') {
+            return Promise.resolve({
+              global: { gline: 'GLINE {hostmask} :{reason}' },
+              testnet: { gline: 'LOCAL GLINE {hostmask}' },
+            });
+          }
+          return Promise.resolve(def === undefined ? true : def);
+        },
+      );
+
+      const tree = await renderSimple([
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+
+      // Open the ban mask picker.
+      const maskPicker = findPressableByLabel(tree, '(2) *!ident@*');
+      expect(maskPicker).toBeTruthy();
+      await act(async () => {
+        maskPicker!.props.onPress();
+      });
+      // Select a mask option by its description subtext.
+      const maskOption = findPressableByLabel(tree, 'Host based');
+      expect(maskOption).toBeTruthy();
+      await act(async () => {
+        maskOption!.props.onPress();
+      });
+
+      // Open the action picker.
+      const actionPicker = findPressableByLabel(tree, 'Ban');
+      expect(actionPicker).toBeTruthy();
+      await act(async () => {
+        actionPicker!.props.onPress();
+      });
+      // Select GLINE to exercise the template lookup.
+      const glineOption = findPressableByLabel(tree, 'GLINE');
+      expect(glineOption).toBeTruthy();
+      await act(async () => {
+        glineOption!.props.onPress();
+      });
+
+      // Add with the GLINE template.
+      const addButton = findPressableByLabel(tree, 'Add');
+      await act(async () => {
+        await addButton!.props.onPress();
+      });
+      expect(userMgmt.addBlacklistEntry).toHaveBeenCalledWith(
+        expect.any(String),
+        'gline',
+        undefined,
+        'testnet',
+        'LOCAL GLINE {hostmask}',
+      );
+
+      settingsService.getSetting.mockImplementation(() =>
+        Promise.resolve(true),
+      );
+      timeoutSpy.mockRestore();
+    });
+
+    it('selects custom action and adds a custom command', async () => {
+      const timeoutSpy = immediateTimeout();
+      const userMgmt =
+        require('../src/services/UserManagementService').userManagementService;
+
+      const tree = await renderSimple([
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+
+      // Open action picker and choose Custom Command.
+      const actionPicker = findPressableByLabel(tree, 'Ban');
+      await act(async () => {
+        actionPicker!.props.onPress();
+      });
+      const customOption = findPressableByLabel(tree, 'Custom Command');
+      await act(async () => {
+        customOption!.props.onPress();
+      });
+
+      // The custom command input should now be present.
+      const customInput = tree.root
+        .findAllByType('TextInput')
+        .find((i: any) =>
+          String(i.props?.placeholder || '').includes('Command template'),
+        );
+      expect(customInput).toBeTruthy();
+      await act(async () => {
+        customInput!.props.onChangeText('KILL {nick}');
+      });
+
+      const reasonInput = tree.root
+        .findAllByType('TextInput')
+        .find((i: any) => i.props?.placeholder === 'Reason (optional)');
+      await act(async () => {
+        reasonInput!.props.onChangeText('bad behaviour');
+      });
+
+      const addButton = findPressableByLabel(tree, 'Add');
+      await act(async () => {
+        await addButton!.props.onPress();
+      });
+      expect(userMgmt.addBlacklistEntry).toHaveBeenCalledWith(
+        expect.any(String),
+        'custom',
+        'bad behaviour',
+        'testnet',
+        'KILL {nick}',
+      );
+      timeoutSpy.mockRestore();
+    });
+
+    it('closes mask and action pickers via their Close buttons', async () => {
+      const timeoutSpy = immediateTimeout();
+      const tree = await renderSimple([
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+
+      const maskPicker = findPressableByLabel(tree, '(2) *!ident@*');
+      await act(async () => {
+        maskPicker!.props.onPress();
+      });
+      let closeButton = findPressableByLabel(tree, 'Close');
+      expect(closeButton).toBeTruthy();
+      await act(async () => {
+        closeButton!.props.onPress();
+      });
+
+      const actionPicker = findPressableByLabel(tree, 'Ban');
+      await act(async () => {
+        actionPicker!.props.onPress();
+      });
+      closeButton = findPressableByLabel(tree, 'Close');
+      await act(async () => {
+        closeButton!.props.onPress();
+      });
+
+      // Cancel the blacklist modal.
+      const cancelButton = findPressableByLabel(tree, 'Cancel');
+      await act(async () => {
+        cancelButton!.props.onPress();
+      });
+      expect(tree.toJSON()).not.toBeNull();
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('note modal removal and network-scoped service', () => {
+    it('removes a note when cleared and uses network-scoped service', async () => {
+      const timeoutSpy = immediateTimeout();
+      const {
+        connectionManager,
+      } = require('../src/services/ConnectionManager');
+      const irc = require('../src/services/IRCService').ircService;
+      const scopedService = {
+        addUserNote: jest.fn(() => Promise.resolve()),
+        removeUserNote: jest.fn(() => Promise.resolve()),
+        getUserNote: jest.fn(() => 'existing note'),
+      };
+      connectionManager.getConnection.mockReturnValue({
+        userManagementService: scopedService,
+        ircService: irc,
+      });
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+
+      const noteInput = tree.root
+        .findAllByType('TextInput')
+        .find(
+          (i: any) => i.props?.placeholder === 'Enter note about this user',
+        );
+      expect(noteInput).toBeTruthy();
+      // Clear the note text to exercise the removal path.
+      await act(async () => {
+        noteInput!.props.onChangeText('   ');
+      });
+      const saveButton = findPressableByLabel(tree, 'Save');
+      await act(async () => {
+        await saveButton!.props.onPress();
+      });
+      expect(scopedService.removeUserNote).toHaveBeenCalledWith(
+        'Alice',
+        'testnet',
+      );
+
+      connectionManager.getConnection.mockReturnValue(null);
+      timeoutSpy.mockRestore();
+    });
+  });
+
+  describe('load more via list end reached', () => {
+    it('loads additional chunks when reaching the list end', async () => {
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'flashlist',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 20,
+        userListEnableChunkLoading: true,
+        userListChunkSize: 50,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+      const users: ChannelUser[] = Array.from({ length: 100 }, (_, i) => ({
+        nick: `User${String(i).padStart(3, '0')}`,
+        modes: [],
+      }));
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />,
+        );
+      });
+      const list = tree!.root.findAll(
+        (node: any) =>
+          node?.props && typeof node.props.onEndReached === 'function',
+      )[0];
+      expect(list).toBeTruthy();
+      await act(async () => {
+        list.props.onEndReached();
+      });
+      expect(tree!.toJSON()).not.toBeNull();
+    });
+  });
+
+  describe('remaining branch/handler coverage', () => {
+    it('clears the search via the clear (✕) button', async () => {
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      const searchInput = tree.root.findAllByType('TextInput')[0];
+      await act(async () => {
+        searchInput.props.onChangeText('alice');
+      });
+      const clearButton = tree.root
+        .findAll(
+          (node: any) => node?.props && typeof node.props.onPress === 'function',
+        )
+        .find((node: any) => {
+          try {
+            return node
+              .findAllByType('Text')
+              .some((t: any) => t.props?.children === '✕');
+          } catch {
+            return false;
+          }
+        });
+      expect(clearButton).toBeTruthy();
+      await act(async () => {
+        clearButton!.props.onPress();
+      });
+      expect(searchInput.props.value).toBe('');
+    });
+
+    it('cancels the note modal via its Cancel button', async () => {
+      const timeoutSpy = immediateTimeout();
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+      const cancelButton = findPressableByLabel(tree, 'Cancel');
+      expect(cancelButton).toBeTruthy();
+      await act(async () => {
+        cancelButton!.props.onPress();
+      });
+      // Note modal closed => its input is gone.
+      const noteInput = tree.root
+        .findAllByType('TextInput')
+        .find(
+          (i: any) => i.props?.placeholder === 'Enter note about this user',
+        );
+      expect(noteInput).toBeFalsy();
+      timeoutSpy.mockRestore();
+    });
+
+    it('invokes onUserPress when a user row is pressed', async () => {
+      const onUserPress = jest.fn();
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }], {
+        onUserPress,
+      });
+      const row = tree.root.findAll(
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
+      )[0];
+      expect(row).toBeTruthy();
+      await act(async () => {
+        row.props.onPress();
+      });
+      expect(onUserPress).toHaveBeenCalledWith(
+        expect.objectContaining({ nick: 'Alice' }),
+      );
+    });
+
+    it('resets stale feedback after a subsequent action', async () => {
+      // Use fake timers so the feedback-clearing effect stays pending (leaving
+      // actionMessage populated between the two actions, exercising the trailing
+      // `if (actionMessage) setTimeout(...)` reset branch) without leaking a real
+      // timer into sibling tests.
+      jest.useFakeTimers();
+      try {
+        const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+        await longPressFirstUser(tree);
+        await act(async () => {
+          await mockNickContextMenuProps.onAction('copy');
+        });
+        await act(async () => {
+          await mockNickContextMenuProps.onAction('give_voice');
+        });
+        expect(tree.toJSON()).not.toBeNull();
+      } finally {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    });
+
+    it('handles NFC share and receive failures after start', async () => {
+      const timeoutSpy = immediateTimeout();
+      const NfcManager = require('react-native-nfc-manager').default;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      NfcManager.isSupported.mockResolvedValue(true);
+      NfcManager.requestTechnology.mockRejectedValue(new Error('tech fail'));
+      encryptedDMService.exportBundlePayload.mockResolvedValue('payload');
+
+      const tree = await renderSimple([{ nick: 'Alice', modes: [] }]);
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      expect(NfcManager.cancelTechnologyRequest).toHaveBeenCalled();
+
+      NfcManager.requestTechnology.mockResolvedValue(undefined);
+      timeoutSpy.mockRestore();
+    });
+
+    it('invokes all modal dismiss handlers', async () => {
+      const timeoutSpy = immediateTimeout();
+      const camera = require('react-native-vision-camera');
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      camera.useCameraDevice.mockReturnValue({ id: 'back' });
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: true,
+        requestPermission: jest.fn(() => Promise.resolve(true)),
+      });
+      encryptedDMService.exportBundlePayload.mockResolvedValue('payload');
+
+      const tree = await renderSimple([
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ]);
+      await longPressFirstUser(tree);
+
+      // NickContextMenu onClose handler.
+      await act(async () => {
+        mockNickContextMenuProps.onClose();
+      });
+
+      await longPressFirstUser(tree);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      // Open the ban-mask and action pickers so their modals mount.
+      const maskPicker = findPressableByLabel(tree, '(2) *!ident@*');
+      await act(async () => {
+        maskPicker!.props.onPress();
+      });
+      const actionPicker = findPressableByLabel(tree, 'Ban');
+      await act(async () => {
+        actionPicker!.props.onPress();
+      });
+      // QR + scan modals.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+
+      const modals = tree.root.findAll(
+        (node: any) =>
+          node?.props && typeof node.props.onRequestClose === 'function',
+      );
+      expect(modals.length).toBeGreaterThan(0);
+      await act(async () => {
+        modals.forEach((m: any) => m.props.onRequestClose());
+      });
+      expect(tree.toJSON()).not.toBeNull();
+
+      camera.useCameraDevice.mockReturnValue(null);
+      camera.useCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+      timeoutSpy.mockRestore();
     });
   });
 });

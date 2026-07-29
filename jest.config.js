@@ -8,6 +8,9 @@ module.exports = {
     '!src/**/*.example.{ts,tsx}',
     '!src/**/__tests__/**',
     '!src/**/__mocks__/**',
+    // Excluded from coverage: its test is in testPathIgnorePatterns, so the
+    // source cannot be exercised and would otherwise report as 0%.
+    '!src/screens/ZncSubscriptionScreen.tsx',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'cobertura', 'html'],

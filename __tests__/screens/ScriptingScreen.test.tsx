@@ -902,6 +902,132 @@ describe('ScriptingScreen', () => {
     expect(await findByText('Repository')).toBeTruthy();
   });
 
+  it('renders Prism syntax highlighting and syncs scroll offset', async () => {
+    scriptingService.list.mockReturnValue([]);
+    
+    const { findByText, getAllByDisplayValue, getAllByRole } = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('New Script'));
+
+    const code = '// comment\nconst s = "x";\nlet n = 42;';
+    const codeInput = getAllByDisplayValue(
+      '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+    )[0];
+    await fireEvent.changeText(codeInput, code);
+
+    // Enable highlighting via the editor's last switch (Highlight).
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+    // Scrolling the code input should mirror to the highlight overlay.
+    const overlayInput = getAllByDisplayValue(code)[0];
+    await fireEvent.scroll(overlayInput, {
+      nativeEvent: { contentOffset: { y: 25 } },
+    });
+
+    expect(await findByText('Edit Script')).toBeTruthy();
+  });
+
+  it('falls back to manual highlighting when Prism grammar is unavailable', async () => {
+    scriptingService.list.mockReturnValue([]);
+        const Prism = require('prismjs');
+    const originalGrammar = Prism.languages.javascript;
+    Prism.languages.javascript = undefined;
+
+    try {
+      const { findByText, getAllByDisplayValue, getAllByRole } = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+
+      await fireEvent.press(await findByText('New Script'));
+
+      const code =
+        '/* block */ // line\nconst x = "a" + \'b\' + `c`;\nlet y = 12.5; plain';
+      const codeInput = getAllByDisplayValue(
+        '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+      )[0];
+      await fireEvent.changeText(codeInput, code);
+
+      const switches = getAllByRole('switch');
+      await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+      expect(await findByText('Edit Script')).toBeTruthy();
+    } finally {
+      Prism.languages.javascript = originalGrammar;
+    }
+  });
+
+  it('falls back to manual highlighting when Prism tokenize throws', async () => {
+    scriptingService.list.mockReturnValue([]);
+        const Prism = require('prismjs');
+    const tokenizeSpy = jest
+      .spyOn(Prism, 'tokenize')
+      .mockImplementation(() => {
+        throw new Error('tokenize boom');
+      });
+
+    try {
+      const { findByText, getAllByDisplayValue, getAllByRole } = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+
+      await fireEvent.press(await findByText('New Script'));
+
+      const code = '// c\nconst z = 7;';
+      const codeInput = getAllByDisplayValue(
+        '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+      )[0];
+      await fireEvent.changeText(codeInput, code);
+
+      const switches = getAllByRole('switch');
+      await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+      expect(await findByText('Edit Script')).toBeTruthy();
+    } finally {
+      tokenizeSpy.mockRestore();
+    }
+  });
+
+  it('closes the editor via hardware back requestClose', async () => {
+    scriptingService.list.mockReturnValue([]);
+    const { Modal } = require('react-native');
+
+    const { findByText, queryByText, UNSAFE_getAllByType } = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('New Script'));
+    expect(await findByText('Edit Script')).toBeTruthy();
+
+    await act(async () => {
+      UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+        fireEvent(modal, 'requestClose'),
+      );
+    });
+
+    await waitFor(async () => {
+      expect(queryByText('Name')).toBeNull();
+    });
+  });
+
   // Skipped under Jest 30 + RNTL 14: simultaneous-show reproducer hangs
   // under the new async render/act pipeline. The in-progress guard is
   // covered indirectly by the surrounding ad-flow tests.

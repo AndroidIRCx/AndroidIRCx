@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { QueryEncryptionMenu } from '../../src/components/QueryEncryptionMenu';
 
 const mockGetConnection = jest.fn();
@@ -125,7 +125,10 @@ jest.mock('react-native-vision-camera', () => ({
 }));
 
 jest.mock('react-native-vision-camera-barcode-scanner', () => ({
-  CodeScanner: () => null,
+  CodeScanner: (props: any) => {
+    (global as any).__scannerProps = props;
+    return null;
+  },
 }));
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
@@ -167,9 +170,31 @@ describe('QueryEncryptionMenu', () => {
   const sendRaw = jest.fn();
   const addMessage = jest.fn();
 
+  // The component defers its offline "Share Your Key?" prompt via
+  // setTimeout(fn, 500). Capture that callback instead of letting a real timer
+  // fire Alert.alert after the Jest env is torn down (which throws). Every other
+  // timer (e.g. RNTL waitFor internals) is delegated to the real implementation.
+  const deferredShareBackTimers: Array<() => void> = [];
+  const flushShareBackTimers = () => {
+    deferredShareBackTimers.splice(0).forEach(cb => cb());
+  };
+  let setTimeoutSpy: jest.SpyInstance | undefined;
+
   beforeEach(async () => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+    deferredShareBackTimers.length = 0;
+    const realSetTimeout = global.setTimeout;
+    setTimeoutSpy = jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation(((fn: any, delay?: number, ...args: any[]) => {
+        if (delay === 500) {
+          deferredShareBackTimers.push(() => fn(...args));
+          return 0 as any;
+        }
+        return (realSetTimeout as any)(fn, delay, ...args);
+      }) as any);
 
     const irc = {
       sendRaw,
@@ -224,6 +249,14 @@ describe('QueryEncryptionMenu', () => {
     mockNdefDecodePayload.mockReturnValue('payload-bundle');
     mockHasCameraPermission = true;
     mockRequestCameraPermission.mockResolvedValue('authorized');
+  });
+
+  afterEach(() => {
+    // Drop any deferred share-back callbacks that a test didn't flush so they
+    // can never fire after the environment is torn down, then restore setTimeout.
+    deferredShareBackTimers.length = 0;
+    setTimeoutSpy?.mockRestore();
+    setTimeoutSpy = undefined;
   });
 
   it('renders menu and closes', async () => {
@@ -588,5 +621,512 @@ describe('QueryEncryptionMenu', () => {
     await waitFor(async () => {
       expect(getByText('Failed to load fingerprints')).toBeTruthy();
     });
+  });
+
+  it('reacts to settings-change subscriptions toggling groups off', async () => {
+    const handlers: Record<string, (v: unknown) => void> = {};
+    mockOnSettingChange.mockImplementation(
+      (key: string, cb: (v: unknown) => void) => {
+        handlers[key] = cb;
+        return () => {};
+      },
+    );
+
+    const { queryByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockGetSetting).toHaveBeenCalledWith(
+        'securityAllowNfcExchange',
+        true,
+      ),
+    );
+    // Flush the async load() so its setState calls don't overwrite our toggles
+    await act(async () => {});
+    expect(queryByText('Scan QR Code')).toBeTruthy();
+
+    await act(async () => {
+      handlers.securityAllowQrVerification?.(false);
+      handlers.securityAllowFileExchange?.(false);
+      handlers.securityAllowNfcExchange?.(false);
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Scan QR Code')).toBeNull();
+      expect(queryByText('Import Key File')).toBeNull();
+      expect(queryByText('Share via NFC')).toBeNull();
+    });
+  });
+
+  it('shows fingerprint QR and handles generate failure', async () => {
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Show Fingerprint QR (Verify)'));
+    await waitFor(() => expect(getByText('Fingerprint QR')).toBeTruthy());
+
+    // Close the QR modal by pressing the overlay
+    await fireEvent.press(getByText('Fingerprint QR'));
+  });
+
+  it('shows share-key failure when export bundle rejects', async () => {
+    mockExportBundle.mockRejectedValue(new Error('nope'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Share DM Key'));
+    await waitFor(() => expect(getByText('Failed to share key')).toBeTruthy());
+  });
+
+  it('shows request-key timeout feedback', async () => {
+    mockAwaitBundleForNick.mockRejectedValue(new Error('timeout'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Request DM Key (36s)'));
+    await waitFor(() =>
+      expect(getByText('Key not received (timeout)')).toBeTruthy(),
+    );
+  });
+
+  it('shows request-key saved feedback on resolve', async () => {
+    mockAwaitBundleForNick.mockResolvedValue(undefined);
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Request DM Key (36s)'));
+    await waitFor(() => expect(getByText('Key saved for alice')).toBeTruthy());
+  });
+
+  it('shows generate-QR failure feedback for bundle QR', async () => {
+    mockExportBundlePayload.mockRejectedValue(new Error('bad'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Share Key Bundle QR'));
+    await waitFor(() =>
+      expect(getByText('Failed to generate QR')).toBeTruthy(),
+    );
+  });
+
+  it('shows share-key-file failure when write fails', async () => {
+    mockWriteFile.mockRejectedValue(new Error('io'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Share Key File'));
+    await waitFor(() =>
+      expect(getByText('Failed to share key file')).toBeTruthy(),
+    );
+  });
+
+  it('imports a copied file and cleans up the temp copy', async () => {
+    mockPick.mockResolvedValue([
+      { uri: 'content://orig', fileCopyUri: 'file:///cache/copy.json' },
+    ]);
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() => {
+      expect(mockReadFile).toHaveBeenCalledWith('/cache/copy.json', 'utf8');
+      expect(mockUnlink).toHaveBeenCalledWith('/cache/copy.json');
+    });
+  });
+
+  it('opens the camera scanner and processes a scanned payload', async () => {
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Scan QR Code'));
+    await waitFor(() =>
+      expect(getByText('Scan a fingerprint QR')).toBeTruthy(),
+    );
+
+    const props = (global as any).__scannerProps;
+    expect(props).toBeTruthy();
+    // Trigger a scanner error first
+    await props.onError(new Error('scan-broke'));
+    // Then a successful scan
+    await props.onBarcodeScanned([{ rawValue: 'scanned-code' }]);
+
+    await waitFor(() =>
+      expect(mockParseExternalPayload).toHaveBeenCalledWith('scanned-code'),
+    );
+  });
+
+  it('shows camera-open failure when permission request throws', async () => {
+    mockHasCameraPermission = false;
+    mockRequestCameraPermission.mockRejectedValue(new Error('boom'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Scan QR Code'));
+    await waitFor(() =>
+      expect(getByText('Failed to open camera')).toBeTruthy(),
+    );
+  });
+
+  it('imports a fingerprint payload and reports mismatch', async () => {
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-fingerprint',
+      fingerprint: 'zz99',
+      nick: 'alice',
+    });
+    mockGetBundleFingerprintForNetwork.mockResolvedValue('aa11');
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Fingerprint Check',
+        expect.any(String),
+        expect.any(Array),
+      ),
+    );
+  });
+
+  it('imports a fingerprint payload, marks verified on match', async () => {
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-fingerprint',
+      fingerprint: 'aa11',
+      nick: 'alice',
+    });
+    mockGetBundleFingerprintForNetwork.mockResolvedValue('aa11');
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Fingerprint Check',
+        expect.any(String),
+        expect.any(Array),
+      ),
+    );
+
+    const buttons = (Alert.alert as jest.Mock).mock.calls.slice(-1)[0][2];
+    const markVerified = buttons.find((b: any) => b.text === 'Mark Verified');
+    await markVerified.onPress();
+    expect(mockSetVerifiedForNetwork).toHaveBeenCalledWith(
+      'net-1',
+      'alice',
+      true,
+    );
+  });
+
+  it('imports a fingerprint payload with no stored key', async () => {
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-fingerprint',
+      fingerprint: 'aa11',
+      nick: 'alice',
+    });
+    mockGetBundleFingerprintForNetwork.mockResolvedValue(null);
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith('No Key', expect.any(String)),
+    );
+  });
+
+  it('imports a new bundle key, accepts it, and shows the share-back QR prompt', async () => {
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-bundle',
+      fingerprint: 'newfp',
+      bundle: { pub: 'x' },
+      nick: 'alice',
+    });
+    mockGetBundleFingerprintForNetwork.mockResolvedValue(null);
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Import DM Key',
+        expect.any(String),
+        expect.any(Array),
+      ),
+    );
+
+    const buttons = (Alert.alert as jest.Mock).mock.calls.find(
+      c => c[0] === 'Import DM Key',
+    )?.[2];
+    const accept = buttons.find((b: any) => b.text === 'Accept');
+    await accept.onPress();
+    expect(mockAcceptExternalBundleForNetwork).toHaveBeenCalledWith(
+      'net-1',
+      'alice',
+      { pub: 'x' },
+      false,
+    );
+
+    // The follow-up "Share Your Key?" prompt is deferred via setTimeout(…, 500);
+    // flush the captured callback so it runs during the test (not post-teardown).
+    flushShareBackTimers();
+    const shareBackPrompt = (Alert.alert as jest.Mock).mock.calls.find(
+      c => c[0] === 'Share Your Key?',
+    );
+    expect(shareBackPrompt).toBeTruthy();
+    const showQr = shareBackPrompt[2].find(
+      (b: any) => b.text === 'Show QR Code',
+    );
+    await showQr.onPress();
+    expect(mockExportBundlePayload).toHaveBeenCalled();
+  });
+
+  it('shows generate-QR failure feedback for fingerprint QR', async () => {
+    mockExportFingerprintPayload.mockRejectedValue(new Error('bad'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Show Fingerprint QR (Verify)'));
+    await waitFor(() =>
+      expect(getByText('Failed to generate QR')).toBeTruthy(),
+    );
+  });
+
+  it('renders the camera fallback when permission is granted but hook lacks it', async () => {
+    mockHasCameraPermission = false;
+    mockRequestCameraPermission.mockResolvedValue('granted');
+    const { getByText, getAllByText, queryByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Scan QR Code'));
+    await waitFor(() => expect(getByText('Camera unavailable')).toBeTruthy());
+
+    // Close the scan modal via the overlay close button (last "Close" on screen)
+    const closes = getAllByText('Close');
+    await fireEvent.press(closes[closes.length - 1]);
+    await waitFor(() => expect(queryByText('Camera unavailable')).toBeNull());
+  });
+
+  it('imports a changed bundle key and replaces it, then shows QR', async () => {
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-bundle',
+      fingerprint: 'newfp',
+      bundle: { pub: 'x' },
+      nick: 'alice',
+    });
+    mockGetBundleFingerprintForNetwork.mockResolvedValue('oldfp');
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Replace DM Key',
+        expect.any(String),
+        expect.any(Array),
+      ),
+    );
+
+    const replaceButtons = (Alert.alert as jest.Mock).mock.calls.slice(-1)[0][2];
+    const replace = replaceButtons.find((b: any) => b.text === 'Replace');
+    await replace.onPress();
+    expect(mockAcceptExternalBundleForNetwork).toHaveBeenCalledWith(
+      'net-1',
+      'alice',
+      { pub: 'x' },
+      true,
+    );
+  });
+
+  it('shows invalid-payload feedback when parsing throws', async () => {
+    mockParseExternalPayload.mockImplementation(() => {
+      throw new Error('bad payload');
+    });
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Import Key File'));
+    await waitFor(() =>
+      expect(getByText('Invalid key payload')).toBeTruthy(),
+    );
+  });
+
+  it('handles NFC share failure after supported check', async () => {
+    mockExportBundlePayload.mockRejectedValue(new Error('export fail'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Share via NFC'));
+    await waitFor(() =>
+      expect(getByText('Failed to share via NFC')).toBeTruthy(),
+    );
+  });
+
+  it('receives an NFC payload successfully', async () => {
+    mockNfcGetTag.mockResolvedValue({ ndefMessage: [{ payload: [1, 2, 3] }] });
+    mockNdefDecodePayload.mockReturnValue('nfc-payload');
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Receive via NFC'));
+    await waitFor(() =>
+      expect(mockParseExternalPayload).toHaveBeenCalledWith('nfc-payload'),
+    );
+  });
+
+  it('reports NFC unsupported when receiving', async () => {
+    mockNfcIsSupported.mockResolvedValue(false);
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Receive via NFC'));
+    await waitFor(() => expect(getByText('NFC not supported')).toBeTruthy());
+  });
+
+  it('reports failure to read NFC on error', async () => {
+    mockNfcGetTag.mockRejectedValue(new Error('read fail'));
+    const { getByText } = await render(
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
+    );
+
+    await fireEvent.press(getByText('Receive via NFC'));
+    await waitFor(() => expect(getByText('Failed to read NFC')).toBeTruthy());
+  });
+
+  it('falls back to the global ircService when no network prop', async () => {
+    const { getByText } = await render(
+      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" />,
+    );
+
+    await fireEvent.press(getByText('Verify DM Key'));
+    await waitFor(() => expect(mockGetVerificationStatus).toHaveBeenCalled());
   });
 });

@@ -179,4 +179,202 @@ describe('CommandService', () => {
       expect.any(String),
     );
   });
+
+  it('loads persisted aliases and custom commands during initialize', async () => {
+    AsyncStorage.__reset?.();
+    AsyncStorage.getItem.mockImplementation(async (key: string) => {
+      if (key === '@AndroidIRCX:commandAliases') {
+        return JSON.stringify([{ alias: 'foo', command: '/foo' }]);
+      }
+      if (key === '@AndroidIRCX:customCommands') {
+        return JSON.stringify([{ name: 'bar', command: '/bar' }]);
+      }
+      return null;
+    });
+
+    const s = new CommandService();
+    s.setIRCService({ sendRaw, getCurrentNick } as any);
+    await s.initialize();
+
+    expect(s.getAlias('foo')).toEqual(
+      expect.objectContaining({ command: '/foo' }),
+    );
+    expect(s.getCustomCommand('bar')).toEqual(
+      expect.objectContaining({ command: '/bar' }),
+    );
+  });
+
+  it('survives storage read errors during initialize', async () => {
+    AsyncStorage.__reset?.();
+    AsyncStorage.getItem.mockImplementation(async () => {
+      throw new Error('storage down');
+    });
+
+    const s = new CommandService();
+    s.setIRCService({ sendRaw, getCurrentNick } as any);
+    await expect(s.initialize()).resolves.toBeUndefined();
+
+    // Default aliases still get installed
+    expect(s.getAlias('j')).toBeTruthy();
+  });
+
+  it('shows usage message when /hop has no channel', async () => {
+    const result = await service.processCommand('/hop');
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Usage: /hop'),
+    );
+  });
+
+  it('/hop uses the current channel when first arg is a reason', async () => {
+    const result = await service.processCommand('/hop leaving now', '#cur');
+    expect(result).toBeNull();
+    expect(sendRaw).toHaveBeenNthCalledWith(1, 'PART #cur :leaving now');
+
+    jest.advanceTimersByTime(250);
+    expect(sendRaw).toHaveBeenNthCalledWith(2, 'JOIN #cur');
+  });
+
+  it('returns the command unchanged when an alias resolves to itself', async () => {
+    await service.addAlias({ alias: 'self', command: '/self' });
+    const result = await service.processCommand('/self');
+    expect(result).toBe('/self');
+  });
+
+  it('executes a non-quote custom command with placeholder substitution', async () => {
+    await service.addCustomCommand({
+      name: 'greet',
+      command: '/me greets {param} in {channel} as {nick}',
+      parameters: ['param'],
+    });
+
+    const result = await service.processCommand('/greet World', '#room');
+    expect(result).toBe('/me greets World in #room as TestNick');
+  });
+
+  it('resolves alias templates: channel, nick, param, and rest placeholders', async () => {
+    // {channel} taken from the current channel
+    expect(await service.processCommand('/zncplay', '#c1')).toBe(
+      '/znc playbuffer #c1',
+    );
+    // {channel} taken from args when no current channel
+    expect(await service.processCommand('/zncplay #foo')).toBe(
+      '/znc playbuffer #foo',
+    );
+    // {channel} resolves empty when neither current channel nor args exist
+    expect(await service.processCommand('/zncplay')).toBe('/znc playbuffer');
+    // {nick} taken from args when provided
+    expect(await service.processCommand('/oper bob secret')).toBe(
+      '/oper bob secret',
+    );
+    // {nick} falls back to the current nick, {password} resolves empty
+    expect(await service.processCommand('/nsghost')).toBe(
+      '/msg NickServ GHOST TestNick',
+    );
+
+    // {paramN} indexed placeholders
+    await service.addAlias({ alias: 'pp', command: '/foo {param2} {param1}' });
+    expect(await service.processCommand('/pp aa bb')).toBe('/foo bb aa aa bb');
+
+    // Generic placeholders: first consumes one arg, last joins the rest
+    await service.addAlias({ alias: 'xy', command: '/dest {a} {b}' });
+    expect(await service.processCommand('/xy 1 2 3')).toBe('/dest 1 2 3');
+  });
+
+  it('normalizes legacy history on read and honors the limit argument', () => {
+    (service as any).commandHistory = [{ command: '/legacy', timestamp: 1 }];
+
+    const history = service.getHistory(1);
+    expect(history).toHaveLength(1);
+    expect(history[0].id).toBeTruthy();
+  });
+
+  it('trims history to MAX_HISTORY entries', async () => {
+    for (let i = 0; i < 105; i++) {
+      await service.processCommand('/quote CMD' + i);
+    }
+    expect(service.getHistory().length).toBe(100);
+  });
+
+  it('manages aliases and custom commands (add/get/list/remove)', async () => {
+    await service.addAlias({ alias: 'xx', command: '/xxx', description: 'd' });
+    expect(service.getAlias('xx')).toEqual(
+      expect.objectContaining({ command: '/xxx' }),
+    );
+    expect(service.getAliases().some(a => a.alias === 'xx')).toBe(true);
+    await service.removeAlias('xx');
+    expect(service.getAlias('xx')).toBeUndefined();
+
+    await service.addCustomCommand({ name: 'cc', command: '/cc' });
+    expect(service.getCustomCommand('cc')).toEqual(
+      expect.objectContaining({ command: '/cc' }),
+    );
+    expect(service.getCustomCommands().some(c => c.name === 'cc')).toBe(true);
+    await service.removeCustomCommand('cc');
+    expect(service.getCustomCommand('cc')).toBeUndefined();
+  });
+
+  it('swallows storage write errors when saving aliases/commands/history', async () => {
+    AsyncStorage.setItem.mockRejectedValueOnce(new Error('x'));
+    await expect(
+      service.addAlias({ alias: 'z', command: '/zzz' }),
+    ).resolves.toBeUndefined();
+
+    AsyncStorage.setItem.mockRejectedValueOnce(new Error('x'));
+    await expect(
+      service.addCustomCommand({ name: 'cx', command: '/cx' }),
+    ).resolves.toBeUndefined();
+
+    AsyncStorage.setItem.mockRejectedValueOnce(new Error('x'));
+    await expect(
+      service.processCommand('/quote PING'),
+    ).resolves.toBeNull();
+  });
+
+  it('handles invalid certificate fingerprint for /certfp', async () => {
+    service.setCurrentNetworkCert('-----BEGIN CERTIFICATE-----TEST');
+    mockExtractFingerprintFromPem.mockReturnValue(null);
+
+    const result = await service.processCommand('/certfp');
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to extract'),
+    );
+  });
+
+  it('handles /certadd without a configured certificate', async () => {
+    const result = await service.processCommand('/certadd');
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('No certificate configured'),
+    );
+  });
+
+  it('handles invalid fingerprint for /certadd', async () => {
+    service.setCurrentNetworkCert('-----BEGIN CERTIFICATE-----TEST');
+    mockExtractFingerprintFromPem.mockReturnValue(null);
+
+    const result = await service.processCommand('/certadd Atheme');
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to send'),
+    );
+  });
+
+  it('shows an error for /ban without a channel', async () => {
+    const result = await service.processCommand('/ban badUser');
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('No channel specified'),
+    );
+  });
+
+  it('applies /ban except, invite, and quiet switches', async () => {
+    await service.processCommand('/ban -rbeiq #chan target 2 reason here', '#chan');
+
+    expect(sendRaw).toHaveBeenCalledWith('MODE #chan +b *!*@target');
+    expect(sendRaw).toHaveBeenCalledWith('MODE #chan +e *!*@target');
+    expect(sendRaw).toHaveBeenCalledWith('MODE #chan +I *!*@target');
+    expect(sendRaw).toHaveBeenCalledWith('MODE #chan +q *!*@target');
+  });
 });

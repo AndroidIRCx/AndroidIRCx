@@ -312,4 +312,293 @@ describe('AdRewardService', () => {
     expect(unsubscribeB).toHaveBeenCalled();
     createSpy.mockRestore();
   });
+
+  it('returns early when already initialized', async () => {
+    (adRewardService as any).initialized = true;
+    const loadSpy = jest
+      .spyOn(adRewardService as any, 'load')
+      .mockResolvedValue(undefined);
+    await adRewardService.initialize();
+    expect(loadSpy).not.toHaveBeenCalled();
+    loadSpy.mockRestore();
+  });
+
+  it('grants safety bonus during initialize when stored time is zero', async () => {
+    const { APP_VERSION } = require('../../src/config/appVersion');
+    mockStorage.set(
+      '@AndroidIRCX:scriptingTime',
+      JSON.stringify({ remainingMs: 0, lastUpdated: Date.now() }),
+    );
+    mockStorage.set('@AndroidIRCX:initialBonusGranted', 'true');
+    mockStorage.set('@AndroidIRCX:versionBonusApplied', APP_VERSION);
+    (adRewardService as any).initialized = false;
+
+    const setupSpy = jest
+      .spyOn(adRewardService as any, 'setupRewardedAd')
+      .mockImplementation(() => undefined);
+
+    await adRewardService.initialize();
+
+    // Safety bonus is 30 minutes because remaining time was 0
+    expect((adRewardService as any).remainingMs).toBe(30 * 60 * 1000);
+    setupSpy.mockRestore();
+  });
+
+  it('load() recovers with 1 hour on parse/read error', async () => {
+    // Invalid JSON forces JSON.parse to throw inside the try block
+    mockStorage.set('@AndroidIRCX:scriptingTime', 'not-valid-json{');
+    mockStorage.set('@AndroidIRCX:initialBonusGranted', 'true');
+    (adRewardService as any).remainingMs = 0;
+
+    await (adRewardService as any).load();
+
+    expect((adRewardService as any).remainingMs).toBe(60 * 60 * 1000);
+  });
+
+  it('applyVersionBonus swallows storage errors', async () => {
+    const AsyncStorageMock = require('@react-native-async-storage/async-storage').default;
+    AsyncStorageMock.getItem.mockRejectedValueOnce(new Error('read fail'));
+    await expect(
+      (adRewardService as any).applyVersionBonus(),
+    ).resolves.toBeUndefined();
+  });
+
+  it('save swallows storage errors', async () => {
+    const AsyncStorageMock = require('@react-native-async-storage/async-storage').default;
+    AsyncStorageMock.setItem.mockRejectedValueOnce(new Error('write fail'));
+    await expect((adRewardService as any).save()).resolves.toBeUndefined();
+  });
+
+  it('clears an existing load timeout when an ad error fires', () => {
+    const handlers: Record<string, Function> = {};
+    mockRewardedAd.addAdEventListener.mockImplementation(
+      (type: string, cb: Function) => {
+        handlers[type] = cb;
+        return jest.fn();
+      },
+    );
+    const handleSpy = jest
+      .spyOn(adRewardService as any, 'handleLoadError')
+      .mockImplementation(() => undefined);
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+
+    (adRewardService as any).setupRewardedAd();
+    (adRewardService as any).loadTimeoutId = setTimeout(() => undefined, 1000);
+
+    handlers[AdEventType.ERROR]?.({ code: 'boom', message: 'oops' });
+
+    expect((adRewardService as any).loadTimeoutId).toBeNull();
+    expect(handleSpy).toHaveBeenCalled();
+    handleSpy.mockRestore();
+  });
+
+  it('cleans up a pending initial load timeout and schedules a fresh one', () => {
+    mockRewardedAd.addAdEventListener.mockImplementation(() => jest.fn());
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+    const previous = setTimeout(() => undefined, 10000);
+    (adRewardService as any).initialLoadTimeoutId = previous;
+
+    (adRewardService as any).setupRewardedAd();
+
+    // cleanupAdListeners() clears the old timeout, then a fresh one is scheduled
+    expect((adRewardService as any).initialLoadTimeoutId).not.toBe(previous);
+    expect((adRewardService as any).initialLoadTimeoutId).not.toBeNull();
+  });
+
+  it('loadAd handles load() throwing synchronously', () => {
+    (adRewardService as any).adLoaded = false;
+    (adRewardService as any).adLoading = false;
+    (adRewardService as any).rewardedAd = mockRewardedAd;
+    (adRewardService as any).loadTimeoutId = setTimeout(() => undefined, 1000);
+
+    const handleSpy = jest
+      .spyOn(adRewardService as any, 'handleLoadError')
+      .mockImplementation(() => undefined);
+    mockRewardedAd.load.mockImplementationOnce(() => {
+      throw new Error('load fail');
+    });
+
+    (adRewardService as any).loadAd();
+
+    expect((adRewardService as any).adLoading).toBe(false);
+    expect((adRewardService as any).loadTimeoutId).toBeNull();
+    expect(handleSpy).toHaveBeenCalled();
+    handleSpy.mockRestore();
+  });
+
+  it('handleLoadError cools down and retries when all ad units fail', () => {
+    const setupSpy = jest
+      .spyOn(adRewardService as any, 'setupRewardedAd')
+      .mockImplementation(() => undefined);
+
+    (adRewardService as any).adsDisabled = false;
+    (adRewardService as any).consecutiveFailures = 0;
+    (adRewardService as any).maxRetries = 1;
+    (adRewardService as any).retryCount = 0;
+    (adRewardService as any).currentAdUnitIndex = 1; // last (fallback) unit
+    (adRewardService as any).lastError = { code: 'other', message: 'e' };
+
+    (adRewardService as any).handleLoadError();
+    expect((adRewardService as any).isInCooldown()).toBe(true);
+
+    jest.advanceTimersByTime(60001);
+    expect(setupSpy).toHaveBeenCalled();
+    expect((adRewardService as any).currentAdUnitIndex).toBe(0);
+    expect((adRewardService as any).cooldownEndTime).toBe(0);
+    setupSpy.mockRestore();
+  });
+
+  it('handleLoadError cooldown callback aborts when failures pile up', () => {
+    const setupSpy = jest
+      .spyOn(adRewardService as any, 'setupRewardedAd')
+      .mockImplementation(() => undefined);
+
+    (adRewardService as any).adsDisabled = false;
+    (adRewardService as any).consecutiveFailures = 0;
+    (adRewardService as any).maxRetries = 1;
+    (adRewardService as any).retryCount = 0;
+    (adRewardService as any).currentAdUnitIndex = 1;
+    (adRewardService as any).lastError = { code: 'other', message: 'e' };
+
+    (adRewardService as any).handleLoadError();
+    // Simulate hitting the hard failure ceiling before the cooldown elapses
+    (adRewardService as any).consecutiveFailures = 10;
+
+    jest.advanceTimersByTime(60001);
+    // Callback returned early, so no fresh setup happened
+    expect(setupSpy).not.toHaveBeenCalled();
+    setupSpy.mockRestore();
+  });
+
+  it('showRewardedAd timer bails out when ad already consumed', async () => {
+    (adRewardService as any).rewardedAd = mockRewardedAd;
+    (adRewardService as any).adLoaded = true;
+    const loadSpy = jest
+      .spyOn(adRewardService as any, 'loadAd')
+      .mockImplementation(() => undefined);
+
+    await expect(adRewardService.showRewardedAd()).resolves.toBe(true);
+
+    // Ad got consumed elsewhere before the 5s timer fires
+    (adRewardService as any).adLoaded = false;
+    jest.advanceTimersByTime(5001);
+    expect(loadSpy).not.toHaveBeenCalled();
+    loadSpy.mockRestore();
+  });
+
+  it('exposes ready/loading/cooldown getters', () => {
+    (adRewardService as any).adLoaded = true;
+    (adRewardService as any).adLoading = true;
+    expect(adRewardService.isAdReady()).toBe(true);
+    expect(adRewardService.isAdLoading()).toBe(true);
+
+    (adRewardService as any).cooldownEndTime = Date.now() + 5000;
+    expect(adRewardService.getCooldownRemaining()).toBeGreaterThan(0);
+  });
+
+  it('returns unlimited-scripting values from time getters', () => {
+    mockHasUnlimitedScripting.mockReturnValue(true);
+    expect(adRewardService.getRemainingTime()).toBe(999 * 60 * 60 * 1000);
+  });
+
+  it('formats remaining time and reports availability without unlimited scripting', () => {
+    mockHasUnlimitedScripting.mockReturnValue(false);
+    (adRewardService as any).remainingMs = 2 * 60 * 1000; // 2 minutes
+
+    expect(adRewardService.getRemainingTimeFormatted()).toBe('2m 0s');
+    expect(adRewardService.hasAvailableTime()).toBe(true);
+
+    (adRewardService as any).remainingMs = 0;
+    expect(adRewardService.hasAvailableTime()).toBe(false);
+  });
+
+  it('formats remaining time with hours', () => {
+    mockHasUnlimitedScripting.mockReturnValue(false);
+    (adRewardService as any).remainingMs = 60 * 60 * 1000 + 5 * 60 * 1000;
+    expect(adRewardService.getRemainingTimeFormatted()).toBe('1h 5m');
+  });
+
+  it('startUsageTracking enables no-ads mode without countdown for unlimited users', () => {
+    mockHasUnlimitedScripting.mockReturnValue(true);
+    (adRewardService as any).usageInterval = null;
+    (adRewardService as any).remainingMs = 1000;
+
+    adRewardService.startUsageTracking();
+    expect(adRewardService.isTracking()).toBe(true);
+
+    jest.advanceTimersByTime(2000);
+    // Dummy interval is a no-op: time is not decremented
+    expect((adRewardService as any).remainingMs).toBe(1000);
+    mockHasUnlimitedScripting.mockReturnValue(false);
+  });
+
+  it('stops tracking when user upgrades to unlimited mid-session', () => {
+    mockHasUnlimitedScripting.mockReturnValue(false);
+    (adRewardService as any).usageInterval = null;
+    (adRewardService as any).remainingMs = 5000;
+
+    adRewardService.startUsageTracking();
+    expect(adRewardService.isTracking()).toBe(true);
+
+    mockHasUnlimitedScripting.mockReturnValue(true);
+    jest.advanceTimersByTime(1001);
+    expect(adRewardService.isTracking()).toBe(false);
+    mockHasUnlimitedScripting.mockReturnValue(false);
+  });
+
+  it('stops tracking when remaining time is exhausted', () => {
+    mockHasUnlimitedScripting.mockReturnValue(false);
+    (adRewardService as any).usageInterval = null;
+    (adRewardService as any).remainingMs = 0;
+
+    adRewardService.startUsageTracking();
+    expect(adRewardService.isTracking()).toBe(true);
+
+    jest.advanceTimersByTime(1001);
+    expect(adRewardService.isTracking()).toBe(false);
+  });
+
+  it('covers fallback ad-unit, personalized-ads and default-reward branches', () => {
+    const { consentService } = require('../../src/services/ConsentService');
+    consentService.canShowPersonalizedAds.mockReturnValue(true);
+    (RewardedAd.createForAdRequest as jest.Mock).mockReturnValue(mockRewardedAd);
+
+    const handlers: Record<string, Function> = {};
+    mockRewardedAd.addAdEventListener.mockImplementation(
+      (type: string, cb: Function) => {
+        handlers[type] = cb;
+        return jest.fn();
+      },
+    );
+    const loadSpy = jest
+      .spyOn(adRewardService as any, 'loadAd')
+      .mockImplementation(() => undefined);
+    const handleSpy = jest
+      .spyOn(adRewardService as any, 'handleLoadError')
+      .mockImplementation(() => undefined);
+
+    // Use the fallback ad unit so 'Fallback' placement branches are hit
+    (adRewardService as any).currentAdUnitIndex = 1;
+    (adRewardService as any).setupRewardedAd();
+
+    // LOADED handler on the fallback unit
+    handlers[RewardedAdEventType.LOADED]?.();
+    expect((adRewardService as any).adLoaded).toBe(true);
+
+    // EARNED_REWARD with a falsy amount falls back to the default 60 minutes
+    const before = (adRewardService as any).remainingMs;
+    handlers[RewardedAdEventType.EARNED_REWARD]?.({ amount: 0, type: 'coins' });
+    expect((adRewardService as any).remainingMs).toBe(before + 60 * 60 * 1000);
+
+    // ERROR with no code/message exercises the ?? fallbacks
+    handlers[AdEventType.ERROR]?.({});
+    expect((adRewardService as any).lastError.code).toBe('unknown');
+
+    // getAdStatus reports the fallback unit type
+    expect(adRewardService.getAdStatus().adUnitType).toBe('Fallback');
+
+    consentService.canShowPersonalizedAds.mockReturnValue(false);
+    loadSpy.mockRestore();
+    handleSpy.mockRestore();
+  });
 });
