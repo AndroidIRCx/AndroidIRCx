@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.9.38",
+  "version": "1.9.39",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -118,16 +118,16 @@
     "flatted": "3.4.2",
     "yaml": "2.8.3",
     "picomatch": "4.0.4",
-    "postcss": "8.5.15",
+    "postcss": "8.5.18",
     "uuid": "14.0.0",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/runtime": "7.29.7",
     "@babel/plugin-transform-modules-systemjs": "7.29.7",
     "@protobufjs/utf8": "1.1.1",
-    "protobufjs": "7.6.4",
-    "js-yaml": "4.2.0",
-    "shell-quote": "1.8.4",
+    "protobufjs": "7.6.5",
+    "js-yaml": "4.3.0",
+    "shell-quote": "1.9.0",
     "form-data": "4.0.6",
     "@grpc/grpc-js": "1.9.16"
   }

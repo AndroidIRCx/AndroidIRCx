@@ -78,6 +78,14 @@ jest.mock('../../src/services/ConnectionManager', () => ({
   },
 }));
 
+jest.mock('../../src/services/ChannelManagementService', () => ({
+  channelManagementService: mockChannelManagementService,
+}));
+
+jest.mock('../../src/services/IRCService', () => ({
+  ircService: mockIrcService,
+}));
+
 jest.mock('../../src/services/ChannelEncryptionService', () => ({
   channelEncryptionService: mockChannelEncryptionService,
 }));
@@ -126,6 +134,7 @@ jest.mock('../../src/components/ColorPickerModal', () => ({
 const {
   ChannelSettingsScreen,
 } = require('../../src/screens/ChannelSettingsScreen');
+const { connectionManager } = require('../../src/services/ConnectionManager');
 
 const submitPromptWithTargetNick: typeof Alert.prompt = (
   _title,
@@ -516,5 +525,435 @@ describe('ChannelSettingsScreen', () => {
     });
 
     await findByText('⚠ No encryption key');
+  });
+
+  it('appends a topic style without a <TOPIC> placeholder', async () => {
+    mockSettingsService.getSetting.mockImplementation(
+      (key: string, fallback: unknown) => {
+        if (key === 'topicStyleId') return Promise.resolve('** prefix');
+        if (key === 'topicStyles') return Promise.resolve(['** prefix']);
+        return Promise.resolve(fallback);
+      },
+    );
+
+    const { findByDisplayValue, getByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await fireEvent.changeText(
+      await findByDisplayValue('Current topic'),
+      'Updated topic',
+    );
+    await fireEvent.press(getByText('Set Topic'));
+    expect(mockChannelManagementService.setTopic).toHaveBeenCalledWith(
+      '#chat',
+      '** prefix Updated topic',
+    );
+  });
+
+  it('normalizes mojibake styles and reacts to channel info changes', async () => {
+    mockSettingsService.getSetting.mockImplementation(
+      (key: string, fallback: unknown) => {
+        if (key === 'topicStyleId') return Promise.resolve('cleanid');
+        if (key === 'topicStyles') return Promise.resolve(['cleanstyle']);
+        return Promise.resolve(fallback);
+      },
+    );
+
+    await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(async () => {
+      expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
+        'topicStyleId',
+        'cleanid',
+      );
+      expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
+        'topicStyles',
+        ['cleanstyle'],
+      );
+    });
+
+    const changeCallback =
+      mockChannelManagementService.onChannelInfoChange.mock.calls.at(-1)?.[0];
+    expect(changeCallback).toBeDefined();
+
+    await act(async () => {
+      changeCallback?.('#chat', {
+        topic: 'Changed topic',
+        modes: { key: 'newkey', limit: 7 },
+      });
+      // Non-matching channel should be ignored
+      changeCallback?.('#other', {
+        topic: 'ignored',
+        modes: {},
+      });
+    });
+  });
+
+  it('toggles the remaining channel modes and refreshes via timeout', async () => {
+    const { findAllByRole } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    const switches = await findAllByRole('switch');
+    await fireEvent(switches[2], 'valueChange', true); // n -> '-n'
+    await fireEvent(switches[3], 'valueChange', true); // m -> '+m'
+    await fireEvent(switches[4], 'valueChange', true); // p -> '+p'
+    await fireEvent(switches[5], 'valueChange', true); // s -> '-s'
+
+    expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
+      '#chat',
+      '-n',
+      undefined,
+    );
+    expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
+      '#chat',
+      '+m',
+      undefined,
+    );
+    expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
+      '#chat',
+      '+p',
+      undefined,
+    );
+    expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
+      '#chat',
+      '-s',
+      undefined,
+    );
+
+    // Allow the deferred MODE refresh (setTimeout 500ms) to run.
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 600));
+    });
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('MODE #chat');
+  });
+
+  it('removes exceptions and invite exceptions and refreshes lists', async () => {
+    const { findAllByText, getByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    // Remove buttons order: ban[0], exception[1], invite[2]
+    const removeButtons = await findAllByText('Remove');
+    await fireEvent.press(removeButtons[1]);
+    expect(mockChannelManagementService.removeException).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@friend.host',
+    );
+
+    const removeButtonsAfter = await findAllByText('Remove');
+    await fireEvent.press(removeButtonsAfter[2]);
+    expect(mockChannelManagementService.removeInvite).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@invite.host',
+    );
+
+    await fireEvent.press(getByText('Refresh Ban List'));
+    await fireEvent.press(getByText('Refresh Exception List'));
+    await fireEvent.press(getByText('Refresh Invite List'));
+    expect(mockChannelManagementService.requestBanList).toHaveBeenCalled();
+    expect(
+      mockChannelManagementService.requestExceptionList,
+    ).toHaveBeenCalled();
+    expect(mockChannelManagementService.requestInviteList).toHaveBeenCalled();
+  });
+
+  it('disables always-encrypt and surfaces toggle errors', async () => {
+    mockChannelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(
+      true,
+    );
+
+    const { findAllByRole } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    const switches = await findAllByRole('switch');
+    await fireEvent(switches[6], 'valueChange', false);
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Success',
+        'Always-encrypt disabled for #chat',
+      );
+    });
+
+    mockChannelEncryptionSettingsService.setAlwaysEncrypt.mockRejectedValueOnce(
+      new Error('boom'),
+    );
+    await fireEvent(switches[6], 'valueChange', true);
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'boom');
+    });
+  });
+
+  it('enables always-encrypt when a key already exists', async () => {
+    mockChannelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(
+      false,
+    );
+    mockChannelEncryptionService.hasChannelKey.mockResolvedValue(true);
+
+    const { findAllByRole } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    const switches = await findAllByRole('switch');
+    await fireEvent(switches[6], 'valueChange', true);
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Success',
+        'Always-encrypt enabled for #chat',
+      );
+    });
+  });
+
+  it('refreshes key status after generating a key', async () => {
+    mockChannelEncryptionService.hasChannelKey.mockResolvedValue(false);
+
+    const { findByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('Generate Key'));
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 600));
+    });
+    expect(mockChannelEncryptionService.hasChannelKey).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes key status after removing a key via the timeout path', async () => {
+    mockChannelEncryptionService.hasChannelKey.mockResolvedValue(true);
+
+    const { findAllByText, findByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await findByText('Share Key with...');
+    const removeKeyButtons = await findAllByText('Remove Key');
+    await fireEvent.press(removeKeyButtons[removeKeyButtons.length - 1]);
+    const removeButton = getLastAlertButton('Remove');
+    await act(async () => {
+      await removeButton.onPress?.();
+      await new Promise(resolve => setTimeout(resolve, 600));
+    });
+    expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+      '#chat',
+      '/chankey remove',
+    );
+  });
+
+  it('shows an error when key generation throws', async () => {
+    mockChannelEncryptionService.hasChannelKey.mockResolvedValue(false);
+    mockIrcService.sendMessage.mockImplementationOnce(() => {
+      throw new Error('send failed');
+    });
+
+    const { findByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('Generate Key'));
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'send failed');
+  });
+
+  it('selects a topic style, closes the picker and dismisses the color picker', async () => {
+    const { findByText, findAllByText, getByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('Select Topic Style'));
+    await fireEvent.press(await findByText('~~ Current topic'));
+    await waitFor(async () => {
+      expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
+        'topicStyleId',
+        '~~ <TOPIC>',
+      );
+    });
+
+    // Re-open and close the selector without choosing.
+    await fireEvent.press(getByText('Select Topic Style'));
+    const selectCloses = await findAllByText('Close');
+    await fireEvent.press(selectCloses[selectCloses.length - 1]);
+
+    // Color picker dismiss path via the editor.
+    await fireEvent.press(getByText('Manage Topic Styles'));
+    await fireEvent.press(await findByText('Add style'));
+    await fireEvent.press(getByText('Colors'));
+    await fireEvent.press(await findByText('Close Color Picker'));
+  });
+
+  it('ignores empty topic style edits and removes managed styles', async () => {
+    mockChannelManagementService.getChannelInfo.mockReturnValue({
+      ...mockChannelInfo,
+      modes: {
+        ...mockChannelInfo.modes,
+        banList: [],
+        exceptionList: [],
+        inviteList: [],
+      },
+    });
+
+    const { findByText, findByPlaceholderText, findAllByText, getByText } =
+      await render(
+        <ChannelSettingsScreen
+          channel="#chat"
+          network="net1"
+          visible
+          onClose={jest.fn()}
+        />,
+      );
+
+    // Empty-list branches render.
+    expect(await findByText('No bans')).toBeTruthy();
+    expect(await findByText('No exceptions')).toBeTruthy();
+    expect(await findByText('No invite exceptions')).toBeTruthy();
+
+    await fireEvent.press(getByText('Manage Topic Styles'));
+    await fireEvent.press(await findByText('Add style'));
+    await fireEvent.changeText(
+      await findByPlaceholderText('Use <TOPIC>'),
+      '   ',
+    );
+    await fireEvent.press(getByText('Save'));
+    // Editor stays open because empty values are ignored.
+    expect(await findByPlaceholderText('Use <TOPIC>')).toBeTruthy();
+    await fireEvent.press(getByText('Cancel'));
+
+    // With empty channel lists, the only Remove buttons are the style ones.
+    await fireEvent.press(getByText('Manage Topic Styles'));
+    const removeButtons = await findAllByText('Remove');
+    await fireEvent.press(removeButtons[0]);
+    await waitFor(async () => {
+      expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
+        'topicStyles',
+        expect.any(Array),
+      );
+    });
+    const manageCloses = await findAllByText('Close');
+    await fireEvent.press(manageCloses[manageCloses.length - 1]);
+  });
+
+  it('falls back to singleton services when the connection is missing', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    const originalImpl =
+      connectionManager.getConnection.getMockImplementation();
+    connectionManager.getConnection.mockReturnValue(undefined);
+
+    try {
+      await render(
+        <ChannelSettingsScreen
+          channel="#chat"
+          network="net-missing"
+          visible
+          onClose={jest.fn()}
+        />,
+      );
+
+      await waitFor(async () => {
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('net-missing'),
+        );
+        expect(mockIrcService.sendCommand).toHaveBeenCalledWith('MODE #chat');
+      });
+    } finally {
+      connectionManager.getConnection.mockImplementation(originalImpl);
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('handles hardware back requestClose on nested modals', async () => {
+    const { Modal } = require('react-native');
+    const onClose = jest.fn();
+    const { UNSAFE_getAllByType, findByText, getByText } = await render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={onClose}
+      />,
+    );
+
+    // Open the manage-topic-styles modal, then request-close it.
+    await fireEvent.press(await findByText('Manage Topic Styles'));
+    await findByText('Topic Styles');
+    await act(async () => {
+      UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+        fireEvent(modal, 'requestClose'),
+      );
+    });
+
+    // Open the select-topic-style modal, then request-close it.
+    await fireEvent.press(getByText('Select Topic Style'));
+    await act(async () => {
+      UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+        fireEvent(modal, 'requestClose'),
+      );
+    });
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders nothing and skips loading when channel is empty', async () => {
+    const { queryByText } = await render(
+      <ChannelSettingsScreen
+        channel=""
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+    expect(queryByText('Channel Settings')).toBeNull();
+    expect(mockChannelManagementService.getChannelInfo).not.toHaveBeenCalled();
   });
 });

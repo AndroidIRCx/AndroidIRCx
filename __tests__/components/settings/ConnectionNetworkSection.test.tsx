@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Alert } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { Alert, AppState, Switch, TextInput } from 'react-native';
+import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { ConnectionNetworkSection } from '../../../src/components/settings/sections/ConnectionNetworkSection';
 import { pick, isErrorWithCode } from '@react-native-documents/picker';
 
@@ -278,6 +278,18 @@ describe('ConnectionNetworkSection', () => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Reset mock implementations
+    mockSettingsGet.mockImplementation(async (_k: string, d: any) => d);
+    mockSettingsLoadNetworks.mockImplementation(async () => [
+      { id: 'net1', name: 'Libera.Chat' },
+      { id: 'net2', name: 'OFTC' },
+    ]);
+    const pickerModule = require('@react-native-documents/picker');
+    (pick as jest.Mock).mockResolvedValue([]);
+    pickerModule.pickDirectory.mockResolvedValue(null);
+    (isErrorWithCode as jest.Mock).mockReturnValue(false);
+    mockUpdateRateLimitConfig.mockResolvedValue(undefined);
+    mockUpdateFloodProtectionConfig.mockResolvedValue(undefined);
+    mockUpdateLagMonitoringConfig.mockResolvedValue(undefined);
     mockBiometricIsAvailable.mockResolvedValue(true);
     mockBiometricEnableLock.mockResolvedValue(true);
     mockBiometricAuthenticate.mockResolvedValue({ success: true });
@@ -1622,5 +1634,1031 @@ describe('ConnectionNetworkSection', () => {
       [{ text: 'OK' }],
     );
     expect(mockSetShowIRCv3Info).not.toHaveBeenCalled();
+  });
+
+  it('shows IRCv3 diagnostics safety alert when no network is selected', async () => {
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-ircv3-diagnostics')).toBe(true),
+    );
+    mockCapturedItems.get('connection-ircv3-diagnostics').onPress();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'IRCv3 Diagnostics',
+      'Select or connect a network before opening IRCv3 diagnostics.',
+      [{ text: 'OK' }],
+    );
+  });
+
+  it('loads existing global proxy settings into the proxy submenu', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'globalProxy')
+        return {
+          enabled: true,
+          type: 'http',
+          host: 'proxy.internal',
+          port: 8080,
+          username: 'u',
+          password: 'p',
+        };
+      return def;
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        mockCapturedItems.get('connection-global-proxy')?.description,
+      ).toContain('proxy.internal'),
+    );
+  });
+
+  it('re-locks passwords when the app returns to the foreground', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'biometricPasswordLock') return true;
+      return def;
+    });
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true),
+    );
+
+    const addCalls = (AppState.addEventListener as jest.Mock).mock.calls;
+    const appStateHandler = addCalls[addCalls.length - 1][1];
+
+    await act(async () => {
+      await appStateHandler('background');
+    });
+    await act(async () => {
+      await appStateHandler('active');
+    });
+
+    // Password lock is active, so the unlock item should be present
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+  });
+
+  it('handles quick connect network load failure gracefully', async () => {
+    mockSettingsLoadNetworks.mockRejectedValue(new Error('load fail'));
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('quick-connect-network')).toBe(true),
+    );
+
+    await act(async () => {
+      await mockCapturedItems.get('quick-connect-network').onPress();
+    });
+
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
+  });
+
+  it('warns when the folder picker returns nothing usable', async () => {
+    const pickerModule = require('@react-native-documents/picker');
+    pickerModule.pickDirectory.mockResolvedValue(null);
+    (pick as jest.Mock).mockResolvedValue({});
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
+
+    const dcc = mockCapturedItems.get('connection-dcc');
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-download-folder')
+      .onPress();
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Download Folder',
+      'Folder picker is not supported on this device.',
+    );
+  });
+
+  it('cycles through DCC auto-get mode, chat-from and get-from options', async () => {
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
+
+    const dcc = mockCapturedItems.get('connection-dcc');
+
+    // Auto-get mode: press Accept and Don't send
+    dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-mode').onPress();
+    let call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('Auto-Get Mode'),
+    );
+    await call?.[2]?.find((b: any) => b.text === 'Accept')?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes("Don't send"))
+      ?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetMode', 'accept');
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetMode', 'dont_send');
+
+    // Auto chat from: 1, 3, 4
+    dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-chat-from').onPress();
+    call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('Auto Accept Chat'),
+    );
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('1 - Always'))
+      ?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('3 - Ops'))
+      ?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('4 - Auto Op'))
+      ?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoChatFrom', 1);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoChatFrom', 3);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoChatFrom', 4);
+
+    // Auto get from: 1, 2, 4
+    dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-from').onPress();
+    call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('Auto Accept Gets'),
+    );
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('1 - Always'))
+      ?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('2 - Friends'))
+      ?.onPress?.();
+    await call?.[2]
+      ?.find((b: any) => String(b.text).includes('4 - Auto Op'))
+      ?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetFrom', 1);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetFrom', 2);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetFrom', 4);
+  });
+
+  it('computes non-default DCC labels from loaded settings', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'dccAutoGetMode') return 'dont_send';
+      if (key === 'dccAutoChatFrom') return 2;
+      if (key === 'dccAutoGetFrom') return 3;
+      return def;
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
+    const dcc = mockCapturedItems.get('connection-dcc');
+    const chat = dcc.submenuItems.find(
+      (x: any) => x.id === 'dcc-auto-chat-from',
+    );
+    const get = dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-from');
+    expect(chat.description).toContain('2 - Friends');
+    expect(get.description).toContain('3 - Ops');
+  });
+
+  it('enables DCC block private IP protection without warning', async () => {
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
+
+    const dcc = mockCapturedItems.get('connection-dcc');
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-block-private-ip')
+      .onValueChange(true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccBlockPrivateIp', true);
+  });
+
+  it('selects the server ping lag check method', async () => {
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
+
+    const quality = mockCapturedItems.get('connection-quality');
+    const lag = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-lag-monitoring',
+    );
+    lag.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-method')
+      .onPress();
+    const call = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('Lag Check Method'),
+    );
+    await call?.[2]?.find((b: any) => b.text === 'Server Ping')?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('lagCheckMethod', 'server');
+  });
+
+  it('uses the default auto-voice config when none exists', async () => {
+    const autoVoice =
+      require('../../../src/services/AutoVoiceService').autoVoiceService;
+    autoVoice.getConfig.mockReturnValueOnce(null).mockReturnValueOnce(null);
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net1"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-auto-voice')).toBe(true),
+    );
+
+    const av = mockCapturedItems.get('channel-auto-voice');
+    av.submenuItems
+      .find((x: any) => x.id === 'auto-voice-enabled')
+      .onValueChange(true);
+    expect(mockAutoVoiceSetConfig).toHaveBeenCalled();
+  });
+
+  it('syncs WHOIS auto-detect off with an active connection', async () => {
+    const setWhoisUseDoubleNick = jest.fn();
+    mockConnectionGet.mockReturnValue({
+      ircService: { setWhoisUseDoubleNick },
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net1"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-whois-auto-detect')).toBe(true),
+    );
+
+    await mockCapturedItems
+      .get('connection-whois-auto-detect')
+      .onValueChange(false);
+    expect(mockUpdateNetwork).toHaveBeenCalled();
+    expect(setWhoisUseDoubleNick).toHaveBeenCalled();
+  });
+
+  it('shows an alert when enabling biometric lock fails', async () => {
+    mockBiometricIsAvailable.mockResolvedValue(true);
+    mockBiometricEnableLock.mockResolvedValue(false);
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true),
+    );
+
+    await mockCapturedItems
+      .get('connection-biometric-lock')
+      .onValueChange(true);
+    expect(Alert.alert).toHaveBeenCalledWith(
+      expect.stringContaining('Biometric setup failed'),
+      expect.any(String),
+    );
+  });
+
+  it('unlocks passwords via biometric authentication', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'biometricPasswordLock') return true;
+      return def;
+    });
+    mockBiometricIsAvailable.mockResolvedValue(true);
+    mockBiometricAuthenticate.mockResolvedValue({ success: true });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+
+    await act(async () => {
+      await mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+    expect(mockBiometricAuthenticate).toHaveBeenCalled();
+  });
+
+  it('shows an alert when biometric unlock fails and there is no PIN fallback', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'biometricPasswordLock') return true;
+      return def;
+    });
+    mockBiometricIsAvailable.mockResolvedValue(true);
+    mockBiometricAuthenticate.mockResolvedValue({
+      success: false,
+      errorMessage: 'bad finger',
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+
+    await act(async () => {
+      await mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Authentication failed',
+      'bad finger',
+    );
+  });
+
+  it('shows an alert when biometric is enabled but unavailable at unlock', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'biometricPasswordLock') return true;
+      return def;
+    });
+    mockBiometricIsAvailable.mockResolvedValue(false);
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+
+    await act(async () => {
+      await mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Biometrics unavailable',
+      expect.any(String),
+    );
+  });
+
+  it('renders the connection quality modal and navigates nested rate limiting', async () => {
+    const { getByTestId, getByText, UNSAFE_getAllByType } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-quality'));
+    fireEvent.press(getByTestId('setting-connection-quality'));
+
+    await waitFor(() => expect(getByText('Rate Limiting')).toBeTruthy());
+    fireEvent.press(getByText('Rate Limiting'));
+
+    await waitFor(() => expect(getByText('Enable Rate Limiting')).toBeTruthy());
+
+    const switches = UNSAFE_getAllByType(Switch);
+    await act(async () => {
+      fireEvent(switches[0], 'valueChange', true);
+    });
+    const inputs = UNSAFE_getAllByType(TextInput);
+    await act(async () => {
+      fireEvent.changeText(inputs[0], '9');
+    });
+
+    // Navigate back out of the nested submenu
+    fireEvent.press(getByText('←'));
+    await waitFor(() =>
+      expect(getByText('Connection Statistics')).toBeTruthy(),
+    );
+
+    fireEvent.press(getByText('Connection Statistics'));
+    expect(
+      (Alert.alert as jest.Mock).mock.calls.some((c: any[]) =>
+        String(c[0]).includes('Connection Statistics'),
+      ),
+    ).toBe(true);
+  });
+
+  it('renders the proxy submenu and picks a proxy type from the modal', async () => {
+    const { getByTestId, getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-global-proxy'));
+    fireEvent.press(getByTestId('setting-connection-global-proxy'));
+
+    await waitFor(() => expect(getByText('Proxy Type')).toBeTruthy());
+
+    // Successful modal input change (covers the refresh-on-success path)
+    await act(async () => {
+      fireEvent.changeText(
+        getByPlaceholderText('proxy.example.com'),
+        'ok.example.com',
+      );
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ host: 'ok.example.com' }),
+    );
+
+    fireEvent.press(getByText('Proxy Type'));
+
+    await waitFor(() => expect(getByText('SOCKS4')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('SOCKS4'));
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ type: 'socks4' }),
+    );
+  });
+
+  it('renders the quick connect modal and selects a network', async () => {
+    const { getByTestId, getByText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-quick-connect-network'));
+    await act(async () => {
+      fireEvent.press(getByTestId('setting-quick-connect-network'));
+    });
+
+    await waitFor(() => expect(getByText('Use Default')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('OFTC'));
+    });
+    expect(mockSetQuickConnect).toHaveBeenCalledWith('net2');
+  });
+
+  it('renders the quick connect modal and resets to default', async () => {
+    const { getByTestId, getByText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-quick-connect-network'));
+    await act(async () => {
+      fireEvent.press(getByTestId('setting-quick-connect-network'));
+    });
+
+    await waitFor(() => expect(getByText('Use Default')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('Use Default'));
+    });
+    expect(mockSetQuickConnect).toHaveBeenCalledWith(null);
+  });
+
+  it('adds and removes a DCC reject-list extension via the modal', async () => {
+    const { getByTestId, getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-dcc'));
+    fireEvent.press(getByTestId('setting-connection-dcc'));
+
+    await waitFor(() => expect(getByText('File type filters')).toBeTruthy());
+    fireEvent.press(getByText('File type filters'));
+
+    await waitFor(() => expect(getByText('Reject list')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('Reject list'));
+    });
+
+    await waitFor(() => expect(getByText('Add')).toBeTruthy());
+    await act(async () => {
+      fireEvent.changeText(
+        getByPlaceholderText('Add extension (e.g. *.zip)'),
+        '*.foo',
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Add'));
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccRejectExts',
+      expect.arrayContaining(['*.foo']),
+    );
+
+    // Remove the default 'exe' entry
+    await act(async () => {
+      fireEvent.press(getByText('exe'));
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccRejectExts',
+      expect.not.arrayContaining(['exe']),
+    );
+  });
+
+  it('adds a DCC accept-list and dont-send-list extension via the modal', async () => {
+    const openList = async (utils: any, listTitle: string) => {
+      fireEvent.press(utils.getByTestId('setting-connection-dcc'));
+      await waitFor(() =>
+        expect(utils.getByText('File type filters')).toBeTruthy(),
+      );
+      fireEvent.press(utils.getByText('File type filters'));
+      await waitFor(() => expect(utils.getByText(listTitle)).toBeTruthy());
+      await act(async () => {
+        fireEvent.press(utils.getByText(listTitle));
+      });
+      await waitFor(() => expect(utils.getByText('Add')).toBeTruthy());
+    };
+
+    const utils = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() => utils.getByTestId('setting-connection-dcc'));
+
+    await openList(utils, 'Accept list');
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByPlaceholderText('Add extension (e.g. *.zip)'),
+        '*.zip2',
+      );
+    });
+    await act(async () => {
+      fireEvent.press(utils.getByText('Add'));
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccAcceptExts',
+      expect.arrayContaining(['*.zip2']),
+    );
+
+    // Close the ext modal, reopen for the don't-send list
+    await act(async () => {
+      fireEvent.press(utils.getAllByText('Close')[0]);
+    });
+    await openList(utils, "Don't send list");
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByPlaceholderText('Add extension (e.g. *.zip)'),
+        '*.bat2',
+      );
+    });
+    await act(async () => {
+      fireEvent.press(utils.getByText('Add'));
+    });
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccDontSendExts',
+      expect.arrayContaining(['*.bat2']),
+    );
+  });
+
+  it('sets up a PIN lock and then unlocks with it', async () => {
+    const { getByTestId, getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-pin-lock'));
+
+    // Enable PIN lock -> opens the PIN setup modal
+    await act(async () => {
+      mockCapturedItems.get('connection-pin-lock').onValueChange(true);
+    });
+
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '1234');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+
+    await waitFor(() =>
+      expect(getByPlaceholderText('Re-enter PIN')).toBeTruthy(),
+    );
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Re-enter PIN'), '1234');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Confirm'));
+    });
+
+    expect(mockSecureStorageSetSecret).toHaveBeenCalled();
+    expect(mockSettingsSet).toHaveBeenCalledWith('pinPasswordLock', true);
+
+    // Now unlock using the stored PIN
+    mockSecureStorageGetSecret.mockResolvedValue('1234');
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+    // Do not await: onPress resolves only once the PIN modal is submitted below
+    await act(async () => {
+      mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '1234');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+    expect(mockSecureStorageGetSecret).toHaveBeenCalled();
+  });
+
+  it('validates PIN setup length and confirmation mismatch', async () => {
+    const { getByTestId, getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-pin-lock'));
+    await act(async () => {
+      mockCapturedItems.get('connection-pin-lock').onValueChange(true);
+    });
+
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    // Too short
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '12');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+    expect(getByText('PIN must be at least 4 digits.')).toBeTruthy();
+
+    // Valid setup, then mismatched confirmation
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '4321');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+    await waitFor(() =>
+      expect(getByPlaceholderText('Re-enter PIN')).toBeTruthy(),
+    );
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Re-enter PIN'), '9999');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Confirm'));
+    });
+    expect(getByText('PINs do not match.')).toBeTruthy();
+  });
+
+  it('reports when no PIN is set during unlock', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'pinPasswordLock') return true;
+      return def;
+    });
+    mockSecureStorageGetSecret.mockResolvedValue(null);
+
+    const { getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+    // Do not await: onPress resolves only once the PIN modal is submitted below
+    await act(async () => {
+      mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '1234');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+    expect(getByText('No PIN is set.')).toBeTruthy();
+  });
+
+  it('disables PIN lock and unlocks passwords when toggled off', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'pinPasswordLock') return true;
+      return def;
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-pin-lock')).toBe(true),
+    );
+
+    await act(async () => {
+      await mockCapturedItems.get('connection-pin-lock').onValueChange(false);
+    });
+    expect(mockSecureStorageRemoveSecret).toHaveBeenCalled();
+    expect(mockSettingsSet).toHaveBeenCalledWith('pinPasswordLock', false);
+  });
+
+  it('rejects an incorrect PIN during unlock', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'pinPasswordLock') return true;
+      return def;
+    });
+    mockSecureStorageGetSecret.mockResolvedValue('1111');
+
+    const { getByText, getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+    await act(async () => {
+      mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Enter PIN'), '2222');
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Submit'));
+    });
+    expect(getByText('Incorrect PIN.')).toBeTruthy();
+  });
+
+  it('falls back from biometric to PIN unlock when both are enabled', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'biometricPasswordLock') return true;
+      if (key === 'pinPasswordLock') return true;
+      return def;
+    });
+    mockBiometricIsAvailable.mockResolvedValue(true);
+    mockBiometricAuthenticate.mockResolvedValue({ success: false });
+
+    const { getByPlaceholderText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-unlock-passwords')).toBe(true),
+    );
+    await act(async () => {
+      mockCapturedItems.get('connection-unlock-passwords').onPress();
+    });
+
+    // Biometric failed but PIN is enabled, so the PIN modal should appear
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+    expect(mockBiometricAuthenticate).toHaveBeenCalled();
+  });
+
+  it('computes the remaining DCC label branches', async () => {
+    mockSettingsGet.mockImplementation(async (key: string, def: any) => {
+      if (key === 'dccAutoGetMode') return 'reject';
+      if (key === 'dccAutoChatFrom') return 3;
+      if (key === 'dccAutoGetFrom') return 4;
+      return def;
+    });
+
+    await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
+    const dcc = mockCapturedItems.get('connection-dcc');
+    expect(
+      dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-chat-from')
+        .description,
+    ).toContain('3 - Ops');
+    expect(
+      dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-from')
+        .description,
+    ).toContain('4 - Auto Op');
+    expect(
+      dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-mode')
+        .description,
+    ).toContain('Reject');
+  });
+
+  it('logs errors thrown by submenu switch and input handlers', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockUpdateRateLimitConfig.mockRejectedValue(new Error('boom'));
+
+    const {
+      getByTestId,
+      getByText,
+      getByPlaceholderText,
+      UNSAFE_getAllByType,
+    } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-quality'));
+    fireEvent.press(getByTestId('setting-connection-quality'));
+    await waitFor(() => expect(getByText('Rate Limiting')).toBeTruthy());
+    fireEvent.press(getByText('Rate Limiting'));
+    await waitFor(() => expect(getByText('Enable Rate Limiting')).toBeTruthy());
+
+    const switches = UNSAFE_getAllByType(Switch);
+    await act(async () => {
+      fireEvent(switches[0], 'valueChange', true);
+    });
+
+    expect(errSpy).toHaveBeenCalledWith(
+      'Error updating setting:',
+      expect.any(Error),
+    );
+
+    // Also exercise the input handler catch path via a proxy field
+    mockSettingsSet.mockRejectedValueOnce(new Error('write fail'));
+    fireEvent.press(getByTestId('setting-connection-global-proxy'));
+    await waitFor(() =>
+      expect(getByPlaceholderText('proxy.example.com')).toBeTruthy(),
+    );
+    await act(async () => {
+      fireEvent.changeText(
+        getByPlaceholderText('proxy.example.com'),
+        'bad.host',
+      );
+    });
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
+  });
+
+  it('dismisses the quick connect modal via its Close control', async () => {
+    const { getByTestId, getByText, queryByText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-quick-connect-network'));
+    await act(async () => {
+      fireEvent.press(getByTestId('setting-quick-connect-network'));
+    });
+    await waitFor(() => expect(getByText('Use Default')).toBeTruthy());
+
+    await act(async () => {
+      fireEvent.press(getByText('Close'));
+    });
+    await waitFor(() => expect(queryByText('Use Default')).toBeNull());
+  });
+
+  it('dismisses the proxy type modal via its Close control', async () => {
+    const { getByTestId, getByText, queryByText } = await render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+
+    await waitFor(() => getByTestId('setting-connection-global-proxy'));
+    fireEvent.press(getByTestId('setting-connection-global-proxy'));
+    await waitFor(() => expect(getByText('Proxy Type')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('Proxy Type'));
+    });
+    await waitFor(() => expect(getByText('SOCKS4')).toBeTruthy());
+
+    await act(async () => {
+      fireEvent.press(getByText('Close'));
+    });
+    await waitFor(() => expect(queryByText('SOCKS4')).toBeNull());
+  });
+
+  it('cancels the PIN setup modal', async () => {
+    const { getByTestId, getByText, getByPlaceholderText, queryByText } =
+      await render(
+        <ConnectionNetworkSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+        />,
+      );
+
+    await waitFor(() => getByTestId('setting-connection-pin-lock'));
+    await act(async () => {
+      mockCapturedItems.get('connection-pin-lock').onValueChange(true);
+    });
+    await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
+
+    await act(async () => {
+      fireEvent.press(getByText('Cancel'));
+    });
+    await waitFor(() => expect(queryByText('Set PIN')).toBeNull());
   });
 });

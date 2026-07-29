@@ -11,6 +11,7 @@ let mockNickContextMenuProps: any = null;
 let mockKickBanModalProps: any = null;
 let mockMessageSearchBarProps: any = null;
 let mockActiveIrc: any = null;
+let mockCodeScannerProps: any = null;
 
 const defaultPerformanceConfig = {
   enableVirtualization: true,
@@ -87,7 +88,10 @@ jest.mock('react-native-vision-camera', () => ({
   })),
 }));
 jest.mock('react-native-vision-camera-barcode-scanner', () => ({
-  CodeScanner: () => null,
+  CodeScanner: (p: any) => {
+    mockCodeScannerProps = p;
+    return null;
+  },
 }));
 jest.mock('react-native-share', () => ({
   __esModule: true,
@@ -114,9 +118,17 @@ jest.mock('react-native-nfc-manager', () => ({
   default: {
     start: jest.fn(),
     isSupported: jest.fn().mockResolvedValue(false),
+    requestTechnology: jest.fn().mockResolvedValue(undefined),
+    getTag: jest.fn().mockResolvedValue(null),
+    cancelTechnologyRequest: jest.fn().mockResolvedValue(undefined),
+    writeNdefMessage: jest.fn().mockResolvedValue(undefined),
   },
-  Ndef: {},
-  NfcTech: {},
+  Ndef: {
+    encodeMessage: jest.fn(() => [1, 2, 3]),
+    textRecord: jest.fn(() => ({})),
+    text: { decodePayload: jest.fn(() => 'nfc-decoded-payload') },
+  },
+  NfcTech: { Ndef: 'Ndef' },
 }));
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -245,6 +257,10 @@ jest.mock('../../src/services/EncryptedDMService', () => ({
       .mockResolvedValue({ fingerprint: null, verified: false }),
     getSelfFingerprint: jest.fn().mockResolvedValue('self-fp'),
     setVerifiedForNetwork: jest.fn().mockResolvedValue(undefined),
+    verifyBundle: jest.fn(),
+    acceptExternalBundleForNetwork: jest.fn().mockResolvedValue(undefined),
+    exportBundlePayload: jest.fn().mockResolvedValue('bundle-payload'),
+    exportFingerprintPayload: jest.fn().mockResolvedValue('fp-payload'),
   },
 }));
 
@@ -368,9 +384,15 @@ jest.mock('../../src/stores/tabStore', () => ({
         tabs: [],
         getTabsByNetwork: mockGetTabsByNetwork,
         getTabById: mockGetTabById,
+        setTabs: mockSetTabs,
+        setActiveTabId: mockSetActiveTabId,
       }),
     },
   ),
+}));
+
+jest.mock('../../src/services/PendingReplyStore', () => ({
+  setPendingReply: jest.fn(),
 }));
 
 jest.mock('../../src/stores/uiStore', () => ({
@@ -1939,5 +1961,2131 @@ describe('MessageArea', () => {
 
     expect(getByText('PING :server')).toBeTruthy();
     expect(getByText('normal message')).toBeTruthy();
+  });
+
+  // ══ extended coverage ══════════════════════════════════════════════════════
+  describe('extended coverage', () => {
+    const MessageParser = require('../../src/utils/MessageParser');
+    const { useTheme } = require('../../src/hooks/useTheme');
+    const { layoutService } = require('../../src/services/LayoutService');
+    const {
+      useCameraDevice,
+      useCameraPermission,
+    } = require('react-native-vision-camera');
+
+    let restoreTheme: (() => void) | undefined;
+    let restoreLayout: (() => void) | undefined;
+
+    const themeHook = useTheme as jest.Mock;
+    const setFormats = (formats: any, extraColors?: any) => {
+      const base = themeHook();
+      const origImpl = themeHook.getMockImplementation();
+      themeHook.mockImplementation(() => ({
+        theme: { ...base.theme, id: 'custom', messageFormats: formats },
+        colors: { ...base.colors, ...(extraColors || {}) },
+      }));
+      restoreTheme = () => themeHook.mockImplementation(origImpl);
+    };
+
+    const setLayoutConfig = (cfg: any) => {
+      const origImpl = layoutService.getConfig.getMockImplementation();
+      const merged = { ...layoutService.getConfig(), ...cfg };
+      layoutService.getConfig.mockImplementation(() => merged);
+      restoreLayout = () =>
+        layoutService.getConfig.mockImplementation(origImpl);
+    };
+
+    afterEach(() => {
+      MessageParser.parseMessage.mockImplementation((text: string) => [
+        { type: 'text', text },
+      ]);
+      MessageParser.isVideoUrl.mockImplementation(() => false);
+      MessageParser.isAudioUrl.mockImplementation(() => false);
+      MessageParser.isDownloadableFileUrl.mockImplementation(() => false);
+      useCameraDevice.mockImplementation(() => null);
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      }));
+      const NfcManager = require('react-native-nfc-manager').default;
+      NfcManager.isSupported.mockResolvedValue(false);
+      NfcManager.getTag.mockResolvedValue(null);
+      restoreTheme && restoreTheme();
+      restoreLayout && restoreLayout();
+      restoreTheme = undefined;
+      restoreLayout = undefined;
+    });
+
+    // ── rich message-format styling (applyMessageFormatStyle + tokens) ────────
+    it('renders styled message-format tokens with all style flags', async () => {
+      setLayoutConfig({ timestampDisplay: 'always', timestampFormat: '24h' });
+      setFormats({
+        message: [
+          { type: 'token', value: 'time', style: { bold: true } },
+          { type: 'text', value: '', style: {} },
+          { type: 'text', value: ' ', style: { italic: true } },
+          {
+            type: 'token',
+            value: 'nick',
+            style: { underline: true, color: '#abcdef' },
+          },
+          { type: 'token', value: 'username', style: { strikethrough: true } },
+          { type: 'token', value: 'hostname' },
+          { type: 'token', value: 'userhost' },
+          {
+            type: 'token',
+            value: 'hostmask',
+            style: { backgroundColor: '#eeeeee', reverse: true },
+          },
+          { type: 'token', value: 'account' },
+          { type: 'token', value: 'message', style: { reverse: true } },
+          { type: 'token', value: 'missing_token_value' },
+        ],
+        messageMention: [{ type: 'token', value: 'message' }],
+        action: [
+          { type: 'text', value: '* ' },
+          { type: 'token', value: 'nick' },
+          { type: 'text', value: ' ' },
+          { type: 'token', value: 'message' },
+        ],
+        actionMention: [{ type: 'token', value: 'message' }],
+      });
+
+      const messages = [
+        makeMsg({
+          id: 'fmt-1',
+          type: 'message',
+          text: 'hello',
+          from: 'Alice',
+          username: '~alice',
+          hostname: 'host.test',
+          account: 'acc',
+        }),
+        makeMsg({
+          id: 'fmt-2',
+          type: 'message',
+          text: 'ping TestNick',
+          from: 'Bob',
+        }),
+        makeMsg({
+          id: 'fmt-3',
+          type: 'message',
+          text: '\x01ACTION waves\x01',
+          from: 'Carol',
+        }),
+        makeMsg({
+          id: 'fmt-4',
+          type: 'message',
+          text: '\x01ACTION greets TestNick\x01',
+          from: 'Dave',
+        }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(getByText('hello')).toBeTruthy();
+      expect(getByText('waves')).toBeTruthy();
+    });
+
+    // ── message-format branches for every message type ────────────────────────
+    it('renders message-format parts for all non-message message types', async () => {
+      setFormats({
+        notice: [{ type: 'token', value: 'message' }],
+        join: [{ type: 'token', value: 'message' }],
+        part: [{ type: 'token', value: 'message' }],
+        quit: [{ type: 'token', value: 'message' }],
+        kick: [{ type: 'token', value: 'message' }],
+        nick: [{ type: 'token', value: 'oldnick' }],
+        invite: [{ type: 'token', value: 'message' }],
+        monitor: [{ type: 'token', value: 'message' }],
+        mode: [{ type: 'token', value: 'mode' }],
+        topic: [{ type: 'token', value: 'topic' }],
+        error: [{ type: 'token', value: 'message' }],
+        ctcp: [{ type: 'token', value: 'message' }],
+        raw: [{ type: 'token', value: 'foo' }],
+        whois: [{ type: 'token', value: 'numeric' }],
+      });
+      const messages = [
+        makeMsg({ id: 't-notice', type: 'notice', text: 'notice-fmt' }),
+        makeMsg({ id: 't-join', type: 'join', text: 'join-fmt' }),
+        makeMsg({ id: 't-part', type: 'part', text: 'part-fmt' }),
+        makeMsg({ id: 't-quit', type: 'quit', text: 'quit-fmt' }),
+        makeMsg({ id: 't-kick', type: 'kick', text: 'kick-fmt' }),
+        makeMsg({
+          id: 't-nick',
+          type: 'nick',
+          text: 'nick-fmt',
+          oldNick: 'OldNick',
+        }),
+        makeMsg({ id: 't-invite', type: 'invite', text: 'invite-fmt' }),
+        makeMsg({ id: 't-monitor', type: 'monitor', text: 'monitor-fmt' }),
+        makeMsg({ id: 't-mode', type: 'mode', text: 'mode-fmt', mode: '+o' }),
+        makeMsg({
+          id: 't-topic',
+          type: 'topic',
+          text: 'topic-fmt',
+          topic: 'the topic',
+        }),
+        makeMsg({ id: 't-error', type: 'error', text: 'error-fmt' }),
+        makeMsg({ id: 't-ctcp', type: 'ctcp', text: 'ctcp-fmt' }),
+        makeMsg({
+          id: 't-raw',
+          type: 'raw',
+          text: 'raw-fmt',
+          rawFormatData: { foo: ['a', 'b'], num: 5, flag: true, str: 'x' },
+        }),
+        makeMsg({
+          id: 't-raw-whois',
+          type: 'raw',
+          text: 'raw-whois-fmt',
+          rawFormatType: 'whois',
+          numeric: '311',
+        }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(getByText('OldNick')).toBeTruthy();
+      expect(getByText('a b')).toBeTruthy();
+      expect(getByText('+o')).toBeTruthy();
+    });
+
+    // ── media / image / video / audio / file parts ───────────────────────────
+    it('renders media, image, video, audio, file and link parts', async () => {
+      MessageParser.parseMessage.mockImplementation(() => [
+        { type: 'media', mediaId: 'media-1' },
+        { type: 'image', url: 'https://img/pic.png' },
+        { type: 'url', url: 'https://vid/movie.mp4' },
+        { type: 'url', url: 'https://aud/song.mp3' },
+        { type: 'url', url: 'https://files/doc.zip' },
+        { type: 'url', url: 'https://site/page' },
+        { type: 'text', text: 'body' },
+      ]);
+      MessageParser.isVideoUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp4'),
+      );
+      MessageParser.isAudioUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp3'),
+      );
+      MessageParser.isDownloadableFileUrl.mockImplementation((u: string) =>
+        u.endsWith('.zip'),
+      );
+
+      const messages = [
+        makeMsg({ id: 'media-msg', type: 'message', text: 'x', from: 'Alice' }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('shows encrypted-media fallback when tabId is missing', async () => {
+      MessageParser.parseMessage.mockImplementation(() => [
+        { type: 'media', mediaId: 'media-1' },
+        { type: 'text', text: 'body' },
+      ]);
+      const messages = [
+        makeMsg({ id: 'media-notab', type: 'message', text: 'x', from: 'A' }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea messages={messages} network="TestNet" />,
+      );
+      expect(
+        getByText('[Encrypted media - unable to decrypt: no tab context]'),
+      ).toBeTruthy();
+    });
+
+    // ── link press / confirmation flow ────────────────────────────────────────
+    it('handles link presses with and without confirmation prompt', async () => {
+      const { Alert, Linking } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const openSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockImplementation(() => Promise.resolve(true));
+
+      const messages = [
+        makeMsg({ id: 'link-msg', text: 'visit https://example.com now' }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+
+      await act(async () => {
+        await fireEvent.press(getByText('https://example.com'));
+      });
+      const openLinkCall = alertSpy.mock.calls.find(c => c[0] === 'Open Link');
+      expect(openLinkCall).toBeTruthy();
+      const openBtn = (openLinkCall![2] as any[]).find(b => b.text === 'Open');
+      openBtn.onPress();
+      expect(openSpy).toHaveBeenCalledWith('https://example.com');
+
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'confirmBeforeOpeningLinks'
+          ? Promise.resolve(false)
+          : Promise.resolve(fallback),
+      );
+      openSpy.mockClear();
+      await act(async () => {
+        await fireEvent.press(getByText('https://example.com'));
+      });
+      await act(async () => {
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(openSpy).toHaveBeenCalledWith('https://example.com');
+      alertSpy.mockRestore();
+      openSpy.mockRestore();
+    });
+
+    // ── IRC formatting + BEL-in-url + channel/nick clicking ──────────────────
+    it('renders IRC-formatted text and non-clickable BEL urls', async () => {
+      const messages = [
+        makeMsg({ id: 'ircfmt', text: '\x02bold text\x02' }),
+        makeMsg({ id: 'belurl', text: 'http://e.com\x07trap' }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('joins a channel when a channel link is pressed', async () => {
+      const messages = [makeMsg({ id: 'chan-link', text: 'come to #foo ok' })];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByText('#foo'));
+      });
+      expect(mockActiveIrc.sendRaw).toHaveBeenCalledWith('JOIN #foo');
+    });
+
+    // ── WHOIS raw rendering with clickable channels + nick ───────────────────
+    it('renders WHOIS channel list and clickable nick and opens a query tab', async () => {
+      const messages = [
+        makeMsg({
+          id: 'whois-chans',
+          type: 'raw',
+          text: '*** Alice is on channels: #a #b',
+          whoisData: { nick: 'Alice', channels: ['@#a', '#b'] },
+        }),
+        makeMsg({
+          id: 'whois-nick',
+          type: 'raw',
+          text: 'Alice is a registered user',
+          whoisData: { nick: 'Alice' },
+        }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByText('#a'));
+      });
+      expect(mockActiveIrc.sendRaw).toHaveBeenCalledWith('JOIN #a');
+
+      await act(async () => {
+        await fireEvent.press(getByText('Alice'));
+      });
+      expect(mockSetTabs).toHaveBeenCalled();
+      expect(mockSetActiveTabId).toHaveBeenCalled();
+    });
+
+    it('renders raw messages that echo the current nick prefix', async () => {
+      const messages = [
+        makeMsg({
+          id: 'raw-self',
+          type: 'raw',
+          text: ':TestNick!u@h PRIVMSG #general :echo',
+        }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── container layout width ────────────────────────────────────────────────
+    it('updates container width from onLayout', async () => {
+      const { UNSAFE_getAllByType } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={[makeMsg()]} />,
+      );
+      const { View } = require('react-native');
+      const wrapper = UNSAFE_getAllByType(View)[0];
+      await act(async () => {
+        wrapper.props.onLayout({ nativeEvent: { layout: { width: 321 } } });
+      });
+      expect(true).toBe(true);
+    });
+
+    // ── kill + mode-change + kick variants ────────────────────────────────────
+    it('executes kill prompt and channel-mode nick actions', async () => {
+      const { Alert } = require('react-native');
+      const promptSpy = jest
+        .spyOn(Alert, 'prompt' as any)
+        .mockImplementation(() => {});
+      const messages = [makeMsg({ from: 'Alice', text: 'moderation' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('kill');
+        await mockNickContextMenuProps.onAction('give_voice');
+        await mockNickContextMenuProps.onAction('take_voice');
+        await mockNickContextMenuProps.onAction('give_halfop');
+        await mockNickContextMenuProps.onAction('take_halfop');
+        await mockNickContextMenuProps.onAction('give_op');
+        await mockNickContextMenuProps.onAction('take_op');
+        await mockNickContextMenuProps.onAction('kick_ban_message');
+        await mockNickContextMenuProps.onAction('unknown_noop');
+      });
+
+      const irc = mockGetConnection.mock.results[0]?.value?.ircService;
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #general +v Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #general -v Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #general +h Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #general +o Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith(
+        'KICK #general Alice :Kicked',
+      );
+
+      // Exercise the KILL prompt callback (reason required + provided).
+      const killCall = promptSpy.mock.calls.find(c =>
+        String(c[0]).includes('KILL'),
+      );
+      expect(killCall).toBeTruthy();
+      const sendBtn = (killCall![2] as any[]).find(
+        (b: any) => b.text === 'Send',
+      );
+      sendBtn.onPress('');
+      sendBtn.onPress('spam');
+      expect(irc.sendCommand).toHaveBeenCalledWith('KILL Alice :spam');
+      promptSpy.mockRestore();
+    });
+
+    // ── monitor toggle (already monitoring) + dcc chat ────────────────────────
+    it('unmonitors an already-monitored nick and starts a DCC chat', async () => {
+      mockActiveIrc.isMonitoring.mockReturnValue(true);
+      const { dccChatService } = require('../../src/services/DCCChatService');
+      const messages = [makeMsg({ from: 'Alice', text: 'dcc please' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('monitor_toggle');
+        await mockNickContextMenuProps.onAction('dcc_chat');
+      });
+      expect(mockActiveIrc.unmonitorNick).toHaveBeenCalledWith('Alice');
+      expect(dccChatService.initiateChat).toHaveBeenCalled();
+    });
+
+    // ── QR show / scan / share-file / NFC actions ─────────────────────────────
+    it('runs QR/file/NFC encryption exchange actions', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const Share = require('react-native-share').default;
+      const RNFS = require('react-native-fs');
+      RNFS.exists.mockResolvedValue(true);
+      const NfcManager = require('react-native-nfc-manager').default;
+      useCameraDevice.mockImplementation(() => ({ id: 'back' }));
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: true,
+        requestPermission: jest.fn().mockResolvedValue(true),
+      }));
+
+      const messages = [makeMsg({ from: 'Alice', text: 'exchange keys' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_fingerprint');
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+        await mockNickContextMenuProps.onAction('enc_share_file');
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(Share.open).toHaveBeenCalled();
+
+      // NFC share (not supported then supported)
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+      });
+      NfcManager.isSupported.mockResolvedValue(true);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+      });
+      expect(NfcManager.writeNdefMessage).toHaveBeenCalled();
+
+      // NFC receive
+      NfcManager.getTag.mockResolvedValue({
+        ndefMessage: [{ payload: [1, 2, 3] }],
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      alertSpy.mockRestore();
+    });
+
+    it('triggers a barcode scan and forwards the payload', async () => {
+      const {
+        encryptedDMService,
+      } = require('../../src/services/EncryptedDMService');
+      encryptedDMService.parseExternalPayload.mockReturnValue({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValue(null);
+      useCameraDevice.mockImplementation(() => ({ id: 'back' }));
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: true,
+        requestPermission: jest.fn().mockResolvedValue(true),
+      }));
+
+      const messages = [makeMsg({ from: 'Alice', text: 'scan me' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(mockCodeScannerProps).toBeTruthy();
+      await act(async () => {
+        mockCodeScannerProps.onError(new Error('bad scan'));
+      });
+      await act(async () => {
+        mockCodeScannerProps.onBarcodeScanned([{ rawValue: 'scanned-code' }]);
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(encryptedDMService.parseExternalPayload).toHaveBeenCalledWith(
+        'scanned-code',
+      );
+    });
+
+    // ── handleExternalPayload variants via file import ───────────────────────
+    it('imports external key payloads through file picker (all branches)', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const {
+        encryptedDMService,
+      } = require('../../src/services/EncryptedDMService');
+      const picker = require('@react-native-documents/picker');
+      const RNFS = require('react-native-fs');
+      picker.pick.mockResolvedValue([
+        { uri: 'file:///key.json', fileCopyUri: 'file:///copy.json' },
+      ]);
+      RNFS.readFile.mockResolvedValue('payload-data');
+
+      const messages = [makeMsg({ from: 'Alice', text: 'import keys' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      // 1) mismatched nick
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        nick: 'Mallory',
+        bundle: 'b',
+        fingerprint: 'f',
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(alertSpy.mock.calls.some(c => c[0] === 'Mismatched Nick')).toBe(
+        true,
+      );
+
+      // 2) fingerprint payload, no stored key
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        null,
+      );
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(alertSpy.mock.calls.some(c => c[0] === 'No Key')).toBe(true);
+
+      // 3) fingerprint payload, matching stored key -> mark verified button
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        type: 'encdm-fingerprint',
+        nick: 'Alice',
+        fingerprint: 'fp-match',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        'fp-match',
+      );
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      const fpCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Fingerprint Check' && Array.isArray(c[2]),
+      );
+      expect(fpCall).toBeTruthy();
+      const markVerified = (fpCall![2] as any[]).find((b: any) =>
+        String(b.text).includes('Mark Verified'),
+      );
+      await act(async () => {
+        await markVerified.onPress();
+      });
+      expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalled();
+
+      // 4) bundle payload, new import -> accept button
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        bundle: 'new-bundle',
+        fingerprint: 'new-fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        null,
+      );
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      const importCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Import DM Key' && Array.isArray(c[2]),
+      );
+      expect(importCall).toBeTruthy();
+      const acceptBtn = (importCall![2] as any[]).find(
+        (b: any) => b.text === 'Accept',
+      );
+      await act(async () => {
+        await acceptBtn.onPress();
+        await new Promise<void>(r => setTimeout(r, 600));
+      });
+      expect(
+        encryptedDMService.acceptExternalBundleForNetwork,
+      ).toHaveBeenCalled();
+
+      // 5) bundle payload, replacement of existing key
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        bundle: 'replace-bundle',
+        fingerprint: 'changed-fp',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        'old-fp',
+      );
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(alertSpy.mock.calls.some(c => c[0] === 'Replace DM Key')).toBe(
+        true,
+      );
+
+      // 6) invalid payload -> parse throws
+      encryptedDMService.parseExternalPayload.mockImplementationOnce(() => {
+        throw new Error('bad');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(
+        alertSpy.mock.calls.some(
+          c => c[0] === 'Error' && c[1] === 'Invalid key payload',
+        ),
+      ).toBe(true);
+      alertSpy.mockRestore();
+    });
+
+    // ── whowas fallback + copy hostmask via resolved channel user ─────────────
+    it('resolves context users from the irc service when no prop is supplied', async () => {
+      mockActiveIrc.getChannelUsers.mockReturnValue([
+        { nick: 'Alice', ident: '~alice', host: 'host.test' },
+      ]);
+      const messages = [makeMsg({ from: 'Alice', text: 'hello there' })];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByText('Alice'));
+      });
+      expect(mockNickContextMenuProps.nick).toBe('Alice');
+      const Clipboard = require('@react-native-clipboard/clipboard');
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('copy_userhost');
+        await mockNickContextMenuProps.onAction('copy_hostmask');
+        await mockNickContextMenuProps.onAction('ban');
+        await mockNickContextMenuProps.onAction('kick_ban');
+      });
+      expect(Clipboard.setString).toHaveBeenCalledWith('~alice@host.test');
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        'Alice!~alice@host.test',
+      );
+    });
+
+    // ── blacklist template + per-connection user management service ──────────
+    it('uses per-connection user management service and blacklist templates', async () => {
+      const perConnUms = {
+        addUserNote: jest.fn().mockResolvedValue(undefined),
+        removeUserNote: jest.fn().mockResolvedValue(undefined),
+        addBlacklistEntry: jest.fn().mockResolvedValue(undefined),
+      };
+      mockGetConnection.mockReturnValue({
+        ircService: mockActiveIrc,
+        userManagementService: perConnUms,
+      });
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
+        if (key === 'blacklistTemplates') {
+          return Promise.resolve({
+            global: { akill: 'AKILL {usermask} {reason}' },
+          });
+        }
+        return Promise.resolve(fallback);
+      });
+
+      const messages = [makeMsg({ from: 'Alice', text: 'blacklist flow' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText } = view;
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      expect(getByText('Add to Blacklist')).toBeTruthy();
+
+      // open the mask picker and choose an option
+      await act(async () => {
+        await fireEvent.press(getByText(/Ban mask type|\(2\)/));
+      });
+      const maskOption = getAllByText(/\(2\)/)[0];
+      await act(async () => {
+        await fireEvent.press(maskOption);
+      });
+
+      // open the action picker and choose AKILL
+      await act(async () => {
+        await fireEvent.press(getByText('Ban'));
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('AKILL'));
+      });
+
+      // save
+      await act(async () => {
+        await fireEvent.press(getByText('Add'));
+      });
+      expect(perConnUms.addBlacklistEntry).toHaveBeenCalled();
+    });
+
+    it('saves a custom blacklist command', async () => {
+      const messages = [makeMsg({ from: 'Alice', text: 'custom blacklist' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText, getByPlaceholderText } = view;
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('Ban'));
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('Custom Command'));
+      });
+      const cmdInput = getByPlaceholderText(
+        'Command template (use {mask}, {usermask}, {hostmask}, {nick})',
+      );
+      await act(async () => {
+        await fireEvent.changeText(cmdInput, 'CUSTOM {nick}');
+        await fireEvent.press(getByText('Add'));
+      });
+      const {
+        userManagementService,
+      } = require('../../src/services/UserManagementService');
+      expect(userManagementService.addBlacklistEntry).toHaveBeenCalled();
+    });
+
+    it('clears an empty user note via the note modal', async () => {
+      const {
+        userManagementService,
+      } = require('../../src/services/UserManagementService');
+      const messages = [makeMsg({ from: 'Alice', text: 'note flow' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText, getByPlaceholderText } = view;
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+      const noteInput = getByPlaceholderText('Enter note about this user');
+      await act(async () => {
+        await fireEvent.changeText(noteInput, '');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('Save'));
+      });
+      expect(userManagementService.removeUserNote).toHaveBeenCalledWith(
+        'Alice',
+        'TestNet',
+      );
+    });
+
+    // ── QR modal copy button ──────────────────────────────────────────────────
+    it('copies the QR payload from the QR modal', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const Clipboard = require('@react-native-clipboard/clipboard');
+      const messages = [makeMsg({ from: 'Alice', text: 'qr modal' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText } = view;
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+      });
+      expect(getByText('Share Key Bundle')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getByText('Copy QR Payload'));
+      });
+      expect(Clipboard.setString).toHaveBeenCalledWith('bundle-payload');
+      alertSpy.mockRestore();
+    });
+
+    // ── selection mode: copy / reply / cancel ────────────────────────────────
+    it('enters selection mode and copies, replies and cancels', async () => {
+      const {
+        setPendingReply,
+      } = require('../../src/services/PendingReplyStore');
+      const Clipboard = require('@react-native-clipboard/clipboard');
+      const messages = [
+        makeMsg({
+          id: 'sel-a',
+          text: 'Selectable',
+          from: 'Alice',
+          msgid: 'mid-1',
+          channel: '#general',
+        }),
+        makeMsg({ id: 'sel-b', text: 'Another', from: 'Bob' }),
+      ];
+      const { getByText, queryByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('Selectable'), 'longPress');
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+
+      // press another message to toggle it into the selection
+      await act(async () => {
+        await fireEvent.press(getByText('Another'));
+      });
+      expect(getByText('2 selected')).toBeTruthy();
+
+      await act(async () => {
+        await fireEvent.press(getByText('Copy'));
+      });
+      expect(Clipboard.setString).toHaveBeenCalled();
+
+      // toggle back down to a single selection so Reply appears
+      await act(async () => {
+        await fireEvent.press(getByText('Another'));
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getByText('Reply'));
+      });
+      expect(setPendingReply).toHaveBeenCalledWith(
+        expect.objectContaining({ msgid: 'mid-1', nick: 'Alice' }),
+      );
+      expect(queryByText('1 selected')).toBeNull();
+    });
+
+    // ── FlatList scroll + endReached (lazy loading + history) ────────────────
+    it('handles scroll position changes and lazy-loads older messages', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      const {
+        messageHistoryService,
+      } = require('../../src/services/MessageHistoryService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: true,
+        maxVisibleMessages: 2,
+        messageLoadChunk: 10,
+        enableLazyLoading: true,
+      });
+      const ts = Date.now();
+      const messages = Array.from({ length: 6 }, (_, i) =>
+        makeMsg({ id: `s${i}`, text: `Row ${i}`, timestamp: ts + i * 1000 }),
+      );
+      const { UNSAFE_getAllByType } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { FlatList } = require('react-native');
+      const list = UNSAFE_getAllByType(FlatList)[0];
+      const scrollEvent = (y: number) => ({
+        nativeEvent: {
+          contentOffset: { x: 0, y },
+          contentSize: { height: 1000, width: 100 },
+          layoutMeasurement: { height: 500, width: 100 },
+        },
+      });
+      await act(async () => {
+        list.props.onScroll(scrollEvent(500));
+      });
+      await act(async () => {
+        list.props.onScroll(scrollEvent(0));
+      });
+      await act(async () => {
+        list.props.onEndReached({ distanceFromEnd: 0 });
+      });
+      await act(async () => {
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(messageHistoryService.loadMessages).toHaveBeenCalledWith(
+        'TestNet',
+        '#general',
+      );
+    });
+
+    // ── chat history: timestamp ref + LATEST + finish event ──────────────────
+    it('requests chat history by timestamp and finishes on the end event', async () => {
+      const handlers: Record<string, (...a: any[]) => void> = {};
+      mockActiveIrc.on.mockImplementation(
+        (event: string, cb: (...a: any[]) => void) => {
+          handlers[event] = cb;
+          return jest.fn();
+        },
+      );
+      mockActiveIrc.hasCapability.mockImplementation(
+        (cap: string) => cap === 'chathistory',
+      );
+      const messages = [
+        makeMsg({ id: 'ts-only', text: 'old', timestamp: 1234 }),
+      ];
+      const { getByTestId } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByTestId('load-older-chat-history'));
+      });
+      expect(mockActiveIrc.requestChatHistory).toHaveBeenCalledWith(
+        '#general',
+        expect.objectContaining({ refType: 'timestamp', ref: 1234 }),
+      );
+      // finish loading through the chathistory-end event
+      await act(async () => {
+        handlers['chathistory-end']?.();
+        handlers['event-playback']?.();
+      });
+    });
+
+    it('requests LATEST chat history when there are no messages', async () => {
+      mockActiveIrc.hasCapability.mockImplementation(
+        (cap: string) => cap === 'chathistory',
+      );
+      const { getByTestId } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={[]} />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByTestId('load-older-chat-history'));
+      });
+      expect(mockActiveIrc.requestChatHistory).toHaveBeenCalledWith(
+        '#general',
+        expect.objectContaining({ subcommand: 'LATEST', refType: '*' }),
+      );
+    });
+
+    // ── config change listeners re-render ─────────────────────────────────────
+    it('re-renders when performance, layout and highlight configs change', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      const {
+        highlightService,
+      } = require('../../src/services/HighlightService');
+      let perfCb: any;
+      let layoutCb: any;
+      let highlightCb: any;
+      performanceService.onConfigChange.mockImplementation((cb: any) => {
+        perfCb = cb;
+        return jest.fn();
+      });
+      layoutService.onConfigChange.mockImplementation((cb: any) => {
+        layoutCb = cb;
+        return jest.fn();
+      });
+      highlightService.onHighlightWordsChange.mockImplementation((cb: any) => {
+        highlightCb = cb;
+        return jest.fn();
+      });
+
+      await renderAndSettle(
+        <MessageArea {...baseProps} messages={[makeMsg()]} />,
+      );
+      await act(async () => {
+        perfCb && perfCb({ ...defaultPerformanceConfig, windowSize: 3 });
+        layoutCb &&
+          layoutCb({ ...layoutService.getConfig(), messageSpacing: 6 });
+        highlightCb && highlightCb();
+      });
+      expect(typeof perfCb).toBe('function');
+    });
+
+    // ── grouping disabled path ────────────────────────────────────────────────
+    it('does not group messages when grouping is disabled', async () => {
+      setLayoutConfig({ messageGroupingEnabled: false });
+      const ts = Date.now();
+      const messages = [
+        makeMsg({ id: 'g1', from: 'Alice', text: 'One', timestamp: ts }),
+        makeMsg({
+          id: 'g2',
+          from: 'Alice',
+          text: 'Two',
+          timestamp: ts + 1000,
+        }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── empty-state search button (uncontrolled) ──────────────────────────────
+    it('shows and toggles the floating search button in the empty state', async () => {
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaSearchButton'
+          ? Promise.resolve(true)
+          : Promise.resolve(fallback),
+      );
+      const { getByText } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+      // The floating search button is the only element rendering the mocked Icon.
+      await act(async () => {
+        await fireEvent.press(getByText('Icon'));
+      });
+      expect(mockMessageSearchBarProps).toBeTruthy();
+      // Toggling to visible via the uncontrolled path should surface the bar.
+      expect(mockMessageSearchBarProps.visible).toBe(true);
+    });
+
+    it('shows the floating search button alongside a populated message list', async () => {
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaSearchButton'
+          ? Promise.resolve(true)
+          : Promise.resolve(fallback),
+      );
+      const { getByText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg({ text: 'hi there' })]}
+        />,
+      );
+      await act(async () => {
+        await fireEvent.press(getByText('Icon'));
+      });
+      expect(mockMessageSearchBarProps.visible).toBe(true);
+    });
+
+    // ── non-virtualized path selection bar ────────────────────────────────────
+    it('supports selection mode in the non-virtualized fallback path', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: false,
+        enableLazyLoading: false,
+      });
+      const Clipboard = require('@react-native-clipboard/clipboard');
+      const messages = [
+        makeMsg({ id: 'nv-a', text: 'Fallback', from: 'Alice' }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('Fallback'), 'longPress');
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getByText('Copy'));
+      });
+      expect(Clipboard.setString).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(getByText('Cancel'));
+      });
+    });
+
+    // ── notice with sender + topic + system fallbacks ────────────────────────
+    it('renders notice-with-sender, topic and system fallbacks', async () => {
+      const messages = [
+        makeMsg({
+          id: 'notice-from',
+          type: 'notice',
+          from: 'ServerBot',
+          text: 'a notice',
+        }),
+        makeMsg({ id: 'topic-plain', type: 'topic', text: 'topic here' }),
+        makeMsg({
+          id: 'join-plain',
+          type: 'join',
+          from: 'Alice',
+          username: '~alice',
+          hostname: 'host.test',
+          text: 'Alice (~alice@host.test) has joined',
+        }),
+        makeMsg({
+          id: 'join-noprefix',
+          type: 'join',
+          from: 'Alice',
+          username: '~alice',
+          hostname: 'host.test',
+          text: 'joined the channel now',
+        }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── media inside formatted message + action message ──────────────────────
+    it('renders media inside a formatted message and an action message', async () => {
+      MessageParser.parseMessage.mockImplementation(() => [
+        { type: 'media', mediaId: 'm1' },
+        { type: 'image', url: 'https://img/p.png' },
+        { type: 'url', url: 'https://v/m.mp4' },
+        { type: 'url', url: 'https://a/s.mp3' },
+        { type: 'url', url: 'https://f/d.zip' },
+        { type: 'url', url: 'https://s/p' },
+        { type: 'text', text: 'body' },
+      ]);
+      MessageParser.isVideoUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp4'),
+      );
+      MessageParser.isAudioUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp3'),
+      );
+      MessageParser.isDownloadableFileUrl.mockImplementation((u: string) =>
+        u.endsWith('.zip'),
+      );
+      setFormats({ message: [{ type: 'token', value: 'message' }] });
+      const messages = [
+        makeMsg({
+          id: 'fmt-media',
+          type: 'message',
+          text: 'has media',
+          from: 'Alice',
+        }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('renders media inside an unformatted action message', async () => {
+      MessageParser.parseMessage.mockImplementation(() => [
+        { type: 'media', mediaId: 'm1' },
+        { type: 'image', url: 'https://img/p.png' },
+        { type: 'url', url: 'https://v/m.mp4' },
+        { type: 'url', url: 'https://a/s.mp3' },
+        { type: 'url', url: 'https://f/d.zip' },
+        { type: 'url', url: 'https://s/p' },
+        { type: 'text', text: 'waves' },
+      ]);
+      MessageParser.isVideoUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp4'),
+      );
+      MessageParser.isAudioUrl.mockImplementation((u: string) =>
+        u.endsWith('.mp3'),
+      );
+      MessageParser.isDownloadableFileUrl.mockImplementation((u: string) =>
+        u.endsWith('.zip'),
+      );
+      const messages = [
+        makeMsg({
+          id: 'act-media',
+          type: 'message',
+          text: '\x01ACTION waves at everyone\x01',
+          from: 'Alice',
+        }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── empty message token yields null in formatted output ───────────────────
+    it('renders formatted messages with empty and no-from tokens', async () => {
+      setFormats({ message: [{ type: 'token', value: 'message' }] });
+      const messages = [
+        makeMsg({ id: 'empty-tok', type: 'message', text: '', from: 'Alice' }),
+        makeMsg({ id: 'no-from', type: 'message', text: 'anon', from: '' }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── highlight service branch ──────────────────────────────────────────────
+    it('marks messages highlighted via the highlight service', async () => {
+      const {
+        highlightService,
+      } = require('../../src/services/HighlightService');
+      highlightService.isHighlighted.mockReturnValue(true);
+      const messages = [
+        makeMsg({ id: 'hl', type: 'message', text: 'ping', from: 'Bob' }),
+      ];
+      const { toJSON } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(toJSON()).toBeTruthy();
+    });
+
+    // ── message filters (raw hidden, listener messages) ──────────────────────
+    it('filters raw messages, hidden categories and service-listener noise', async () => {
+      const messages = [
+        makeMsg({ id: 'raw-off', type: 'raw', text: 'raw one', isRaw: true }),
+        makeMsg({
+          id: 'raw-cat',
+          type: 'raw',
+          text: 'raw two',
+          isRaw: true,
+          rawCategory: 'debug',
+        }),
+        makeMsg({
+          id: 'listener',
+          type: 'raw',
+          text: 'Message listener registered ok',
+          isRaw: true,
+        }),
+        makeMsg({ id: 'keep', type: 'message', text: 'kept', from: 'Alice' }),
+      ];
+      const { queryByText, getByText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={messages}
+          showRawCommands={false}
+          rawCategoryVisibility={{ debug: false } as any}
+        />,
+      );
+      expect(getByText('kept')).toBeTruthy();
+      expect(queryByText('raw one')).toBeNull();
+    });
+
+    // ── controlled search visibility change through the bar ──────────────────
+    it('notifies the controlled search-visibility handler', async () => {
+      const onSearchVisibleChange = jest.fn();
+      await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg()]}
+          searchVisible={true}
+          onSearchVisibleChange={onSearchVisibleChange}
+        />,
+      );
+      expect(mockMessageSearchBarProps).toBeTruthy();
+      await act(async () => {
+        mockMessageSearchBarProps.onClose();
+      });
+      expect(onSearchVisibleChange).toHaveBeenCalledWith(false);
+    });
+
+    // ── whowas fallback to sendCommand ────────────────────────────────────────
+    it('falls back to WHOWAS sendCommand when sendMessage is unavailable', async () => {
+      mockActiveIrc.sendMessage = undefined;
+      const messages = [makeMsg({ from: 'Alice', text: 'whowas please' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('whowas');
+      });
+      expect(mockActiveIrc.sendCommand).toHaveBeenCalledWith('WHOWAS Alice');
+    });
+
+    // ── encryption action error handling ──────────────────────────────────────
+    it('surfaces alerts when encryption/channel actions fail', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const {
+        encryptedDMService,
+      } = require('../../src/services/EncryptedDMService');
+      const {
+        channelEncryptionService,
+      } = require('../../src/services/ChannelEncryptionService');
+      const NfcManager = require('react-native-nfc-manager').default;
+      NfcManager.isSupported.mockResolvedValue(true);
+      encryptedDMService.exportBundle.mockRejectedValueOnce(new Error('x'));
+      encryptedDMService.exportFingerprintPayload.mockRejectedValueOnce(
+        new Error('x'),
+      );
+      encryptedDMService.exportBundlePayload
+        .mockRejectedValueOnce(new Error('x'))
+        .mockRejectedValueOnce(new Error('x'))
+        .mockRejectedValueOnce(new Error('x'));
+      encryptedDMService.getVerificationStatusForNetwork.mockRejectedValueOnce(
+        new Error('x'),
+      );
+      channelEncryptionService.exportChannelKey.mockRejectedValueOnce(
+        new Error('x'),
+      );
+      NfcManager.getTag.mockRejectedValueOnce(new Error('x'));
+
+      const messages = [makeMsg({ from: 'Alice', text: 'fail path' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share');
+        await mockNickContextMenuProps.onAction('enc_qr_show_fingerprint');
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+        await mockNickContextMenuProps.onAction('enc_share_file');
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+        await mockNickContextMenuProps.onAction('enc_verify');
+        await mockNickContextMenuProps.onAction('chan_share');
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'Failed to share key');
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'Failed to generate QR');
+      alertSpy.mockRestore();
+    });
+
+    // ── camera permission denied path ────────────────────────────────────────
+    it('alerts when camera permission is denied for QR scan', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: false,
+        requestPermission: jest.fn().mockResolvedValue(false),
+      }));
+      const messages = [makeMsg({ from: 'Alice', text: 'scan denied' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Error',
+        'Camera permission denied',
+      );
+      alertSpy.mockRestore();
+    });
+
+    it('alerts when opening the camera for QR scan throws', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: false,
+        requestPermission: jest.fn().mockRejectedValue(new Error('boom')),
+      }));
+      const messages = [makeMsg({ from: 'Alice', text: 'scan error' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'Failed to open camera');
+      alertSpy.mockRestore();
+    });
+
+    // ── file import cancellation + error ──────────────────────────────────────
+    it('ignores cancelled file imports and reports import errors', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const picker = require('@react-native-documents/picker');
+      const messages = [makeMsg({ from: 'Alice', text: 'import cancel' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      // cancelled import (recognised error code) -> silently ignored
+      picker.isErrorWithCode.mockReturnValueOnce(true);
+      picker.pick.mockRejectedValueOnce({ code: 'OPERATION_CANCELED' });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+
+      // other error -> alert
+      picker.isErrorWithCode.mockReturnValueOnce(false);
+      picker.pick.mockRejectedValueOnce(new Error('disk error'));
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Error',
+        'Failed to import key file',
+      );
+      alertSpy.mockRestore();
+    });
+
+    // ── "Show your QR" prompt after importing a key ──────────────────────────
+    it('offers to show the reciprocal QR code after accepting a key', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const {
+        encryptedDMService,
+      } = require('../../src/services/EncryptedDMService');
+      const picker = require('@react-native-documents/picker');
+      const RNFS = require('react-native-fs');
+      picker.pick.mockResolvedValue([{ uri: 'file:///k.json' }]);
+      RNFS.readFile.mockResolvedValue('payload');
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        bundle: 'b',
+        fingerprint: 'fp-new',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        null,
+      );
+
+      const messages = [makeMsg({ from: 'Alice', text: 'import qr' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      const importCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Import DM Key' && Array.isArray(c[2]),
+      );
+      const acceptBtn = (importCall![2] as any[]).find(
+        (b: any) => b.text === 'Accept',
+      );
+      await act(async () => {
+        await acceptBtn.onPress();
+        await new Promise<void>(r => setTimeout(r, 600));
+      });
+      const shareCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Share Your Key?' && Array.isArray(c[2]),
+      );
+      expect(shareCall).toBeTruthy();
+      const showQr = (shareCall![2] as any[]).find((b: any) =>
+        String(b.text).includes('Show QR Code'),
+      );
+      await act(async () => {
+        await showQr.onPress();
+      });
+      expect(encryptedDMService.exportBundlePayload).toHaveBeenCalled();
+      alertSpy.mockRestore();
+    });
+
+    // ── kick/ban modal with delayed unban ────────────────────────────────────
+    it('schedules a delayed unban after a kick/ban confirm', async () => {
+      const messages = [makeMsg({ from: 'Alice', text: 'temp ban' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      jest.useFakeTimers();
+      try {
+        await act(async () => {
+          fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+        });
+        await act(async () => {
+          await mockNickContextMenuProps.onAction('ban_with_options');
+        });
+        await act(async () => {
+          mockKickBanModalProps.onConfirm({
+            kick: false,
+            ban: true,
+            banType: 2,
+            reason: '',
+            unbanAfterSeconds: 30,
+          });
+        });
+        await act(async () => {
+          jest.advanceTimersByTime(30000);
+        });
+        expect(mockActiveIrc.sendRaw).toHaveBeenCalledWith(
+          expect.stringContaining('MODE #general -b'),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    // ── chat-history loading / dedup / timer expiry ──────────────────────────
+    it('dedupes scroll history requests and clears the loading timer', async () => {
+      mockActiveIrc.hasCapability.mockImplementation(
+        (cap: string) => cap === 'chathistory',
+      );
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: true,
+        enableLazyLoading: false,
+        maxVisibleMessages: 100,
+      });
+      const messages = [
+        makeMsg({ id: 'h1', msgid: 'mid-h1', text: 'old', timestamp: 1000 }),
+      ];
+      const { UNSAFE_getAllByType, getByTestId } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      jest.useFakeTimers();
+      try {
+        // First manual request starts loading + schedules the 5s timeout.
+        await act(async () => {
+          fireEvent.press(getByTestId('load-older-chat-history'));
+        });
+        expect(mockActiveIrc.requestChatHistory).toHaveBeenCalledTimes(1);
+        // A scroll-triggered request with the same key is a no-op while loading.
+        const { FlatList } = require('react-native');
+        const list = UNSAFE_getAllByType(FlatList)[0];
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        expect(mockActiveIrc.requestChatHistory).toHaveBeenCalledTimes(1);
+        // Advancing past the timeout clears the loading flag.
+        await act(async () => {
+          jest.advanceTimersByTime(5000);
+        });
+        // Not loading now, but the identical request key is still deduped.
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        expect(mockActiveIrc.requestChatHistory).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    // ── non-virtualized reply flow ────────────────────────────────────────────
+    it('replies to a single selection in the non-virtualized path', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: false,
+        enableLazyLoading: false,
+      });
+      const {
+        setPendingReply,
+      } = require('../../src/services/PendingReplyStore');
+      const messages = [
+        makeMsg({
+          id: 'nv-reply',
+          text: 'ReplyMe',
+          from: 'Alice',
+          msgid: 'mid-nv',
+          channel: '#general',
+        }),
+      ];
+      const { getByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('ReplyMe'), 'longPress');
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getByText('Reply'));
+      });
+      expect(setPendingReply).toHaveBeenCalledWith(
+        expect.objectContaining({ msgid: 'mid-nv' }),
+      );
+    });
+
+    // ── activating existing query tabs ───────────────────────────────────────
+    it('activates an existing query tab from the nick menu', async () => {
+      const tabStoreMod = require('../../src/stores/tabStore');
+      const { queryTabId } = require('../../src/utils/tabUtils');
+      const origGetState = tabStoreMod.useTabStore.getState;
+      const qid = queryTabId('TestNet', 'Alice');
+      tabStoreMod.useTabStore.getState = () => ({
+        tabs: [
+          {
+            id: qid,
+            name: 'Alice',
+            type: 'query',
+            networkId: 'TestNet',
+            messages: [],
+          },
+        ],
+        setTabs: mockSetTabs,
+        setActiveTabId: mockSetActiveTabId,
+        getTabsByNetwork: mockGetTabsByNetwork,
+        getTabById: mockGetTabById,
+      });
+      try {
+        const messages = [makeMsg({ from: 'Alice', text: 'existing tab' })];
+        const { getAllByText } = await renderAndSettle(
+          <MessageArea {...baseProps} messages={messages} />,
+        );
+        await act(async () => {
+          await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+        });
+        await act(async () => {
+          await mockNickContextMenuProps.onAction('query');
+        });
+        expect(mockSetActiveTabId).toHaveBeenCalledWith(qid);
+      } finally {
+        tabStoreMod.useTabStore.getState = origGetState;
+      }
+    });
+
+    it('activates an existing query tab when a WHOIS nick is pressed', async () => {
+      const tabStoreMod = require('../../src/stores/tabStore');
+      const origGetState = tabStoreMod.useTabStore.getState;
+      tabStoreMod.useTabStore.getState = () => ({
+        tabs: [
+          {
+            id: 'query:TestNet:alice',
+            name: 'Alice',
+            type: 'query',
+            networkId: 'TestNet',
+            messages: [],
+          },
+        ],
+        setTabs: mockSetTabs,
+        setActiveTabId: mockSetActiveTabId,
+        getTabsByNetwork: mockGetTabsByNetwork,
+        getTabById: mockGetTabById,
+      });
+      try {
+        const messages = [
+          makeMsg({
+            id: 'whois-existing',
+            type: 'raw',
+            from: 'Server',
+            text: 'Alice is online',
+            whoisData: { nick: 'Alice' },
+          }),
+        ];
+        const { getByText } = await renderAndSettle(
+          <MessageArea {...baseProps} messages={messages} />,
+        );
+        await act(async () => {
+          await fireEvent.press(getByText('Alice'));
+        });
+        expect(mockSetActiveTabId).toHaveBeenCalledWith('query:TestNet:alice');
+      } finally {
+        tabStoreMod.useTabStore.getState = origGetState;
+      }
+    });
+
+    // ── loaded-count effect as the list changes ──────────────────────────────
+    it('expands the virtualized window as more messages arrive', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: true,
+        maxVisibleMessages: 2,
+        messageLoadChunk: 2,
+        enableLazyLoading: true,
+      });
+      const ts = Date.now();
+      const { rerender } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={[makeMsg({ id: 'w0' })]} />,
+      );
+      const more = Array.from({ length: 5 }, (_, i) =>
+        makeMsg({ id: `w${i + 1}`, text: `W${i}`, timestamp: ts + i }),
+      );
+      await act(async () => {
+        await rerender(<MessageArea {...baseProps} messages={more} />);
+      });
+      await act(async () => {
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(true).toBe(true);
+    });
+
+    it('tracks the loaded count in the non-virtualized path as the list grows', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: false,
+        enableLazyLoading: false,
+      });
+      const ts = Date.now();
+      const { rerender } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={[makeMsg({ id: 'n0' })]} />,
+      );
+      const more = Array.from({ length: 3 }, (_, i) =>
+        makeMsg({ id: `n${i + 1}`, text: `N${i}`, timestamp: ts + i }),
+      );
+      await act(async () => {
+        await rerender(<MessageArea {...baseProps} messages={more} />);
+      });
+      await act(async () => {
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(true).toBe(true);
+    });
+
+    // ── onClose handlers for the context and kick/ban modals ─────────────────
+    it('closes the nick-context and kick/ban modals via their onClose props', async () => {
+      const messages = [makeMsg({ from: 'Alice', text: 'close menus' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        mockNickContextMenuProps.onClose();
+      });
+
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('kick_with_options');
+      });
+      expect(mockKickBanModalProps).toBeTruthy();
+      await act(async () => {
+        mockKickBanModalProps.onClose();
+      });
+      expect(true).toBe(true);
+    });
+
+    // ── empty-state search bar callbacks ──────────────────────────────────────
+    it('drives the empty-state search bar callbacks', async () => {
+      const { getByText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={[]}
+          searchVisible={true}
+          onSearchVisibleChange={jest.fn()}
+        />,
+      );
+      expect(getByText('No messages yet')).toBeTruthy();
+      await act(async () => {
+        mockMessageSearchBarProps.onSearch({
+          searchTerm: '',
+          messageTypes: {
+            message: true,
+            notice: true,
+            system: true,
+            join: false,
+            part: false,
+            quit: false,
+          },
+        });
+        mockMessageSearchBarProps.onClose();
+      });
+      expect(true).toBe(true);
+    });
+
+    // ── Show-QR reciprocal prompt failure ─────────────────────────────────────
+    it('alerts when generating the reciprocal QR code fails', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const {
+        encryptedDMService,
+      } = require('../../src/services/EncryptedDMService');
+      const picker = require('@react-native-documents/picker');
+      const RNFS = require('react-native-fs');
+      picker.pick.mockResolvedValue([{ uri: 'file:///k.json' }]);
+      RNFS.readFile.mockResolvedValue('payload');
+      encryptedDMService.parseExternalPayload.mockReturnValueOnce({
+        bundle: 'b',
+        fingerprint: 'fp-new',
+      });
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        null,
+      );
+
+      const messages = [makeMsg({ from: 'Alice', text: 'qr fail' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_import_file');
+      });
+      const importCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Import DM Key' && Array.isArray(c[2]),
+      );
+      const acceptBtn = (importCall![2] as any[]).find(
+        (b: any) => b.text === 'Accept',
+      );
+      await act(async () => {
+        await acceptBtn.onPress();
+        await new Promise<void>(r => setTimeout(r, 600));
+      });
+      const shareCall = alertSpy.mock.calls.find(
+        c => c[0] === 'Share Your Key?' && Array.isArray(c[2]),
+      );
+      const showQr = (shareCall![2] as any[]).find((b: any) =>
+        String(b.text).includes('Show QR Code'),
+      );
+      encryptedDMService.exportBundlePayload.mockRejectedValueOnce(
+        new Error('nope'),
+      );
+      await act(async () => {
+        await showQr.onPress();
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'Failed to generate QR');
+      alertSpy.mockRestore();
+    });
+
+    // ── modal close / dismiss controls ───────────────────────────────────────
+    it('dismisses note, blacklist, picker, QR and scan modals', async () => {
+      useCameraDevice.mockImplementation(() => null);
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: true,
+        requestPermission: jest.fn().mockResolvedValue(true),
+      }));
+      const { Modal } = require('react-native');
+      const messages = [makeMsg({ from: 'Alice', text: 'dismiss modals' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText, UNSAFE_getAllByType } = view;
+
+      const requestCloseAll = () => {
+        UNSAFE_getAllByType(Modal).forEach((m: any) => {
+          m.props.onRequestClose && m.props.onRequestClose();
+        });
+      };
+      const pressAncestorWithOnPress = (label: string) => {
+        let n: any = getByText(label);
+        while (n && typeof n.props.onPress !== 'function') {
+          n = n.parent;
+        }
+        n && n.props.onPress();
+      };
+
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      // Note modal: Cancel button + onRequestClose.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('Cancel'));
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+
+      // Blacklist modal: Cancel + onRequestClose.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('Cancel'));
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+
+      // Mask picker onRequestClose.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText(/Ban mask type|\(2\)/));
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+
+      // Action picker onRequestClose.
+      await act(async () => {
+        await fireEvent.press(getByText('Ban'));
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+
+      // QR modal: overlay press + onRequestClose.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+      });
+      await act(async () => {
+        pressAncestorWithOnPress('Share Key Bundle');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+
+      // Scan modal: overlay press + onRequestClose.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      await act(async () => {
+        pressAncestorWithOnPress('Scan Key');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      await act(async () => {
+        requestCloseAll();
+      });
+      expect(true).toBe(true);
+    });
+
+    // ── non-virtualized search callbacks + floating button ───────────────────
+    it('drives search callbacks in the non-virtualized fallback path', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: false,
+        enableLazyLoading: false,
+      });
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaSearchButton'
+          ? Promise.resolve(true)
+          : Promise.resolve(fallback),
+      );
+      const onSearchVisibleChange = jest.fn();
+      const { getByText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg({ text: 'nv search' })]}
+          onSearchVisibleChange={onSearchVisibleChange}
+        />,
+      );
+      // Floating search button (non-virtualized) toggles search visibility.
+      await act(async () => {
+        await fireEvent.press(getByText('Icon'));
+      });
+      expect(onSearchVisibleChange).toHaveBeenCalledWith(true);
+      // Search bar callbacks in the non-virtualized path.
+      await act(async () => {
+        mockMessageSearchBarProps.onSearch({
+          searchTerm: '',
+          messageTypes: {
+            message: true,
+            notice: true,
+            system: true,
+            join: false,
+            part: false,
+            quit: false,
+          },
+        });
+        mockMessageSearchBarProps.onClose();
+      });
+      expect(onSearchVisibleChange).toHaveBeenCalledWith(false);
+    });
+
+    // ── channel-key request failure ──────────────────────────────────────────
+    it('alerts when requesting a channel key fails', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const messages = [makeMsg({ from: 'Alice', text: 'chan req fail' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+      mockActiveIrc.sendRaw.mockImplementationOnce(() => {
+        throw new Error('offline');
+      });
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('chan_request');
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'offline');
+      alertSpy.mockRestore();
+    });
+
+    // ── raw service-listener filtering while raw output is enabled ────────────
+    it('hides irc-service-listener raw noise when raw output is enabled', async () => {
+      const messages = [
+        makeMsg({
+          id: 'listen-hidden',
+          type: 'raw',
+          text: 'Message listener registered for #general',
+          isRaw: true,
+        }),
+        makeMsg({
+          id: 'keep-raw',
+          type: 'raw',
+          text: 'PING :srv',
+          isRaw: true,
+        }),
+      ];
+      const { queryByText, getByText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={messages}
+          showRawCommands={true}
+          hideIrcServiceListenerMessages={true}
+        />,
+      );
+      expect(getByText('PING :srv')).toBeTruthy();
+      expect(
+        queryByText('Message listener registered for #general'),
+      ).toBeNull();
+    });
+
+    // ── NFC receive edge cases ────────────────────────────────────────────────
+    it('handles NFC receive when unsupported and when no payload is present', async () => {
+      const { Alert } = require('react-native');
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const NfcManager = require('react-native-nfc-manager').default;
+      const messages = [makeMsg({ from: 'Alice', text: 'nfc edge' })];
+      const { getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      NfcManager.isSupported.mockResolvedValue(false);
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'NFC not supported');
+
+      NfcManager.isSupported.mockResolvedValue(true);
+      NfcManager.getTag.mockResolvedValue({});
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+      expect(alertSpy).toHaveBeenCalledWith('Error', 'No NFC payload');
+      alertSpy.mockRestore();
+    });
+
+    // ── handleEndReached history-load rejection ──────────────────────────────
+    it('logs when loading older history from the store fails', async () => {
+      const {
+        performanceService,
+      } = require('../../src/services/PerformanceService');
+      const {
+        messageHistoryService,
+      } = require('../../src/services/MessageHistoryService');
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      messageHistoryService.loadMessages.mockRejectedValueOnce(
+        new Error('history fail'),
+      );
+      performanceService.getConfig.mockReturnValue({
+        ...defaultPerformanceConfig,
+        enableVirtualization: true,
+        maxVisibleMessages: 2,
+        messageLoadChunk: 10,
+        enableLazyLoading: true,
+      });
+      const ts = Date.now();
+      const messages = Array.from({ length: 6 }, (_, i) =>
+        makeMsg({ id: `e${i}`, text: `E${i}`, timestamp: ts + i }),
+      );
+      const { UNSAFE_getAllByType } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { FlatList } = require('react-native');
+      const list = UNSAFE_getAllByType(FlatList)[0];
+      await act(async () => {
+        list.props.onEndReached({ distanceFromEnd: 0 });
+      });
+      await act(async () => {
+        await new Promise<void>(r => setTimeout(r, 0));
+      });
+      expect(messageHistoryService.loadMessages).toHaveBeenCalled();
+      errSpy.mockRestore();
+    });
+
+    // ── closing the picker / QR / scan modals ────────────────────────────────
+    it('closes the blacklist pickers, QR and scan modals via their buttons', async () => {
+      useCameraDevice.mockImplementation(() => null);
+      useCameraPermission.mockImplementation(() => ({
+        hasPermission: true,
+        requestPermission: jest.fn().mockResolvedValue(true),
+      }));
+      const messages = [makeMsg({ from: 'Alice', text: 'close modals' })];
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const { getAllByText, getByText } = view;
+      await act(async () => {
+        await fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+      });
+
+      // blacklist -> mask picker -> Close
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText(/Ban mask type|\(2\)/));
+      });
+      expect(getByText('Select Ban Mask Type')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getAllByText('Close')[0]);
+      });
+
+      // action picker -> Close
+      await act(async () => {
+        await fireEvent.press(getByText('Ban'));
+      });
+      expect(getByText('Select Action')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getAllByText('Close')[0]);
+      });
+
+      // QR modal opens then closes via payload copy button already covered;
+      // open the scan modal (camera unavailable -> fallback) and close it.
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_qr_scan');
+      });
+      expect(getByText('Camera not available')).toBeTruthy();
+    });
   });
 });

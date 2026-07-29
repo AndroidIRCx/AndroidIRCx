@@ -940,4 +940,833 @@ describe('useTabContextMenu', () => {
       'Server: oftc',
     );
   });
+
+  // Helper: grab the latest options array passed to the modal.
+  const latestOptions = () =>
+    (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
+  const findByText = (options: any[], label: string) =>
+    options.find((o: any) => String(o.text).includes(label));
+
+  const serverTab = {
+    id: 'server::freenode',
+    name: 'Freenode',
+    type: 'server' as const,
+    networkId: 'freenode',
+    messages: [],
+    unreadCount: 0,
+  };
+
+  it('cancels the initial loading modal via its Cancel action', async () => {
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    // First setTabOptions call is the "Loading..." placeholder menu.
+    const loadingOptions = (mockUIStore.setTabOptions as jest.Mock).mock
+      .calls[0][0];
+    const cancel = findByText(loadingOptions, 'Cancel');
+    cancel.onPress();
+    expect(mockUIStore.setShowTabOptionsModal).toHaveBeenCalledWith(false);
+  });
+
+  it('falls back to sendCommand MODE when sendSilentMode is unavailable', async () => {
+    const sendCommand = jest.fn();
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand,
+        // no sendSilentMode
+        isServerOper: jest.fn().mockReturnValue(false),
+      },
+    });
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    expect(sendCommand).toHaveBeenCalledWith('MODE TestNick');
+  });
+
+  it('shows an error alert when certificate fingerprint extraction fails', async () => {
+    const {
+      certificateManager,
+    } = require('../../src/services/CertificateManagerService');
+    (certificateManager.extractFingerprintFromPem as jest.Mock)
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(null);
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        sendRaw: jest.fn(),
+      },
+    });
+    mockGetNetworkConfigForId.mockResolvedValueOnce({ clientCert: 'PEM' });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    const options = latestOptions();
+    await act(async () => {
+      await findByText(options, 'View Certificate Fingerprint').onPress();
+      await findByText(options, 'Share Cert with NickServ').onPress();
+    });
+    expect(mockSafeAlert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to extract certificate fingerprint',
+    );
+    expect(mockSafeAlert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to send certificate fingerprint',
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('alerts when sharing a cert while the connection is missing', async () => {
+    const {
+      certificateManager,
+    } = require('../../src/services/CertificateManagerService');
+    (certificateManager.extractFingerprintFromPem as jest.Mock).mockReturnValue(
+      'fp',
+    );
+    // Connected while building (first call), null when the share action runs.
+    (connectionManager.getConnection as jest.Mock)
+      .mockReturnValueOnce({
+        ircService: {
+          getConnectionStatus: jest.fn().mockReturnValue(true),
+          getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+          sendCommand: jest.fn(),
+          sendSilentMode: jest.fn(),
+          isServerOper: jest.fn().mockReturnValue(false),
+          sendRaw: jest.fn(),
+        },
+      })
+      .mockReturnValue(null);
+    mockGetNetworkConfigForId.mockResolvedValueOnce({ clientCert: 'PEM' });
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    const options = latestOptions();
+    await act(async () => {
+      await findByText(options, 'Share Cert with NickServ').onPress();
+    });
+    expect(mockSafeAlert).toHaveBeenCalledWith(
+      'Error',
+      'Not connected to IRC server',
+    );
+  });
+
+  it('executes remaining server-tab actions (connect another, rename)', async () => {
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    const options = latestOptions();
+    await act(async () => {
+      findByText(options, 'Connect Another Network').onPress();
+      findByText(options, 'Rename Server Tab').onPress();
+    });
+    expect(mockUIStore.setShowNetworksList).toHaveBeenCalledWith(true);
+    expect(mockUIStore.setRenameTargetTabId).toHaveBeenCalledWith(
+      'server::freenode',
+    );
+    expect(mockUIStore.setShowRenameModal).toHaveBeenCalledWith(true);
+  });
+
+  it('runs all IRCop menu commands and destructive confirmations', async () => {
+    const sendCommand = jest.fn();
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('OperNick'),
+        sendCommand,
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(true),
+      },
+    });
+    (Alert as any).prompt = jest.fn(
+      (_title: string, _msg: string, buttons: any[]) =>
+        buttons[1]?.onPress?.('msg'),
+    );
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    await act(async () => {
+      findByText(latestOptions(), 'IRCop Commands').onPress();
+    });
+    const operOptions = latestOptions();
+    const click = (text: string) =>
+      operOptions.find((o: any) => o.text === text).onPress();
+    await act(async () => {
+      click('ADMIN');
+      click('INFO');
+      click('VERSION');
+      click('TIME');
+      click('MOTD');
+      click('LUSERS');
+      click('LINKS');
+      click('TRACE');
+      click('DIE');
+      click('RESTART');
+      click('WALLOP');
+    });
+    // Destructive confirmations go through safeAlert; run their confirm button.
+    ['DIE', 'RESTART'].forEach(cmd => {
+      const buttons =
+        mockSafeAlert.mock.calls.find((c: any[]) => c[0] === cmd)?.[2] || [];
+      buttons[1]?.onPress?.();
+    });
+    expect(sendCommand).toHaveBeenCalledWith('ADMIN');
+    expect(sendCommand).toHaveBeenCalledWith('LINKS');
+    expect(sendCommand).toHaveBeenCalledWith('TRACE');
+    expect(sendCommand).toHaveBeenCalledWith('DIE');
+    expect(sendCommand).toHaveBeenCalledWith('RESTART');
+    expect(sendCommand).toHaveBeenCalledWith('WALLOP :msg');
+  });
+
+  it('closes the server tab and updates active tab via the running updater', async () => {
+    (settingsService.loadNetworks as jest.Mock).mockResolvedValueOnce([
+      { id: 'freenode', name: 'freenode', servers: [] },
+    ]);
+    const runningSetTabs = jest.fn((updater: any) =>
+      typeof updater === 'function'
+        ? updater([
+            {
+              id: 'server::freenode',
+              name: 'freenode',
+              type: 'server',
+              networkId: 'freenode',
+            },
+            {
+              id: 'server::oftc',
+              name: 'oftc',
+              type: 'server',
+              networkId: 'oftc',
+            },
+          ])
+        : updater,
+    );
+    const { result } = await renderHook(() =>
+      useTabContextMenu({
+        ...defaultParams,
+        activeTabId: 'server::freenode',
+        primaryNetworkId: 'oftc',
+        setTabs: runningSetTabs,
+      }),
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    const closeServer = findByText(latestOptions(), 'Close Server Tab');
+    await act(async () => {
+      await closeServer.onPress();
+    });
+    expect(runningSetTabs).toHaveBeenCalled();
+    // Fallback should pick the primary network's server tab.
+    expect(mockSetActiveTabId).toHaveBeenCalledWith('server::oftc');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('oftc');
+  });
+
+  it('still builds the channel menu when the bookmark lookup rejects', async () => {
+    (channelNotesService.isBookmarked as jest.Mock).mockRejectedValueOnce(
+      new Error('io'),
+    );
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    expect(mockUIStore.setTabOptionsTitle).toHaveBeenLastCalledWith(
+      'Channel: {name}',
+    );
+  });
+
+  it('switches to the server tab when leaving the active channel', async () => {
+    const activeIRC = {
+      partChannel: jest.fn(),
+      addMessage: jest.fn(),
+      sendCommand: jest.fn(),
+      sendRaw: jest.fn(),
+    };
+    const { result } = await renderHook(() =>
+      useTabContextMenu({
+        ...defaultParams,
+        activeTabId: 'channel-1',
+        getActiveIRCService: jest.fn().mockReturnValue(activeIRC),
+      }),
+    );
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Leave Channel').onPress();
+    });
+    expect(activeIRC.partChannel).toHaveBeenCalled();
+    expect(mockSetActiveTabId).toHaveBeenCalledWith('server::freenode');
+  });
+
+  it('handles the channel encryption toggle with and without a key', async () => {
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
+    const addMessage = jest.fn();
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        addMessage,
+        sendRaw: jest.fn(),
+        sendMessage: jest.fn(),
+      },
+    });
+    // No key: build call + toggle call both return false.
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      false,
+    );
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Send Encrypted (Lock)').onPress();
+    });
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' }),
+    );
+
+    // With key: toggling enables encryption and posts a notice.
+    addMessage.mockClear();
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      true,
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Send Encrypted (Lock)').onPress();
+    });
+    expect(mockSetTabs).toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'notice' }),
+    );
+  });
+
+  it('handles the query Always Encrypt toggle warning', async () => {
+    const {
+      channelEncryptionSettingsService,
+    } = require('../../src/services/ChannelEncryptionSettingsService');
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
+    channelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(false);
+    channelEncryptionSettingsService.toggleAlwaysEncrypt.mockResolvedValue(
+      true,
+    );
+    // Clear any leftover one-time queued values from prior tests.
+    encryptedDMService.isEncryptedForNetwork.mockReset();
+    encryptedDMService.isEncryptedForNetwork.mockResolvedValue(false);
+    (Alert as any).alert = jest.fn();
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Always Encrypt').onPress();
+    });
+    expect((Alert as any).alert).toHaveBeenCalledWith(
+      'No Encryption Bundle',
+      expect.any(String),
+      expect.any(Array),
+    );
+  });
+
+  it('switches to server tab when closing the active query', async () => {
+    const activeIRC = {
+      sendRaw: jest.fn(),
+      addMessage: jest.fn(),
+      sendCommand: jest.fn(),
+    };
+    const { result } = await renderHook(() =>
+      useTabContextMenu({
+        ...defaultParams,
+        activeTabId: 'query-1',
+        getActiveIRCService: jest.fn().mockReturnValue(activeIRC),
+      }),
+    );
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Close Query').onPress();
+    });
+    expect(mockSetActiveTabId).toHaveBeenCalledWith('server::freenode');
+  });
+
+  it('shares the DM key successfully', async () => {
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
+    encryptedDMService.exportBundle.mockResolvedValueOnce({ pub: 'k' });
+    const connIrc = {
+      getConnectionStatus: jest.fn().mockReturnValue(true),
+      getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+      sendCommand: jest.fn(),
+      sendSilentMode: jest.fn(),
+      isServerOper: jest.fn().mockReturnValue(false),
+      sendRaw: jest.fn(),
+      addMessage: jest.fn(),
+    };
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: connIrc,
+    });
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Share DM Key').onPress();
+    });
+    expect(connIrc.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG OtherUser :!enc-offer '),
+    );
+    expect(connIrc.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'system' }),
+    );
+  });
+
+  it('toggles a query from encrypted back to plaintext', async () => {
+    const connIrc = {
+      getConnectionStatus: jest.fn().mockReturnValue(true),
+      getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+      sendCommand: jest.fn(),
+      sendSilentMode: jest.fn(),
+      isServerOper: jest.fn().mockReturnValue(false),
+      sendRaw: jest.fn(),
+      addMessage: jest.fn(),
+    };
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: connIrc,
+    });
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: true,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Send Plaintext (Unlock)').onPress();
+    });
+    expect(mockSetTabs).toHaveBeenCalled();
+    expect(connIrc.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'notice' }),
+    );
+  });
+
+  it('generates a channel key (success and failure)', async () => {
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
+    const addMessage = jest.fn();
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        addMessage,
+        sendRaw: jest.fn(),
+        sendMessage: jest.fn(),
+      },
+    });
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    channelEncryptionService.generateChannelKey.mockResolvedValueOnce(
+      undefined,
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Generate Channel Key').onPress();
+    });
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'notice' }),
+    );
+
+    addMessage.mockClear();
+    channelEncryptionService.generateChannelKey.mockRejectedValueOnce(
+      new Error('nope'),
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Generate Channel Key').onPress();
+    });
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' }),
+    );
+  });
+
+  it('opens channel settings and blacklist targets', async () => {
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      findByText(latestOptions(), 'Channel Settings').onPress();
+      findByText(latestOptions(), 'Blacklist').onPress();
+    });
+    expect(mockUIStore.setChannelSettingsTarget).toHaveBeenCalledWith('#test');
+    expect(mockUIStore.setShowChannelSettings).toHaveBeenCalledWith(true);
+    expect(mockUIStore.setBlacklistTarget).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'channel' }),
+    );
+  });
+
+  it('runs all ChanServ service submenu commands', async () => {
+    const {
+      serviceCommandProvider,
+    } = require('../../src/services/ServiceCommandProvider');
+    serviceCommandProvider.getServiceCommands.mockReturnValue([
+      { service: 'ChanServ' },
+    ]);
+    const sendRaw = jest.fn();
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        addMessage: jest.fn(),
+        sendMessage: jest.fn(),
+        sendRaw,
+      },
+    });
+    (Alert as any).prompt = jest.fn(
+      (_title: string, _msg: string, buttons: any[]) =>
+        buttons[1]?.onPress?.('target'),
+    );
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      findByText(latestOptions(), 'IRC Services').onPress();
+    });
+    const svcOptions = latestOptions();
+    const click = (label: string) =>
+      svcOptions.find((o: any) => String(o.text).includes(label)).onPress();
+    await act(async () => {
+      click('OP (Give Op)');
+      click('DEOP');
+      click('VOICE (Give Voice)');
+      click('DEVOICE');
+      click('KICK');
+      click('BAN (Ban User)');
+      click('UNBAN');
+      click('TOPIC');
+      click('INFO');
+      click('AKICK');
+    });
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :OP #test');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :DEOP #test');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :VOICE #test');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :DEVOICE #test');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :KICK #test target');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :BAN #test target');
+    expect(sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG ChanServ :UNBAN #test target',
+    );
+    expect(sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG ChanServ :TOPIC #test target',
+    );
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :INFO #test');
+    expect(sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :AKICK #test LIST');
+  });
+
+  it('runs the final Cancel action of a channel menu', async () => {
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    const options = latestOptions();
+    const cancel = options
+      .filter((o: any) => o.style === 'cancel')
+      .slice(-1)[0];
+    cancel.onPress();
+    expect(mockUIStore.setShowTabOptionsModal).toHaveBeenCalledWith(false);
+  });
+
+  it('closes the server tab and falls back to the first server when primary is gone', async () => {
+    (settingsService.loadNetworks as jest.Mock).mockResolvedValueOnce([
+      { id: 'freenode', name: 'freenode', servers: [] },
+    ]);
+    const runningSetTabs = jest.fn((updater: any) =>
+      typeof updater === 'function'
+        ? updater([
+            {
+              id: 'server::freenode',
+              name: 'freenode',
+              type: 'server',
+              networkId: 'freenode',
+            },
+            {
+              id: 'server::oftc',
+              name: 'oftc',
+              type: 'server',
+              networkId: 'oftc',
+            },
+          ])
+        : updater,
+    );
+    const { result } = await renderHook(() =>
+      useTabContextMenu({
+        ...defaultParams,
+        activeTabId: 'server::freenode',
+        primaryNetworkId: 'freenode', // primary server is the one being removed
+        setTabs: runningSetTabs,
+      }),
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(serverTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Close Server Tab').onPress();
+    });
+    // Primary server tab is gone -> falls back to the first remaining server.
+    expect(mockSetActiveTabId).toHaveBeenCalledWith('server::oftc');
+  });
+
+  it('applies the channel encryption toggle through the state updater', async () => {
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      true,
+    );
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        addMessage: jest.fn(),
+        sendRaw: jest.fn(),
+        sendMessage: jest.fn(),
+      },
+    });
+    const channelTab = {
+      id: 'channel-1',
+      name: '#test',
+      type: 'channel' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    const runningSetTabs = jest.fn((updater: any) =>
+      typeof updater === 'function'
+        ? updater([channelTab, { id: 'other', sendEncrypted: false }])
+        : updater,
+    );
+    const { result } = await renderHook(() =>
+      useTabContextMenu({ ...defaultParams, setTabs: runningSetTabs }),
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(channelTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Send Encrypted (Lock)').onPress();
+    });
+    const updated = runningSetTabs.mock.results.slice(-1)[0].value;
+    expect(updated.find((t: any) => t.id === 'channel-1').sendEncrypted).toBe(
+      true,
+    );
+  });
+
+  it('applies the query encryption toggle through the state updater', async () => {
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: {
+        getConnectionStatus: jest.fn().mockReturnValue(true),
+        getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+        sendCommand: jest.fn(),
+        sendSilentMode: jest.fn(),
+        isServerOper: jest.fn().mockReturnValue(false),
+        addMessage: jest.fn(),
+        sendRaw: jest.fn(),
+      },
+    });
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: true,
+    };
+    const runningSetTabs = jest.fn((updater: any) =>
+      typeof updater === 'function'
+        ? updater([queryTab, { id: 'other', sendEncrypted: true }])
+        : updater,
+    );
+    const { result } = await renderHook(() =>
+      useTabContextMenu({ ...defaultParams, setTabs: runningSetTabs }),
+    );
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    await act(async () => {
+      await findByText(latestOptions(), 'Send Plaintext (Unlock)').onPress();
+    });
+    const updated = runningSetTabs.mock.results.slice(-1)[0].value;
+    expect(updated.find((t: any) => t.id === 'query-1').sendEncrypted).toBe(
+      false,
+    );
+  });
+
+  it('shows the fallback options menu when building the menu throws', async () => {
+    const {
+      channelEncryptionSettingsService,
+    } = require('../../src/services/ChannelEncryptionSettingsService');
+    (
+      channelEncryptionSettingsService.getAlwaysEncrypt as jest.Mock
+    ).mockRejectedValueOnce(new Error('boom'));
+    const { result } = await renderHook(() => useTabContextMenu(defaultParams));
+    const queryTab = {
+      id: 'query-1',
+      name: 'OtherUser',
+      type: 'query' as const,
+      networkId: 'freenode',
+      messages: [],
+      unreadCount: 0,
+      sendEncrypted: false,
+    };
+    await act(async () => {
+      await result.current.handleTabLongPress(queryTab);
+    });
+    expect(mockUIStore.setTabOptionsTitle).toHaveBeenLastCalledWith('Options');
+    const options = latestOptions();
+    const close = findByText(options, 'Close');
+    close.onPress();
+    expect(mockUIStore.setShowTabOptionsModal).toHaveBeenCalledWith(false);
+  });
 });

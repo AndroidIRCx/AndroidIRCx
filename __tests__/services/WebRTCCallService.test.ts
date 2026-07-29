@@ -1037,4 +1037,778 @@ describe('WebRTCCallService', () => {
     (webRtcCallService as any).focusCallQueryTab();
     expect(mockTabsState.addTab).not.toHaveBeenCalled();
   });
+
+  it('generateSecureIdSuffix falls back when crypto is unavailable or throws', () => {
+    const gen = (webRtcCallService as any).constructor.generateSecureIdSuffix;
+    const original = (globalThis as any).crypto;
+    try {
+      (globalThis as any).crypto = undefined;
+      expect(typeof gen(8)).toBe('string');
+
+      (globalThis as any).crypto = {
+        getRandomValues: () => {
+          throw new Error('no crypto');
+        },
+      };
+      expect(typeof gen(8)).toBe('string');
+    } finally {
+      (globalThis as any).crypto = original;
+    }
+  });
+
+  it('initialize swallows pending-action rejection and wires connection-created', async () => {
+    mockConsumePendingCallNotificationAction.mockRejectedValueOnce(
+      new Error('pending fail'),
+    );
+    webRtcCallService.initialize();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const conn = createConnection('net1');
+    mockGetConnection.mockReturnValue(conn);
+    expect(mockConnectionCreatedCb.fn).toBeDefined();
+    mockConnectionCreatedCb.fn?.('net1');
+    expect(conn.ircService.on).toHaveBeenCalledWith(
+      'webrtc-signal',
+      expect.any(Function),
+    );
+
+    mockGetConnection.mockReturnValue(null);
+    mockConnectionCreatedCb.fn?.('net2');
+  });
+
+  it('initialize swallows handleCallNotificationAction rejection', async () => {
+    mockConsumePendingCallNotificationAction.mockResolvedValueOnce('hangup');
+    mockHandleCallNotificationAction.mockRejectedValueOnce(new Error('handle'));
+    webRtcCallService.initialize();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockHandleCallNotificationAction).toHaveBeenCalledWith('hangup');
+  });
+
+  it('attachConnection wires signal listeners, dedupes, and fails on disconnect', async () => {
+    const conn = createConnection('net1');
+    const handleSignalSpy = jest.spyOn(
+      webRtcCallService as any,
+      'handleSignal',
+    );
+    const chunkSpy = jest
+      .spyOn(webRtcCallService as any, 'handleSignalChunk')
+      .mockImplementation(() => undefined);
+    const failSpy = jest
+      .spyOn(webRtcCallService as any, 'failCall')
+      .mockResolvedValue(undefined);
+
+    (webRtcCallService as any).attachConnection('net1', conn.ircService);
+    // Duplicate attach returns early (line 303).
+    (webRtcCallService as any).attachConnection('net1', conn.ircService);
+    expect(conn.ircService.on).toHaveBeenCalledTimes(2);
+
+    handleSignalSpy.mockResolvedValueOnce(undefined);
+    conn.listeners['webrtc-signal'][0](
+      { type: 'hangup', sessionId: 's', mediaType: 'audio' },
+      { fromNick: 'bob', network: 'net1' },
+    );
+    await Promise.resolve();
+    expect(handleSignalSpy).toHaveBeenCalled();
+
+    // Error path with Error instance and fallback network id.
+    handleSignalSpy.mockRejectedValueOnce(new Error('boom'));
+    conn.listeners['webrtc-signal'][0](
+      { type: 'x' },
+      { fromNick: 'bob', network: '' },
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith('boom');
+
+    // Error path with non-Error rejection.
+    handleSignalSpy.mockRejectedValueOnce('str');
+    conn.listeners['webrtc-signal'][0](
+      { type: 'x' },
+      { fromNick: 'bob', network: 'net1' },
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith('Failed to handle call signal.');
+
+    // Chunk listener wiring.
+    conn.listeners['webrtc-signal-chunk'][0](
+      { id: 't' },
+      { fromNick: 'bob', network: '' },
+    );
+    expect(chunkSpy).toHaveBeenCalledWith('net1', 'bob', { id: 't' });
+
+    // Connection-change: disconnect during active call triggers failCall.
+    Object.assign(mockCallState, { networkId: 'net1', phase: 'active' });
+    conn.listeners.connectionChange[0](false);
+    expect(failSpy).toHaveBeenCalledWith(
+      'IRC connection dropped during call setup.',
+    );
+
+    // Still connected: no additional failure.
+    failSpy.mockClear();
+    conn.listeners.connectionChange[0](true);
+    expect(failSpy).not.toHaveBeenCalled();
+  });
+
+  it('acceptIncomingCall returns early when session data is missing', async () => {
+    mockCallState.sessionId = null;
+    const ensureSpy = jest
+      .spyOn(webRtcCallService as any, 'ensureMediaPermissions')
+      .mockResolvedValue(undefined);
+    await webRtcCallService.acceptIncomingCall();
+    expect(ensureSpy).not.toHaveBeenCalled();
+  });
+
+  it('hangUp swallows sendSignal errors and still ends the call', async () => {
+    Object.assign(mockCallState, {
+      networkId: 'net1',
+      peerNick: 'bob',
+      sessionId: 's1',
+    });
+    jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockRejectedValue(new Error('signal fail'));
+    const endSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+    await webRtcCallService.hangUp();
+    expect(endSpy).toHaveBeenCalledWith('Call ended.');
+  });
+
+  it('handleSignalChunk returns on partial progress and handles assembly outcomes', async () => {
+    mockCallSignalCodec.getChunkProgress.mockReturnValueOnce({
+      received: 0,
+      total: 2,
+      missing: [0, 1],
+    });
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't-partial',
+      index: 0,
+      total: 2,
+      sessionId: 's',
+    });
+
+    mockCallSignalCodec.getChunkProgress.mockReturnValue({
+      received: 2,
+      total: 2,
+      missing: [],
+    });
+
+    // Completed set but assembly fails -> buffer deleted, no handleSignal.
+    mockCallSignalCodec.tryAssemble.mockReturnValueOnce(null);
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't-fail',
+      index: 1,
+      total: 2,
+      sessionId: 's',
+    });
+
+    // Completed + assembled but handleSignal rejects with Error -> failCall.
+    const failSpy = jest
+      .spyOn(webRtcCallService as any, 'failCall')
+      .mockResolvedValue(undefined);
+    mockCallSignalCodec.tryAssemble.mockReturnValueOnce({
+      type: 'invite',
+      sessionId: 's',
+      mediaType: 'audio',
+    });
+    jest
+      .spyOn(webRtcCallService as any, 'handleSignal')
+      .mockRejectedValueOnce(new Error('boom'));
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't-err',
+      index: 1,
+      total: 2,
+      sessionId: 's',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith('boom');
+
+    // Non-Error rejection path.
+    mockCallSignalCodec.tryAssemble.mockReturnValueOnce({
+      type: 'invite',
+      sessionId: 's',
+      mediaType: 'audio',
+    });
+    jest
+      .spyOn(webRtcCallService as any, 'handleSignal')
+      .mockRejectedValueOnce('str');
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't-err2',
+      index: 1,
+      total: 2,
+      sessionId: 's',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith('Failed to handle call signal.');
+  });
+
+  it('handleSignal returns early on session mismatches and unknown types', async () => {
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const createPeerSpy = jest
+      .spyOn(webRtcCallService as any, 'createPeerConnection')
+      .mockResolvedValue(undefined);
+    const endCallSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+
+    Object.assign(mockCallState, {
+      sessionId: 's1',
+      direction: 'incoming',
+      phase: 'active',
+    });
+
+    // accept: session mismatch.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'accept',
+      sessionId: 'other',
+      mediaType: 'audio',
+    });
+    // accept: right session but direction is not outgoing.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'accept',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
+    expect(createPeerSpy).not.toHaveBeenCalled();
+
+    // reject: mismatch.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'reject',
+      sessionId: 'other',
+      mediaType: 'audio',
+    });
+    // offer: mismatch and missing sdp.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'offer',
+      sessionId: 'other',
+      mediaType: 'audio',
+      sdp: 'x',
+    });
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'offer',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
+    // answer: mismatch and missing sdp.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'answer',
+      sessionId: 'other',
+      mediaType: 'audio',
+      sdp: 'x',
+    });
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'answer',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
+    // candidate: mismatch and missing candidate.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'candidate',
+      sessionId: 'other',
+      mediaType: 'audio',
+      candidate: {},
+    });
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'candidate',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
+    // hangup: mismatch.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'hangup',
+      sessionId: 'other',
+      mediaType: 'audio',
+    });
+    // unknown type: default branch.
+    await (webRtcCallService as any).handleSignal('n', 'a', {
+      type: 'bogus',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
+
+    expect(endCallSpy).not.toHaveBeenCalled();
+    expect(sendSignalSpy).not.toHaveBeenCalled();
+  });
+
+  it('handleSignal throws when the created answer has no SDP', async () => {
+    const peer = new MockRTCPeerConnection();
+    peer.createAnswer = jest.fn(async () => ({ type: 'answer', sdp: '' }));
+    jest
+      .spyOn(webRtcCallService as any, 'createPeerConnection')
+      .mockImplementation(async () => {
+        (webRtcCallService as any).peerConnection = peer;
+      });
+    jest
+      .spyOn(webRtcCallService as any, 'flushPendingCandidates')
+      .mockResolvedValue(undefined);
+    Object.assign(mockCallState, {
+      sessionId: 's-off',
+      requestedQuality: '480p',
+    });
+    await expect(
+      (webRtcCallService as any).handleSignal('n', 'a', {
+        type: 'offer',
+        sessionId: 's-off',
+        mediaType: 'audio',
+        sdp: 'v=0\r\n',
+      }),
+    ).rejects.toThrow('Failed to create WebRTC answer');
+  });
+
+  it('createPeerConnection returns early when a peer already exists', async () => {
+    (webRtcCallService as any).peerConnection = new MockRTCPeerConnection();
+    await (webRtcCallService as any).createPeerConnection('n', 'audio', '480p');
+    expect(mockBuildRtcSessionConfig).not.toHaveBeenCalled();
+  });
+
+  it('wires and triggers peer-connection event handlers with relay enabled', async () => {
+    const conn = createConnection('net1');
+    mockGetConnection.mockReturnValue(conn);
+    Object.assign(mockCallState, {
+      sessionId: 'pc-2',
+      requestedQuality: '480p',
+    });
+    mockBuildRtcSessionConfig.mockResolvedValueOnce({
+      relayEnabled: true,
+      selectedVideoPreset: {
+        quality: '480p',
+        width: 640,
+        height: 480,
+        frameRate: 24,
+      },
+      iceServers: [{ urls: ['stun:example.org'] }],
+      iceTransportPolicy: 'all',
+    });
+    await (webRtcCallService as any).createPeerConnection(
+      'net1',
+      'video',
+      '480p',
+    );
+    const peer = (webRtcCallService as any).peerConnection;
+
+    // onicecandidate: end-of-gathering event and a real candidate.
+    peer.onicecandidate({ candidate: null });
+    peer.onicecandidate({
+      candidate: {
+        candidate: 'a=candidate:1 1 udp 1 typ host',
+        sdpMid: '0',
+        sdpMLineIndex: 0,
+      },
+    });
+
+    // ontrack: add a new track then skip the duplicate.
+    const track1 = { id: 'r1', kind: 'audio' };
+    const stream = { getTracks: () => [track1] };
+    peer.ontrack({ streams: [stream] });
+    peer.ontrack({ streams: [stream] });
+
+    const difSpy = jest
+      .spyOn(webRtcCallService as any, 'handleDirectIceFailure')
+      .mockResolvedValue(undefined);
+    const failSpy = jest
+      .spyOn(webRtcCallService as any, 'failCall')
+      .mockResolvedValue(undefined);
+
+    peer.connectionState = 'connected';
+    peer.onconnectionstatechange();
+    expect(mockSetPartial).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'connected', usingRelay: true }),
+    );
+
+    peer.connectionState = 'failed';
+    peer.iceConnectionState = 'failed';
+    peer.onconnectionstatechange(); // early return branch
+    peer.iceConnectionState = 'new';
+    peer.onconnectionstatechange();
+    expect(difSpy).toHaveBeenCalled();
+
+    difSpy.mockRejectedValueOnce(new Error('x'));
+    peer.onconnectionstatechange();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith('WebRTC connection failed.');
+
+    peer.iceConnectionState = 'connected';
+    peer.oniceconnectionstatechange();
+    peer.iceConnectionState = 'completed';
+    peer.oniceconnectionstatechange();
+    peer.iceConnectionState = 'failed';
+    difSpy.mockRejectedValueOnce(new Error('x'));
+    peer.oniceconnectionstatechange();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith(
+      'ICE negotiation failed even with relay.',
+    );
+
+    peer.onicegatheringstatechange();
+    peer.onsignalingstatechange();
+  });
+
+  it('triggers peer-connection handlers for direct (no relay) branches', async () => {
+    const conn = createConnection('net1');
+    mockGetConnection.mockReturnValue(conn);
+    Object.assign(mockCallState, {
+      sessionId: 'pc-3',
+      requestedQuality: '480p',
+    });
+    await (webRtcCallService as any).createPeerConnection(
+      'net1',
+      'audio',
+      '480p',
+    );
+    const peer = (webRtcCallService as any).peerConnection;
+    const difSpy = jest
+      .spyOn(webRtcCallService as any, 'handleDirectIceFailure')
+      .mockResolvedValue(undefined);
+    const failSpy = jest
+      .spyOn(webRtcCallService as any, 'failCall')
+      .mockResolvedValue(undefined);
+
+    peer.connectionState = 'connected';
+    peer.onconnectionstatechange();
+    expect(mockSetPartial).toHaveBeenCalledWith(
+      expect.objectContaining({ usingRelay: false }),
+    );
+
+    peer.iceConnectionState = 'connected';
+    peer.oniceconnectionstatechange();
+
+    peer.iceConnectionState = 'failed';
+    difSpy.mockRejectedValueOnce(new Error('x'));
+    peer.oniceconnectionstatechange();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failSpy).toHaveBeenCalledWith(expect.stringContaining('TURN relay'));
+  });
+
+  it('flushPendingCandidates returns when peer or remote description is missing', async () => {
+    (webRtcCallService as any).peerConnection = null;
+    await expect(
+      (webRtcCallService as any).flushPendingCandidates(),
+    ).resolves.toBeUndefined();
+
+    (webRtcCallService as any).peerConnection = {
+      remoteDescription: null,
+      addIceCandidate: jest.fn(),
+    };
+    (webRtcCallService as any).pendingCandidates = [{ candidate: 'x' }];
+    await (webRtcCallService as any).flushPendingCandidates();
+    expect(
+      (webRtcCallService as any).peerConnection.addIceCandidate,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('sendIrcPrivmsg throws when no IRC connection exists', async () => {
+    mockGetConnection.mockReturnValue(null);
+    await expect(
+      (webRtcCallService as any).sendIrcPrivmsg('net1', 'alice', 'payload'),
+    ).rejects.toThrow('No IRC connection found');
+  });
+
+  it('waitForIceGatheringComplete handles no peer, state changes, and double finish', async () => {
+    (webRtcCallService as any).peerConnection = null;
+    await expect(
+      (webRtcCallService as any).waitForIceGatheringComplete('net1', 'offer'),
+    ).resolves.toBeUndefined();
+
+    const peer = new MockRTCPeerConnection();
+    peer.iceGatheringState = 'gathering';
+    const previous = jest.fn();
+    peer.onicegatheringstatechange = previous;
+    (webRtcCallService as any).peerConnection = peer;
+
+    const waitPromise = (webRtcCallService as any).waitForIceGatheringComplete(
+      'net1',
+      'offer',
+    );
+    const wrapper = peer.onicegatheringstatechange;
+    peer.iceGatheringState = 'complete';
+    wrapper(); // finishes and resolves
+    wrapper(); // already settled -> early return branch
+    await waitPromise;
+    expect(previous).toHaveBeenCalled();
+  });
+
+  it('candidate helpers return null for empty input', () => {
+    expect(
+      (webRtcCallService as any).extractCandidateType(undefined),
+    ).toBeNull();
+    expect((webRtcCallService as any).extractCandidateType('')).toBeNull();
+    expect(
+      (webRtcCallService as any).extractCandidateProtocol(undefined),
+    ).toBeNull();
+    expect((webRtcCallService as any).extractCandidateProtocol('')).toBeNull();
+    expect(
+      (webRtcCallService as any).extractCandidateProtocol('a b'),
+    ).toBeNull();
+  });
+
+  it('delay resolves after the configured timeout', async () => {
+    const promise = (webRtcCallService as any).delay(50);
+    jest.advanceTimersByTime(50);
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it('retryDirectConnection returns early without session data', async () => {
+    Object.assign(mockCallState, { sessionId: null, peerNick: null });
+    const offerSpy = jest
+      .spyOn(webRtcCallService as any, 'createAndSendOffer')
+      .mockResolvedValue(undefined);
+    await (webRtcCallService as any).retryDirectConnection('net1');
+    expect(offerSpy).not.toHaveBeenCalled();
+  });
+
+  it('persistOverlayPreferences swallows setSetting rejections', async () => {
+    mockSetSetting.mockRejectedValueOnce(new Error('persist fail'));
+    (webRtcCallService as any).persistOverlayPreferences();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockSetSetting).toHaveBeenCalled();
+  });
+
+  it('starts an audio outgoing call with the default quality and status text', async () => {
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    jest
+      .spyOn(webRtcCallService as any, 'ensureMediaPermissions')
+      .mockResolvedValue(undefined);
+    jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
+
+    await webRtcCallService.startOutgoingCall('net1', 'alice', 'audio');
+
+    expect(mockGetCallVideoQuality).not.toHaveBeenCalled();
+    expect(mockSetPartial).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mediaType: 'audio',
+        statusText: 'Calling with audio...',
+      }),
+    );
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'invite', mediaType: 'audio' }),
+    );
+  });
+
+  it('declineIncomingCall resets without signaling when no session exists', async () => {
+    Object.assign(mockCallState, {
+      networkId: null,
+      peerNick: null,
+      sessionId: null,
+    });
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const resetSpy = jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
+    await webRtcCallService.declineIncomingCall();
+    expect(sendSignalSpy).not.toHaveBeenCalled();
+    expect(resetSpy).toHaveBeenCalled();
+  });
+
+  it('handleSignal handles invite reuse, audio status, and default reject reason', async () => {
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const resetSpy = jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
+    const endCallSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+
+    // Busy but same session id -> not rejected, stored as incoming (audio status).
+    Object.assign(mockCallState, { phase: 'active', sessionId: 's-same' });
+    await (webRtcCallService as any).handleSignal('net1', 'alice', {
+      type: 'invite',
+      sessionId: 's-same',
+      mediaType: 'audio',
+    });
+    expect(resetSpy).toHaveBeenCalled();
+    expect(sendSignalSpy).not.toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ reason: 'Busy' }),
+    );
+    expect(mockCallState.statusText).toBe('Incoming audio call...');
+
+    // reject with no reason -> default message.
+    Object.assign(mockCallState, { sessionId: 's-rej' });
+    await (webRtcCallService as any).handleSignal('net1', 'alice', {
+      type: 'reject',
+      sessionId: 's-rej',
+      mediaType: 'audio',
+    });
+    expect(endCallSpy).toHaveBeenCalledWith('Call was rejected.');
+  });
+
+  it('attachConnection skips connection-change wiring when unsupported', () => {
+    const ircService = {
+      getCurrentNick: jest.fn(() => 'me'),
+      sendRaw: jest.fn(),
+      addRawMessage: jest.fn(),
+      on: jest.fn(() => () => undefined),
+    };
+    (webRtcCallService as any).attachConnection('netNoChange', ircService);
+    expect(ircService.on).toHaveBeenCalledTimes(2);
+    expect(
+      (webRtcCallService as any).connectionUnsubscribes.get('netNoChange')
+        .length,
+    ).toBe(2);
+  });
+
+  it('snapOverlayToEdge snaps to the right edge when overlay is past center', () => {
+    mockCallState.overlayX = 300;
+    webRtcCallService.snapOverlayToEdge(400, 120, 40);
+    expect(mockSetPartial).toHaveBeenCalledWith({
+      overlayX: 268,
+      overlayY: 40,
+    });
+  });
+
+  it('loadOverlayPreferences falls back to defaults for non-numeric values', async () => {
+    mockGetSetting.mockResolvedValueOnce({
+      overlayX: 'nope',
+      overlayY: null,
+      videoOverlayWidth: undefined,
+    });
+    await (webRtcCallService as any).loadOverlayPreferences();
+    expect(mockCallState.overlayX).toBe(20);
+    expect(mockCallState.overlayY).toBe(120);
+    expect(mockCallState.videoOverlayWidth).toBe(168);
+  });
+
+  it('ensureMediaPermissions reports camera+microphone when video permanently denied', async () => {
+    setPlatform('android');
+    (PermissionsAndroid.check as any).mockResolvedValue(false);
+    (PermissionsAndroid.requestMultiple as any).mockResolvedValue({
+      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:
+        PermissionsAndroid.RESULTS.GRANTED,
+      [PermissionsAndroid.PERMISSIONS.CAMERA]:
+        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN,
+    });
+    await expect(
+      (webRtcCallService as any).ensureMediaPermissions('video'),
+    ).rejects.toThrow('camera and microphone');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Permission required',
+      expect.stringContaining('camera and microphone'),
+      expect.any(Array),
+    );
+  });
+
+  it('candidate type counting handles unknown and unparsable candidates', () => {
+    const sdp = ['a=candidate:1 1 udp 1 typ', 'a=candidate:bad-line', ''].join(
+      '\r\n',
+    );
+    const counts = (webRtcCallService as any).countCandidateTypes(sdp);
+    expect(counts.unknown).toBe(2);
+    expect(
+      (webRtcCallService as any).extractCandidateType(
+        'a=candidate:no-typ-here',
+      ),
+    ).toBeNull();
+  });
+
+  it('initialize handles DEFAULT/RETURN notification actions and unknown actions', async () => {
+    const restoreSpy = jest.spyOn(webRtcCallService, 'restoreCall');
+    const focusSpy = jest
+      .spyOn(webRtcCallService as any, 'focusCallQueryTab')
+      .mockImplementation(() => undefined);
+    mockConsumePendingCallNotificationAction.mockResolvedValueOnce(null);
+
+    webRtcCallService.initialize();
+    const actionCb = mockSetCallNotificationActionListener.mock.calls[0][0];
+
+    await actionCb('default');
+    expect(focusSpy).toHaveBeenCalled();
+    expect(restoreSpy).toHaveBeenCalled();
+
+    focusSpy.mockClear();
+    restoreSpy.mockClear();
+    await actionCb('something-else');
+    expect(focusSpy).not.toHaveBeenCalled();
+    expect(restoreSpy).not.toHaveBeenCalled();
+  });
+
+  it('createAndSendOffer falls back to offer sdp when localDescription is absent', async () => {
+    const peer = {
+      createOffer: jest.fn(async () => ({ type: 'offer', sdp: 'v=0\r\n' })),
+      setLocalDescription: jest.fn(async () => undefined),
+      localDescription: null,
+    };
+    (webRtcCallService as any).peerConnection = peer;
+    jest
+      .spyOn(webRtcCallService as any, 'waitForIceGatheringComplete')
+      .mockResolvedValue(undefined);
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+
+    await (webRtcCallService as any).createAndSendOffer('net1', 'alice', {
+      type: 'offer',
+      sessionId: 's-fb',
+      mediaType: 'audio',
+    });
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'offer' }),
+    );
+  });
+
+  it('createPeerConnection uses device fallbacks when connection and session are missing', async () => {
+    mockGetConnection.mockReturnValue(null);
+    Object.assign(mockCallState, { sessionId: null, requestedQuality: '480p' });
+    await (webRtcCallService as any).createPeerConnection(
+      'net1',
+      'audio',
+      '480p',
+    );
+    expect(mockBuildRtcSessionConfig).toHaveBeenCalledWith(
+      expect.objectContaining({ deviceId: 'net1-device' }),
+    );
+  });
+
+  it('hangUp ends the call without signaling when there is no active session', async () => {
+    Object.assign(mockCallState, {
+      networkId: null,
+      peerNick: null,
+      sessionId: null,
+    });
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const endSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+    await webRtcCallService.hangUp();
+    expect(sendSignalSpy).not.toHaveBeenCalled();
+    expect(endSpy).toHaveBeenCalledWith('Call ended.');
+  });
+
+  it('endCall does not reset when phase changes before the timeout fires', async () => {
+    (webRtcCallService as any).peerConnection = null;
+    (webRtcCallService as any).localStream = null;
+    (webRtcCallService as any).remoteStream = null;
+    await (webRtcCallService as any).endCall('bye');
+    expect(mockCallState.phase).toBe('ended');
+    mockCallState.phase = 'idle';
+    mockReset.mockClear();
+    jest.advanceTimersByTime(1300);
+    expect(mockReset).not.toHaveBeenCalled();
+  });
 });

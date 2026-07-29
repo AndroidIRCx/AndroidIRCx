@@ -657,6 +657,477 @@ describe('BackupScreen', () => {
     }
   });
 
+  it('toggles a data option and applies settings/minimal presets', async () => {
+    const { findByText, getAllByRole } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[0], 'valueChange', false);
+    await fireEvent.press(await findByText('Settings Only'));
+    await fireEvent.press(await findByText('Minimal'));
+
+    expect(await findByText('Quick Presets')).toBeTruthy();
+  });
+
+  it('shows an error when backup generation returns empty data', async () => {
+    (dataBackupService.exportAll as jest.Mock).mockResolvedValue('');
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('All Data'));
+    await fireEvent.press(await findByText('Generate Backup'));
+
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to generate backup',
+      );
+    });
+  });
+
+  it('exports an unencrypted backup from the sensitive-data prompt', async () => {
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({
+      hasSensitive: true,
+    });
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Generate Backup'));
+    expect(await findByText('Sensitive Data Detected')).toBeTruthy();
+    await fireEvent.press(await findByText('Export Unencrypted'));
+
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Backup Ready',
+        expect.stringContaining('Generated backup with'),
+      );
+    });
+    expect(await findByText('Backup Data')).toBeTruthy();
+  });
+
+  it('renders the large generated backup card and restores from it', async () => {
+    const big = `{"version":1,"data":{"k":"${'x'.repeat(260000)}"}}`;
+    (dataBackupService.exportAll as jest.Mock).mockResolvedValue(big);
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({
+      hasSensitive: false,
+    });
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('All Data'));
+    await act(async () => {
+      await fireEvent.press(await findByText('Generate Backup'));
+    });
+
+    expect(await findByText('Generated Backup')).toBeTruthy();
+
+    await fireEvent.press(await findByText('Restore'));
+    const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(
+      call => call[0] === 'Confirm Restore',
+    );
+    const buttons = confirmCall?.[2] as Array<{
+      text: string;
+      onPress?: () => Promise<void> | void;
+    }>;
+    const restoreButton = buttons?.find(button => button.text === 'Restore');
+    await act(async () => {
+      await restoreButton?.onPress?.();
+    });
+
+    expect(dataBackupService.importAll).toHaveBeenCalledWith(big);
+  });
+
+  it('switches a large generated backup to manual JSON paste', async () => {
+    const big = `{"version":1,"data":{"k":"${'y'.repeat(260000)}"}}`;
+    (dataBackupService.exportAll as jest.Mock).mockResolvedValue(big);
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({
+      hasSensitive: false,
+    });
+
+    const { findByText, findByPlaceholderText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('All Data'));
+    await act(async () => {
+      await fireEvent.press(await findByText('Generate Backup'));
+    });
+
+    expect(await findByText('Generated Backup')).toBeTruthy();
+    await fireEvent.press(await findByText('Switch to Manual JSON Paste'));
+    expect(
+      await findByPlaceholderText('Backup JSON appears here...'),
+    ).toBeTruthy();
+  });
+
+  it('restores directly from a loaded backup file', async () => {
+    const json = '{"version":1,"data":{"foo":"bar"}}';
+    (RNFS.readFile as jest.Mock).mockResolvedValue(json);
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.press(await findByText('Load from File'));
+    await findByText('Loaded Backup File');
+    await fireEvent.press(await findByText('Restore'));
+
+    const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(
+      call => call[0] === 'Confirm Restore',
+    );
+    const buttons = confirmCall?.[2] as Array<{
+      text: string;
+      onPress?: () => Promise<void> | void;
+    }>;
+    const restoreButton = buttons?.find(button => button.text === 'Restore');
+    await act(async () => {
+      await restoreButton?.onPress?.();
+    });
+
+    expect(dataBackupService.importAll).toHaveBeenCalledWith(json);
+  });
+
+  it('shows an error when saving the backup file fails', async () => {
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({
+      hasSensitive: false,
+    });
+    (RNFS as any).writeFile = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('disk full'));
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await act(async () => {
+      await fireEvent.press(await findByText('Generate Backup'));
+    });
+    expect(await findByText('Backup Data')).toBeTruthy();
+    await fireEvent.press(await findByText('Save to File'));
+
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'disk full');
+    });
+  });
+
+  it('resolves the Android content:// picker copy path', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    // No fileCopyUri, so the android content:// resolution branch is exercised.
+    (pick as jest.Mock).mockResolvedValue([
+      {
+        uri: 'content://provider/backup.json',
+        name: 'backup.json',
+      },
+    ]);
+    (RNFS.readFile as jest.Mock).mockResolvedValue(
+      '{"version":1,"data":{"k":"v"}}',
+    );
+
+    try {
+      const { findByText } = await render(
+        <BackupScreen visible={true} onClose={onClose} />,
+      );
+      await fireEvent.press(await findByText('Restore from Backup'));
+      await fireEvent.press(await findByText('Load from File'));
+
+      await waitFor(async () => {
+        expect(RNFS.readFile).toHaveBeenCalledWith(
+          'content://provider/backup.json',
+          'utf8',
+        );
+      });
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('surfaces an error when restore checks throw', async () => {
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockImplementation(
+      () => {
+        throw new Error('restore boom');
+      },
+    );
+
+    const { findByText, findByPlaceholderText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.changeText(
+      await findByPlaceholderText('Backup JSON appears here...'),
+      '{"version":1,"data":{}}',
+    );
+    await fireEvent.press(await findByText('Restore'));
+
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'restore boom');
+    });
+  });
+
+  it('cancels the restore confirmation and reports import failures', async () => {
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    const { findByText, findByPlaceholderText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.changeText(
+      await findByPlaceholderText('Backup JSON appears here...'),
+      '{"version":1,"data":{"k":"v"}}',
+    );
+    await fireEvent.press(await findByText('Restore'));
+
+    const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(
+      call => call[0] === 'Confirm Restore',
+    );
+    const buttons = confirmCall?.[2] as Array<{
+      text: string;
+      onPress?: () => Promise<void> | void;
+    }>;
+    // Cancel branch
+    const cancelButton = buttons?.find(button => button.text === 'Cancel');
+    await act(async () => {
+      await cancelButton?.onPress?.();
+    });
+
+    // Import failure branch
+    (dataBackupService.importAll as jest.Mock).mockRejectedValueOnce(
+      new Error('bad data'),
+    );
+    const restoreButton = buttons?.find(button => button.text === 'Restore');
+    await act(async () => {
+      await restoreButton?.onPress?.();
+    });
+
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'bad data');
+    });
+  });
+
+  it('cancels the decrypt prompt', async () => {
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(true);
+
+    const { findByText, findByPlaceholderText, getAllByText, queryByText } =
+      await render(<BackupScreen visible={true} onClose={onClose} />);
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.changeText(
+      await findByPlaceholderText('Backup JSON appears here...'),
+      '{"encrypted":true}',
+    );
+    await fireEvent.press(await findByText('Restore'));
+    expect(await findByText('Encrypted Backup')).toBeTruthy();
+
+    // Two 'Cancel' buttons exist (decrypt modal + preview footer); the decrypt
+    // modal is declared first in the tree, so press index 0.
+    await fireEvent.press(getAllByText('Cancel')[0]);
+    await waitFor(async () => {
+      expect(queryByText('Encrypted Backup')).toBeNull();
+    });
+  });
+
+  it('closes the preview modal via header Close and footer Cancel', async () => {
+    const { findByText, getAllByText, queryByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    // Footer Cancel closes the preview modal.
+    await fireEvent.press(await findByText('Cancel'));
+    await waitFor(async () => {
+      expect(
+        queryByText('Paste your backup JSON here to restore your data.'),
+      ).toBeNull();
+    });
+
+    // Reopen and close via header Close.
+    await fireEvent.press(await findByText('Restore from Backup'));
+    const closeButtons = getAllByText('Close');
+    await fireEvent.press(closeButtons[closeButtons.length - 1]);
+    await waitFor(async () => {
+      expect(
+        queryByText('Paste your backup JSON here to restore your data.'),
+      ).toBeNull();
+    });
+  });
+
+  it('dismisses nested modals via hardware back requestClose', async () => {
+    const { Modal } = require('react-native');
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({
+      hasSensitive: true,
+    });
+
+    const { findByText, UNSAFE_getAllByType } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    // Open encryption prompt, then request-close every mounted modal.
+    await fireEvent.press(await findByText('Generate Backup'));
+    await findByText('Sensitive Data Detected');
+    await act(async () => {
+      UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+        fireEvent(modal, 'requestClose'),
+      );
+    });
+  });
+
+  it('dismisses the decrypt prompt via requestClose', async () => {
+    const { Modal } = require('react-native');
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(true);
+
+    const { findByText, findByPlaceholderText, UNSAFE_getAllByType } =
+      await render(<BackupScreen visible={true} onClose={onClose} />);
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.changeText(
+      await findByPlaceholderText('Backup JSON appears here...'),
+      '{"encrypted":true}',
+    );
+    await fireEvent.press(await findByText('Restore'));
+    await findByText('Encrypted Backup');
+
+    await act(async () => {
+      UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+        fireEvent(modal, 'requestClose'),
+      );
+    });
+  });
+
+  it('reports picker error message and fallback message variants', async () => {
+    (pick as jest.Mock)
+      .mockRejectedValueOnce({ message: 'plain picker message' })
+      .mockRejectedValueOnce({});
+
+    const { findByText } = await render(
+      <BackupScreen visible={true} onClose={onClose} />,
+    );
+
+    await fireEvent.press(await findByText('Restore from Backup'));
+    await fireEvent.press(await findByText('Load from File'));
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'plain picker message');
+    });
+
+    await fireEvent.press(await findByText('Load from File'));
+    await waitFor(async () => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to load backup file',
+      );
+    });
+  });
+
+  it('dismisses the restart modal with OK after a restore', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    try {
+      const { findByText, queryByText, findByPlaceholderText } = await render(
+        <BackupScreen visible={true} onClose={onClose} />,
+      );
+
+      await fireEvent.press(await findByText('Restore from Backup'));
+      await fireEvent.changeText(
+        await findByPlaceholderText('Backup JSON appears here...'),
+        '{"version":1,"data":{"k":"v"}}',
+      );
+      await fireEvent.press(await findByText('Restore'));
+
+      const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(
+        call => call[0] === 'Confirm Restore',
+      );
+      const buttons = confirmCall?.[2] as Array<{
+        text: string;
+        onPress?: () => Promise<void> | void;
+      }>;
+      const restoreButton = buttons?.find(button => button.text === 'Restore');
+      await act(async () => {
+        await restoreButton?.onPress?.();
+      });
+
+      expect(await findByText('Restore Complete')).toBeTruthy();
+
+      await fireEvent.press(await findByText('OK'));
+      await waitFor(async () => {
+        expect(queryByText('Restore Complete')).toBeNull();
+      });
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('dismisses the restart modal via hardware back requestClose', async () => {
+    const { Modal } = require('react-native');
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    try {
+      const {
+        findByText,
+        queryByText,
+        findByPlaceholderText,
+        UNSAFE_getAllByType,
+      } = await render(<BackupScreen visible={true} onClose={onClose} />);
+
+      await fireEvent.press(await findByText('Restore from Backup'));
+      await fireEvent.changeText(
+        await findByPlaceholderText('Backup JSON appears here...'),
+        '{"version":1,"data":{"k":"v"}}',
+      );
+      await fireEvent.press(await findByText('Restore'));
+
+      const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(
+        call => call[0] === 'Confirm Restore',
+      );
+      const buttons = confirmCall?.[2] as Array<{
+        text: string;
+        onPress?: () => Promise<void> | void;
+      }>;
+      const restoreButton = buttons?.find(button => button.text === 'Restore');
+      await act(async () => {
+        await restoreButton?.onPress?.();
+      });
+
+      await findByText('Restore Complete');
+      await act(async () => {
+        UNSAFE_getAllByType(Modal).forEach((modal: any) =>
+          fireEvent(modal, 'requestClose'),
+        );
+      });
+      await waitFor(async () => {
+        expect(queryByText('Restore Complete')).toBeNull();
+      });
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
   it('shows restart instruction alert on iOS', async () => {
     const originalPlatform = Platform.OS;
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });

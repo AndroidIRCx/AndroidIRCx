@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Alert } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { Alert, Switch } from 'react-native';
+import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { DisplayUISection } from '../../../src/components/settings/sections/DisplayUISection';
 import { CommandsSection } from '../../../src/components/settings/sections/CommandsSection';
 
@@ -104,8 +104,8 @@ jest.mock('../../../src/services/SettingsService', () => ({
 
 jest.mock('../../../src/services/IRCService', () => ({
   RAW_MESSAGE_CATEGORIES: [
-    { id: 'join', label: 'Join' },
-    { id: 'notice', label: 'Notice' },
+    { id: 'join', title: 'Join Messages', description: 'Join/part events' },
+    { id: 'notice', title: 'Notice Messages', description: 'Server notices' },
   ],
   getDefaultRawCategoryVisibility: () => ({ join: true, notice: true }),
 }));
@@ -585,5 +585,231 @@ describe('DisplayUI + Commands sections', () => {
     );
     await deleteButton?.onPress?.();
     expect(mockRemoveCustomCommand).toHaveBeenCalledWith('wave');
+  });
+});
+
+describe('DisplayUISection additional coverage', () => {
+  beforeEach(() => {
+    mockCapturedItems.clear();
+    jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+    mockGetSetting.mockImplementation(async (_k: string, d: any) => d);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders description branches from loaded settings', async () => {
+    mockGetSetting.mockImplementation(async (key: string, def: any) => {
+      const map: Record<string, any> = {
+        noticeTarget: 'active',
+        whoisDisplayMode: 'modal',
+        bannerPosition: 'input_below',
+        swipeBehavior: 'switch-tabs',
+      };
+      return key in map ? map[key] : def;
+    });
+
+    await render(
+      <DisplayUISection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        showRawCommands={true}
+        rawCategoryVisibility={{ join: true, notice: true } as any}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.get('display-swipe-behavior')?.description).toBe(
+        'Swipe left/right to switch tabs',
+      ),
+    );
+    expect(mockCapturedItems.get('display-notices').description).toBe(
+      'Show notices in the active tab',
+    );
+    expect(mockCapturedItems.get('display-whois').description).toBe(
+      'Show WHOIS in a popup modal',
+    );
+    expect(mockCapturedItems.get('display-banner-position').description).toBe(
+      'Banner shown below message input',
+    );
+  });
+
+  it('renders the remaining description branches from loaded settings', async () => {
+    mockGetSetting.mockImplementation(async (key: string, def: any) => {
+      const map: Record<string, any> = {
+        noticeTarget: 'private',
+        whoisDisplayMode: 'active',
+        bannerPosition: 'tabs_above',
+        swipeBehavior: 'show-panels',
+      };
+      return key in map ? map[key] : def;
+    });
+
+    await render(
+      <DisplayUISection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        showRawCommands={false}
+        rawCategoryVisibility={{ join: true, notice: true } as any}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.get('display-notices')?.description).toBe(
+        'Show notices in a private/query tab',
+      ),
+    );
+    expect(mockCapturedItems.get('display-whois').description).toBe(
+      'Show WHOIS in the active tab',
+    );
+    expect(mockCapturedItems.get('display-swipe-behavior').description).toBe(
+      'Swipe to show/hide panels',
+    );
+    expect(mockCapturedItems.get('display-banner-position').description).toBe(
+      'Banner shown above header',
+    );
+  });
+
+  it('toggles switches and presses submenu options not covered elsewhere', async () => {
+    const onRawCategoryVisibilityChange = jest.fn();
+    await render(
+      <DisplayUISection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        showRawCommands={true}
+        rawCategoryVisibility={{ join: true, notice: true } as any}
+        onRawCategoryVisibilityChange={onRawCategoryVisibilityChange}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(mockCapturedItems.has('display-adaptive-layout')).toBe(true),
+    );
+
+    await mockCapturedItems.get('display-adaptive-layout').onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith('adaptiveLayoutEnabled', false);
+
+    await mockCapturedItems
+      .get('display-channel-list-scroll-switch')
+      .onValueChange(true);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'channelListScrollSwitchTabs',
+      true,
+    );
+
+    await mockCapturedItems
+      .get('display-scroll-swipe-invert')
+      .onValueChange(true);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'channelListScrollSwitchTabsInverse',
+      true,
+    );
+
+    await mockCapturedItems
+      .get('display-swipe-behavior')
+      .submenuItems.find((x: any) => x.id === 'swipe-off')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('swipeBehavior', 'off');
+
+    await mockCapturedItems
+      .get('display-swipe-behavior')
+      .submenuItems.find((x: any) => x.id === 'swipe-show-panels')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('swipeBehavior', 'show-panels');
+
+    await mockCapturedItems.get('display-timestamps').onValueChange(false);
+    expect(mockSetTimestampDisplay).toHaveBeenCalledWith('never');
+
+    await mockCapturedItems.get('display-timestamps').onValueChange(true);
+    expect(mockSetTimestampDisplay).toHaveBeenCalledWith('grouped');
+
+    await mockCapturedItems
+      .get('display-message-grouping')
+      .onValueChange(false);
+    expect(mockSetMessageGroupingEnabled).toHaveBeenCalledWith(false);
+
+    await mockCapturedItems
+      .get('message-text-align')
+      .submenuItems.find((x: any) => x.id === 'align-left')
+      .onPress();
+    expect(mockSetMessageTextAlign).toHaveBeenCalledWith('left');
+
+    await mockCapturedItems
+      .get('message-text-direction')
+      .submenuItems.find((x: any) => x.id === 'direction-auto')
+      .onPress();
+    expect(mockSetMessageTextDirection).toHaveBeenCalledWith('auto');
+
+    await mockCapturedItems
+      .get('layout-timestamp-display')
+      .submenuItems.find((x: any) => x.id === 'timestamp-grouped')
+      .onPress();
+    expect(mockSetTimestampDisplay).toHaveBeenCalledWith('grouped');
+
+    await mockCapturedItems
+      .get('display-banner-position')
+      .submenuItems.find((x: any) => x.id === 'banner-pos-input-above')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'input_above',
+    );
+
+    // Toggle raw category switches (also fires the visibility change effect)
+    const rawCats = mockCapturedItems.get('display-raw-categories');
+    await act(async () => {
+      rawCats.submenuItems
+        .find((x: any) => x.id === 'raw-category-join')
+        .onValueChange(false);
+    });
+    await act(async () => {
+      mockCapturedItems
+        .get('display-raw-categories')
+        .submenuItems.find((x: any) => x.id === 'raw-category-notice')
+        .onValueChange(false);
+    });
+  });
+
+  it('opens the submenu modal and interacts with switch and button items', async () => {
+    const { getByTestId, getByText, queryByText, UNSAFE_getAllByType } =
+      await render(
+        <DisplayUISection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          showRawCommands={true}
+          rawCategoryVisibility={{ join: true, notice: true } as any}
+        />,
+      );
+
+    await waitFor(() => getByTestId('setting-display-raw-categories'));
+
+    // Open the raw-categories submenu (switch items)
+    fireEvent.press(getByTestId('setting-display-raw-categories'));
+    await waitFor(() => expect(getByText('Join Messages')).toBeTruthy());
+
+    const switches = UNSAFE_getAllByType(Switch);
+    await act(async () => {
+      fireEvent(switches[0], 'valueChange', false);
+    });
+
+    // Close the modal
+    await act(async () => {
+      fireEvent.press(getByText('Close'));
+    });
+    await waitFor(() => expect(queryByText('Join Messages')).toBeNull());
+
+    // Open the swipe-behavior submenu (button items) and press one
+    fireEvent.press(getByTestId('setting-display-swipe-behavior'));
+    await waitFor(() => expect(getByText('Switch tabs')).toBeTruthy());
+    await act(async () => {
+      fireEvent.press(getByText('Switch tabs'));
+    });
+    expect(mockSetSetting).toHaveBeenCalledWith('swipeBehavior', 'switch-tabs');
   });
 });
