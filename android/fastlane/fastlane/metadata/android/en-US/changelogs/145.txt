@@ -1,0 +1,3 @@
+What's new in v1.9.39:
+- Updated bundled dependencies to patched releases to resolve security advisories
+- Hardened against denial-of-service issues in build and parsing libraries
