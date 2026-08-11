@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
 
@@ -30,6 +31,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
+  const insets = useSafeAreaInsets();
   const scrollContentStyle = { paddingBottom: 24 };
 
   const styles = StyleSheet.create({
@@ -143,7 +145,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.headerTitle}>{title}</Text>
           <TouchableOpacity
             onPress={onClose}

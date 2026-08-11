@@ -21,6 +21,7 @@ import { consentService } from '../services/ConsentService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { settingsService } from '../services/SettingsService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 
@@ -35,6 +36,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const watchAdButtonIconStyle = { marginRight: 8 };
   const watchAdButtonContentStyle = { flex: 1 };
@@ -358,7 +360,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Privacy & Ads')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>

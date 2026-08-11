@@ -13,6 +13,7 @@ import {
   Modal,
   Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 
@@ -53,6 +54,7 @@ export const CreditsScreen: React.FC<CreditsScreenProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   const handleOpenURL = (url: string) => {
@@ -71,7 +73,7 @@ export const CreditsScreen: React.FC<CreditsScreenProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Credits')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>

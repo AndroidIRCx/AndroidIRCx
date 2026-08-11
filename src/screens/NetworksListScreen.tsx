@@ -25,6 +25,7 @@ import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
 import { useT } from '../i18n/transifex';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { ircDatabaseImportService } from '../services/IrcDatabaseImportService';
 
@@ -39,6 +40,7 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
   const [showNetworkSettings, setShowNetworkSettings] = useState(false);
@@ -261,7 +263,7 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
         onRequestClose={onClose}
       >
         <View style={styles.container}>
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>{t('Close')}</Text>
             </TouchableOpacity>

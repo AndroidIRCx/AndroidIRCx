@@ -30,6 +30,7 @@ import {
 } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import Prism from 'prismjs';
@@ -51,6 +52,7 @@ export const ScriptingScreen: React.FC<Props> = ({
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
   const masterToggleContentStyle = { flex: 1, marginRight: 12 };
   const titleSpacingStyle = { marginBottom: 4 };
   const compactSubtitleStyle = { fontSize: 12 };
@@ -435,7 +437,7 @@ export const ScriptingScreen: React.FC<Props> = ({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Scripts')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.close}>{t('Close')}</Text>
@@ -667,7 +669,7 @@ export const ScriptingScreen: React.FC<Props> = ({
         onRequestClose={() => setShowEditor(false)}
       >
         <View style={styles.container}>
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
             <Text style={styles.headerTitle}>{t('Edit Script')}</Text>
             <TouchableOpacity onPress={() => setShowEditor(false)}>
               <Text style={styles.close}>{t('Close')}</Text>

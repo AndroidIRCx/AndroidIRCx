@@ -32,6 +32,7 @@ import {
 } from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPickerModal } from '../components/ColorPickerModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 
 interface ChannelSettingsScreenProps {
@@ -49,6 +50,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [channelInfo, setChannelInfo] = useState<ChannelInfo | undefined>();
   const [topic, setTopic] = useState('');
   const [key, setKey] = useState('');
@@ -564,7 +566,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Channel Settings')}</Text>
           <Text style={styles.channelName}>{channel}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>

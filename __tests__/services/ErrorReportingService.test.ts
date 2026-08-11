@@ -11,7 +11,11 @@ import {
 } from '../../src/services/ErrorReportingService';
 import { Linking } from 'react-native';
 
-// Mock dependencies
+// Mock dependencies. The service uses the v26 modular API — the exported
+// functions take the Crashlytics instance as their first arg. These mock
+// exports drop that instance arg and delegate to `mockCrashlytics.*`, so the
+// existing assertions (which check the remaining args) stay unchanged.
+const mockCrashlyticsInstance = { __brand: 'crashlytics' };
 const mockCrashlytics = {
   setUserId: jest.fn().mockResolvedValue(undefined),
   setAttribute: jest.fn().mockResolvedValue(undefined),
@@ -20,9 +24,17 @@ const mockCrashlytics = {
   reset: jest.fn().mockResolvedValue(undefined),
 };
 
-jest.mock('@react-native-firebase/crashlytics', () => {
-  return () => mockCrashlytics;
-});
+jest.mock('@react-native-firebase/crashlytics', () => ({
+  __esModule: true,
+  getCrashlytics: jest.fn(() => mockCrashlyticsInstance),
+  setUserId: (_cl: unknown, ...args: unknown[]) =>
+    mockCrashlytics.setUserId(...args),
+  setAttribute: (_cl: unknown, ...args: unknown[]) =>
+    mockCrashlytics.setAttribute(...args),
+  log: (_cl: unknown, ...args: unknown[]) => mockCrashlytics.log(...args),
+  recordError: (_cl: unknown, ...args: unknown[]) =>
+    mockCrashlytics.recordError(...args),
+}));
 
 jest.mock('../../src/services/Logger', () => ({
   logger: {

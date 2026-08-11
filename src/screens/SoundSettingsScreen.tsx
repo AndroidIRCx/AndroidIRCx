@@ -25,6 +25,7 @@ import {
 } from '@react-native-documents/picker';
 import Slider from '@react-native-community/slider';
 import RNFS from 'react-native-fs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useSoundSettings } from '../hooks/useSoundSettings';
 import { useT } from '../i18n/transifex';
@@ -47,6 +48,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const footerSpacerStyle = { height: 40 };
 
   const {
@@ -380,7 +382,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
     >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Sound Settings')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>

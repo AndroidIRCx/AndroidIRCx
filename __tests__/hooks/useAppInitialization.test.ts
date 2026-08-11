@@ -268,8 +268,11 @@ describe('useAppInitialization', () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
-    require('@react-native-firebase/app-check').initializeAppCheck.mockRejectedValueOnce(
-      new Error('app-check failed'),
+    // v26 initializeAppCheck is synchronous — it throws rather than rejecting.
+    require('@react-native-firebase/app-check').initializeAppCheck.mockImplementationOnce(
+      () => {
+        throw new Error('app-check failed');
+      },
     );
 
     await renderHook(() => useAppInitialization());

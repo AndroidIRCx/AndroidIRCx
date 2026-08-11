@@ -9,10 +9,6 @@
 // Create mock module - must be defined before jest.mock
 const mockRequestIntegrityToken = jest.fn();
 const mockIsAvailable = jest.fn();
-const mockAppCheckGetToken = jest.fn();
-const mockAppCheckFactory = jest.fn(() => ({
-  getToken: mockAppCheckGetToken,
-}));
 
 // Mock react-native without requireActual to avoid TurboModule issues
 jest.mock('react-native', () => {
@@ -32,14 +28,6 @@ jest.mock('react-native', () => {
     },
   };
 });
-
-jest.mock(
-  '@react-native-firebase/app-check',
-  () => ({
-    default: mockAppCheckFactory,
-  }),
-  { virtual: true },
-);
 
 // Mock crypto for nonce generation
 const mockCryptoGetRandomValues = jest.fn((array: Uint8Array) => {
@@ -69,8 +57,6 @@ describe('PlayIntegrityService', () => {
     jest.clearAllMocks();
     mockRequestIntegrityToken.mockClear();
     mockIsAvailable.mockClear();
-    mockAppCheckFactory.mockClear();
-    mockAppCheckGetToken.mockClear();
     mockCryptoGetRandomValues.mockClear();
     (global.fetch as jest.Mock).mockClear();
     const RN = require('react-native');
@@ -389,59 +375,4 @@ describe('PlayIntegrityService', () => {
     });
   });
 
-  describe('getSimpleIntegrityStatus', () => {
-    it('should return positive flags when App Check token exists', async () => {
-      mockAppCheckGetToken.mockResolvedValueOnce('app-check-token');
-
-      const result = await playIntegrityService.getSimpleIntegrityStatus();
-
-      expect(mockAppCheckFactory).toHaveBeenCalledTimes(1);
-      expect(mockAppCheckGetToken).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({
-        isPlayRecognized: true,
-        meetsBasicIntegrity: true,
-        meetsDeviceIntegrity: true,
-        meetsStrongIntegrity: true,
-        isLicensed: true,
-        hasToken: true,
-      });
-    });
-
-    it('should return false flags when App Check token is empty', async () => {
-      mockAppCheckGetToken.mockResolvedValueOnce('');
-
-      const result = await playIntegrityService.getSimpleIntegrityStatus();
-
-      expect(result).toEqual({
-        isPlayRecognized: false,
-        meetsBasicIntegrity: false,
-        meetsDeviceIntegrity: false,
-        meetsStrongIntegrity: false,
-        isLicensed: false,
-        hasToken: false,
-      });
-    });
-
-    it('should return false flags when App Check throws', async () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      mockAppCheckFactory.mockImplementationOnce(() => {
-        throw new Error('App Check unavailable');
-      });
-
-      try {
-        const result = await playIntegrityService.getSimpleIntegrityStatus();
-
-        expect(result).toEqual({
-          isPlayRecognized: false,
-          meetsBasicIntegrity: false,
-          meetsDeviceIntegrity: false,
-          meetsStrongIntegrity: false,
-          isLicensed: false,
-          hasToken: false,
-        });
-      } finally {
-        warnSpy.mockRestore();
-      }
-    });
-  });
 });

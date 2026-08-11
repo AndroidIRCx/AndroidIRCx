@@ -24,6 +24,7 @@ import {
 import { connectionManager } from '../services/ConnectionManager';
 import { useT } from '../i18n/transifex';
 import { useUIStore } from '../stores/uiStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../services/ThemeService';
 
@@ -55,6 +56,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<ListTab>(initialTab);
   const [entries, setEntries] = useState<UserListEntry[]>([]);
   const [ignoredUsers, setIgnoredUsers] = useState<IgnoredUser[]>([]);
@@ -391,7 +393,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
     >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('User Lists')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity

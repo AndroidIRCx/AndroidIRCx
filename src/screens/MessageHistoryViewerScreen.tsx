@@ -23,6 +23,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { IRCMessage } from '../services/IRCService';
@@ -53,6 +54,7 @@ export const MessageHistoryViewerScreen: React.FC<
 > = ({ visible, onClose }) => {
   const { colors } = useTheme();
   const t = useT();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
@@ -356,7 +358,7 @@ export const MessageHistoryViewerScreen: React.FC<
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('History Viewer')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity

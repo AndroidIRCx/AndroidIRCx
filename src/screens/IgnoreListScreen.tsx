@@ -19,6 +19,7 @@ import {
   IgnoredUser,
 } from '../services/UserManagementService';
 import { connectionManager } from '../services/ConnectionManager';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../i18n/transifex';
 import { useTheme } from '../hooks/useTheme';
 
@@ -44,6 +45,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
   const [showNetworkPicker, setShowNetworkPicker] = useState(false);
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   const loadAvailableNetworks = useCallback(() => {
@@ -149,7 +151,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Ignore List')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity

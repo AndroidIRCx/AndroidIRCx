@@ -89,9 +89,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const styles = createStyles(colors, totalBottomInset);
   const [message, setMessage] = useState('');
   const [suggestions, setSuggestions] = useState<MessageInputSuggestion[]>([]);
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const selectionRef = useRef(selection);
-  const suppressNextSelectionChangeRef = useRef(false);
+  // `selection` is only set transiently — to move the cursor after a
+  // programmatic insert (formatting code / mention). It is `undefined` the rest
+  // of the time so the TextInput stays UNcontrolled for selection. Controlling
+  // `selection` on every render cancels the Android IME composing region, which
+  // breaks dead keys (e.g. circumflex `ˆ` → `ê`) and AltGr-composed characters
+  // such as `[` and `]` on German/EU layouts.
+  const [selectionOverride, setSelectionOverride] = useState<
+    { start: number; end: number } | undefined
+  >(undefined);
+  const selectionRef = useRef({ start: 0, end: 0 });
 
   // Media upload state
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
@@ -214,14 +221,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
-
   const setSelectionSafely = useCallback(
     (next: { start: number; end: number }) => {
-      suppressNextSelectionChangeRef.current = true;
-      setSelection(next);
+      selectionRef.current = next;
+      setSelectionOverride(next);
     },
     [],
   );
@@ -928,13 +931,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           }
           onKeyPress={handleKeyPress}
           onSelectionChange={event => {
-            if (suppressNextSelectionChangeRef.current) {
-              suppressNextSelectionChangeRef.current = false;
-              return;
-            }
-            setSelection(event.nativeEvent.selection);
+            selectionRef.current = event.nativeEvent.selection;
+            // Release the transient override once native reports a selection so
+            // the input returns to being uncontrolled (keeps IME composition,
+            // i.e. dead keys / AltGr characters, working while typing).
+            setSelectionOverride(prev => (prev ? undefined : prev));
           }}
-          selection={selection}
+          selection={selectionOverride}
           editable={!disabled}
           multiline={true}
           blurOnSubmit={enterKeyBehavior === 'send'}
