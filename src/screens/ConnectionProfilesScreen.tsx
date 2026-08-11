@@ -16,6 +16,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import {
   settingsService,
@@ -40,6 +41,7 @@ export const ConnectionProfilesScreen: React.FC<
   ConnectionProfilesScreenProps
 > = ({ visible, onClose }) => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const t = useT();
   const tags =
@@ -665,7 +667,12 @@ export const ConnectionProfilesScreen: React.FC<
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+          ]}
+        >
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
             <Text style={[styles.cancelText, { color: colors.onPrimary }]}>
               {t('Close', { _tags: tags })}

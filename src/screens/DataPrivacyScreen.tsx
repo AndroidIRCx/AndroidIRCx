@@ -16,6 +16,7 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { dataPrivacyService } from '../services/DataPrivacyService';
@@ -32,6 +33,7 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [loading, setLoading] = useState(false);
@@ -294,7 +296,7 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
     >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('My Data & Privacy')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>

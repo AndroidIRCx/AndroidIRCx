@@ -36,6 +36,7 @@ import {
 } from './irc/protocol/IRCMessageTags';
 import {
   createIRCWebSocket,
+  type IRCWebSocketLike,
   type IRCWebSocketSubprotocol,
 } from './irc/transport/WebSocketIRCTransport';
 import { settingsService } from './SettingsService';
@@ -1056,9 +1057,17 @@ export class IRCService {
         };
 
         if (requestedTransport === 'websocket') {
-          const webSocketUrl =
+          let webSocketUrl =
             config.webSocketUrl ||
             `${config.tls === false ? 'ws' : 'wss'}://${config.host}:${config.port}/`;
+          // A user-entered WebSocket URL (or a bare host) without a ws/wss
+          // scheme otherwise crashes the native WebSocket with
+          // "Expected URL scheme 'http' or 'https'" (OkHttp). Always normalize
+          // it to carry an explicit scheme before connecting.
+          if (!/^wss?:\/\//i.test(webSocketUrl)) {
+            const scheme = config.tls === false ? 'ws' : 'wss';
+            webSocketUrl = `${scheme}://${webSocketUrl.replace(/^\/+/, '')}`;
+          }
           const protocols = config.webSocketSubprotocols || [
             'binary.ircv3.net',
             'text.ircv3.net',
@@ -1066,7 +1075,26 @@ export class IRCService {
           this.logRaw(
             `IRCService: Connecting via IRCv3 WebSocket url=${webSocketUrl} protocols=${protocols.join(',')}`,
           );
-          const webSocket = createIRCWebSocket(webSocketUrl, protocols);
+          let webSocket: IRCWebSocketLike;
+          try {
+            webSocket = createIRCWebSocket(webSocketUrl, protocols);
+          } catch (wsError) {
+            // A malformed WebSocket URL throws synchronously from the native
+            // WebSocket constructor — surface it as a connection error instead
+            // of letting it crash the app.
+            const message =
+              wsError instanceof Error ? wsError.message : String(wsError);
+            this.addMessage({
+              type: 'error',
+              text: t('Connection error [{code}]: {message}', {
+                code: 'WEBSOCKET',
+                message,
+              }),
+              timestamp: Date.now(),
+            });
+            reject(new Error(message));
+            return;
+          }
           this.socket = webSocket;
           webSocket.onopen = () => {
             if (this.connectionTimeout) {

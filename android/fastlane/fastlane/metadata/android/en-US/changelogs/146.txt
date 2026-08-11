@@ -1,0 +1,5 @@
+What's new in v1.9.40:
+- Fixed being unable to type certain characters (dead-key accents like ˆ and brackets [ ]) in the message box
+- Fixed a crash when connecting to a WebSocket server whose address had no ws:// or wss:// prefix
+- Upgraded Firebase, in-app purchases, camera, keyboard, audio and cryptography libraries to their latest releases
+- Improved stability and performance from updated native dependencies

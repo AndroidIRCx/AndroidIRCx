@@ -230,52 +230,6 @@ class PlayIntegrityService {
       return null;
     }
   }
-
-  /**
-   * Get a simplified integrity status (client-side only)
-   * This uses Firebase App Check token if available
-   *
-   * Note: This is a simplified check. For detailed report with all verdicts,
-   * use getIntegrityReport() with backend verification.
-   */
-  public async getSimpleIntegrityStatus(): Promise<{
-    isPlayRecognized: boolean;
-    meetsBasicIntegrity: boolean;
-    meetsDeviceIntegrity: boolean;
-    meetsStrongIntegrity: boolean;
-    isLicensed: boolean;
-    hasToken: boolean;
-  } | null> {
-    // This is a simplified check using Firebase App Check
-    // For detailed report, use getIntegrityReport() with backend verification
-    try {
-      const appCheck = require('@react-native-firebase/app-check').default();
-
-      // Try to get App Check token
-      const token = await appCheck.getToken();
-
-      // If we can get App Check token, it means Play Integrity is working
-      // But we can't get detailed verdicts without backend verification
-      return {
-        isPlayRecognized: !!token, // Assumed if token exists
-        meetsBasicIntegrity: !!token,
-        meetsDeviceIntegrity: !!token,
-        meetsStrongIntegrity: !!token,
-        isLicensed: !!token,
-        hasToken: !!token,
-      };
-    } catch (error) {
-      console.warn('Could not get simple integrity status:', error);
-      return {
-        isPlayRecognized: false,
-        meetsBasicIntegrity: false,
-        meetsDeviceIntegrity: false,
-        meetsStrongIntegrity: false,
-        isLicensed: false,
-        hasToken: false,
-      };
-    }
-  }
 }
 
 export const playIntegrityService = new PlayIntegrityService();

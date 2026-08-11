@@ -14,6 +14,7 @@ import {
   View,
   TextStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../i18n/transifex';
 import {
   MessageFormatPart,
@@ -107,6 +108,7 @@ export const MessageFormatEditorScreen: React.FC<
   MessageFormatEditorScreenProps
 > = ({ visible, colors, initialFormats, onSave, onCancel }) => {
   const t = useT();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const [formats, setFormats] = useState<ThemeMessageFormats>(
     getDefaultMessageFormats(),
@@ -799,7 +801,12 @@ export const MessageFormatEditorScreen: React.FC<
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onCancel}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+          ]}
+        >
           <TouchableOpacity onPress={onCancel}>
             <Text style={[styles.headerText, { color: colors.onPrimary }]}>
               {t('Cancel')}

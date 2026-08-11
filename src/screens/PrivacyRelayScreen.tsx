@@ -28,6 +28,7 @@ import type {
   PurchaseError,
 } from 'react-native-iap';
 import { ErrorCode } from 'react-native-iap';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import {
@@ -63,6 +64,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [subscription, setSubscription] = useState(
     privacyRelayService.getSubscription(),
@@ -483,7 +485,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.headerTitle}>{t('Privacy Relay')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.closeText}>{t('Close')}</Text>

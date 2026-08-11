@@ -20,6 +20,7 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../i18n/transifex';
 import { useTheme } from '../hooks/useTheme';
 import { connectionManager } from '../services/ConnectionManager';
@@ -79,6 +80,7 @@ export const IRCv3InfoScreen: React.FC<IRCv3InfoScreenProps> = ({
   const irData = useIRCv3Data(networkId);
   const hasCaps = (irData?.availableCaps?.length ?? 0) > 0;
   const isConnected = Boolean(irData?.isConnected);
+  const insets = useSafeAreaInsets();
 
   const styles = createStyles(colors);
 
@@ -465,6 +467,7 @@ export const IRCv3InfoScreen: React.FC<IRCv3InfoScreenProps> = ({
               backgroundColor:
                 colors.surfaceVariant ?? colors.surface ?? '#1E1E1E',
               borderBottomColor: colors.border ?? '#333',
+              paddingTop: insets.top + 48,
             },
           ]}
         >

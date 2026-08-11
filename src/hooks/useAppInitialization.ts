@@ -91,7 +91,9 @@ export function useAppInitialization() {
         debugLogger.debug('appInitialization', 'App Check provider configured');
 
         debugLogger.debug('appInitialization', 'Initializing App Check');
-        await initializeAppCheck(app, {
+        // v26 modular: initializeAppCheck returns synchronously (native provider
+        // setup continues in the background), so it is not awaited.
+        initializeAppCheck(app, {
           provider: rnfbProvider,
           isTokenAutoRefreshEnabled: true,
         } as any);

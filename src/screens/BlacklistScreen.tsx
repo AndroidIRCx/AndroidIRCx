@@ -24,6 +24,7 @@ import { connectionManager } from '../services/ConnectionManager';
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
 import { useUIStore } from '../stores/uiStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 
 interface BlacklistScreenProps {
@@ -79,6 +80,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const [templates, setTemplates] = useState<BlacklistTemplates>({});
   const [templateNetwork, setTemplateNetwork] = useState<string>('global');
   const banMaskTypes = banService.getBanMaskTypes();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   // Check for blacklistTarget from NickContextMenu
@@ -267,7 +269,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>{t('Blacklist')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity

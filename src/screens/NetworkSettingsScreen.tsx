@@ -28,6 +28,7 @@ import { CertificateFingerprintModal } from '../components/modals/CertificateFin
 import { certificateManager } from '../services/CertificateManagerService';
 import type { CertificateInfo } from '../types/certificate';
 import { Picker } from '@react-native-picker/picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 
 interface NetworkSettingsScreenProps {
@@ -99,6 +100,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [showCertGenerator, setShowCertGenerator] = useState(false);
   const [showCertSelector, setShowCertSelector] = useState(false);
   const [showCertFingerprint, setShowCertFingerprint] = useState(false);
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   // Memoized certificate fingerprint - returns null for invalid PEM
@@ -332,7 +334,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   return (
     <Modal visible={true} animationType="slide" onRequestClose={onCancel}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             onPress={onCancel}
             style={styles.cancelButton}

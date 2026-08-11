@@ -20,6 +20,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import {
@@ -47,6 +48,7 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const [channels, setChannels] = useState<ChannelListItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -244,7 +246,12 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+          ]}
+        >
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
             <Text style={[styles.cancelText, { color: colors.onPrimary }]}>
               {t('Close')}

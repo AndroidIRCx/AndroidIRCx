@@ -12681,91 +12681,91 @@
     "string": "Actual: {quality} • Las llamadas gratuitas permanecen directas, usan 480p por defecto y pueden aumentarse a 720p"
   },
   "Free Call STUN Servers": {
-    "string": ""
+    "string": "Servidores STUN gratuitos para llamadas"
   },
   "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
-    "string": ""
+    "string": "Lista de respaldo actual: {count} Puntos de STUN. Las llamadas premium siguen usando TURN cuando sea neceario."
   },
   "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
     "string": "Lista actual de respaldo: {count} endpoints STUN para llamadas gratuitas directas. Se utiliza una lista ordenada como respaldo."
   },
   "External TURN Server": {
-    "string": ""
+    "string": "Servidor TURN externo"
   },
   "Enabled: {count} TURN URL(s), credentials {credentialsState}.": {
-    "string": ""
+    "string": "Activado: {count} TURN URL(s), credenciales {credentialsState}"
   },
   "set": {
-    "string": ""
+    "string": "set"
   },
   "missing": {
-    "string": ""
+    "string": "perdida"
   },
   "Disabled. Configure your own TURN relay if you already have one.": {
-    "string": ""
+    "string": "Desactivado. Configure su propio TURN si ya tiene uno."
   },
   "Force TURN Relay Only": {
-    "string": ""
+    "string": "Forzar solo retransmisión TURN"
   },
   "If enabled, WebRTC uses relay candidates only when relay is available (Privacy Relay or external TURN).": {
-    "string": ""
+    "string": "Si está habilitado, WebRTC utiliza retransmisión solo cuando la retransmisión está disponible (Privacy Relay o TURN externo)."
   },
   "Show Audio/Video Call In Nick Menu": {
-    "string": ""
+    "string": "Mostrar Audio/Videollamada en el Menu del Nick"
   },
   "Audio and Video Call actions are visible in user context menu.": {
-    "string": ""
+    "string": "Las acciones de llamada de audio y vídeo son visibles en el menú contextual del usuario."
   },
   "Audio and Video Call actions are hidden in user context menu.": {
-    "string": ""
+    "string": "Las acciones de llamada de audio y vídeo están ocultas en el menú contextual del usuario."
   },
   "Show Ongoing Call Notification": {
-    "string": ""
+    "string": "Mostrar notificación de llamada en curso"
   },
   "Keeps an Android notification visible during active audio and video calls so you can jump back quickly.": {
-    "string": ""
+    "string": "Mantiene visible una notificación de Android durante las llamadas de audio y vídeo activas para que puedas volver a ellas rápidamente."
   },
   "Show Minimized Call Only In Active Query": {
-    "string": ""
+    "string": "Mostrar llamada minimizada solo en la ventana activa"
   },
   "Minimized call overlay appears only when you are on the matching query tab. This is optional and off by default.": {
-    "string": ""
+    "string": "La superposición de llamada minimizada aparece solo cuando te encuentras en la ventana activa común a la llamada. Esta función es opcional y está desactivada de forma predeterminada."
   },
   "Default behavior: minimized call overlay stays visible everywhere in the app.": {
-    "string": ""
+    "string": "Como predeterminado: la superposición de llamada minimizada permanece visible en toda la aplicación."
   },
   "No STUN servers added yet.": {
-    "string": ""
+    "string": "Aún no se han añadido servidores STUN."
   },
   "No TURN servers added yet.": {
-    "string": ""
+    "string": "Aún no se han añadido servidores STUN."
   },
   "STUN Servers": {
-    "string": ""
+    "string": "Servidores STUN"
   },
   "Add multiple STUN URLs. Order is used as fallback priority.": {
-    "string": ""
+    "string": "Añada varias URL STUN. El orden determina la prioridad de reserva."
   },
   "STUN must start with stun:": {
-    "string": ""
+    "string": "STUN debe comenzar con stun:"
   },
   "Enable External TURN": {
-    "string": ""
+    "string": "Habilitar TURN externo"
   },
   "Use your own TURN server for call relay fallback.": {
-    "string": ""
+    "string": "Utiliza tu propio servidor TURN como alternativa para el retransmisión de llamadas."
   },
   "TURN Servers": {
-    "string": ""
+    "string": "Servidores TURN"
   },
   "Add multiple TURN URLs. Order is used as fallback priority.": {
-    "string": ""
+    "string": "Añada varias URL TURN. El orden determina la prioridad de reserva."
   },
   "TURN must start with turn: or turns:": {
-    "string": ""
+    "string": "TURN debe comenzar con turn: o turns:"
   },
   "TURN Username": {
-    "string": ""
+    "string": "Nombre de usuario de TURN"
   },
   "TURN Credential": {
     "string": ""

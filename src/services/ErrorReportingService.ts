@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import crashlytics from '@react-native-firebase/crashlytics';
+import {
+  getCrashlytics,
+  setUserId as crashlyticsSetUserId,
+  setAttribute as crashlyticsSetAttribute,
+  log as crashlyticsLog,
+  recordError as crashlyticsRecordError,
+} from '@react-native-firebase/crashlytics';
 import { Linking, Platform } from 'react-native';
 import { logger } from './Logger';
 import { tx } from '../i18n/transifex';
@@ -178,7 +184,7 @@ class ErrorReportingService {
   async setUserId(userId: string | null): Promise<void> {
     if (!this.enabled || !userId) return;
     try {
-      await crashlytics().setUserId(userId);
+      await crashlyticsSetUserId(getCrashlytics(), userId);
     } catch {
       // ignore
     }
@@ -202,7 +208,8 @@ class ErrorReportingService {
       if (tags) {
         Object.entries(tags).forEach(([key, value]) => {
           try {
-            crashlytics().setAttribute(
+            crashlyticsSetAttribute(
+              getCrashlytics(),
               key,
               isSensitiveKey(key) ? REDACTED : sanitizeString(String(value)),
             );
@@ -217,7 +224,7 @@ class ErrorReportingService {
         const sanitizedExtras = sanitizeExtras(extras);
         Object.entries(sanitizedExtras).forEach(([key, value]) => {
           try {
-            crashlytics().log(`${key}: ${safeStringify(value)}`);
+            crashlyticsLog(getCrashlytics(), `${key}: ${safeStringify(value)}`);
           } catch {
             // ignore
           }
@@ -226,13 +233,13 @@ class ErrorReportingService {
 
       if (sanitizedSource) {
         try {
-          crashlytics().setAttribute('source', sanitizedSource);
+          crashlyticsSetAttribute(getCrashlytics(), 'source', sanitizedSource);
         } catch {
           // ignore
         }
       }
 
-      await crashlytics().recordError(normalizedError);
+      await crashlyticsRecordError(getCrashlytics(), normalizedError);
     } catch (err) {
       console.warn(
         'ErrorReportingService: Crashlytics failed, using mail fallback',
@@ -248,7 +255,7 @@ class ErrorReportingService {
   log(message: string): void {
     if (!this.enabled) return;
     try {
-      crashlytics().log(sanitizeString(message));
+      crashlyticsLog(getCrashlytics(), sanitizeString(message));
     } catch {
       // ignore
     }

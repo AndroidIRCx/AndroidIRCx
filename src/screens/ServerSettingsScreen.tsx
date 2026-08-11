@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { IRCServerConfig, settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 
 interface ServerSettingsScreenProps {
@@ -38,6 +39,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   tRef.current = t;
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
   const themeColors = colors as typeof colors & {
     textMuted?: string;
     surfaceVariant?: string;
@@ -149,7 +151,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   return (
     <Modal visible={true} animationType="slide" onRequestClose={onCancel}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             onPress={onCancel}
             style={styles.cancelButton}

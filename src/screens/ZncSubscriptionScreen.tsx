@@ -48,6 +48,7 @@ import { settingsService, IRCNetworkConfig } from '../services/SettingsService';
 import { biometricAuthService } from '../services/BiometricAuthService';
 import { secureStorageService } from '../services/SecureStorageService';
 import { NetworkPickerModal } from '../components/modals/NetworkPickerModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
@@ -65,6 +66,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const refreshButtonStyle = {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -1590,6 +1592,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
               {
                 backgroundColor: colors.surface,
                 borderBottomColor: colors.border,
+                paddingTop: insets.top + 12,
               },
             ]}
           >

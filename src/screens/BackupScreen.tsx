@@ -19,6 +19,7 @@ import {
   Platform,
   type ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { dataBackupService } from '../services/DataBackupService';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -97,6 +98,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const tags = 'screen:backup,file:BackupScreen.tsx,feature:backup';
 
@@ -823,7 +825,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     >
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.headerTitle}>
             {t('Backup & Restore', { _tags: tags })}
           </Text>
@@ -1085,7 +1087,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
           onRequestClose={() => setShowPreviewModal(false)}
         >
           <View style={styles.modalFullScreenContainer}>
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
               <Text style={styles.modalTitle}>
                 {backupData || generatedBackupMeta
                   ? t('Backup Data', { _tags: tags })
