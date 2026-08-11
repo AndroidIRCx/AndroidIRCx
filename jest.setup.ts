@@ -513,8 +513,9 @@ jest.mock('@notifee/react-native', () => ({
 
 // Safe-area insets: use the library's official jest mock so screens calling
 // useSafeAreaInsets() render without a SafeAreaProvider (returns default insets).
-jest.mock('react-native-safe-area-context', () =>
-  require('react-native-safe-area-context/jest/mock').default,
+jest.mock(
+  'react-native-safe-area-context',
+  () => require('react-native-safe-area-context/jest/mock').default,
 );
 
 jest.mock('@react-native-firebase/app', () => ({

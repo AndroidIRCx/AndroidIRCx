@@ -374,5 +374,4 @@ describe('PlayIntegrityService', () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
   });
-
 });
