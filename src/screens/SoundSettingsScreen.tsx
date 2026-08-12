@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   pick,
   isErrorWithCode,
@@ -25,7 +26,6 @@ import {
 } from '@react-native-documents/picker';
 import Slider from '@react-native-community/slider';
 import RNFS from 'react-native-fs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useSoundSettings } from '../hooks/useSoundSettings';
 import { useT } from '../i18n/transifex';
@@ -48,7 +48,6 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const insets = useSafeAreaInsets();
   const footerSpacerStyle = { height: 40 };
 
   const {
@@ -379,10 +378,12 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
       animationType="slide"
       onRequestClose={onClose}
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
     >
-      <View style={styles.container}>
+      <ModalSafeArea style={styles.container}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Sound Settings')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>
@@ -566,7 +567,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
           {/* Footer spacing */}
           <View style={footerSpacerStyle} />
         </ScrollView>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

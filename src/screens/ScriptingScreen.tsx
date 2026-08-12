@@ -23,6 +23,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   scriptingService,
   ScriptConfig,
@@ -30,7 +31,6 @@ import {
 } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import Prism from 'prismjs';
@@ -52,7 +52,6 @@ export const ScriptingScreen: React.FC<Props> = ({
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
-  const insets = useSafeAreaInsets();
   const masterToggleContentStyle = { flex: 1, marginRight: 12 };
   const titleSpacingStyle = { marginBottom: 4 };
   const compactSubtitleStyle = { fontSize: 12 };
@@ -435,9 +434,15 @@ export const ScriptingScreen: React.FC<Props> = ({
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Scripts')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.close}>{t('Close')}</Text>
@@ -661,15 +666,17 @@ export const ScriptingScreen: React.FC<Props> = ({
             ))}
           </ScrollView>
         </ScrollView>
-      </View>
+      </ModalSafeArea>
 
       <Modal
         visible={showEditor}
         animationType="slide"
         onRequestClose={() => setShowEditor(false)}
+        statusBarTranslucent
+        navigationBarTranslucent
       >
-        <View style={styles.container}>
-          <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <ModalSafeArea style={styles.container}>
+          <View style={styles.header}>
             <Text style={styles.headerTitle}>{t('Edit Script')}</Text>
             <TouchableOpacity onPress={() => setShowEditor(false)}>
               <Text style={styles.close}>{t('Close')}</Text>
@@ -770,7 +777,7 @@ export const ScriptingScreen: React.FC<Props> = ({
               </TouchableOpacity>
             </>
           )}
-        </View>
+        </ModalSafeArea>
       </Modal>
     </Modal>
   );

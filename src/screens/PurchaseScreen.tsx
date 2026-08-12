@@ -15,8 +15,8 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   inAppPurchaseService,
   PRODUCT_REMOVE_ADS,
@@ -58,7 +58,6 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const insets = useSafeAreaInsets();
   const tRef = useRef(t);
   const [hasRemoveAds, setHasRemoveAds] = useState(false);
   const [hasProUnlimited, setHasProUnlimited] = useState(false);
@@ -401,9 +400,11 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
       animationType="slide"
       transparent={false}
       onRequestClose={onClose}
+      statusBarTranslucent
+      navigationBarTranslucent
     >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>AndroidIRCX Premium</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>✕</Text>
@@ -467,7 +468,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
             </Text>
           </View>
         </ScrollView>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

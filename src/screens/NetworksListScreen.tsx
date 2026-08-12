@@ -16,6 +16,7 @@ import {
   ScrollView,
   Linking,
 } from 'react-native';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   IRCNetworkConfig,
   IRCServerConfig,
@@ -25,7 +26,6 @@ import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
 import { useT } from '../i18n/transifex';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 import { ircDatabaseImportService } from '../services/IrcDatabaseImportService';
 
@@ -40,7 +40,6 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
   const [showNetworkSettings, setShowNetworkSettings] = useState(false);
@@ -260,10 +259,12 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
       <Modal
         visible={!showNetworkSettings && !showServerSettings}
         animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={onClose}
       >
-        <View style={styles.container}>
-          <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <ModalSafeArea style={styles.container}>
+          <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>{t('Close')}</Text>
             </TouchableOpacity>
@@ -390,7 +391,7 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
               )}
             />
           )}
-        </View>
+        </ModalSafeArea>
       </Modal>
 
       {/* Network Settings Modal */}

@@ -14,7 +14,7 @@ import {
   View,
   TextStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useT } from '../i18n/transifex';
 import {
   MessageFormatPart,
@@ -108,7 +108,6 @@ export const MessageFormatEditorScreen: React.FC<
   MessageFormatEditorScreenProps
 > = ({ visible, colors, initialFormats, onSave, onCancel }) => {
   const t = useT();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const [formats, setFormats] = useState<ThemeMessageFormats>(
     getDefaultMessageFormats(),
@@ -799,12 +798,22 @@ export const MessageFormatEditorScreen: React.FC<
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onCancel}>
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onCancel}
+    >
+      <ModalSafeArea
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View
           style={[
             styles.header,
-            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+            {
+              backgroundColor: colors.primary,
+            },
           ]}
         >
           <TouchableOpacity onPress={onCancel}>
@@ -1435,7 +1444,7 @@ export const MessageFormatEditorScreen: React.FC<
             </View>
           </View>
         </Modal>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

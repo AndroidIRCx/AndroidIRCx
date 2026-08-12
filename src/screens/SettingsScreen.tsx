@@ -28,7 +28,7 @@ import {
   messageHistoryService,
   ExportOptions,
 } from '../services/MessageHistoryService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeEditorScreen } from './ThemeEditorScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
@@ -173,7 +173,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const t = useT();
   const { theme, colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors, theme), [colors, theme]);
   const { ensureIapConnection, releaseIapConnection } = useIapConnectionLease();
   const tags = 'screen:settings,file:SettingsScreen.tsx,feature:settings';
@@ -3230,10 +3229,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>
             {t('Settings', { _tags: tags })}
           </Text>
@@ -3698,7 +3699,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </View>
           </View>
         </Modal>
-      </View>
+      </ModalSafeArea>
       <ThemeEditorScreen
         visible={showThemeEditor}
         theme={editingTheme}

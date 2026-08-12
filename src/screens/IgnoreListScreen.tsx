@@ -14,12 +14,12 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   userManagementService,
   IgnoredUser,
 } from '../services/UserManagementService';
 import { connectionManager } from '../services/ConnectionManager';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../i18n/transifex';
 import { useTheme } from '../hooks/useTheme';
 
@@ -45,7 +45,6 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
   const [showNetworkPicker, setShowNetworkPicker] = useState(false);
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   const loadAvailableNetworks = useCallback(() => {
@@ -148,10 +147,12 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Ignore List')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity
@@ -362,7 +363,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
             </View>
           </View>
         </Modal>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

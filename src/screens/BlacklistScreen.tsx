@@ -24,8 +24,8 @@ import { connectionManager } from '../services/ConnectionManager';
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
 import { useUIStore } from '../stores/uiStore';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 
 interface BlacklistScreenProps {
   visible: boolean;
@@ -80,7 +80,6 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const [templates, setTemplates] = useState<BlacklistTemplates>({});
   const [templateNetwork, setTemplateNetwork] = useState<string>('global');
   const banMaskTypes = banService.getBanMaskTypes();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   // Check for blacklistTarget from NickContextMenu
@@ -266,10 +265,12 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Blacklist')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity
@@ -758,7 +759,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
             </View>
           </View>
         </Modal>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

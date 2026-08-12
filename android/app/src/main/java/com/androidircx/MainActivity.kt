@@ -2,7 +2,6 @@ package com.androidircx
 
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.core.view.WindowCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -26,9 +25,8 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Ensure content doesn't draw behind system bars (traditional layout)
-        // This works together with android:windowOptOutEdgeToEdgeEnforcement on Android 15+
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        // Edge-to-edge is enabled (edgeToEdgeEnabled=true); content is laid out
+        // under the system bars and safe-area insets handle spacing in JS.
         // Keep app content hidden from screenshots and Android recents/task snapshots.
         // This avoids lock-screen content leaking in recent-app previews.
         window.setFlags(

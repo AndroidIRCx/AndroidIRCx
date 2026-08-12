@@ -19,8 +19,8 @@ import {
   Platform,
   type ViewStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { dataBackupService } from '../services/DataBackupService';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
@@ -98,7 +98,6 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const tags = 'screen:backup,file:BackupScreen.tsx,feature:backup';
 
@@ -821,11 +820,13 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <ModalSafeArea style={styles.container}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>
             {t('Backup & Restore', { _tags: tags })}
           </Text>
@@ -1084,10 +1085,12 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
           visible={showPreviewModal}
           animationType="slide"
           presentationStyle="fullScreen"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowPreviewModal(false)}
         >
-          <View style={styles.modalFullScreenContainer}>
-            <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
+          <ModalSafeArea style={styles.modalFullScreenContainer}>
+            <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {backupData || generatedBackupMeta
                   ? t('Backup Data', { _tags: tags })
@@ -1286,7 +1289,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ModalSafeArea>
         </Modal>
 
         <Modal
@@ -1347,7 +1350,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
             </View>
           </View>
         )}
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };
