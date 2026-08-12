@@ -20,7 +20,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import {
@@ -48,7 +48,6 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const [channels, setChannels] = useState<ChannelListItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -243,13 +242,19 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ModalSafeArea
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View
           style={[
             styles.header,
-            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+            {
+              backgroundColor: colors.primary,
+            },
           ]}
         >
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
@@ -434,7 +439,7 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
             }
           />
         )}
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

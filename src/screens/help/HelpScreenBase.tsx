@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../../components/ModalSafeArea';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
 
@@ -31,7 +31,6 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
-  const insets = useSafeAreaInsets();
   const scrollContentStyle = { paddingBottom: 24 };
 
   const styles = StyleSheet.create({
@@ -142,10 +141,12 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{title}</Text>
           <TouchableOpacity
             onPress={onClose}
@@ -161,7 +162,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
         >
           {children}
         </ScrollView>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

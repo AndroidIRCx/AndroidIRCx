@@ -16,7 +16,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import {
   settingsService,
@@ -41,7 +41,6 @@ export const ConnectionProfilesScreen: React.FC<
   ConnectionProfilesScreenProps
 > = ({ visible, onClose }) => {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
   const t = useT();
   const tags =
@@ -664,13 +663,19 @@ export const ConnectionProfilesScreen: React.FC<
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ModalSafeArea
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View
           style={[
             styles.header,
-            { backgroundColor: colors.primary, paddingTop: insets.top + 12 },
+            {
+              backgroundColor: colors.primary,
+            },
           ]}
         >
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
@@ -1154,7 +1159,7 @@ export const ConnectionProfilesScreen: React.FC<
             </View>
           </View>
         </Modal>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

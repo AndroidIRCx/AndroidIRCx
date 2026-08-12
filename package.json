@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.9.40",
+  "version": "1.9.41",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -49,7 +49,7 @@
     "react-native-config": "^1.6.1",
     "react-native-fs": "^2.20.0",
     "react-native-google-mobile-ads": "^16.4.0",
-    "react-native-iap": "16.2.2",
+    "react-native-iap": "16.3.0",
     "react-native-keyboard-controller": "1.22.3",
     "react-native-keychain": "^10.0.0",
     "react-native-libsodium": "^1.7.0",
@@ -118,7 +118,7 @@
     "flatted": "3.4.2",
     "yaml": "2.8.3",
     "picomatch": "4.0.4",
-    "postcss": "8.5.18",
+    "postcss": "8.5.26",
     "uuid": "14.0.0",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
@@ -126,7 +126,7 @@
     "@babel/plugin-transform-modules-systemjs": "7.29.7",
     "@protobufjs/utf8": "1.1.1",
     "protobufjs": "7.6.5",
-    "js-yaml": "4.3.0",
+    "js-yaml": "4.3.1",
     "shell-quote": "1.9.0",
     "form-data": "4.0.6",
     "@grpc/grpc-js": "1.9.16"

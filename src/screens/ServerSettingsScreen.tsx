@@ -17,8 +17,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { IRCServerConfig, settingsService } from '../services/SettingsService';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useT } from '../i18n/transifex';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../hooks/useTheme';
 
 interface ServerSettingsScreenProps {
@@ -39,7 +39,6 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   tRef.current = t;
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const insets = useSafeAreaInsets();
   const themeColors = colors as typeof colors & {
     textMuted?: string;
     surfaceVariant?: string;
@@ -149,9 +148,15 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   };
 
   return (
-    <Modal visible={true} animationType="slide" onRequestClose={onCancel}>
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+    <Modal
+      visible={true}
+      animationType="slide"
+      onRequestClose={onCancel}
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
+      <ModalSafeArea style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={onCancel}
             style={styles.cancelButton}
@@ -351,7 +356,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
             </View>
           </ScrollView>
         )}
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

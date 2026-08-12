@@ -1,0 +1,5 @@
+What's new in v1.9.41:
+- Fixed screen headers overlapping the status bar — full-screen pages now lay out correctly edge-to-edge on all phones, tablets and orientations
+- Smaller download and lower memory use from optimised images (WebP) and R8 optimisation
+- Modernised the edge-to-edge display for Android 15+
+- Updated the in-app purchases library to its latest release

@@ -101,7 +101,7 @@ function AgeComplianceGate({
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+      <StatusBar barStyle="light-content" />
       <View style={ageComplianceStyles.container}>
         {isChecking ? <ActivityIndicator size="large" color="#2196F3" /> : null}
         <Text style={ageComplianceStyles.title}>
@@ -170,7 +170,7 @@ function App() {
     <TXProvider tx={tx}>
       <KeyboardProvider>
         <SafeAreaProvider>
-          <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+          <StatusBar barStyle="light-content" />
           <AppContent />
         </SafeAreaProvider>
       </KeyboardProvider>

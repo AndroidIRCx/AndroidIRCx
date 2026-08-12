@@ -17,7 +17,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { encryptedDMService, StoredKey } from '../services/EncryptedDMService';
@@ -35,7 +35,6 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = createStyles(colors);
 
   // State
@@ -462,10 +461,16 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
 
   // Main render
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onClose}
+    >
+      <ModalSafeArea style={styles.container}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Encryption Keys')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>
@@ -891,7 +896,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
             </View>
           </TouchableOpacity>
         </Modal>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

@@ -14,13 +14,13 @@ import {
   Modal,
   Alert,
 } from 'react-native';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   themeService,
   Theme,
   ThemeColors,
   ThemeMessageFormats,
 } from '../services/ThemeService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../i18n/transifex';
 import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
@@ -39,7 +39,6 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   onSave,
 }) => {
   const t = useT();
-  const insets = useSafeAreaInsets();
   const selectedSwatchStyle = {
     borderColor: themeService.getColors().primary,
     borderWidth: 2,
@@ -298,8 +297,10 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={onClose}
+      statusBarTranslucent
+      navigationBarTranslucent
     >
-      <View
+      <ModalSafeArea
         style={[
           styles.container,
           { backgroundColor: currentColors.background },
@@ -311,7 +312,6 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
             {
               backgroundColor: currentColors.primary,
               borderBottomColor: currentColors.divider,
-              paddingTop: insets.top + 12,
             },
           ]}
         >
@@ -420,7 +420,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
             </View>
           ))}
         </ScrollView>
-      </View>
+      </ModalSafeArea>
       <Modal
         visible={showColorPicker}
         transparent
