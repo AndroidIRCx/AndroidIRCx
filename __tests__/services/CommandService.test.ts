@@ -241,6 +241,32 @@ describe('CommandService', () => {
     expect(result).toBe('/self');
   });
 
+  it('aborts cyclic alias expansion (A -> B -> A) instead of overflowing the stack', async () => {
+    await service.addAlias({ alias: 'a', command: '/b' });
+    await service.addAlias({ alias: 'b', command: '/a' });
+
+    const result = await service.processCommand('/a');
+
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Alias loop detected'),
+    );
+  });
+
+  it('aborts an alias chain that exceeds the maximum expansion depth', async () => {
+    // Chain a0 -> a1 -> ... -> a30, longer than MAX_ALIAS_DEPTH (20).
+    for (let i = 0; i < 30; i++) {
+      await service.addAlias({ alias: `a${i}`, command: `/a${i + 1}` });
+    }
+
+    const result = await service.processCommand('/a0');
+
+    expect(result).toBeNull();
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Alias loop detected'),
+    );
+  });
+
   it('executes a non-quote custom command with placeholder substitution', async () => {
     await service.addCustomCommand({
       name: 'greet',

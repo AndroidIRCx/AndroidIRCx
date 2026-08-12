@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 
 import App from '../App';
 
@@ -132,9 +132,25 @@ const mockUIStore = {
   setDccSendPath: jest.fn(),
 };
 
-jest.mock('../src/stores/uiStore', () => ({
-  useUIStore: jest.fn(selector => selector(mockUIStore)),
-}));
+// Mutable store snapshot returned by useUIStore.getState() inside the
+// kill-switch-from-unlock handler; each test sets the branch it needs.
+const mockUnlockState = {
+  current: {
+    appLockUseBiometric: false,
+    appLockUsePin: false,
+    appPinEntry: '',
+    setAppPinEntry: jest.fn(),
+    setAppPinError: jest.fn(),
+    setAppUnlockModalVisible: jest.fn(),
+    setAppLocked: jest.fn(),
+  } as any,
+};
+
+jest.mock('../src/stores/uiStore', () => {
+  const useUIStore: any = jest.fn(selector => selector(mockUIStore));
+  useUIStore.getState = jest.fn(() => mockUnlockState.current);
+  return { useUIStore };
+});
 
 jest.mock('../src/stores/connectionStore', () => ({
   useConnectionStore: jest.fn(selector =>
@@ -401,7 +417,9 @@ jest.mock('../src/hooks/useTabContextMenu', () => ({
 }));
 
 jest.mock('../src/hooks/useConnectionLifecycle', () => ({
-  useConnectionLifecycle: jest.fn(),
+  useConnectionLifecycle: jest.fn((arg: any) => {
+    mockConnectionLifecycleArg.current = arg;
+  }),
 }));
 
 jest.mock('../src/hooks/useDccConfig', () => ({
@@ -441,14 +459,32 @@ jest.mock('../src/hooks/useAppInitialization', () => ({
   useAppInitialization: jest.fn(),
 }));
 
-// Mock components
+// Mock components — capture the props they receive so tests can invoke the
+// callbacks App wires into them (kill switch, toggles, persistent setters).
+const mockAppLayout = jest.fn(() => null);
+const mockAppModals = jest.fn(() => null);
 jest.mock('../src/components/AppLayout', () => ({
-  AppLayout: () => null,
+  AppLayout: (props: any) => mockAppLayout(props),
 }));
 
 jest.mock('../src/components/AppModals', () => ({
-  AppModals: () => null,
+  AppModals: (props: any) => mockAppModals(props),
 }));
+
+// Age compliance gate — controllable per test to exercise checking/blocked/allowed.
+const mockAgeCompliance = {
+  current: {
+    isChecking: false,
+    decision: { allowed: true, reason: undefined as string | undefined },
+  },
+};
+jest.mock('../src/hooks/useAgeCompliance', () => ({
+  useAgeCompliance: jest.fn(() => mockAgeCompliance.current),
+}));
+
+// Capture the argument object App passes to useConnectionLifecycle so tests can
+// drive safeSetState.
+const mockConnectionLifecycleArg = { current: null as any };
 
 // Mock services
 jest.mock('../src/services/SettingsService', () => ({
@@ -499,6 +535,21 @@ jest.mock('../src/i18n/transifex', () => ({
 
 // Import mocked hooks to configure their return values
 import { useUIState as mockedUseUIState } from '../src/hooks/useUIState';
+
+// The uiReady gate flips inside a requestAnimationFrame. Under the full
+// --runInBand suite the rAF scheduler can starve after many back-to-back App
+// renders, so make it deterministic (flush on a real microtask) for this
+// isolated test file. This keeps AppLayout/AppModals rendering reliably.
+const originalRaf = global.requestAnimationFrame;
+beforeAll(() => {
+  (global as any).requestAnimationFrame = (cb: FrameRequestCallback) => {
+    cb(0);
+    return 0 as unknown as number;
+  };
+});
+afterAll(() => {
+  (global as any).requestAnimationFrame = originalRaf;
+});
 
 describe('App', () => {
   beforeEach(async () => {
@@ -560,5 +611,214 @@ describe('AppContent', () => {
       // After requestAnimationFrame, the main UI should be shown
       expect(true).toBe(true);
     });
+  });
+});
+
+describe('AppContent - age compliance gate', () => {
+  const { useAgeCompliance } = require('../src/hooks/useAgeCompliance');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockedUseUIState as jest.Mock).mockReturnValue(mockUIStore);
+    mockAgeCompliance.current = {
+      isChecking: false,
+      decision: { allowed: true, reason: undefined },
+    };
+  });
+
+  it('renders the checking gate while age signals are evaluated', async () => {
+    mockAgeCompliance.current = {
+      isChecking: true,
+      decision: { allowed: true, reason: undefined },
+    };
+    const { toJSON } = await render(<App />);
+    expect(useAgeCompliance).toHaveBeenCalled();
+    // AppContent (and therefore AppLayout) must not render while checking.
+    expect(mockAppLayout).not.toHaveBeenCalled();
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('renders the blocked gate with the decision reason when access is denied', async () => {
+    mockAgeCompliance.current = {
+      isChecking: false,
+      decision: { allowed: false, reason: 'Age verification required' },
+    };
+    const { getByText } = await render(<App />);
+    expect(getByText('Age verification required')).toBeTruthy();
+    expect(mockAppLayout).not.toHaveBeenCalled();
+  });
+
+  it('renders the blocked gate with a default reason when none is provided', async () => {
+    mockAgeCompliance.current = {
+      isChecking: false,
+      decision: { allowed: false, reason: undefined },
+    };
+    const { getByText } = await render(<App />);
+    expect(
+      getByText(/age verification signals do not allow access/i),
+    ).toBeTruthy();
+  });
+});
+
+describe('AppContent - wired callbacks and setting listeners', () => {
+  const { settingsService } = require('../src/services/SettingsService');
+  const { killSwitchService } = require('../src/services/KillSwitchService');
+  const {
+    secureStorageService,
+  } = require('../src/services/SecureStorageService');
+
+  const lastLayoutProps = () => mockAppLayout.mock.calls.at(-1)?.[0] as any;
+  const lastModalsProps = () => mockAppModals.mock.calls.at(-1)?.[0] as any;
+
+  let rendered: ReturnType<typeof render> | null = null;
+  const renderApp = async () => {
+    rendered = await render(<App />);
+    return rendered;
+  };
+  const renderReady = async () => {
+    const utils = await renderApp();
+    // Flush the requestAnimationFrame that gates uiReady so AppLayout renders.
+    await waitFor(() => expect(mockAppLayout).toHaveBeenCalled(), {
+      timeout: 8000,
+    });
+    return utils;
+  };
+
+  // Explicitly unmount each App instance so the real (heavy) component does not
+  // accumulate across tests and starve the rAF-gated uiReady flip.
+  afterEach(() => {
+    rendered?.unmount();
+    rendered = null;
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockedUseUIState as jest.Mock).mockReturnValue(mockUIStore);
+    mockAgeCompliance.current = {
+      isChecking: false,
+      decision: { allowed: true, reason: undefined },
+    };
+    mockUnlockState.current = {
+      appLockUseBiometric: false,
+      appLockUsePin: false,
+      appPinEntry: '',
+      setAppPinEntry: jest.fn(),
+      setAppPinError: jest.fn(),
+      setAppUnlockModalVisible: jest.fn(),
+      setAppLocked: jest.fn(),
+    };
+  });
+
+  it('activates the kill switch from the header after reading warnings setting', async () => {
+    (settingsService.getSetting as jest.Mock).mockResolvedValue(true);
+    await renderReady();
+
+    await act(async () => {
+      await lastLayoutProps().onKillSwitchPress();
+    });
+
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'killSwitchShowWarnings',
+      true,
+    );
+    expect(killSwitchService.confirmAndActivate).toHaveBeenCalledWith(true);
+  });
+
+  it('kill switch from unlock: biometric verifies then activates and closes modal', async () => {
+    mockUnlockState.current.appLockUseBiometric = true;
+    await renderReady();
+
+    await act(async () => {
+      await lastModalsProps().onKillSwitchFromUnlock();
+    });
+
+    expect(killSwitchService.activateKillSwitch).toHaveBeenCalled();
+    expect(
+      mockUnlockState.current.setAppUnlockModalVisible,
+    ).toHaveBeenCalledWith(false);
+    expect(mockUnlockState.current.setAppLocked).toHaveBeenCalledWith(false);
+  });
+
+  it('kill switch from unlock: correct PIN verifies and clears entry', async () => {
+    mockUnlockState.current.appLockUsePin = true;
+    mockUnlockState.current.appPinEntry = '1234';
+    (secureStorageService.getSecret as jest.Mock).mockResolvedValue('1234');
+    await renderReady();
+
+    await act(async () => {
+      await lastModalsProps().onKillSwitchFromUnlock();
+    });
+
+    expect(mockUnlockState.current.setAppPinEntry).toHaveBeenCalledWith('');
+    expect(killSwitchService.activateKillSwitch).toHaveBeenCalled();
+  });
+
+  it('kill switch from unlock: wrong PIN sets an error and aborts', async () => {
+    mockUnlockState.current.appLockUsePin = true;
+    mockUnlockState.current.appPinEntry = 'wrong';
+    (secureStorageService.getSecret as jest.Mock).mockResolvedValue('1234');
+    await renderReady();
+
+    await act(async () => {
+      await lastModalsProps().onKillSwitchFromUnlock();
+    });
+
+    expect(mockUnlockState.current.setAppPinError).toHaveBeenCalled();
+    expect(killSwitchService.activateKillSwitch).not.toHaveBeenCalled();
+  });
+
+  it('kill switch from unlock: no auth configured shows an alert and aborts', async () => {
+    const Alert = require('react-native').Alert;
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderReady();
+
+    await act(async () => {
+      await lastModalsProps().onKillSwitchFromUnlock();
+    });
+
+    expect(alertSpy).toHaveBeenCalled();
+    expect(killSwitchService.activateKillSwitch).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
+  });
+
+  it('kill switch from unlock: surfaces errors when activation fails', async () => {
+    const Alert = require('react-native').Alert;
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockUnlockState.current.appLockUseBiometric = true;
+    (killSwitchService.activateKillSwitch as jest.Mock).mockResolvedValueOnce({
+      success: false,
+      errors: ['boom'],
+    });
+    await renderReady();
+
+    await act(async () => {
+      await lastModalsProps().onKillSwitchFromUnlock();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('boom'),
+    );
+    alertSpy.mockRestore();
+  });
+
+  it('toggles side tabs visibility via the layout callback', async () => {
+    await renderReady();
+    expect(() =>
+      act(() => {
+        lastLayoutProps().onToggleSideTabs();
+      }),
+    ).not.toThrow();
+  });
+
+  it('drives safeSetState through the connection lifecycle argument', async () => {
+    // useConnectionLifecycle runs during the initial (pre-uiReady) render, so
+    // this does not need to wait for the rAF-gated uiReady flip.
+    await renderApp();
+    const fn = jest.fn();
+    act(() => {
+      mockConnectionLifecycleArg.current.safeSetState(fn);
+    });
+    expect(fn).toHaveBeenCalled();
   });
 });

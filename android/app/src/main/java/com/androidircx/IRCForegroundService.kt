@@ -53,39 +53,35 @@ class IRCForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
+
+        // Resolve the notification content for this command up front. This is cheap
+        // (reading intent extras) and must run before entering foreground so the
+        // very first startForeground() carries the correct title/text.
         when (action) {
             ACTION_START -> {
                 val networkName = intent.getStringExtra(EXTRA_NETWORK_NAME) ?: "IRC"
-                val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: "IRC Connected"
-                val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT)
+                lastTitle = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: "IRC Connected"
+                lastText = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT)
                     ?: "Maintaining connection to $networkName"
-                lastTitle = title
-                lastText = text
-
-                if (!isServiceStarted) {
-                    startForegroundService(title, text)
-                    wakeLock?.acquire()
-                    isServiceStarted = true
-                } else {
-                    updateNotification(title, text)
-                }
             }
 
             ACTION_UPDATE -> {
-                val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: lastTitle
-                val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT) ?: lastText
-                lastTitle = title
-                lastText = text
-
-                if (!isServiceStarted) {
-                    startForegroundService(title, text)
-                    wakeLock?.acquire()
-                    isServiceStarted = true
-                } else {
-                    updateNotification(title, text)
-                }
+                lastTitle = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: lastTitle
+                lastText = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT) ?: lastText
             }
+        }
 
+        // CRITICAL: satisfy the platform's startForeground() deadline immediately for
+        // EVERY delivered command - including ACTION_STOP, ACTION_DISCONNECT_QUIT and
+        // system restarts with a null/unknown intent. startForegroundService() gives
+        // us ~5s to call startForeground(); Crashlytics (v1.9.34, again v1.9.41)
+        // showed ForegroundServiceDidNotStartInTimeException whenever onStartCommand
+        // returned without having entered foreground - e.g. a stop/update racing the
+        // start, or a system-recreated instance. startForeground() is idempotent, so
+        // calling it unconditionally here closes every one of those windows.
+        val inForeground = enterForeground(lastTitle, lastText)
+
+        when (action) {
             ACTION_STOP -> {
                 stopForegroundService()
             }
@@ -96,10 +92,10 @@ class IRCForegroundService : Service() {
             }
 
             else -> {
-                // Service can be restarted by the system with a null/unknown intent.
-                // Ensure we enter foreground immediately to avoid timeout crash.
-                if (!isServiceStarted) {
-                    startForegroundService(lastTitle, lastText)
+                // ACTION_START, ACTION_UPDATE, or a null/unknown restart intent.
+                // We are already in foreground (or were blocked and stopped); just
+                // acquire the wake lock once on the first successful start.
+                if (inForeground && !isServiceStarted) {
                     wakeLock?.acquire()
                     isServiceStarted = true
                 }
@@ -110,15 +106,20 @@ class IRCForegroundService : Service() {
         return START_STICKY
     }
 
-    private fun startForegroundService(title: String, text: String) {
+    /**
+     * Enters the foreground synchronously and idempotently. Safe to call on every
+     * onStartCommand: repeated calls with the same NOTIFICATION_ID simply refresh
+     * the ongoing notification. Returns true when the service is in the foreground
+     * afterwards, false when the platform blocked the start (service was stopped).
+     */
+    private fun enterForeground(title: String, text: String): Boolean {
         val notification = createNotification(title, text)
 
-        try {
-            // Enter foreground with the stable two-argument API first. Crashlytics
-            // v1.9.34 showed ForegroundServiceDidNotStartInTimeException from the
-            // native module start path; satisfying the platform deadline before
-            // resolving/applying optional service-type metadata prevents a later
-            // typed-start failure from leaving Android waiting for startForeground().
+        return try {
+            // Enter foreground with the stable two-argument API first. Satisfying the
+            // platform deadline before resolving/applying optional service-type
+            // metadata prevents a later typed-start failure from leaving Android
+            // waiting for startForeground().
             startForeground(NOTIFICATION_ID, notification)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -141,6 +142,7 @@ class IRCForegroundService : Service() {
                     )
                 }
             }
+            true
         } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
             // Android 12+ blocks foreground service start from background
             // Log and fail gracefully - the service will be stopped
@@ -150,6 +152,7 @@ class IRCForegroundService : Service() {
             )
             // Stop the service since we can't go foreground
             stopSelf()
+            false
         } catch (e: Exception) {
             android.util.Log.e(
                 "IRCForegroundService",
@@ -157,6 +160,7 @@ class IRCForegroundService : Service() {
                 e
             )
             stopSelf()
+            false
         }
     }
 
