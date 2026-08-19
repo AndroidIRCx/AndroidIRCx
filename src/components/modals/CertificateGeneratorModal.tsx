@@ -24,6 +24,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { certificateManager } from '../../services/CertificateManagerService';
 import { CertificateInfo, FingerprintFormat } from '../../types/certificate';
 import { useT } from '../../i18n/transifex';
+import { ModalSafeArea } from '../ModalSafeArea';
 
 interface CertificateGeneratorModalProps {
   visible: boolean;
@@ -127,8 +128,14 @@ export const CertificateGeneratorModal: React.FC<
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={handleDone}>
-      <View style={styles.container}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={handleDone}
+    >
+      <ModalSafeArea style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
@@ -344,7 +351,7 @@ export const CertificateGeneratorModal: React.FC<
             </View>
           </View>
         )}
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

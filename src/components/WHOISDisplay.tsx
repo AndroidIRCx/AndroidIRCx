@@ -15,6 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { ModalSafeArea } from './ModalSafeArea';
 import {
   userManagementService as singletonUserManagementService,
   WHOISInfo,
@@ -108,12 +109,16 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
       }
     } catch {
       if (!visibleRef.current) return;
-      // If request failed and we don't have cached data, try to get whatever is in cache
-      if (!cachedInfo || !cachedInfo.realname) {
-        const fallbackInfo = userService.getWHOIS(nick, network);
+      // A failed/timed-out refresh must NEVER blank out WHOIS already on screen.
+      // requestWHOIS() deletes the cache entry before every request, so this
+      // fallback lookup can come back empty (e.g. the modal sat idle past the
+      // 20s WHOIS timeout and the server did not answer a repeat WHOIS). Only
+      // adopt the fallback when it actually carries data; otherwise keep showing
+      // whatever we already have. (Fixes: WHOIS data disappearing after idle.)
+      const fallbackInfo = userService.getWHOIS(nick, network);
+      if (fallbackInfo && fallbackInfo.realname) {
         setWhoisInfo(fallbackInfo);
       }
-      // Keep showing cached data if request failed but we had cached data
     } finally {
       if (visibleRef.current) setLoading(false);
     }
@@ -265,9 +270,11 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <ModalSafeArea style={styles.container}>
         <View style={styles.header}>
           {onNickPress ? (
             <TouchableOpacity
@@ -763,7 +770,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };

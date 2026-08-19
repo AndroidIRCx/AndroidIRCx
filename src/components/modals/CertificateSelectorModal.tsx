@@ -22,6 +22,7 @@ import {
 import { certificateManager } from '../../services/CertificateManagerService';
 import { CertificateMetadata, CertificateInfo } from '../../types/certificate';
 import { CertificateGeneratorModal } from './CertificateGeneratorModal';
+import { ModalSafeArea } from '../ModalSafeArea';
 import { useT } from '../../i18n/transifex';
 
 interface CertificateSelectorModalProps {
@@ -214,8 +215,14 @@ export const CertificateSelectorModal: React.FC<
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-        <View style={styles.container}>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={onClose}
+      >
+        <ModalSafeArea style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>{t('Select Certificate')}</Text>
@@ -264,7 +271,7 @@ export const CertificateSelectorModal: React.FC<
               />
             </>
           )}
-        </View>
+        </ModalSafeArea>
       </Modal>
 
       {/* Generator Modal */}

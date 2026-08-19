@@ -26,6 +26,7 @@ import {
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
 import { compareStringsCaseInsensitive } from '../../utils/localeSafe';
+import { ModalSafeArea } from '../ModalSafeArea';
 
 interface NetworkPickerModalProps {
   visible: boolean;
@@ -143,8 +144,16 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
   const styles = createStyles(colors);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onClose}
+    >
+      <ModalSafeArea
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         {/* Header */}
         <View
           style={[
@@ -212,7 +221,7 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ModalSafeArea>
     </Modal>
   );
 };
