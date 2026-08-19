@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsModule.kt b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsModule.kt
+index bcaf487..f4095f1 100644
+--- a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsModule.kt
++++ b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsModule.kt
+@@ -25,7 +25,6 @@ import com.google.android.gms.ads.AdInspectorError
+ import com.google.android.gms.ads.AdRequest
+ import com.google.android.gms.ads.AdValue;
+ import com.google.android.gms.ads.OnAdInspectorClosedListener
+-import com.google.android.gms.ads.AgeRestrictedTreatment
+ 
+ class ReactNativeGoogleMobileAdsModule(
+   reactContext: ReactApplicationContext
+@@ -63,16 +62,6 @@ class ReactNativeGoogleMobileAdsModule(
+       }
+     }
+ 
+-    if (requestConfiguration.hasKey("ageRestrictedTreatment")) {
+-      val ageRestrictedTreatment = requestConfiguration.getString("ageRestrictedTreatment")
+-
+-      when (ageRestrictedTreatment) {
+-        "CHILD" -> builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)
+-        "TEEN" -> builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.TEEN)
+-        "UNSPECIFIED" -> builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.UNSPECIFIED)
+-      }
+-    }
+-
+     if (requestConfiguration.hasKey("tagForChildDirectedTreatment")) {
+       val tagForChildDirectedTreatment = requestConfiguration.getBoolean("tagForChildDirectedTreatment")
+       builder.setTagForChildDirectedTreatment(

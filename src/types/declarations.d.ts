@@ -36,3 +36,20 @@ declare module 'text-encoding' {
 // React Native's fetch typings expose the same shape under `HeadersInit_`, so
 // alias it. Type-only shim — the compiled runtime (lib/module) is unaffected.
 declare type HeadersInit = HeadersInit_;
+
+// RN 0.87 made TextStyle/ViewStyle/ImageStyle properties `readonly`. Style objects
+// that are assembled by in-place mutation need a writable view of the type; this
+// mapped type strips `readonly`. Assignable back to the readonly style on return.
+declare type Writable<T> = { -readonly [P in keyof T]: T[P] };
+
+// InteractionManager was removed in RN 0.87. `requestIdleCallback` /
+// `cancelIdleCallback` remain runtime globals but are no longer in RN's type
+// surface (and DOM lib is not included). Declare them. Type-only shim.
+declare function requestIdleCallback(
+  callback: (deadline: {
+    didTimeout: boolean;
+    timeRemaining: () => number;
+  }) => void,
+  options?: { timeout: number },
+): number;
+declare function cancelIdleCallback(handle: number): void;

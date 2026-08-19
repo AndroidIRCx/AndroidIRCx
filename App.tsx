@@ -240,7 +240,7 @@ function AppContent() {
   const tabsRef = useRef(tabs);
   tabsRef.current = tabs;
 
-  const appStateRef = useRef(AppState.currentState);
+  const appStateRef = useRef<string>(AppState.currentState ?? 'active');
 
   // Fabric crash protection: track if component is mounted
   const isMountedRef = useRef(true);

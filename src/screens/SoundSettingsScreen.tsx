@@ -24,7 +24,12 @@ import {
   isErrorWithCode,
   errorCodes,
 } from '@react-native-documents/picker';
-import Slider from '@react-native-community/slider';
+import SliderNative, { type SliderProps } from '@react-native-community/slider';
+import type { ComponentType } from 'react';
+
+// @react-native-community/slider 5.x ships class-component types that don't
+// satisfy React 19's stricter JSX element typing; alias to a plain component type.
+const Slider = SliderNative as unknown as ComponentType<SliderProps>;
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useSoundSettings } from '../hooks/useSoundSettings';

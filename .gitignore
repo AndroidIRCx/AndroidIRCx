@@ -88,3 +88,4 @@ nul
 /tmpclaude-*
 /Gemfile.lock
 /.hermes/
+/firebase-debug.log

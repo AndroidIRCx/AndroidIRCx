@@ -91,7 +91,9 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
   const [scriptingTimeActive, setScriptingTimeActive] =
     useState<boolean>(false);
-  const highlightScrollRef = useRef<ScrollView | null>(null);
+  const highlightScrollRef = useRef<React.ComponentRef<
+    typeof ScrollView
+  > | null>(null);
 
   const refresh = useCallback(async () => {
     await scriptingService.initialize();

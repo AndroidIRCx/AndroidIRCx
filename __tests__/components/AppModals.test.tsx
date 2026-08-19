@@ -565,6 +565,7 @@ describe('AppModals', () => {
     const dccProps = mockDccTransfersModal.mock.calls[0][0];
     dccProps.onAccept('tr-1', '/tmp/a.bin');
     dccProps.onCancel('tr-2');
+    dccProps.onClose();
     dccProps.onMinimize();
 
     expect(mockDccAccept).toHaveBeenCalledWith(
@@ -663,6 +664,322 @@ describe('AppModals', () => {
     expect(baseProps.attemptBiometricUnlock).toHaveBeenCalled();
     expect(baseProps.handleAppPinUnlock).toHaveBeenCalledWith('12');
     expect(baseProps.onKillSwitchFromUnlock).toHaveBeenCalled();
+  });
+
+  it('invokes options/join/settings wrapper callbacks', async () => {
+    const setters = createSetters();
+    const uiStoreState = createUIStoreState();
+    mockUseStoreSetters.mockReturnValue(setters);
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(createUIState());
+
+    await render(<AppModals {...baseProps} />);
+
+    // OptionsMenu onClose
+    mockOptionsMenu.mock.calls[0][0].onClose();
+    expect(setters.setShowOptionsMenu).toHaveBeenCalledWith(false);
+
+    // JoinChannelModal onClose + onChangeChannelName
+    const joinProps = mockJoinChannelModal.mock.calls[0][0];
+    joinProps.onChangeChannelName('#foo');
+    expect(setters.setChannelName).toHaveBeenCalledWith('#foo');
+    joinProps.onClose();
+    expect(uiStoreState.setShowChannelModal).toHaveBeenCalledWith(false);
+
+    // SettingsScreen onClose
+    mockSettingsScreen.mock.calls[0][0].onClose();
+    expect(setters.setShowSettings).toHaveBeenCalledWith(false);
+  });
+
+  it('closes the first-run setup modal via onRequestClose', async () => {
+    const setters = createSetters();
+    mockUseStoreSetters.mockReturnValue(setters);
+    mockUseUIState.mockReturnValue(createUIState({ showFirstRunSetup: true }));
+
+    const { UNSAFE_getByType } = await render(<AppModals {...baseProps} />);
+
+    const Modal = require('react-native').Modal;
+    UNSAFE_getByType(Modal).props.onRequestClose();
+    expect(setters.setShowFirstRunSetup).toHaveBeenCalledWith(false);
+  });
+
+  it('renders networks list and invokes select/close callbacks', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(createUIState({ showNetworksList: true }));
+
+    await render(<AppModals {...baseProps} />);
+
+    expect(mockNetworksListScreen).toHaveBeenCalledTimes(1);
+    const props = mockNetworksListScreen.mock.calls[0][0];
+    props.onSelectNetwork({ id: 'net-2' }, 'server-1');
+    props.onClose();
+
+    expect(baseProps.handleConnect).toHaveBeenCalledWith(
+      { id: 'net-2' },
+      'server-1',
+    );
+    expect(uiStoreState.setShowNetworksList).toHaveBeenCalledWith(false);
+  });
+
+  it('closes purchase/ignore/blacklist/userlists modals', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showPurchaseScreen: true,
+        showIgnoreList: true,
+        showBlacklist: true,
+        showUserLists: true,
+        userListsInitialTab: 'blacklist',
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    mockPurchaseScreen.mock.calls[0][0].onClose();
+    mockIgnoreListScreen.mock.calls[0][0].onClose();
+    mockBlacklistScreen.mock.calls[0][0].onClose();
+    mockUserListsScreen.mock.calls[0][0].onClose();
+
+    // userListsInitialTab 'blacklist' maps to 'other'
+    expect(mockUserListsScreen.mock.calls[0][0].initialTab).toBe('other');
+    expect(uiStoreState.setShowPurchaseScreen).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setShowIgnoreList).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setShowBlacklist).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setShowUserLists).toHaveBeenCalledWith(false);
+  });
+
+  it('handles WHOIS close, channel-prefix normalization and existing query tab', async () => {
+    const uiStoreState = createUIStoreState();
+    const sendRaw = jest.fn();
+    const setActiveTabId = jest.fn();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({ showWHOIS: true, whoisNick: 'Alice' }),
+    );
+    mockGetConnection.mockReturnValue({ ircService: { sendRaw } });
+    mockUseTabStoreGetState.mockReturnValue({
+      tabs: [{ id: 'query:net-1:bob', type: 'query', name: 'Bob' }],
+      setTabs: jest.fn(),
+      setActiveTabId,
+    });
+
+    await render(<AppModals {...baseProps} />);
+
+    const props = mockWHOISDisplay.mock.calls[0][0];
+    props.onChannelPress('room'); // no '#'/prefix -> prepend '#'
+    props.onNickPress('Bob'); // matches existing tab
+    props.onClose();
+
+    expect(sendRaw).toHaveBeenCalledWith('JOIN #room');
+    expect(setActiveTabId).toHaveBeenCalledWith('query:net-1:bob');
+    expect(uiStoreState.setShowWHOIS).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setWhoisNick).toHaveBeenCalledWith('');
+  });
+
+  it('WHOIS callbacks bail out when there is no active network', async () => {
+    const uiStoreState = createUIStoreState();
+    const setActiveTabId = jest.fn();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({ showWHOIS: true, whoisNick: 'Alice' }),
+    );
+    mockUseTabStoreGetState.mockReturnValue({
+      tabs: [],
+      setTabs: jest.fn(),
+      setActiveTabId,
+    });
+
+    await render(<AppModals {...baseProps} activeTab={null} />);
+
+    const props = mockWHOISDisplay.mock.calls[0][0];
+    props.onChannelPress('room'); // network falsy -> no getConnection
+    props.onNickPress('Bob'); // network falsy -> early return
+
+    expect(mockGetConnection).not.toHaveBeenCalled();
+    expect(setActiveTabId).not.toHaveBeenCalled();
+  });
+
+  it('closes note/log/rename/tab-options and handles empty log target', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showChannelNoteModal: true,
+        channelNoteTarget: { networkId: 'net-1', channel: '#general' },
+        showChannelLogModal: true,
+        showRenameModal: true,
+        renameTargetTabId: 'chan:1',
+        showTabOptionsModal: true,
+        tabOptionsTitle: '',
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    mockChannelNoteModal.mock.calls[0][0].onClose();
+    mockRenameModal.mock.calls[0][0].onClose();
+    mockTabOptionsModal.mock.calls[0][0].onClose();
+    expect(uiStoreState.setShowChannelNoteModal).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setShowRenameModal).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setShowTabOptionsModal).toHaveBeenCalledWith(false);
+
+    // default title fallback
+    expect(mockTabOptionsModal.mock.calls[0][0].title).toBe('Options');
+  });
+
+  it('log modal onClearLog is a no-op when no note target set', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showChannelLogModal: true,
+        channelNoteTarget: null,
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    const logProps = mockChannelLogModal.mock.calls[0][0];
+    await logProps.onClearLog();
+    logProps.onClose();
+
+    expect(mockChannelNotesClearLog).not.toHaveBeenCalled();
+    expect(uiStoreState.setShowChannelLogModal).toHaveBeenCalledWith(false);
+  });
+
+  it('renders channel settings screen and closes it', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showChannelSettings: true,
+        channelSettingsTarget: '#general',
+        channelSettingsNetwork: 'net-1',
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    expect(mockChannelSettingsScreen).toHaveBeenCalledTimes(1);
+    const props = mockChannelSettingsScreen.mock.calls[0][0];
+    expect(props.channel).toBe('#general');
+    expect(props.network).toBe('net-1');
+    props.onClose();
+    expect(uiStoreState.setShowChannelSettings).toHaveBeenCalledWith(false);
+  });
+
+  it('closes dcc send modal via onClose', async () => {
+    const uiStoreState = createUIStoreState();
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showDccSendModal: true,
+        dccSendTarget: { nick: 'Bob', networkId: 'net-1' },
+        dccSendPath: '/tmp/f',
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    mockDccSendModal.mock.calls[0][0].onClose();
+    expect(uiStoreState.setShowDccSendModal).toHaveBeenCalledWith(false);
+  });
+
+  it('closes every help screen through its onClose callback', async () => {
+    const setters = createSetters();
+    mockUseStoreSetters.mockReturnValue(setters);
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showHelpConnection: true,
+        showHelpCommands: true,
+        showHelpEncryption: true,
+        showHelpMedia: true,
+        showHelpChannelManagement: true,
+        showHelpTroubleshooting: true,
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    mockHelpTroubleshootingScreen.mock.calls[0][0].onClose();
+    mockHelpConnectionScreen.mock.calls[0][0].onClose();
+    mockHelpCommandsScreen.mock.calls[0][0].onClose();
+    mockHelpEncryptionScreen.mock.calls[0][0].onClose();
+    mockHelpMediaScreen.mock.calls[0][0].onClose();
+    mockHelpChannelManagementScreen.mock.calls[0][0].onClose();
+
+    expect(setters.setShowHelpTroubleshooting).toHaveBeenCalledWith(false);
+    expect(setters.setShowHelpConnection).toHaveBeenCalledWith(false);
+    expect(setters.setShowHelpCommands).toHaveBeenCalledWith(false);
+    expect(setters.setShowHelpEncryption).toHaveBeenCalledWith(false);
+    expect(setters.setShowHelpMedia).toHaveBeenCalledWith(false);
+    expect(setters.setShowHelpChannelManagement).toHaveBeenCalledWith(false);
+  });
+
+  it('handles missing focused network and kill-switch disabled branch', async () => {
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showUserLists: true,
+        userListsInitialTab: 'notify',
+      }),
+    );
+
+    await render(
+      <AppModals
+        {...baseProps}
+        activeTab={null}
+        focusedNetworkId={undefined}
+        killSwitchEnabledOnLockScreen={false}
+      />,
+    );
+
+    // focusedNetworkId ?? null branch
+    expect(mockOptionsMenu.mock.calls[0][0].focusedNetworkId).toBeNull();
+    // non-blacklist initialTab passes through unchanged
+    expect(mockUserListsScreen.mock.calls[0][0].initialTab).toBe('notify');
+    // killSwitch disabled -> undefined callback
+    expect(mockAppUnlockModal.mock.calls[0][0].onKillSwitch).toBeUndefined();
+  });
+
+  it('rename falls back to existing name when rename value is empty', async () => {
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showRenameModal: true,
+        renameTargetTabId: 'chan:1',
+        renameValue: '',
+      }),
+    );
+
+    const setTabs = jest.fn();
+    await render(<AppModals {...baseProps} setTabs={setTabs} />);
+
+    mockRenameModal.mock.calls[0][0].onRename();
+    const updater = setTabs.mock.calls[0][0];
+    const renamed = updater([{ id: 'chan:1', name: '#general' }]);
+    expect(renamed[0].name).toBe('#general');
+  });
+
+  it('DCC send error path handles non-Error rejections', async () => {
+    mockUseUIState.mockReturnValue(
+      createUIState({
+        showDccSendModal: true,
+        dccSendTarget: { nick: 'Bob', networkId: 'net-1' },
+        dccSendPath: '/tmp/file.txt',
+      }),
+    );
+
+    await render(<AppModals {...baseProps} />);
+
+    const props = mockDccSendModal.mock.calls[0][0];
+    mockDccSendFile.mockRejectedValueOnce('boom');
+    await props.onSend();
+
+    expect(baseProps.safeAlert).toHaveBeenCalledWith(
+      'DCC Send Error',
+      'Failed to send file',
+    );
   });
 
   it('renders IRCv3 info with focused network fallback and closes it', async () => {

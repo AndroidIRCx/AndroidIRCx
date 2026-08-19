@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert } from 'react-native';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { adRewardService } from '../services/AdRewardService';
@@ -68,10 +68,17 @@ export const useSettingsPremium = (): UseSettingsPremiumReturn => {
     return unsubscribe;
   }, []);
 
-  // Load ad status
+  // Load ad status (polled every second). Guard against redundant updates: only
+  // push state when the ad-status snapshot actually changed, so a static status
+  // is a true no-op instead of re-rendering every tick — this keeps the poll from
+  // ever becoming an update loop (Crashlytics: "Maximum update depth exceeded").
+  const adStatusSnapshotRef = useRef('');
   useEffect(() => {
     const loadAdStatus = () => {
       const adStatus = adRewardService.getAdStatus();
+      const snapshot = `${adStatus.ready}|${adStatus.loading}|${adStatus.cooldown}|${adStatus.cooldownSeconds}|${adStatus.adUnitType}`;
+      if (snapshot === adStatusSnapshotRef.current) return;
+      adStatusSnapshotRef.current = snapshot;
       setAdReady(adStatus.ready);
       setAdLoading(adStatus.loading);
       setAdCooldown(adStatus.cooldown);

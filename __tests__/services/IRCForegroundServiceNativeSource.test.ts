@@ -47,8 +47,10 @@ describe('IRCForegroundService native startup hardening', () => {
     const typedCatchStart = serviceSource.indexOf(
       'catch (typedStartError: Exception)',
     );
+    // The typed-start catch lives inside enterForeground(); its block ends before
+    // the outer ForegroundServiceStartNotAllowedException catch.
     const typedCatchEnd = serviceSource.indexOf(
-      '}\n            }\n        } catch',
+      '} catch (e: android.app.ForegroundServiceStartNotAllowedException)',
       typedCatchStart,
     );
 
@@ -58,13 +60,27 @@ describe('IRCForegroundService native startup hardening', () => {
     expect(typedCatchBody).not.toContain('stopSelf()');
   });
 
+  it('enters foreground unconditionally for every command before branching on the action', () => {
+    // The startForeground() deadline must be satisfied for ANY delivered intent
+    // (start/update/stop/disconnect/null restart), so enterForeground() has to run
+    // before the action switch rather than inside a !isServiceStarted branch.
+    const enterForegroundCall =
+      'val inForeground = enterForeground(lastTitle, lastText)';
+    // The action switch that dispatches STOP/DISCONNECT/else, distinct from the
+    // earlier content-resolution switch (which begins with ACTION_START).
+    const actionSwitchMatch = serviceSource.match(
+      /when \(action\) \{\s*ACTION_STOP ->/,
+    );
+
+    expect(serviceSource).toContain(enterForegroundCall);
+    expect(actionSwitchMatch).not.toBeNull();
+    expect(serviceSource.indexOf(enterForegroundCall)).toBeLessThan(
+      actionSwitchMatch?.index ?? -1,
+    );
+  });
+
   it('handles null or unknown restart intents by entering foreground immediately', () => {
     expect(serviceSource).toContain('else -> {');
-    expect(serviceSource).toContain(
-      'Service can be restarted by the system with a null/unknown intent.',
-    );
-    expect(serviceSource).toContain(
-      'startForegroundService(lastTitle, lastText)',
-    );
+    expect(serviceSource).toContain('or a null/unknown restart intent');
   });
 });

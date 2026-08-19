@@ -6,35 +6,30 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { HighlightingSection } from '../../../src/components/settings/sections/HighlightingSection';
 import { highlightService } from '../../../src/services/HighlightService';
 
-// Mock dependencies
+const mockCapturedItems = new Map<string, any>();
+
 jest.mock('../../../src/services/HighlightService');
-jest.mock('react-native', () => {
-  const React = require('react');
+
+jest.mock('../../../src/i18n/transifex', () => ({
+  useT: () => (key: string) => key,
+}));
+
+jest.mock('../../../src/components/settings/SettingItem', () => {
+  const ReactLocal = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
   return {
-    Alert: {
-      alert: jest.fn(),
-    },
-    Platform: {
-      OS: 'android',
-    },
-    View: ({ children, ...props }: any) =>
-      React.createElement('View', props, children),
-    Text: ({ children, ...props }: any) =>
-      React.createElement('Text', props, children),
-    TextInput: (props: any) => React.createElement('TextInput', props),
-    TouchableOpacity: ({ children, ...props }: any) =>
-      React.createElement('TouchableOpacity', props, children),
-    ScrollView: ({ children, ...props }: any) =>
-      React.createElement('ScrollView', props, children),
-    FlatList: (props: any) => React.createElement('FlatList', props),
-    StyleSheet: {
-      create: (styles: any) => styles,
-      flatten: (style: any) => style,
+    SettingItem: ({ item }: any) => {
+      mockCapturedItems.set(item.id, item);
+      return ReactLocal.createElement(
+        TouchableOpacity,
+        { testID: `setting-${item.id}` },
+        ReactLocal.createElement(Text, null, item.title || item.id),
+      );
     },
   };
 });
@@ -61,97 +56,140 @@ const mockStyles = {
 
 const mockSettingIcons = {};
 
+const renderSection = (settingIcons: Record<string, any> = mockSettingIcons) =>
+  render(
+    <HighlightingSection
+      colors={mockColors}
+      styles={mockStyles}
+      settingIcons={settingIcons}
+    />,
+  );
+
+let currentWords: string[] = [];
+
 describe('HighlightingSection', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
+    mockCapturedItems.clear();
     jest.clearAllMocks();
-    (highlightService.getHighlightWords as jest.Mock).mockReturnValue([]);
+    currentWords = [];
+    (highlightService.getHighlightWords as jest.Mock).mockImplementation(
+      () => currentWords,
+    );
     (highlightService.addHighlightWord as jest.Mock).mockResolvedValue(
       undefined,
     );
     (highlightService.removeHighlightWord as jest.Mock).mockResolvedValue(
       undefined,
     );
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   });
 
-  it('should render add highlight word input', async () => {
-    const { getByPlaceholderText } = await render(
-      <HighlightingSection
-        colors={mockColors}
-        styles={mockStyles}
-        settingIcons={mockSettingIcons}
-      />,
+  it('renders the add highlight word input', async () => {
+    await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-add')).toBe(true),
     );
-
-    expect(getByPlaceholderText(/Enter a word to highlight/i)).toBeTruthy();
+    const item = mockCapturedItems.get('highlight-add');
+    expect(item.type).toBe('input');
+    expect(item.placeholder).toMatch(/Enter a word to highlight/i);
   });
 
-  it('should display existing highlight words', async () => {
-    (highlightService.getHighlightWords as jest.Mock).mockReturnValue([
-      'test',
-      'hello',
-    ]);
-
-    const { getByText } = await render(
-      <HighlightingSection
-        colors={mockColors}
-        styles={mockStyles}
-        settingIcons={mockSettingIcons}
-      />,
+  it('displays existing highlight words', async () => {
+    currentWords = ['test', 'hello'];
+    const { getByText } = await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-word-test')).toBe(true),
     );
-
     expect(getByText('test')).toBeTruthy();
     expect(getByText('hello')).toBeTruthy();
   });
 
-  it.skip('should add highlight word when input is submitted', async () => {
-    const { getByPlaceholderText } = await render(
-      <HighlightingSection
-        colors={mockColors}
-        styles={mockStyles}
-        settingIcons={mockSettingIcons}
-      />,
+  it('updates the pending word via onValueChange', async () => {
+    await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-add')).toBe(true),
     );
-
-    const input = getByPlaceholderText(/Enter a word to highlight/i);
-    await fireEvent.changeText(input, 'newword');
-
-    // Find and press the add button (assuming it's rendered as part of the input)
-    // This depends on how SettingInput handles onPress
-    await waitFor(async () => {
-      expect(highlightService.addHighlightWord).toHaveBeenCalledWith('newword');
+    await act(async () => {
+      mockCapturedItems.get('highlight-add').onValueChange('newword');
     });
+    // After typing, the captured item value should reflect the pending word.
+    await waitFor(() =>
+      expect(mockCapturedItems.get('highlight-add').value).toBe('newword'),
+    );
   });
 
-  it('should not add empty highlight word', async () => {
-    const { getByPlaceholderText } = await render(
-      <HighlightingSection
-        colors={mockColors}
-        styles={mockStyles}
-        settingIcons={mockSettingIcons}
-      />,
+  it('adds a highlight word when a non-empty value is submitted', async () => {
+    (highlightService.addHighlightWord as jest.Mock).mockImplementation(
+      async (w: string) => {
+        currentWords = [w];
+      },
     );
 
-    const input = getByPlaceholderText(/Enter a word to highlight/i);
-    await fireEvent.changeText(input, '   '); // Only whitespace
+    await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-add')).toBe(true),
+    );
 
-    // Should not call addHighlightWord for empty/whitespace
+    await act(async () => {
+      mockCapturedItems.get('highlight-add').onValueChange('  newword  ');
+    });
+    await act(async () => {
+      await mockCapturedItems.get('highlight-add').onPress();
+    });
+
+    expect(highlightService.addHighlightWord).toHaveBeenCalledWith('newword');
+    // Pending word is cleared after a successful add.
+    await waitFor(() =>
+      expect(mockCapturedItems.get('highlight-add').value).toBe(''),
+    );
+  });
+
+  it('does not add an empty/whitespace highlight word', async () => {
+    await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-add')).toBe(true),
+    );
+
+    await act(async () => {
+      mockCapturedItems.get('highlight-add').onValueChange('   ');
+    });
+    await act(async () => {
+      await mockCapturedItems.get('highlight-add').onPress();
+    });
+
     expect(highlightService.addHighlightWord).not.toHaveBeenCalled();
   });
 
-  it('should show alert when removing highlight word', async () => {
-    (highlightService.getHighlightWords as jest.Mock).mockReturnValue(['test']);
-
-    const { getByText } = await render(
-      <HighlightingSection
-        colors={mockColors}
-        styles={mockStyles}
-        settingIcons={mockSettingIcons}
-      />,
+  it('confirms removal via alert and removes the word', async () => {
+    currentWords = ['test'];
+    await renderSection();
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-word-test')).toBe(true),
     );
 
-    const removeButton = getByText('test');
-    await fireEvent.press(removeButton);
-
+    mockCapturedItems.get('highlight-word-test').onPress();
     expect(Alert.alert).toHaveBeenCalled();
+
+    // Invoke the destructive "Remove" button from the alert.
+    const buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
+    const removeButton = buttons.find((b: any) => b.style === 'destructive');
+    expect(removeButton).toBeTruthy();
+    await removeButton.onPress();
+
+    expect(highlightService.removeHighlightWord).toHaveBeenCalledWith('test');
+  });
+
+  it('resolves icons from settingIcons for rendered items', async () => {
+    // The settingIcons[item.id] branch of icon resolution runs on every
+    // rendered item; provide an entry so it is exercised explicitly.
+    currentWords = [];
+    mockCapturedItems.clear();
+    const { unmount } = await renderSection({
+      'highlight-add': { name: 'star' } as any,
+    });
+    await waitFor(() =>
+      expect(mockCapturedItems.has('highlight-add')).toBe(true),
+    );
+    unmount();
   });
 });

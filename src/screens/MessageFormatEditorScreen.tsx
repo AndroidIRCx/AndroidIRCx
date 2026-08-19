@@ -68,7 +68,7 @@ const applyPreviewStyle = (
     return baseStyle;
   }
 
-  const textStyle: TextStyle = { ...baseStyle };
+  const textStyle: Writable<TextStyle> = { ...baseStyle };
   const decoration = new Set<string>();
 
   if (formatStyle.bold) {

@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { AppState, AppStateStatus, InteractionManager } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { useTabStore } from '../stores/tabStore';
 import { debugLogger } from '../services/DebugLogger';
@@ -27,7 +27,9 @@ interface UseLazyMessageHistoryParams {
 export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
   const { activeTabId } = params;
   const loadedTabsRef = useRef<Set<string>>(new Set());
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const appStateRef = useRef<AppStateStatus>(
+    (AppState.currentState ?? 'active') as AppStateStatus,
+  );
   const tabs = useTabStore(state => state.tabs);
   // Use ref to track activeTabId to avoid stale closures in async callbacks
   const activeTabIdRef = useRef<string | null>(activeTabId);
@@ -165,10 +167,11 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
             'App returned from background, scheduling history reload',
           );
 
-          // CRITICAL FIX: Use InteractionManager to defer heavy operations
-          // This prevents the lock screen from freezing due to blocking the main thread
-          // The reload will happen after all interactions (like modal animations) complete
-          InteractionManager.runAfterInteractions(() => {
+          // CRITICAL FIX: Defer heavy operations with requestIdleCallback
+          // (InteractionManager was removed in React Native 0.87). This prevents the
+          // lock screen from freezing due to blocking the main thread — the reload
+          // runs once the JS thread is idle, after modal/transition animations settle.
+          requestIdleCallback(() => {
             // Get fresh activeTabId again in case it changed during interactions
             const freshActiveTabId = activeTabIdRef.current;
             if (!freshActiveTabId) {

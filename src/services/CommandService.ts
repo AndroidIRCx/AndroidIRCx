@@ -34,6 +34,9 @@ export class CommandService {
   private customCommands: Map<string, CustomCommand> = new Map();
   private commandHistory: CommandHistoryEntry[] = [];
   private readonly MAX_HISTORY = 100;
+  // Cap alias expansion so a cyclic (A -> B -> A) or runaway alias chain cannot
+  // recurse until the JS engine aborts (Hermes SIGABRT stack overflow).
+  private readonly MAX_ALIAS_DEPTH = 20;
   private readonly ALIASES_STORAGE_KEY = '@AndroidIRCX:commandAliases';
   private readonly CUSTOM_COMMANDS_STORAGE_KEY = '@AndroidIRCX:customCommands';
   private readonly HISTORY_STORAGE_KEY = '@AndroidIRCX:commandHistory';
@@ -362,6 +365,7 @@ export class CommandService {
   async processCommand(
     input: string,
     channel?: string,
+    aliasChain: string[] = [],
   ): Promise<string | null> {
     if (!input.startsWith('/')) {
       return input; // Not a command, return original message
@@ -444,7 +448,23 @@ export class CommandService {
         if (newInput.trim().toLowerCase() === trimmed.toLowerCase()) {
           return trimmed;
         }
-        return this.processCommand(newInput, channel); // Recursively process
+        // The identical-input check above only catches a direct self-reference
+        // (A -> A). Guard against alias cycles (A -> B -> A) and unbounded
+        // expansion, which would otherwise recurse until the engine aborts.
+        if (
+          aliasChain.includes(commandName) ||
+          aliasChain.length >= this.MAX_ALIAS_DEPTH
+        ) {
+          this.onLocalMessage?.(
+            `*** Alias loop detected while expanding /${commandName}; aborting`,
+          );
+          return null;
+        }
+        // Recursively process, tracking the expansion chain for loop detection
+        return this.processCommand(newInput, channel, [
+          ...aliasChain,
+          commandName,
+        ]);
       }
     }
 

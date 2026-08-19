@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -115,8 +115,16 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     return () => clearInterval(interval);
   }, [visible]);
 
+  // Guard against redundant updates: only push state when the ad-status snapshot
+  // actually changed, so the 1s poll is a true no-op for a static status instead
+  // of re-rendering every tick — prevents the poll from becoming an update loop
+  // (Crashlytics: "Maximum update depth exceeded").
+  const adStatusSnapshotRef = useRef('');
   const loadAdStatus = () => {
     const adStatus = adRewardService.getAdStatus();
+    const snapshot = `${adStatus.ready}|${adStatus.loading}|${adStatus.cooldown}|${adStatus.cooldownSeconds}|${adStatus.adUnitType}`;
+    if (snapshot === adStatusSnapshotRef.current) return;
+    adStatusSnapshotRef.current = snapshot;
     setAdReady(adStatus.ready);
     setAdLoading(adStatus.loading);
     setAdCooldown(adStatus.cooldown);

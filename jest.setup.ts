@@ -28,6 +28,24 @@ console.error = (...args: any[]) => {
   originalConsoleError(...args);
 };
 
+// React Native 0.87 removed InteractionManager; the app now defers work with the
+// global requestIdleCallback. The jsdom/node test environment does not provide it,
+// so mock it synchronously (mirrors the previous runAfterInteractions(cb => cb())).
+(global as unknown as { requestIdleCallback: unknown }).requestIdleCallback =
+  jest.fn(
+    (
+      cb: (deadline: {
+        didTimeout: boolean;
+        timeRemaining: () => number;
+      }) => void,
+    ) => {
+      cb({ didTimeout: false, timeRemaining: () => 50 });
+      return 0;
+    },
+  );
+(global as unknown as { cancelIdleCallback: unknown }).cancelIdleCallback =
+  jest.fn();
+
 afterEach(() => {
   try {
     jest.runOnlyPendingTimers();

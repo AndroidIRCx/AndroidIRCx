@@ -494,7 +494,7 @@ export const MessageHistoryViewerScreen: React.FC<
                     ? t('No results found')
                     : t('No stored messages')}
                 </Text>
-              ) : null
+              ) : undefined
             }
             contentContainerStyle={styles.listContent}
           />
@@ -545,7 +545,7 @@ export const MessageHistoryViewerScreen: React.FC<
                       ? t('No results found')
                       : t('No stored messages')}
                   </Text>
-                ) : null
+                ) : undefined
               }
               contentContainerStyle={styles.listContent}
             />

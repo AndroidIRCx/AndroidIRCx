@@ -182,7 +182,7 @@ const applyMessageFormatStyle = (
     return baseStyle;
   }
 
-  const textStyle: TextStyle = { ...baseStyle };
+  const textStyle: Writable<TextStyle> = { ...baseStyle };
 
   if (formatStyle.bold) {
     textStyle.fontWeight = 'bold';
@@ -3820,7 +3820,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           }}
           style={styles.container}
           contentContainerStyle={styles.contentContainer}
-          ListFooterComponent={chatHistoryFooter}
+          ListFooterComponent={chatHistoryFooter ?? undefined}
         />
         {/* Search Button (Floating) */}
         {!searchVisible && !selectionMode && showMessageAreaSearchButton && (
@@ -3974,7 +3974,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         contentContainerStyle={styles.contentContainer}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={chatHistoryFooter}
+        ListFooterComponent={chatHistoryFooter ?? undefined}
       />
       {/* Search Button (Floating) */}
       {!searchVisible && !selectionMode && showMessageAreaSearchButton && (

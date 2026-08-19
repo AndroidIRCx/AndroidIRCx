@@ -214,9 +214,7 @@ describe('useLazyMessageHistory', () => {
     appStateChangeListener?.('active');
     await new Promise(r => setTimeout(r, 0));
 
-    expect(
-      require('react-native').InteractionManager.runAfterInteractions,
-    ).toHaveBeenCalled();
+    expect(requestIdleCallback as unknown as jest.Mock).toHaveBeenCalled();
     expect(loadMessages).toHaveBeenCalled();
     expect(setTabs).toHaveBeenCalled();
   });
@@ -432,9 +430,8 @@ describe('useLazyMessageHistory', () => {
     };
     useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
     useTabStore.getState.mockImplementation(() => mockStoreState);
-    const interactionManager = require('react-native').InteractionManager;
-    interactionManager.runAfterInteractions.mockImplementationOnce((cb: any) =>
-      cb(),
+    (requestIdleCallback as unknown as jest.Mock).mockImplementationOnce(
+      (cb: any) => cb(),
     );
 
     const { rerender } = await renderHook(
