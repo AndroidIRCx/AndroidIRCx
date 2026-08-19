@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-battery-optimization-check/android/build.gradle b/node_modules/react-native-battery-optimization-check/android/build.gradle
+index 099da1a..cec63ed 100644
+--- a/node_modules/react-native-battery-optimization-check/android/build.gradle
++++ b/node_modules/react-native-battery-optimization-check/android/build.gradle
+@@ -128,10 +128,11 @@ dependencies {
+ // From node_modules
+ }
+ 
+-if (isNewArchitectureEnabled()) {
+-  react {
+-    jsRootDir = file("../src/")
+-    libraryName = "BatteryOptimizationCheck"
+-    codegenJavaPackageName = "com.reactnativebatteryoptimizationcheck"
+-  }
+-}
++// Codegen block removed: this library is a plain legacy bridge module
++// (BatteryOptimizationCheckModule extends ReactContextBaseJavaModule and JS uses
++// NativeModules.BatteryOptimizationCheck), it ships no real TurboModule spec, and
++// its jsRootDir ("../src/") holds no codegen spec. Under React Native 0.87's
++// new-arch autolinking the dead `react{}` block made autolinking.cpp emit
++// `#include <BatteryOptimizationCheck.h>` for a header that isn't on the app's
++// CMake include path, breaking the native build. Dropping it lets the module run
++// via the new-arch legacy interop layer (NativeModules bridge still works).

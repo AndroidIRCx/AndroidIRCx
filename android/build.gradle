@@ -5,14 +5,14 @@ buildscript {
         compileSdkVersion = 36
         targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
-        kotlinVersion = "2.1.20"
+        kotlinVersion = "2.2.0"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.7.3")
+        classpath("com.android.tools.build:gradle:9.2.1")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.gms:google-services:4.4.4")
@@ -29,11 +29,22 @@ allprojects {
         maven { url "$rootDir/../node_modules/@react-native-async-storage/async-storage/android/local_repo" }
     }
 
+    // AGP 9 turns the BuildConfig feature off by default and removed the global
+    // `android.defaults.buildfeatures.buildconfig` opt-in. Our app (BuildConfig.
+    // VERSION_NAME in MainApplication.kt) and several third-party RN modules
+    // (e.g. react-native-battery-optimization-check) declare BuildConfig fields
+    // and fail configuration without it, so re-enable it on every Android module.
+    afterEvaluate {
+        if (it.hasProperty("android")) {
+            it.android.buildFeatures.buildConfig = true
+        }
+    }
+
     configurations.configureEach { configuration ->
         configuration.resolutionStrategy.eachDependency { details ->
             if (details.requested.group == "com.google.android.gms" && details.requested.name == "play-services-ads") {
                 details.useVersion("25.0.0")
-                details.because("Google Mobile Ads 25.4.0 is compiled with Kotlin metadata 2.3.0, while React Native 0.86 currently builds this app with Kotlin 2.1.20")
+                details.because("Google Mobile Ads 25.4.0 is compiled with Kotlin metadata 2.3.0, while React Native 0.87 currently builds this app with Kotlin 2.2.0")
             }
         }
     }

@@ -337,7 +337,7 @@ function styleToTextStyle(
   style: FormatStyle,
   baseStyle?: TextStyle,
 ): TextStyle {
-  const textStyle: TextStyle = baseStyle ? { ...baseStyle } : {};
+  const textStyle: Writable<TextStyle> = baseStyle ? { ...baseStyle } : {};
 
   // Handle reverse (swap foreground and background)
   let fgColor = style.color;

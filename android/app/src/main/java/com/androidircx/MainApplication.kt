@@ -26,7 +26,7 @@ class MainApplication : Application(), ReactApplication {
     }
 
   // Temporary ReactNativeHost for PackageList initialization
-  private val tempReactNativeHost = object : ReactNativeHost(this) {
+  private val tempReactNativeHost = object : ReactNativeHost(this@MainApplication) {
     override fun getPackages(): List<ReactPackage> = emptyList()
     override fun getJSMainModuleName(): String = "index"
     override fun getUseDeveloperSupport(): Boolean = false

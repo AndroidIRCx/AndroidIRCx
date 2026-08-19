@@ -426,9 +426,11 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
         visible={showIrcDatabaseModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() =>
-          !isImportingFromIrcDatabase && setShowIrcDatabaseModal(false)
-        }
+        onRequestClose={() => {
+          if (!isImportingFromIrcDatabase) {
+            setShowIrcDatabaseModal(false);
+          }
+        }}
       >
         <View style={styles.ircDatabaseOverlay}>
           <View style={styles.ircDatabaseCard}>

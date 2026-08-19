@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
+import {
+  Alert,
+  Linking,
+  PermissionsAndroid,
+  Platform,
+  type Permission,
+} from 'react-native';
 import {
   mediaDevices,
   MediaStream,
@@ -872,7 +878,9 @@ class WebRTCCallService {
       return;
     }
 
-    const required = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
+    const required: Permission[] = [
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+    ];
     if (mediaType === 'video') {
       required.push(PermissionsAndroid.PERMISSIONS.CAMERA);
     }

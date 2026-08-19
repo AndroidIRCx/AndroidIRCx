@@ -1,0 +1,6 @@
+What's new in v1.9.42:
+- Upgraded to React Native 0.87 for better performance, stability and future Android compatibility
+- Modernised the Android build toolchain for smaller, better-optimised releases
+- Fixed a rare startup crash tied to the background connection service
+- Fixed a freeze caused by looping command aliases
+- Refreshed several libraries to their latest releases

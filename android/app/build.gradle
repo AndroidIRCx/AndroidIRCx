@@ -263,8 +263,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 147
-        versionName = "1.9.41"
+        versionCode = 148
+        versionName = "1.9.42"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -313,7 +313,7 @@ android {
             signingConfig = signingConfigs.release
             minifyEnabled = enableProguardInReleaseBuilds
             shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
             // Upload native (NDK) debug symbols to Crashlytics so native crashes
             // originating in libhermesvm.so / libreactnative.so (SIGABRT/SIGSEGV

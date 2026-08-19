@@ -100,7 +100,7 @@ class BackgroundService {
    */
   private setupAppStateListener(): void {
     // Get initial state
-    this.appState = AppState.currentState;
+    this.appState = (AppState.currentState ?? 'active') as AppStateStatus;
 
     // Listen for state changes
     // Note: In React Native 0.65+, addEventListener returns a subscription object
