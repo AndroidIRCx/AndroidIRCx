@@ -1,0 +1,6 @@
+What's new in v1.9.44:
+- Added a friendly in-app prompt to rate AndroidIRCX on the Play Store, with "Remind me later" and "Don't ask again" options
+- You can also rate any time from Settings › About › Rate AndroidIRCX
+- The rating prompt appears a couple of days after you start using the app, and never again once you've rated or dismissed it
+- Added a "Privacy options" control in Settings › Privacy & Ads to manage ad consent and privacy choices (GDPR / EEA / UK and US state privacy laws)
+- Minor stability improvements

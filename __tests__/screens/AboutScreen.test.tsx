@@ -76,6 +76,21 @@ describe('AboutScreen', () => {
     expect(getByText('CoderLegion')).toBeTruthy();
   });
 
+  it('shows a Rate button that opens the rating prompt', async () => {
+    const { getByText } = await render(
+      <AboutScreen visible onClose={jest.fn()} />,
+    );
+
+    const rateButton = getByText('Rate AndroidIRCX');
+    expect(rateButton).toBeTruthy();
+
+    await fireEvent.press(rateButton);
+
+    await waitFor(() =>
+      expect(getByText('Enjoying AndroidIRCX?')).toBeTruthy(),
+    );
+  });
+
   it('calls onClose when close button is pressed', async () => {
     const onClose = jest.fn();
     const { getByText } = await render(

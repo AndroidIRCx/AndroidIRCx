@@ -86,7 +86,7 @@ describe('ReviewPromptService', () => {
   });
 
   it('shouldPrompt is false before enough launches', async () => {
-    await seed({ launches: 4, firstSeenAt: NOW - 5 * DAY_MS });
+    await seed({ launches: 1, firstSeenAt: NOW - 5 * DAY_MS });
     expect(await reviewPromptService.shouldPrompt()).toBe(false);
   });
 

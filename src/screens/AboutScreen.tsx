@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { ModalSafeArea } from '../components/ModalSafeArea';
+import { ReviewPromptModal } from '../components/ReviewPromptModal';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { APP_VERSION } from '../config/appVersion';
@@ -32,6 +33,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
+  const [showRate, setShowRate] = useState(false);
   const socialLinks = [
     {
       id: 'instagram',
@@ -114,127 +116,152 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      statusBarTranslucent
-      navigationBarTranslucent
-      onRequestClose={onClose}
-    >
-      <ModalSafeArea style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('About')}</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('Close')}</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-        >
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../../assets/images/favicon600.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.appName}>AndroidIRCX</Text>
-            <Text style={styles.version}>
-              {t('Version {version}', { version: APP_VERSION })}
-            </Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Made by')}</Text>
-            <TouchableOpacity
-              onPress={() => handleOpenURL('https://majstorov.info/en/about')}
-            >
-              <Text style={[styles.value, styles.link]}>Velimir Majstorov</Text>
+    <>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={onClose}
+      >
+        <ModalSafeArea style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>{t('About')}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>{t('Close')}</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Network')}</Text>
-            <Text style={styles.value}>
-              irc.DBase.in.rs - IRC Database Network
-            </Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('IRC Database')}</Text>
-            <TouchableOpacity
-              onPress={() => handleOpenURL('https://irc.dbase.in.rs')}
-            >
-              <Text style={[styles.value, styles.link]}>
-                https://irc.dbase.in.rs
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('IRC Nick')}</Text>
-            <Text style={styles.value}>munZe</Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Contact')}</Text>
-            <TouchableOpacity
-              onPress={() => handleOpenURL('mailto:contact@androidircx.com')}
-            >
-              <Text style={[styles.value, styles.link]}>
-                contact@androidircx.com
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('AndroidIRCX Website')}</Text>
-            <TouchableOpacity
-              onPress={() => handleOpenURL('https://androidircx.com')}
-            >
-              <Text style={[styles.value, styles.link]}>
-                https://androidircx.com
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('AndroidIRCX Github')}</Text>
-            <TouchableOpacity
-              onPress={() =>
-                handleOpenURL('https://github.com/AndroidIRCx/AndroidIRCx')
-              }
-            >
-              <Text style={[styles.value, styles.link]}>
-                https://github.com/AndroidIRCx/AndroidIRCx
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Socials')}</Text>
-            <View style={styles.socialList}>
-              {socialLinks.map(link => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.socialItem}
-                  onPress={() => handleOpenURL(link.url)}
-                >
-                  <Icon
-                    name={link.icon}
-                    size={18}
-                    color={
-                      colors.buttonPrimary || colors.primary || colors.text
-                    }
-                    brand={link.brand}
-                    solid={link.solid}
-                    style={styles.socialIcon}
-                  />
-                  <Text style={[styles.value, styles.link]}>{link.label}</Text>
-                </TouchableOpacity>
-              ))}
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={styles.contentContainer}
+          >
+            <View style={styles.logoContainer}>
+              <Image
+                source={require('../../assets/images/favicon600.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
-          </View>
-        </ScrollView>
-      </ModalSafeArea>
-    </Modal>
+            <View style={styles.section}>
+              <Text style={styles.appName}>AndroidIRCX</Text>
+              <Text style={styles.version}>
+                {t('Version {version}', { version: APP_VERSION })}
+              </Text>
+              <TouchableOpacity
+                style={styles.rateButton}
+                onPress={() => setShowRate(true)}
+              >
+                <Icon
+                  name="star"
+                  solid
+                  size={16}
+                  color={colors.buttonPrimaryText || '#FFFFFF'}
+                  style={styles.rateIcon}
+                />
+                <Text style={styles.rateButtonText}>
+                  {t('Rate AndroidIRCX')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('Made by')}</Text>
+              <TouchableOpacity
+                onPress={() => handleOpenURL('https://majstorov.info/en/about')}
+              >
+                <Text style={[styles.value, styles.link]}>
+                  Velimir Majstorov
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('Network')}</Text>
+              <Text style={styles.value}>
+                irc.DBase.in.rs - IRC Database Network
+              </Text>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('IRC Database')}</Text>
+              <TouchableOpacity
+                onPress={() => handleOpenURL('https://irc.dbase.in.rs')}
+              >
+                <Text style={[styles.value, styles.link]}>
+                  https://irc.dbase.in.rs
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('IRC Nick')}</Text>
+              <Text style={styles.value}>munZe</Text>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('Contact')}</Text>
+              <TouchableOpacity
+                onPress={() => handleOpenURL('mailto:contact@androidircx.com')}
+              >
+                <Text style={[styles.value, styles.link]}>
+                  contact@androidircx.com
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('AndroidIRCX Website')}</Text>
+              <TouchableOpacity
+                onPress={() => handleOpenURL('https://androidircx.com')}
+              >
+                <Text style={[styles.value, styles.link]}>
+                  https://androidircx.com
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('AndroidIRCX Github')}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  handleOpenURL('https://github.com/AndroidIRCx/AndroidIRCx')
+                }
+              >
+                <Text style={[styles.value, styles.link]}>
+                  https://github.com/AndroidIRCx/AndroidIRCx
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('Socials')}</Text>
+              <View style={styles.socialList}>
+                {socialLinks.map(link => (
+                  <TouchableOpacity
+                    key={link.id}
+                    style={styles.socialItem}
+                    onPress={() => handleOpenURL(link.url)}
+                  >
+                    <Icon
+                      name={link.icon}
+                      size={18}
+                      color={
+                        colors.buttonPrimary || colors.primary || colors.text
+                      }
+                      brand={link.brand}
+                      solid={link.solid}
+                      style={styles.socialIcon}
+                    />
+                    <Text style={[styles.value, styles.link]}>
+                      {link.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+        </ModalSafeArea>
+      </Modal>
+      <ReviewPromptModal
+        visible={showRate}
+        onClose={() => setShowRate(false)}
+      />
+    </>
   );
 };
 
@@ -296,6 +323,24 @@ const createStyles = (colors: any) =>
     version: {
       fontSize: 16,
       color: colors.textSecondary || '#757575',
+    },
+    rateButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 16,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      backgroundColor: colors.buttonPrimary || '#2196F3',
+    },
+    rateIcon: {
+      marginRight: 8,
+    },
+    rateButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.buttonPrimaryText || '#FFFFFF',
     },
     label: {
       fontSize: 14,

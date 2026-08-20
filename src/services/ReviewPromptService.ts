@@ -30,8 +30,11 @@ const WEB_URL = `https://play.google.com/store/apps/details?id=${PACKAGE_NAME}`;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Eligibility knobs — deliberately gentle so we never nag a fresh installer.
-const MIN_LAUNCHES = 5; // qualifying app opens before the first prompt
+// Eligibility knobs. Primarily TIME-based: the first prompt appears ~2 days
+// after the install/update, on the user's next open. The launch floor is just
+// an "install-and-bounce" guard (opened at least twice) so we don't prompt
+// someone who never really used the app — it is NOT meant to delay past 2 days.
+const MIN_LAUNCHES = 2; // qualifying app opens before the first prompt
 const MIN_DAYS_SINCE_FIRST = 2; // and at least this long after we started counting
 const REMIND_LATER_DAYS = 7; // "remind me later" snoozes the prompt this long
 
