@@ -34,6 +34,8 @@ describe('ConsentService', () => {
     consentService.manuallyAccepted = false;
     // @ts-ignore
     consentService.listeners = new Set();
+    // @ts-ignore
+    consentService.privacyOptionsRequired = false;
   });
 
   describe('initialize', () => {
@@ -403,6 +405,52 @@ describe('ConsentService', () => {
       await expect(consentService.showConsentForm()).rejects.toThrow(
         'Unexpected form failure',
       );
+    });
+  });
+
+  describe('showPrivacyOptionsForm', () => {
+    it('shows the UMP privacy options form and updates state', async () => {
+      const mockShow = jest.fn().mockResolvedValue({
+        status: AdsConsentStatus.OBTAINED,
+        privacyOptionsRequirementStatus: 'REQUIRED',
+      });
+      (AdsConsent.showPrivacyOptionsForm as jest.Mock) = mockShow;
+
+      await consentService.showPrivacyOptionsForm();
+
+      expect(mockShow).toHaveBeenCalled();
+      expect(consentService.getConsentStatus()).toBe(AdsConsentStatus.OBTAINED);
+      expect(consentService.isPrivacyOptionsRequired()).toBe(true);
+    });
+
+    it('rethrows when the form fails', async () => {
+      (AdsConsent.showPrivacyOptionsForm as jest.Mock) = jest
+        .fn()
+        .mockRejectedValue(new Error('boom'));
+
+      await expect(consentService.showPrivacyOptionsForm()).rejects.toThrow(
+        'boom',
+      );
+    });
+  });
+
+  describe('isPrivacyOptionsRequired', () => {
+    it('is false by default', () => {
+      expect(consentService.isPrivacyOptionsRequired()).toBe(false);
+    });
+
+    it('becomes true when requestInfoUpdate reports REQUIRED', async () => {
+      (AdsConsent.requestInfoUpdate as jest.Mock) = jest
+        .fn()
+        .mockResolvedValue({
+          status: AdsConsentStatus.REQUIRED,
+          isConsentFormAvailable: true,
+          privacyOptionsRequirementStatus: 'REQUIRED',
+        });
+
+      await consentService.initialize(false);
+
+      expect(consentService.isPrivacyOptionsRequired()).toBe(true);
     });
   });
 

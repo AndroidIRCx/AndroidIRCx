@@ -124,6 +124,9 @@ export interface UIState {
   // IRCv3
   showIRCv3Info: boolean;
 
+  // Review prompt (rate-the-app questionnaire)
+  showReviewPrompt: boolean;
+
   // Help Screens
   showHelpConnection: boolean;
   showHelpCommands: boolean;
@@ -254,6 +257,7 @@ export interface UIState {
   setShowHelpChannelManagement: (show: boolean) => void;
   setShowHelpTroubleshooting: (show: boolean) => void;
   setShowIRCv3Info: (show: boolean) => void;
+  setShowReviewPrompt: (show: boolean) => void;
 
   // Bulk updates
   updateUIState: (updates: Partial<UIState>) => void;
@@ -331,6 +335,7 @@ const initialState = {
   showHelpChannelManagement: false,
   showHelpTroubleshooting: false,
   showIRCv3Info: false,
+  showReviewPrompt: false,
 } satisfies Pick<
   UIState,
   | 'showFirstRunSetup'
@@ -401,6 +406,7 @@ const initialState = {
   | 'showHelpChannelManagement'
   | 'showHelpTroubleshooting'
   | 'showIRCv3Info'
+  | 'showReviewPrompt'
 >;
 
 export const useUIStore = create<UIState>()(
@@ -518,6 +524,7 @@ export const useUIStore = create<UIState>()(
       setShowHelpTroubleshooting: show =>
         set({ showHelpTroubleshooting: show }),
       setShowIRCv3Info: (show: boolean) => set({ showIRCv3Info: show }),
+      setShowReviewPrompt: (show: boolean) => set({ showReviewPrompt: show }),
 
       // Bulk updates
       updateUIState: updates => set(state => ({ ...state, ...updates })),
@@ -552,6 +559,7 @@ export const useUIStore = create<UIState>()(
           showHelpMedia: false,
           showHelpChannelManagement: false,
           showHelpTroubleshooting: false,
+          showReviewPrompt: false,
         }),
     }),
     {

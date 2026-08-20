@@ -63,6 +63,7 @@ import { useMessageBatching } from './src/hooks/useMessageBatching';
 import { useAutoJoinChannels } from './src/hooks/useAutoJoinChannels';
 import { useRawSettings } from './src/hooks/useRawSettings';
 import { useAppStateEffects } from './src/hooks/useAppStateEffects';
+import { useReviewPrompt } from './src/hooks/useReviewPrompt';
 import { useServiceHelpers } from './src/hooks/useServiceHelpers';
 import { useStartupServices } from './src/hooks/useStartupServices';
 import { useKeyboardShortcuts } from './src/hooks/useKeyboardShortcuts';
@@ -810,6 +811,9 @@ function AppContent() {
     motdCompleteRef,
     motdSignal,
   });
+
+  // Rate-the-app questionnaire: count the launch and, when eligible, prompt once.
+  useReviewPrompt({ ready: initialDataLoaded });
 
   // Note: /server command handling is now in useConnectionHandler.handleServerConnect
   // and called directly from useConnectionLifecycle, so no need for event listener here

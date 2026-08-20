@@ -44,6 +44,7 @@ import { HelpEncryptionScreen } from '../screens/help/HelpEncryptionScreen';
 import { HelpMediaScreen } from '../screens/help/HelpMediaScreen';
 import { HelpChannelManagementScreen } from '../screens/help/HelpChannelManagementScreen';
 import { WebRTCCallModal } from './WebRTCCallModal';
+import { ReviewPromptModal } from './ReviewPromptModal';
 import { channelNotesService } from '../services/ChannelNotesService';
 import { dccFileService } from '../services/DCCFileService';
 import { ChannelTab } from '../types';
@@ -153,6 +154,7 @@ export function AppModals({
   // This ensures the component re-renders when these states change
   const showOptionsMenu = useUIStore(state => state.showOptionsMenu);
   const showSettings = useUIStore(state => state.showSettings);
+  const showReviewPrompt = useUIStore(state => state.showReviewPrompt);
 
   const {
     showFirstRunSetup,
@@ -673,6 +675,12 @@ export function AppModals({
           onClose={() => setShowIRCv3Info(false)}
         />
       )}
+
+      {/* Rate-the-app questionnaire (shown once when eligible) */}
+      <ReviewPromptModal
+        visible={showReviewPrompt}
+        onClose={() => useUIStore.getState().setShowReviewPrompt(false)}
+      />
 
       {/* DCC Transfers Minimized Indicator */}
       <DccTransfersMinimizedIndicator

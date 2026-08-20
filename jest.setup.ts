@@ -413,6 +413,7 @@ jest.mock('react-native-google-mobile-ads', () => {
     AdsConsent: {
       requestInfoUpdate: jest.fn().mockResolvedValue({ status: 3 }),
       showForm: jest.fn().mockResolvedValue({ status: 3 }),
+      showPrivacyOptionsForm: jest.fn().mockResolvedValue({ status: 3 }),
       loadAndShowConsentFormIfRequired: jest
         .fn()
         .mockResolvedValue({ status: 3 }),
@@ -423,6 +424,11 @@ jest.mock('react-native-google-mobile-ads', () => {
       REQUIRED: 1,
       NOT_REQUIRED: 2,
       OBTAINED: 3,
+    },
+    AdsConsentPrivacyOptionsRequirementStatus: {
+      UNKNOWN: 'UNKNOWN',
+      REQUIRED: 'REQUIRED',
+      NOT_REQUIRED: 'NOT_REQUIRED',
     },
     AdsConsentDebugGeography: {
       DISABLED: 0,

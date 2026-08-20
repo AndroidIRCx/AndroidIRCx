@@ -63,6 +63,7 @@ jest.mock('../../src/services/ConsentService', () => ({
     getConsentInfo: jest.fn(),
     addListener: jest.fn(),
     showConsentForm: jest.fn(),
+    showPrivacyOptionsForm: jest.fn(),
     resetConsent: jest.fn(),
     acceptConsentManually: jest.fn(),
     getPrivacyPolicyUrl: jest.fn(),
@@ -118,6 +119,7 @@ describe('PrivacyAdsScreen', () => {
     });
     consentService.addListener.mockReturnValue(jest.fn());
     consentService.showConsentForm.mockResolvedValue(undefined);
+    consentService.showPrivacyOptionsForm.mockResolvedValue(undefined);
     consentService.resetConsent.mockResolvedValue(undefined);
     consentService.acceptConsentManually.mockResolvedValue(undefined);
     consentService.getPrivacyPolicyUrl.mockReturnValue(
@@ -228,6 +230,60 @@ describe('PrivacyAdsScreen', () => {
     expect(Alert.alert).toHaveBeenCalledWith(
       'Privacy Settings Updated',
       'Your privacy preferences have been saved.',
+    );
+  });
+
+  it('hides the Privacy options button when not required', async () => {
+    const { queryByText } = await render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
+    await waitFor(() => expect(queryByText('Privacy options')).toBeNull());
+  });
+
+  it('shows the Privacy options button and opens the UMP form when required', async () => {
+    consentService.getConsentInfo.mockResolvedValue({
+      status: 'REQUIRED',
+      isConsentFormAvailable: true,
+      canRequestAds: true,
+      privacyOptionsRequired: true,
+    });
+
+    const { findByText } = await render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
+
+    await fireEvent.press(await findByText('Privacy options'));
+
+    await waitFor(async () => {
+      expect(consentService.showPrivacyOptionsForm).toHaveBeenCalledTimes(1);
+    });
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Privacy Settings Updated',
+      'Your privacy preferences have been saved.',
+    );
+  });
+
+  it('shows an error alert when the Privacy options form fails', async () => {
+    consentService.getConsentInfo.mockResolvedValue({
+      status: 'REQUIRED',
+      isConsentFormAvailable: true,
+      canRequestAds: true,
+      privacyOptionsRequired: true,
+    });
+    consentService.showPrivacyOptionsForm.mockRejectedValueOnce(
+      new Error('boom'),
+    );
+
+    const { findByText } = await render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
+    await fireEvent.press(await findByText('Privacy options'));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to show privacy options. Please try again.',
+      ),
     );
   });
 

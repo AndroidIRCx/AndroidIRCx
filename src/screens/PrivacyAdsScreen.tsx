@@ -199,6 +199,28 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     }
   };
 
+  const handlePrivacyOptions = async () => {
+    try {
+      setLoading(true);
+      await consentService.showPrivacyOptionsForm();
+      setLoading(false);
+      Alert.alert(
+        t('Privacy Settings Updated'),
+        t('Your privacy preferences have been saved.'),
+      );
+    } catch (error) {
+      setLoading(false);
+      console.error(
+        '[PrivacyAdsScreen] Failed to show privacy options form:',
+        error,
+      );
+      Alert.alert(
+        t('Error'),
+        t('Failed to show privacy options. Please try again.'),
+      );
+    }
+  };
+
   const handleResetConsent = () => {
     Alert.alert(
       t('Reset Privacy Settings'),
@@ -529,6 +551,32 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
           {/* Actions Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('Manage Your Privacy')}</Text>
+
+            {/* Persistent UMP "Privacy options" entry — required in the EEA/UK/
+                Switzerland (GDPR) and in US states (CCPA/CPRA...). Google
+                requires this to always be reachable while a message is active. */}
+            {consentInfo.privacyOptionsRequired && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handlePrivacyOptions}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.onPrimary} />
+                ) : (
+                  <>
+                    <Text style={styles.buttonText}>
+                      {t('Privacy options')}
+                    </Text>
+                    <Text style={styles.buttonDescription}>
+                      {t(
+                        'Manage consent and "Do Not Sell or Share My Personal Information"',
+                      )}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
 
             {/* Always show option to review/change consent */}
             <TouchableOpacity

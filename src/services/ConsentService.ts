@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   AdsConsent,
   AdsConsentDebugGeography,
+  AdsConsentPrivacyOptionsRequirementStatus,
   AdsConsentStatus,
 } from 'react-native-google-mobile-ads';
 import { logger } from './Logger';
@@ -23,6 +24,10 @@ class ConsentService {
   private listeners: Set<ConsentStatusListener> = new Set();
   private initialized: boolean = false;
   private manuallyAccepted: boolean = false;
+  // Whether UMP requires a persistent "privacy options" entry point for this
+  // user. Google requires it for BOTH the GDPR/EEA message and the US-states
+  // (CCPA/CPRA...) message, so it drives the single "Privacy options" button.
+  private privacyOptionsRequired: boolean = false;
 
   /**
    * Initialize consent management
@@ -58,6 +63,12 @@ class ConsentService {
       if (!this.manuallyAccepted) {
         this.consentStatus = consentInfo.status;
       }
+
+      // Track whether the persistent privacy-options entry point is required
+      // (EEA/UK/CH GDPR message OR a US-states message configured in AdMob).
+      this.privacyOptionsRequired =
+        consentInfo.privacyOptionsRequirementStatus ===
+        AdsConsentPrivacyOptionsRequirementStatus.REQUIRED;
 
       this.notifyListeners();
 
@@ -252,6 +263,46 @@ class ConsentService {
   }
 
   /**
+   * Show the UMP "privacy options" form — the persistent entry point Google
+   * requires whenever a message is active. It serves BOTH the GDPR/EEA/UK/CH
+   * consent message AND the US-states (CCPA/CPRA...) message; UMP shows the
+   * right one for the user's region based on what is configured in the AdMob
+   * console. Use this for the Settings "Privacy options" button.
+   */
+  async showPrivacyOptionsForm(): Promise<void> {
+    try {
+      logger.info('consent', 'Showing privacy options form...');
+      const formResult = await AdsConsent.showPrivacyOptionsForm();
+      this.consentStatus = formResult.status;
+      this.manuallyAccepted = false;
+      this.privacyOptionsRequired =
+        formResult.privacyOptionsRequirementStatus ===
+        AdsConsentPrivacyOptionsRequirementStatus.REQUIRED;
+      await AsyncStorage.removeItem(MANUAL_CONSENT_KEY);
+      await this.saveConsentStatus();
+      this.notifyListeners();
+      logger.info(
+        'consent',
+        `Privacy options updated. New status: ${formResult.status}`,
+      );
+    } catch (error) {
+      logger.error(
+        'consent',
+        `Failed to show privacy options form: ${String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Whether the persistent privacy-options entry point must be shown to this
+   * user (true in the EEA/UK/CH and in US states with an active message).
+   */
+  isPrivacyOptionsRequired(): boolean {
+    return this.privacyOptionsRequired;
+  }
+
+  /**
    * Reset consent for testing purposes
    * This will cause the consent form to show again
    */
@@ -266,6 +317,7 @@ class ConsentService {
       ]);
       this.consentStatus = AdsConsentStatus.UNKNOWN;
       this.manuallyAccepted = false;
+      this.privacyOptionsRequired = false;
       this.notifyListeners();
       logger.info('consent', 'Consent reset complete');
     } catch (error) {
