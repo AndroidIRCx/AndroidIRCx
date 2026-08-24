@@ -1,0 +1,5 @@
+What's new in v1.9.45:
+- Choose your text encoding instead of being stuck on UTF-8 — set it per network or as a global default in Settings.
+- Supports UTF-8 plus legacy charsets: Windows-1250/1251/1252, ISO-8859-*, KOI8-R/U, Shift_JIS, GBK, Big5, EUC-KR and more.
+- Optional "Prefer UTF-8 (fallback)" mode for mixed channels.
+- New message font choice (System, Serif, Monospace and more) in Settings › Appearance.

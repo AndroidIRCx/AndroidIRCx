@@ -4063,6 +4063,7 @@ const createStyles = (
   const selectionBarBottom = messageInputHeight + bottomInset + 12;
   const selectionToastBottom = selectionBarBottom + 68; // 68px above the selection bar
   const messageFontSize = layoutService.getFontSizePixels();
+  const messageFontFamily = layoutService.getFontFamilyStyle();
   const messageLineHeight = Math.ceil(messageFontSize * 1.45);
   const timestampFontSize = Math.max(10, messageFontSize - 2);
   const timestampLineHeight = Math.ceil(timestampFontSize * 1.35);
@@ -4196,6 +4197,7 @@ const createStyles = (
     nick: {
       color: colors.messageNick,
       fontSize: messageFontSize,
+      fontFamily: messageFontFamily,
       lineHeight: messageLineHeight,
       fontWeight: '600',
       marginRight: 8,
@@ -4204,6 +4206,7 @@ const createStyles = (
     messageText: {
       color: colors.messageText,
       fontSize: messageFontSize,
+      fontFamily: messageFontFamily,
       lineHeight: messageLineHeight,
       flex: 1,
       flexShrink: 1,
@@ -4213,6 +4216,7 @@ const createStyles = (
     messageTextInline: {
       color: colors.messageText,
       fontSize: messageFontSize,
+      fontFamily: messageFontFamily,
       lineHeight: messageLineHeight,
       textAlign: layoutConfig.messageTextAlign || 'left',
       writingDirection: layoutConfig.messageTextDirection || 'auto',

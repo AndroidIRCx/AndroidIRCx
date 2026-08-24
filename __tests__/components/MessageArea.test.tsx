@@ -171,6 +171,7 @@ jest.mock('../../src/services/LayoutService', () => ({
       messageTextWritingSystem: 'auto',
     })),
     getFontSizePixels: jest.fn(() => 14),
+    getFontFamilyStyle: jest.fn(() => undefined),
     onConfigChange: jest.fn(() => jest.fn()),
   },
 }));

@@ -39,6 +39,26 @@ import {
 } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 
+// Message font family choices. Values are Android built-in family names ('system'
+// maps to the platform default); no font assets are bundled. Labels are English
+// source strings passed through t() at render time.
+const MESSAGE_FONT_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'system', label: 'System default' },
+  { value: 'sans-serif', label: 'Sans-serif' },
+  { value: 'sans-serif-medium', label: 'Sans-serif Medium' },
+  { value: 'sans-serif-condensed', label: 'Condensed' },
+  { value: 'serif', label: 'Serif' },
+  { value: 'monospace', label: 'Monospace' },
+];
+
+const MESSAGE_FONT_LABELS: Record<string, string> = MESSAGE_FONT_OPTIONS.reduce(
+  (map, option) => {
+    map[option.value] = option.label;
+    return map;
+  },
+  {} as Record<string, string>,
+);
+
 interface AppearanceSectionProps {
   colors: {
     text: string;
@@ -664,6 +684,35 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             },
           },
         ],
+      },
+      {
+        id: 'layout-message-font',
+        title: t('Message Font', { _tags: tags }),
+        description: t('Font: {font}', {
+          font:
+            MESSAGE_FONT_LABELS[layoutConfig?.fontFamily || 'system'] ||
+            t('System default', { _tags: tags }),
+          _tags: tags,
+        }),
+        type: 'submenu',
+        searchKeywords: [
+          'font',
+          'family',
+          'typeface',
+          'monospace',
+          'serif',
+          'message',
+          'text',
+        ],
+        submenuItems: MESSAGE_FONT_OPTIONS.map(option => ({
+          id: `layout-message-font-${option.value}`,
+          title: t(option.label, { _tags: tags }),
+          type: 'button' as const,
+          onPress: async () => {
+            await layoutService.setFontFamily(option.value);
+            updateLayoutConfig({});
+          },
+        })),
       },
       {
         id: 'layout-userlist-position',

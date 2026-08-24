@@ -381,6 +381,34 @@ describe('LayoutService', () => {
     });
   });
 
+  describe('font family', () => {
+    it('defaults to system', () => {
+      expect(layoutService.getFontFamily()).toBe('system');
+    });
+
+    it('returns undefined style for system, name otherwise', async () => {
+      expect(layoutService.getFontFamilyStyle()).toBeUndefined();
+      await layoutService.setFontFamily('monospace');
+      expect(layoutService.getFontFamily()).toBe('monospace');
+      expect(layoutService.getFontFamilyStyle()).toBe('monospace');
+    });
+
+    it('treats an empty family as system', async () => {
+      await layoutService.setFontFamily('');
+      expect(layoutService.getFontFamily()).toBe('system');
+      expect(layoutService.getFontFamilyStyle()).toBeUndefined();
+    });
+
+    it('defaults fontFamily to system when missing from saved config', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify({ tabPosition: 'bottom' }),
+      );
+      const fresh = new (layoutService.constructor as any)();
+      await fresh.initialize();
+      expect(fresh.getFontFamily()).toBe('system');
+    });
+  });
+
   describe('message spacing', () => {
     it('should get message spacing', () => {
       expect(layoutService.getMessageSpacing()).toBe(4);

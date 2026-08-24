@@ -5,6 +5,8 @@
 
 import TcpSocket from 'react-native-tcp-socket';
 import type TLSSocket from 'react-native-tcp-socket/lib/types/TLSSocket';
+import { Buffer } from 'buffer';
+import { encodingService, DEFAULT_ENCODING } from './EncodingService';
 import {
   DEFAULT_PART_MESSAGE,
   DEFAULT_QUIT_MESSAGE,
@@ -79,6 +81,12 @@ export interface IRCConnectionConfig {
     mechanism?: 'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL';
     force?: boolean; // Force SASL even if server doesn't advertise capability
   };
+  // Character encoding for wire text (WHATWG label, e.g. 'utf-8',
+  // 'windows-1251'). When utf8Fallback is true and encoding is a legacy
+  // charset, incoming lines are decoded as UTF-8 first and only fall back to
+  // the legacy charset per line, and outgoing lines are sent as UTF-8.
+  encoding?: string;
+  utf8Fallback?: boolean;
 }
 
 export type ChatHistorySubcommand =
@@ -260,8 +268,10 @@ export class IRCService {
   private messageListeners: ((message: IRCMessage) => void)[] = [];
   private connectionListeners: ((connected: boolean) => void)[] = [];
   private eventListeners: Map<string, Function[]> = new Map();
-  private buffer: string = '';
-  private socketTextDecoder: TextDecoder | null = null;
+  // Raw inbound bytes accumulated until a full line (LF) is available. Lines
+  // are decoded with the connection encoding (see EncodingService) so legacy
+  // charsets and the UTF-8 fallback mode work correctly.
+  private inboundBuffer: Buffer = Buffer.alloc(0);
   private registered: boolean = false;
   private currentNick: string = '';
   private altNick: string = '';
@@ -825,11 +835,7 @@ export class IRCService {
 
         this.config = config;
         this.registered = false;
-        this.buffer = '';
-        this.socketTextDecoder =
-          typeof TextDecoder !== 'undefined'
-            ? new TextDecoder('utf-8', { fatal: false })
-            : null;
+        this.inboundBuffer = Buffer.alloc(0);
 
         this.capNegotiating = false;
         this.capEnabled = false;
@@ -913,26 +919,20 @@ export class IRCService {
           }
 
           this.socket.on('data', (data: any) => {
-            let dataStr: string;
+            // Accumulate raw bytes; lines are decoded in processBuffer() using
+            // the connection encoding. tcp-socket delivers a Buffer/Uint8Array
+            // by default (no setEncoding), but handle a string just in case.
+            let chunk: Buffer;
             if (typeof data === 'string') {
-              dataStr = data;
-            } else if (
-              this.socketTextDecoder &&
-              data &&
-              data.buffer !== undefined
-            ) {
-              try {
-                dataStr = this.socketTextDecoder.decode(
-                  data instanceof Uint8Array ? data : new Uint8Array(data),
-                  { stream: true },
-                );
-              } catch {
-                dataStr = data.toString();
-              }
+              chunk = Buffer.from(data, 'utf8');
+            } else if (Buffer.isBuffer(data)) {
+              chunk = data;
             } else {
-              dataStr = data.toString();
+              chunk = Buffer.from(
+                data instanceof Uint8Array ? data : new Uint8Array(data),
+              );
             }
-            this.buffer += dataStr;
+            this.inboundBuffer = Buffer.concat([this.inboundBuffer, chunk]);
             this.processBuffer();
           });
 
@@ -1000,7 +1000,7 @@ export class IRCService {
             this.cleanupConnectionTimers();
             if (this.manualDisconnect) {
               this.manualDisconnect = false;
-              this.socketTextDecoder = null;
+              this.inboundBuffer = Buffer.alloc(0);
               this.stopKeepAlive();
               this.isConnected = false;
               this.registered = false;
@@ -1018,7 +1018,7 @@ export class IRCService {
             this.isConnected = false;
             this.registered = false;
             this.socket = null;
-            this.socketTextDecoder = null;
+            this.inboundBuffer = Buffer.alloc(0);
             this.stopKeepAlive();
             this.emitConnection(false);
 
@@ -1130,7 +1130,7 @@ export class IRCService {
             this.isConnected = false;
             this.registered = false;
             this.socket = null;
-            this.socketTextDecoder = null;
+            this.inboundBuffer = Buffer.alloc(0);
             this.stopKeepAlive();
             this.emitConnection(false);
           };
@@ -1311,14 +1311,10 @@ export class IRCService {
     if (typeof data === 'string') {
       dataStr = data;
     } else if (data instanceof ArrayBuffer) {
-      const bytes = new Uint8Array(data);
-      dataStr = this.socketTextDecoder
-        ? this.socketTextDecoder.decode(bytes)
-        : Buffer.from(bytes).toString('utf8');
+      // WebSocket transport uses UTF-8 (IRCv3 text.ircv3.net is UTF-8 by spec).
+      dataStr = Buffer.from(new Uint8Array(data)).toString('utf8');
     } else if (data instanceof Uint8Array) {
-      dataStr = this.socketTextDecoder
-        ? this.socketTextDecoder.decode(data)
-        : Buffer.from(data).toString('utf8');
+      dataStr = Buffer.from(data).toString('utf8');
     } else if (data && typeof (data as any).toString === 'function') {
       dataStr = (data as any).toString();
     }
@@ -1481,17 +1477,31 @@ export class IRCService {
 
   private processBuffer(): void {
     this.lastInboundActivityAt = Date.now();
-    // Support both CRLF and LF line endings from servers/proxies
-    const lines = this.buffer.split(/\r?\n/);
-    this.buffer = lines.pop() || '';
 
-    if (this.buffer.length > 8192) {
-      this.logRaw(
-        `IRCService: Large partial line buffer detected (${this.buffer.length} chars)`,
+    const encoding = encodingService.normalize(
+      this.config?.encoding || DEFAULT_ENCODING,
+    );
+    const utf8Fallback = Boolean(this.config?.utf8Fallback);
+
+    // Split the byte buffer on LF (0x0A). All supported encodings keep 0x0A and
+    // 0x0D as ASCII control bytes, so line splitting is safe before decoding,
+    // and decoding a whole line keeps multi-byte characters intact.
+    let start = 0;
+    let newlineIndex: number;
+    while ((newlineIndex = this.inboundBuffer.indexOf(0x0a, start)) !== -1) {
+      let end = newlineIndex;
+      // Strip a trailing CR (0x0D) so CRLF and LF are both handled.
+      if (end > start && this.inboundBuffer[end - 1] === 0x0d) {
+        end -= 1;
+      }
+      const lineBytes = this.inboundBuffer.subarray(start, end);
+      start = newlineIndex + 1;
+
+      const line = encodingService.decodeLine(
+        lineBytes,
+        encoding,
+        utf8Fallback,
       );
-    }
-
-    for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed) {
         if (line.length > 900) {
@@ -1505,6 +1515,18 @@ export class IRCService {
         // Show blank lines for troubleshooting proxy/http responses
         this.addWireMessage('in', t('(empty line)'));
       }
+    }
+
+    // Keep the trailing partial line (bytes after the last LF) for next chunk.
+    this.inboundBuffer =
+      start > 0
+        ? Buffer.from(this.inboundBuffer.subarray(start))
+        : this.inboundBuffer;
+
+    if (this.inboundBuffer.length > 8192) {
+      this.logRaw(
+        `IRCService: Large partial line buffer detected (${this.inboundBuffer.length} bytes)`,
+      );
     }
   }
 
@@ -2519,13 +2541,48 @@ export class IRCService {
       ));
   }
 
+  /**
+   * Write a single IRC line to the TCP socket, encoded with the connection
+   * encoding. For UTF-8 (or the UTF-8-fallback mode, which sends UTF-8)
+   * encodeForSend returns null and we keep the plain string write so the common
+   * path is byte-identical to the previous behavior.
+   */
+  private writeEncodedLine(message: string): void {
+    const encoded = encodingService.encodeForSend(
+      message,
+      this.config?.encoding || DEFAULT_ENCODING,
+      Boolean(this.config?.utf8Fallback),
+    );
+    if (encoded) {
+      this.socket.write(Buffer.concat([encoded, Buffer.from('\r\n', 'ascii')]));
+    } else {
+      this.socket.write(message + '\r\n');
+    }
+  }
+
+  /**
+   * Update the active connection encoding on the fly (e.g. when the user
+   * changes the per-network encoding while connected). Applies to subsequent
+   * inbound lines and outbound writes; already-decoded messages are unaffected.
+   */
+  public setEncoding(encoding: string, utf8Fallback: boolean = false): void {
+    if (this.config) {
+      this.config = {
+        ...this.config,
+        encoding: encodingService.normalize(encoding),
+        utf8Fallback,
+      };
+    }
+  }
+
   public sendRaw(message: string): void {
     if (this.socket && this.isConnected) {
       try {
         if (this.currentTransport === 'websocket' && this.socket.send) {
+          // WebSocket transport is UTF-8 by spec.
           this.socket.send(message);
         } else {
-          this.socket.write(message + '\r\n');
+          this.writeEncodedLine(message);
         }
         this.addWireMessage('out', message);
         this.emit('send-raw', message);
@@ -2564,7 +2621,7 @@ export class IRCService {
         if (this.currentTransport === 'websocket' && this.socket.send) {
           this.socket.send(`WHO ${nick}`);
         } else {
-          this.socket.write(`WHO ${nick}\r\n`);
+          this.writeEncodedLine(`WHO ${nick}`);
         }
         // Don't call addWireMessage - this keeps it silent
         this.emit('send-raw', `WHO ${nick}`);
@@ -2593,7 +2650,7 @@ export class IRCService {
         if (this.currentTransport === 'websocket' && this.socket.send) {
           this.socket.send(`MODE ${nick}`);
         } else {
-          this.socket.write(`MODE ${nick}\r\n`);
+          this.writeEncodedLine(`MODE ${nick}`);
         }
         // Don't call addWireMessage - this keeps it silent
         this.emit('send-raw', `MODE ${nick}`);
@@ -2663,7 +2720,7 @@ export class IRCService {
 
   disconnect(message?: string): void {
     this.manualDisconnect = true;
-    this.socketTextDecoder = null;
+    this.inboundBuffer = Buffer.alloc(0);
     this.stopKeepAlive();
     this.cleanupConnectionTimers();
     if (this.socket) {

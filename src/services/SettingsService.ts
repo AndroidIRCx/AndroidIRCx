@@ -82,6 +82,12 @@ export interface IRCNetworkConfig {
   // If auto-detect is true (default), Undernet detection enables double-nick format automatically.
   whoisAutoDetectDoubleNick?: boolean;
   whoisUseDoubleNick?: boolean;
+  // Character encoding for this network's wire text (WHATWG label, e.g.
+  // 'utf-8', 'windows-1251'). Undefined means "use the global default".
+  encoding?: string;
+  // When true and `encoding` is a legacy charset, decode incoming lines as
+  // UTF-8 first and only fall back to the legacy charset per line; send UTF-8.
+  utf8Fallback?: boolean;
 }
 
 const STORAGE_KEY = '@AndroidIRCX:networks';

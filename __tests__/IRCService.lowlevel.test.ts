@@ -281,11 +281,53 @@ describe('IRCService low-level branches', () => {
   it('processes buffer with normal and empty lines', () => {
     const handleSpy = jest.spyOn(irc as any, 'handleIRCMessage');
     const wireSpy = jest.spyOn(irc as any, 'addWireMessage');
-    (irc as any).buffer = 'PING :a\r\n\r\nNOTICE x :y\r\npartial';
+    (irc as any).inboundBuffer = Buffer.from(
+      'PING :a\r\n\r\nNOTICE x :y\r\npartial',
+      'utf8',
+    );
     (irc as any).processBuffer();
     expect(handleSpy).toHaveBeenCalledTimes(2);
     expect(wireSpy).toHaveBeenCalled();
-    expect((irc as any).buffer).toBe('partial');
+    expect((irc as any).inboundBuffer.toString('utf8')).toBe('partial');
+  });
+
+  it('decodes inbound lines with the configured legacy encoding', () => {
+    const handleSpy = jest.spyOn(irc as any, 'handleIRCMessage');
+    (irc as any).config = { ...(irc as any).config, encoding: 'windows-1251' };
+    // "Привет" in Windows-1251 followed by CRLF.
+    (irc as any).inboundBuffer = Buffer.concat([
+      Buffer.from([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]),
+      Buffer.from('\r\n', 'ascii'),
+    ]);
+    (irc as any).processBuffer();
+    expect(handleSpy).toHaveBeenCalledWith('Привет');
+  });
+
+  it('sendRaw encodes the line with the configured legacy encoding', () => {
+    const writeSpy = jest.fn();
+    (irc as any).socket.write = writeSpy;
+    (irc as any).config = { ...(irc as any).config, encoding: 'windows-1251' };
+    irc.sendRaw('Привет');
+    expect(writeSpy).toHaveBeenCalledTimes(1);
+    const arg = writeSpy.mock.calls[0][0];
+    expect(Buffer.isBuffer(arg)).toBe(true);
+    expect(Array.from(arg as Buffer)).toEqual([
+      0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2, 0x0d, 0x0a,
+    ]);
+  });
+
+  it('sendRaw uses the plain string path for UTF-8', () => {
+    const writeSpy = jest.fn();
+    (irc as any).socket.write = writeSpy;
+    (irc as any).config = { ...(irc as any).config, encoding: 'utf-8' };
+    irc.sendRaw('hello');
+    expect(writeSpy).toHaveBeenCalledWith('hello\r\n');
+  });
+
+  it('setEncoding updates the active connection encoding', () => {
+    irc.setEncoding('koi8-r', true);
+    expect((irc as any).config.encoding).toBe('koi8-r');
+    expect((irc as any).config.utf8Fallback).toBe(true);
   });
 
   it('handles low-level IRC parsing branches', () => {

@@ -29,6 +29,7 @@ import { CertificateFingerprintModal } from '../components/modals/CertificateFin
 import { certificateManager } from '../services/CertificateManagerService';
 import type { CertificateInfo } from '../types/certificate';
 import { Picker } from '@react-native-picker/picker';
+import { SUPPORTED_ENCODINGS } from '../services/EncodingService';
 import { useTheme } from '../hooks/useTheme';
 
 interface NetworkSettingsScreenProps {
@@ -75,6 +76,9 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   >('PLAIN');
   const [clientCert, setClientCert] = useState('');
   const [clientKey, setClientKey] = useState('');
+  // '' means "use the global default encoding".
+  const [encoding, setEncoding] = useState('');
+  const [utf8Fallback, setUtf8Fallback] = useState(false);
   const [proxyEnabled, setProxyEnabled] = useState(false);
   const [proxyType, setProxyType] = useState('tor');
   const [proxyHost, setProxyHost] = useState('127.0.0.1');
@@ -126,6 +130,8 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         setSaslMechanism(network.sasl?.mechanism || 'PLAIN');
         setClientCert(network.clientCert || '');
         setClientKey(network.clientKey || '');
+        setEncoding(network.encoding || '');
+        setUtf8Fallback(Boolean(network.utf8Fallback));
         setProxyEnabled(
           network.proxy ? network.proxy.enabled !== false : false,
         );
@@ -298,6 +304,8 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
           : undefined,
       clientCert: clientCert.trim() || undefined,
       clientKey: clientKey.trim() || undefined,
+      encoding: encoding || undefined,
+      utf8Fallback: encoding ? utf8Fallback : undefined,
       transport: webSocketEnabled ? 'websocket' : 'tcp',
       webSocketUrl:
         webSocketEnabled && webSocketUrl.trim()
@@ -475,6 +483,42 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               <Text style={styles.sectionTitle}>
                 {t('SASL Authentication (Optional)')}
               </Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Text Encoding')}</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={encoding}
+                    onValueChange={value => setEncoding(value)}
+                    style={[styles.picker, { color: colors.text }]}
+                  >
+                    <Picker.Item label={t('Use global default')} value="" />
+                    {SUPPORTED_ENCODINGS.map(option => (
+                      <Picker.Item
+                        key={option.label}
+                        label={option.name}
+                        value={option.label}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+              {encoding !== '' && encoding !== 'utf-8' && (
+                <View style={styles.switchRow}>
+                  <Text style={styles.label}>
+                    {t('Prefer UTF-8 (fallback to encoding)')}
+                  </Text>
+                  <Switch
+                    value={utf8Fallback}
+                    onValueChange={setUtf8Fallback}
+                    trackColor={{ false: colors.border, true: colors.accent }}
+                    thumbColor={
+                      utf8Fallback ? colors.onAccent : colors.surfaceVariant
+                    }
+                  />
+                </View>
+              )}
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{t('SASL Mechanism')}</Text>
