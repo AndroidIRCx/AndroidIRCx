@@ -276,6 +276,20 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       } as any);
       const proxyToUse = networkToUse.proxy || globalProxy || null;
 
+      // Resolve character encoding: per-network override, else global default.
+      const defaultEncoding = await settingsService.getSetting(
+        'defaultEncoding',
+        'utf-8',
+      );
+      const defaultUtf8Fallback = await settingsService.getSetting(
+        'defaultUtf8Fallback',
+        false,
+      );
+      const encodingToUse = networkToUse.encoding || defaultEncoding;
+      const utf8FallbackToUse = networkToUse.encoding
+        ? Boolean(networkToUse.utf8Fallback)
+        : Boolean(defaultUtf8Fallback);
+
       const config: IRCConnectionConfig = {
         host: (serverToUse.hostname || '').trim(),
         port: serverToUse.port,
@@ -294,6 +308,8 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
         webirc: networkToUse.webirc,
         clientCert: networkToUse.clientCert,
         clientKey: networkToUse.clientKey,
+        encoding: encodingToUse,
+        utf8Fallback: utf8FallbackToUse,
       };
 
       try {

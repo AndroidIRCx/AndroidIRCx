@@ -18,6 +18,9 @@ export interface LayoutConfig {
   userListNickFontSizePx: number; // Nick font size in the user list
   viewMode: ViewMode;
   fontSize: FontSize;
+  // Message font family. 'system' uses the platform default; other values are
+  // Android built-in family names (e.g. 'monospace', 'serif', 'sans-serif').
+  fontFamily: string;
   fontSizeValues: {
     small: number;
     medium: number;
@@ -44,6 +47,7 @@ class LayoutService {
     userListNickFontSizePx: 13,
     viewMode: 'comfortable',
     fontSize: 'medium',
+    fontFamily: 'system',
     fontSizeValues: {
       small: 12,
       medium: 14,
@@ -123,6 +127,9 @@ class LayoutService {
           }
           if (!data.messageTextDirection) {
             this.config.messageTextDirection = 'auto';
+          }
+          if (!data.fontFamily) {
+            this.config.fontFamily = 'system';
           }
         }
       } catch (error) {
@@ -257,6 +264,29 @@ class LayoutService {
    */
   async setFontSize(size: FontSize): Promise<void> {
     await this.setConfig({ fontSize: size });
+  }
+
+  /**
+   * Get the message font family ('system' or an Android family name).
+   */
+  getFontFamily(): string {
+    return this.config.fontFamily || 'system';
+  }
+
+  /**
+   * Resolve the font family to a React Native style value: undefined for the
+   * platform default ('system'), otherwise the family name.
+   */
+  getFontFamilyStyle(): string | undefined {
+    const family = this.config.fontFamily;
+    return !family || family === 'system' ? undefined : family;
+  }
+
+  /**
+   * Set the message font family.
+   */
+  async setFontFamily(fontFamily: string): Promise<void> {
+    await this.setConfig({ fontFamily: fontFamily || 'system' });
   }
 
   /**

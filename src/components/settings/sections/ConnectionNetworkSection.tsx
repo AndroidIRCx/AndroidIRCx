@@ -64,6 +64,10 @@ import { secureStorageService } from '../../../services/SecureStorageService';
 import { connectionManager } from '../../../services/ConnectionManager';
 import { serviceDetectionService } from '../../../services/ServiceDetectionService';
 import { useUIStore } from '../../../stores/uiStore';
+import {
+  SUPPORTED_ENCODINGS,
+  encodingService,
+} from '../../../services/EncodingService';
 
 interface ConnectionNetworkSectionProps {
   colors: {
@@ -303,6 +307,25 @@ export const ConnectionNetworkSection: React.FC<
     );
     setAllFavorites(flattened);
     setFavoritesCount(flattened.length);
+  }, []);
+
+  // Global default text encoding (used by networks without an explicit override)
+  const [defaultEncoding, setDefaultEncodingState] = useState('utf-8');
+  const [defaultUtf8Fallback, setDefaultUtf8FallbackState] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const enc = await settingsService.getSetting('defaultEncoding', 'utf-8');
+      const fb = await settingsService.getSetting('defaultUtf8Fallback', false);
+      if (active) {
+        setDefaultEncodingState(encodingService.normalize(enc));
+        setDefaultUtf8FallbackState(Boolean(fb));
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Load initial state
@@ -1376,6 +1399,51 @@ export const ConnectionNetworkSection: React.FC<
           'choose',
         ],
         onPress: openQuickConnectModal,
+      },
+      {
+        id: 'default-encoding',
+        title: t('Default Text Encoding', { _tags: tags }),
+        description: t('Default: {encoding}', {
+          encoding: encodingService.getDisplayName(defaultEncoding),
+          _tags: tags,
+        }),
+        type: 'submenu',
+        searchKeywords: [
+          'encoding',
+          'charset',
+          'utf-8',
+          'unicode',
+          'cyrillic',
+          'latin',
+          'windows-1251',
+          'iso-8859',
+          'text',
+        ],
+        submenuItems: SUPPORTED_ENCODINGS.map(option => ({
+          id: `default-encoding-${option.label}`,
+          title: option.name,
+          type: 'button' as const,
+          onPress: async () => {
+            setDefaultEncodingState(option.label);
+            await settingsService.setSetting('defaultEncoding', option.label);
+          },
+        })),
+      },
+      {
+        id: 'default-utf8-fallback',
+        title: t('Prefer UTF-8 (fallback to encoding)', { _tags: tags }),
+        description: t(
+          'Read messages as UTF-8 and only use the selected encoding for text that is not valid UTF-8. Ignored when the encoding is UTF-8.',
+          { _tags: tags },
+        ),
+        type: 'switch',
+        value: defaultUtf8Fallback,
+        searchKeywords: ['utf-8', 'fallback', 'encoding', 'mixed', 'charset'],
+        onValueChange: async (value: string | boolean) => {
+          const enabled = Boolean(value);
+          setDefaultUtf8FallbackState(enabled);
+          await settingsService.setSetting('defaultUtf8Fallback', enabled);
+        },
       },
       {
         id: 'connection-auto-connect-favorite',
@@ -2457,6 +2525,8 @@ export const ConnectionNetworkSection: React.FC<
     onShowNetworksList,
     onShowConnectionProfiles,
     quickConnectNetworkId,
+    defaultEncoding,
+    defaultUtf8Fallback,
     t,
     tags,
   ]);

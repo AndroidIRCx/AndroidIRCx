@@ -94,31 +94,46 @@ jest.mock('../../src/components/modals/CertificateFingerprintModal', () => ({
   },
 }));
 
-jest.mock('@react-native-picker/picker', () => ({
-  Picker: Object.assign(
-    ({ selectedValue, onValueChange, children }: any) => {
-      const { Text } = require('react-native');
-      return (
-        <>
-          <Text>Picker Value: {selectedValue}</Text>
-          <Text onPress={() => onValueChange('SCRAM-SHA-256')}>
-            Select SCRAM-SHA-256
-          </Text>
-          <Text onPress={() => onValueChange('SCRAM-SHA-256-PLUS')}>
-            Select SCRAM-SHA-256-PLUS
-          </Text>
-          {children}
-        </>
-      );
-    },
-    {
-      Item: ({ label }: any) => {
+jest.mock('@react-native-picker/picker', () => {
+  const ReactLib = require('react');
+  return {
+    Picker: Object.assign(
+      ({ selectedValue, onValueChange, children }: any) => {
         const { Text } = require('react-native');
-        return <Text>{label}</Text>;
+        // Only the SASL mechanism picker exposes the SCRAM quick-select buttons,
+        // detected from its child items so other pickers (e.g. text encoding)
+        // don't render duplicate "Select SCRAM-SHA-256" elements.
+        const isSasl = ReactLib.Children.toArray(children).some(
+          (child: any) =>
+            typeof child?.props?.value === 'string' &&
+            child.props.value.includes('SCRAM'),
+        );
+        return (
+          <>
+            <Text>Picker Value: {selectedValue}</Text>
+            {isSasl && (
+              <>
+                <Text onPress={() => onValueChange('SCRAM-SHA-256')}>
+                  Select SCRAM-SHA-256
+                </Text>
+                <Text onPress={() => onValueChange('SCRAM-SHA-256-PLUS')}>
+                  Select SCRAM-SHA-256-PLUS
+                </Text>
+              </>
+            )}
+            {children}
+          </>
+        );
       },
-    },
-  ),
-}));
+      {
+        Item: ({ label }: any) => {
+          const { Text } = require('react-native');
+          return <Text>{label}</Text>;
+        },
+      },
+    ),
+  };
+});
 
 const { settingsService } = require('../../src/services/SettingsService');
 const {
