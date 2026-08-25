@@ -1308,10 +1308,10 @@
     "@firebase/util" "1.15.2"
     tslib "^2.1.0"
 
-"@firebase/data-connect@0.7.2":
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/@firebase/data-connect/-/data-connect-0.7.2.tgz#1333edc262b30a4104d892840d471a091e392e83"
-  integrity sha512-Z64TRTp5KsvZtuCS1BhEg0H63TTDIi6k7idGG+z1ImAnP2qHv+xt0S5rzAONpiO7Z1geldWhpu1iY/ju+l3a3w==
+"@firebase/data-connect@0.7.3":
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/@firebase/data-connect/-/data-connect-0.7.3.tgz#61c3d07bf8a2c9eb3928440230c3a0d88c1176b7"
+  integrity sha512-nHBFk3Ntl+NZCRIUG2d5j7I69P0otjyQ/duhVKLbw4+5cNke/F6RK1pdE5Jnf831/QOTs2Bd00LlxlZ+jNsb9w==
   dependencies:
     "@firebase/auth-interop-types" "0.2.5"
     "@firebase/component" "0.7.4"
@@ -1319,10 +1319,10 @@
     "@firebase/util" "1.15.2"
     tslib "^2.1.0"
 
-"@firebase/database-compat@2.1.5":
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/@firebase/database-compat/-/database-compat-2.1.5.tgz#59d29bfb62aa6e71ea1cd7de45b2cf77648210ce"
-  integrity sha512-m2KZDNXrg8DBzXWQNbbrjOhsJnM+ctsSFaDYKrqj1gEetQ8BSAwRuMUdeWLM9a6qPBgOvOA+o09j1BSEzdFqOg==
+"@firebase/database-compat@2.1.6":
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/@firebase/database-compat/-/database-compat-2.1.6.tgz#a5ee25d381864d19d64e5241ecd241bd7128373a"
+  integrity sha512-mu7S/75UIajB1A5M9Vfojk69LttW55uABp9nHEtWrV/mIaSEwvoaIe9GySsEzS2EKFK5/3f5okcAuUbihhYeJg==
   dependencies:
     "@firebase/component" "0.7.4"
     "@firebase/database" "1.1.4"
@@ -2532,22 +2532,22 @@
   resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-12.0.2.tgz#b0f7f615a27d7a7f2ba52c4e8b04a4eb7ab4a4b0"
   integrity sha512-tiaPQjSdsaCkKw/N8XB+DXfhOJ+KJ1OYDliBGoBHEqLI7AhUsSPhn8fRI/gHs7hpYzqOBKf+em9MUrPIA9mlWA==
 
-"@react-native-firebase/app-check@26.2.0":
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-26.2.0.tgz#25228750d911dfd793bb6716d5ea01bccd3a4249"
-  integrity sha512-iQ3xNfFoxip+CrEse3yUsGDZnpLUM13pYngbxb72AZVEJ1IIiDFIf5hdW/689rfj/7A/gSrbcSyISbA1uBeTgg==
+"@react-native-firebase/app-check@26.3.2":
+  version "26.3.2"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-26.3.2.tgz#3407b19e38135c81cb806dda5fa7f77cd9456142"
+  integrity sha512-sC4kCndoBKtbCjApHjriim8diiPXOQxkd1uIx+Nj6Bd6etrPvWIsfYNaDtmZ+7rOTfNDq3UyxHv8DNfhVEewuw==
 
-"@react-native-firebase/app@26.2.0":
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-26.2.0.tgz#5ea7a3cd17129d0a13d8a25a9322ddc0fdfbb9c7"
-  integrity sha512-O1jpUgVyF8bbDVQ1s9dTEuCiw9I2OLoj6fEaIseT5REeXNP0sGMcTiI4JntSJeQ+EOv7w+j3RsU0WWta7V32YQ==
+"@react-native-firebase/app@26.3.2":
+  version "26.3.2"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-26.3.2.tgz#de02c4e6a0e32c9b76444415163c23ef360b8cd4"
+  integrity sha512-AtPF1PhUI7AjYCKp7XS9+IMP+T1IpPk9rx0ZhjhS2hcxKjNFThpH1ntSlolvwGXORov7e51PZ2XfYOnkmuJuEQ==
   dependencies:
-    firebase "12.17.0"
+    firebase "12.17.1"
 
-"@react-native-firebase/crashlytics@26.2.0":
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/crashlytics/-/crashlytics-26.2.0.tgz#32eab89ebadf1f6a58bf1f4b5f125e339922592a"
-  integrity sha512-ip8gqvO+kNenO8S/n1OdueOQ7X45A7hfamSay8+lIxq/AMPDWjR6IUw1Qd8UxR+v4J5Py6SYB1vj3RCVXVoaJQ==
+"@react-native-firebase/crashlytics@26.3.2":
+  version "26.3.2"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/crashlytics/-/crashlytics-26.3.2.tgz#c7dbaa90c7a817b21620cf8266f44aa8a511fff5"
+  integrity sha512-bljAZnRtdV+fu/hZKqDrgz7IrNjzq55yZqQZfK2GR/heYEoBR3s5EQmWHg9KGgsG6xMLY56zZ9mnuUmgILA7tg==
   dependencies:
     stacktrace-js "^2.0.2"
 
@@ -4866,10 +4866,10 @@ eslint-visitor-keys@^5.0.0, eslint-visitor-keys@^5.0.1:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-5.0.1.tgz#9e3c9489697824d2d4ce3a8ad12628f91e9f59be"
   integrity sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==
 
-eslint@10.8.1:
-  version "10.8.1"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-10.8.1.tgz#fb37d514c19b6dd5b2d6b70169fd26fddfa97967"
-  integrity sha512-wqA7W2jbsC/BnV9Iv1UZpKVFkO1AdNoSmYW8NWG4HNOBbkAMvIqDZ27pI2f07dqn583NcIC44ckjAcOXDL1QbQ==
+eslint@10.9.0:
+  version "10.9.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-10.9.0.tgz#3d86068a06c6c78161a4062e69874d38f59d498b"
+  integrity sha512-5KeEOJZBfEVA47boFiBsf+6MmmJpffM7qEBg4pLla2e4nlKgdKlqCW0oSLOGsT8Wl5uCGJptLV1bkaiShj90Gw==
   dependencies:
     "@eslint-community/eslint-utils" "^4.8.0"
     "@eslint-community/regexpp" "^4.12.2"
@@ -5129,10 +5129,10 @@ find-yarn-workspace-root@^2.0.0:
   dependencies:
     micromatch "^4.0.2"
 
-firebase@12.17.0:
-  version "12.17.0"
-  resolved "https://registry.yarnpkg.com/firebase/-/firebase-12.17.0.tgz#44c43984a50ce6ace7fcd9b8c67ec1f2d23a9aad"
-  integrity sha512-8iENFg2/k7asnybijN3ZrmTag0BuyiihUXrRZkX+yCW+YocknpzPZ4DUkdbyA/rdrdaCssBqHH8zpdDliv+4ng==
+firebase@12.17.1:
+  version "12.17.1"
+  resolved "https://registry.yarnpkg.com/firebase/-/firebase-12.17.1.tgz#4d500cbd342b37de2275ef09d16a2e679e9ec03c"
+  integrity sha512-dhp41ye9jMQvhx5FwjMkf/hjDHJApl7gXmvzOZGvP0M7c/GZGUnQ4qvsvlOBkF0Pa7wAwHMdcpL0ON2pXCQ4Sw==
   dependencies:
     "@firebase/ai" "2.14.0"
     "@firebase/analytics" "0.10.23"
@@ -5144,9 +5144,9 @@ firebase@12.17.0:
     "@firebase/app-types" "0.9.5"
     "@firebase/auth" "1.13.4"
     "@firebase/auth-compat" "0.6.9"
-    "@firebase/data-connect" "0.7.2"
+    "@firebase/data-connect" "0.7.3"
     "@firebase/database" "1.1.4"
-    "@firebase/database-compat" "2.1.5"
+    "@firebase/database-compat" "2.1.6"
     "@firebase/firestore" "4.17.0"
     "@firebase/firestore-compat" "0.4.12"
     "@firebase/functions" "0.13.6"
@@ -7879,10 +7879,10 @@ react-native-google-mobile-ads@^16.5.0:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@16.3.1:
-  version "16.3.1"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-16.3.1.tgz#bc8437c4bda5a2ae83950cf7c2484854c763f5fd"
-  integrity sha512-HNJVC93KCV0sbbKLs9K9VeOOU14BTY872HutnqManf4XEuao3acobk0sxPztuPCOiZnD8E/93G5cKP+02i9gFg==
+react-native-iap@16.3.2:
+  version "16.3.2"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-16.3.2.tgz#24e9b03011d46acbc6a856372546c3788363d17c"
+  integrity sha512-7AfSCzsZH0IiFQdMgH2dzxbPhA3sGQk21o60wMKzgCerqvtJ9JhxtbUH9OiTjqYX+l54I+Ujs0kEAvlQh47wxQ==
 
 react-native-is-edge-to-edge@^1.2.1, react-native-is-edge-to-edge@^1.3.1:
   version "1.3.1"
@@ -7925,15 +7925,15 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-image@0.15.1:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-image/-/react-native-nitro-image-0.15.1.tgz#afe8aeea82fe763ec5d74467156a4b4a70657042"
-  integrity sha512-slrImfUgasAdzylTiNWuTkawE0R4t7LGh+7N2VFa/D9+SxlQbkKYp1J6hA3XkkEnTnUCKaea39ZVg+1xx665MQ==
+react-native-nitro-image@0.15.2:
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-image/-/react-native-nitro-image-0.15.2.tgz#d7807f4a12ee7ecbc94990b2290d83b16fef9165"
+  integrity sha512-WiaGnORmfNIIqtRJW76TWYNet1YZx1MWDlSOxd0jfcIBN4KjkVVMDVpvO01eCfpxKVG0ez9nA2iLQkPVlGFj+A==
 
-react-native-nitro-modules@0.36.5:
-  version "0.36.5"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.36.5.tgz#438c77e4f1e77bd1d3e901eb5b4953762e68a078"
-  integrity sha512-SJby84+hovD70JmQ1fq+56tw3oapJeChehUqXA4Gqjm+ktJhMAcj8LGwoAjStSOUwRaK7czbzBPB0Widj+EDoQ==
+react-native-nitro-modules@0.37.0:
+  version "0.37.0"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.37.0.tgz#9ded1451fb517176bf388436c7c52dbed6b6e9b9"
+  integrity sha512-ULS2CBZcdwGw5d4Y35EV/tbCOsNsQOnQ9LC9CehMhDNm5c90lwF/LxRamzKuFpjI547G7teTQgD0peqYSGnP9g==
 
 react-native-nitro-sound@^0.2.19:
   version "0.2.19"
@@ -7951,10 +7951,10 @@ react-native-qrcode-svg@^6.3.21:
     qrcode "^1.5.4"
     text-encoding "^0.7.0"
 
-react-native-reanimated@4.6.0-nightly-20260818-2a121ea78:
-  version "4.6.0-nightly-20260818-2a121ea78"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.6.0-nightly-20260818-2a121ea78.tgz#861030f7a5c0d29572ee68c89d24932152cae05f"
-  integrity sha512-e5sgtSo+z4whyhx2M4Tpd8VY9nlye2E6BzGWRoBJGxiPkX8WHzcmHX8zBWKhcHNh0CPdCJKB8mWiBgBPnmrUqA==
+react-native-reanimated@4.6.0-nightly-20260820-18970f775:
+  version "4.6.0-nightly-20260820-18970f775"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.6.0-nightly-20260820-18970f775.tgz#635dc9d92cccb9024c39648e51005b9b00fb0517"
+  integrity sha512-WDjb9FCK7/8Jbpy9WgZme0uauc7045tM3UxSKa39130Zmszmnu9VNZ8dnGbH+NuynJUa8mJeuYDVjQ1PngVA4g==
   dependencies:
     react-native-is-edge-to-edge "^1.3.1"
     semver "^7.7.3"
@@ -8003,15 +8003,15 @@ react-native-video@^6.19.2:
   resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.19.2.tgz#91065e087f90bc653b312ff2347903345c4f2411"
   integrity sha512-gh5dBMGSHywKr8+p4azRXrFQgT+QTmS1tI4sz6kVRjSENORfsrGGLQzmyo/7S9m+ZOTLWQJ3h8ONaXxR4F2Fcw==
 
-react-native-vision-camera-barcode-scanner@5.2.2:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/react-native-vision-camera-barcode-scanner/-/react-native-vision-camera-barcode-scanner-5.2.2.tgz#ecaa1779332a3af49cf09ac91df566e9198727b8"
-  integrity sha512-SQchrYLnTjDqgWVXel3XnYi7jw+rgON7upVjtI+HJNdnBU/WBiQbDADfjUtGYfemBejJ3dq6ICrNxN46+RpLYw==
+react-native-vision-camera-barcode-scanner@5.2.3:
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/react-native-vision-camera-barcode-scanner/-/react-native-vision-camera-barcode-scanner-5.2.3.tgz#247e5fa2a3d37266bb75d0406322c104dde0b78a"
+  integrity sha512-p8SyswRlr9Ty5gFcQ1qM8gmU8hKbHyRLyu9TKFMD7oUXsZDF93NKGvcr4Qdr16Z+AIj3HYA/fW1NgoeY+L353g==
 
-react-native-vision-camera@5.2.2:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-5.2.2.tgz#e0a46819d68c4bbcfe4c884b6efbae0a18a80adf"
-  integrity sha512-oPSWDsKqZ6nmwulV0MqD0CeqDePvvq0yvC1rWUiintcBjWzqL4YXFmX4wTKwgFZ8LvwWkEMqcnOTennKQmvvdg==
+react-native-vision-camera@5.2.3:
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-5.2.3.tgz#8b489ae2939dbebc441917069fc0c3146f49aa93"
+  integrity sha512-OHjgM8BPzxppTqbF1FEltj+fxvisj4xdghM7ypoT1p6cOe28HByhOJP1c7LkBiUiZuotbsdbQwGdJ8nU7ZvPzA==
 
 react-native-webrtc@^124.0.8:
   version "124.0.8"
@@ -8021,10 +8021,10 @@ react-native-webrtc@^124.0.8:
     base64-js "1.5.1"
     debug "4.3.4"
 
-react-native-worklets@0.13.0-nightly-20260818-2a121ea78:
-  version "0.13.0-nightly-20260818-2a121ea78"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.13.0-nightly-20260818-2a121ea78.tgz#a907cba2194bfe5d28bc5a5533fb393ce3ad31c4"
-  integrity sha512-HqOo47GtgMFLObzmCMlTRzFYTd5fOOEIun/sUSdG/Bpvlr98DvTx4obsCFmCxqkUxAEWPT5vVSmjYCJp+MJllQ==
+react-native-worklets@0.13.0-nightly-20260820-18970f775:
+  version "0.13.0-nightly-20260820-18970f775"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.13.0-nightly-20260820-18970f775.tgz#978c5e5a332b8783f4e42d337efabfe0f9f6dab9"
+  integrity sha512-Sa1s3ypLiCgPKKJIVKvbMPsUWB7zC/H6xjILeDt5FdPWHinVKqlc2HTqsOPxJlpsc5KwcuHs0lnnb6mED5IjQQ==
   dependencies:
     "@babel/generator" "^7.27.1"
     "@babel/plugin-transform-arrow-functions" "^7.27.1"
