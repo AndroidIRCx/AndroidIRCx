@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native-sound/android/src/main/java/com/zmxv/RNSound/Sound.kt b/node_modules/react-native-sound/android/src/main/java/com/zmxv/RNSound/Sound.kt
+index 749ea14..f4cfbe8 100644
+--- a/node_modules/react-native-sound/android/src/main/java/com/zmxv/RNSound/Sound.kt
++++ b/node_modules/react-native-sound/android/src/main/java/com/zmxv/RNSound/Sound.kt
+@@ -244,7 +244,17 @@ open class Sound internal constructor(context:ReactApplicationContext):AudioMana
+         return true
+       }
+     })
+-    player.start()
++    try {
++      player.start()
++    } catch (e: IllegalStateException) {
++      // Player was released or is in an error state (e.g. resumed from
++      // onAudioFocusChange after release) - don't crash the app.
++      if (key != null) {
++        setOnPlay(false, key)
++      }
++      callback?.invoke(false)
++      return
++    }
+     if (key != null) {
+       setOnPlay(true, key)
+     }
+@@ -399,17 +409,22 @@ open class Sound internal constructor(context:ReactApplicationContext):AudioMana
+       val player = playerPool[focusedPlayerKey]
+ 
+       if (player != null) {
+-        if (focusChange <= 0) {
+-          this.wasPlayingBeforeFocusChange = player.isPlaying
+-
+-          if (this.wasPlayingBeforeFocusChange) {
+-            this.pause(this.focusedPlayerKey, null)
+-          }
+-        } else {
+-          if (this.wasPlayingBeforeFocusChange) {
+-            this.play(this.focusedPlayerKey, null)
+-            this.wasPlayingBeforeFocusChange = false
++        try {
++          if (focusChange <= 0) {
++            this.wasPlayingBeforeFocusChange = player.isPlaying
++
++            if (this.wasPlayingBeforeFocusChange) {
++              this.pause(this.focusedPlayerKey, null)
++            }
++          } else {
++            if (this.wasPlayingBeforeFocusChange) {
++              this.play(this.focusedPlayerKey, null)
++              this.wasPlayingBeforeFocusChange = false
++            }
+           }
++        } catch (e: IllegalStateException) {
++          // Focus change raced with player release/error - skip this event.
++          this.wasPlayingBeforeFocusChange = false
+         }
+       }
+     }

@@ -1,0 +1,5 @@
+What's new in v1.9.46:
+- Fixed a crash on the Settings screen ("maximum update depth exceeded") caused by connection statistics refreshing every second.
+- Fixed a crash when notification sound playback resumed after an audio focus change (e.g. after a call or another app played audio).
+- Better stability on low-memory devices.
+- Updated Firebase (Crashlytics, App Check), camera, barcode scanner, animations and in-app purchase libraries.

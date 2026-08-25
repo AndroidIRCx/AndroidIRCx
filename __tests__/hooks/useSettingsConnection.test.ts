@@ -314,6 +314,38 @@ describe('useSettingsConnection', () => {
       expect(result.current.bouncerInfo).toEqual(updatedBouncerInfo);
     });
 
+    it('should keep the same stats/bouncer references when values are unchanged', async () => {
+      // Return a FRESH object on every call (like the real services do) so
+      // this test fails if the hook stops bailing out on unchanged content
+      mockConnectionQualityService.getStatistics.mockImplementation(() => ({
+        ...defaultStats,
+      }));
+      mockBouncerService.getBouncerInfo.mockImplementation(() => ({
+        ...defaultBouncerInfo,
+      }));
+      const { result } = await renderHook(() => useSettingsConnection());
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Tick once so state holds an interval-produced copy
+      await act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      const statsAfterFirstTick = result.current.connectionStats;
+      const bouncerAfterFirstTick = result.current.bouncerInfo;
+
+      // Services return fresh (but equal-content) objects every call; the
+      // hook must bail out and keep the previous references (no re-render)
+      await act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      expect(result.current.connectionStats).toBe(statsAfterFirstTick);
+      expect(result.current.bouncerInfo).toBe(bouncerAfterFirstTick);
+    });
+
     it('should clean up interval on unmount', async () => {
       const { unmount } = await renderHook(() => useSettingsConnection());
 

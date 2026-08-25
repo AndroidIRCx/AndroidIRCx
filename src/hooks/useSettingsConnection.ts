@@ -97,12 +97,21 @@ export const useSettingsConnection = (): UseSettingsConnectionReturn => {
     };
     loadSettings();
 
-    // Update statistics periodically
+    // Update statistics periodically. getStatistics()/getBouncerInfo() return
+    // fresh object copies every call, so bail out (return prev) when nothing
+    // changed — otherwise every tick re-renders the whole settings tree and
+    // can cascade into "Maximum update depth exceeded" on slow devices.
     const statsInterval = setInterval(() => {
       const stats = connectionQualityService.getStatistics();
-      setConnectionStats(stats);
+      setConnectionStats((prev: any) =>
+        JSON.stringify(prev) === JSON.stringify(stats) ? prev : stats,
+      );
       const bouncerInfoData = bouncerService.getBouncerInfo();
-      setBouncerInfo(bouncerInfoData);
+      setBouncerInfo((prev: any) =>
+        JSON.stringify(prev) === JSON.stringify(bouncerInfoData)
+          ? prev
+          : bouncerInfoData,
+      );
     }, 1000);
 
     return () => {

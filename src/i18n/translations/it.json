@@ -594,7 +594,7 @@
     "string": "Indirizzare tutte le connessioni IRC tramite un proxy"
   },
   "Proxy Type": {
-    "string": ""
+    "string": "Tipo di Proxy"
   },
   "Select proxy protocol": {
     "string": "Seleziona il protocollo proxy"
@@ -711,7 +711,7 @@
     "string": ""
   },
   "Move to {name}": {
-    "string": ""
+    "string": "Spostare in {name}"
   },
   "No other networks available": {
     "string": "Nessun altro network disponibile"
