@@ -1418,6 +1418,10 @@ export const ConnectionNetworkSection: React.FC<
           'windows-1251',
           'iso-8859',
           'text',
+          'spanish',
+          'español',
+          'espanol',
+          'western',
         ],
         submenuItems: SUPPORTED_ENCODINGS.map(option => ({
           id: `default-encoding-${option.label}`,

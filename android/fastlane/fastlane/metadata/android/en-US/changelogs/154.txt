@@ -1,0 +1,4 @@
+What's new in v1.9.47:
+- Text encoding names now show the languages they cover in their native form (Español, Русский, 日本語...), so it's easy to find the right charset for Spanish, Latin American and other chats where accents or Ñ don't display correctly.
+- Updated animation libraries (Reanimated and Worklets) from nightly builds to stable releases for better reliability.
+- Updated the slider component and development tooling.

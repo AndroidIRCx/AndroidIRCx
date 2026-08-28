@@ -2527,6 +2527,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-5.2.0.tgz#c154ac4ec10537160462d7a9f3e2e43098257302"
   integrity sha512-484sH8aWEaSjxaZ7HT3YZ8CKDcNes2synko1vdEz5DFEdvKAduxKJTj22L/qBMD7rtIkfbX69DMzWDAGbOAV6w==
 
+"@react-native-community/slider@^5.2.1":
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-5.2.1.tgz#163243898394256af76dcaabde994a9ff1464717"
+  integrity sha512-HBDPRFRIN47hRtd5tdDWZp3kkVN1z98jGbK9wHOfUfVO+PbBDZzD7xjiiyBqNpg6Rom2QPFOpBZzsB2bHy4yAQ==
+
 "@react-native-documents/picker@^12.0.2":
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-12.0.2.tgz#b0f7f615a27d7a7f2ba52c4e8b04a4eb7ab4a4b0"
@@ -2950,10 +2955,10 @@
   dependencies:
     undici-types "~8.3.0"
 
-"@types/node@26.2.0":
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.2.0.tgz#5a4875a862fda8fdc57de8faa579bb81ecba1685"
-  integrity sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==
+"@types/node@26.4.0":
+  version "26.4.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.4.0.tgz#4c4ca071c42241fe602741d02999f16b4e64c468"
+  integrity sha512-faiGnoIrLH/V8cibOMEAZ8pMw6oXqSukl29ra4mN8GdaB2ZewzeaLj+INpV5N+Z1eKWzY+IzaIZH2EIR6YZRNQ==
   dependencies:
     undici-types "~8.3.0"
 
@@ -4866,10 +4871,10 @@ eslint-visitor-keys@^5.0.0, eslint-visitor-keys@^5.0.1:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-5.0.1.tgz#9e3c9489697824d2d4ce3a8ad12628f91e9f59be"
   integrity sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==
 
-eslint@10.9.0:
-  version "10.9.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-10.9.0.tgz#3d86068a06c6c78161a4062e69874d38f59d498b"
-  integrity sha512-5KeEOJZBfEVA47boFiBsf+6MmmJpffM7qEBg4pLla2e4nlKgdKlqCW0oSLOGsT8Wl5uCGJptLV1bkaiShj90Gw==
+eslint@10.9.1:
+  version "10.9.1"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-10.9.1.tgz#409da5c41a5536d5a849f8555a18ca7ef1eb963b"
+  integrity sha512-9VaAkDURekixUQJy0oJYl2DcN6oKMfxay7XzaGYAWQwsb6qfKf+x76R2k1L8kb1boc+FyCAaTA9GmiKaaiaF+A==
   dependencies:
     "@eslint-community/eslint-utils" "^4.8.0"
     "@eslint-community/regexpp" "^4.12.2"
@@ -7951,10 +7956,10 @@ react-native-qrcode-svg@^6.3.21:
     qrcode "^1.5.4"
     text-encoding "^0.7.0"
 
-react-native-reanimated@4.6.0-nightly-20260820-18970f775:
-  version "4.6.0-nightly-20260820-18970f775"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.6.0-nightly-20260820-18970f775.tgz#635dc9d92cccb9024c39648e51005b9b00fb0517"
-  integrity sha512-WDjb9FCK7/8Jbpy9WgZme0uauc7045tM3UxSKa39130Zmszmnu9VNZ8dnGbH+NuynJUa8mJeuYDVjQ1PngVA4g==
+react-native-reanimated@4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.6.0.tgz#ee6fe5f0dab85f5e746a83669da04acbda1c71d6"
+  integrity sha512-9vbQmok5BPX2J3RLPFt2UnwmK2QQoMDPDi0VB4a9JWIiEc55pdzvwEsdH91V/JXKNErqM6a9fElTBMc/1cbtBA==
   dependencies:
     react-native-is-edge-to-edge "^1.3.1"
     semver "^7.7.3"
@@ -8021,10 +8026,10 @@ react-native-webrtc@^124.0.8:
     base64-js "1.5.1"
     debug "4.3.4"
 
-react-native-worklets@0.13.0-nightly-20260820-18970f775:
-  version "0.13.0-nightly-20260820-18970f775"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.13.0-nightly-20260820-18970f775.tgz#978c5e5a332b8783f4e42d337efabfe0f9f6dab9"
-  integrity sha512-Sa1s3ypLiCgPKKJIVKvbMPsUWB7zC/H6xjILeDt5FdPWHinVKqlc2HTqsOPxJlpsc5KwcuHs0lnnb6mED5IjQQ==
+react-native-worklets@0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.12.1.tgz#2a6956bfd6549e02462b94ef401ae8a1bae153a7"
+  integrity sha512-/u7B+Akrox32IQUi6+0OHwWAfBC/A5LVdt000RL8OKB4L1pHTvIDwVyMP6Nw7ybuuoQYS8PLlpmxTE1Ce7TqWg==
   dependencies:
     "@babel/generator" "^7.27.1"
     "@babel/plugin-transform-arrow-functions" "^7.27.1"
