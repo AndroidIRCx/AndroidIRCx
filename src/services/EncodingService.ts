@@ -48,28 +48,51 @@ export interface EncodingOption {
  * Curated list of encodings offered in the UI, ordered by how common they are
  * on IRC. `utf-8` is the modern default; the rest are legacy charsets still
  * used on older networks and by older clients.
+ *
+ * Display names list the main languages in their NATIVE form (Español, Русский,
+ * 日本語 …) so a user can spot their charset regardless of the app's UI
+ * language — "Western" alone meant nothing to Spanish-speaking users looking
+ * for a charset that renders tildes and Ñ (Play Store feedback).
  */
 export const SUPPORTED_ENCODINGS: EncodingOption[] = [
   { label: 'utf-8', name: 'UTF-8 (Unicode)' },
-  { label: 'iso-8859-1', name: 'Western (ISO-8859-1)' },
-  { label: 'iso-8859-15', name: 'Western (ISO-8859-15)' },
-  { label: 'windows-1252', name: 'Western (Windows-1252)' },
-  { label: 'iso-8859-2', name: 'Central European (ISO-8859-2)' },
-  { label: 'windows-1250', name: 'Central European (Windows-1250)' },
-  { label: 'windows-1251', name: 'Cyrillic (Windows-1251)' },
-  { label: 'koi8-r', name: 'Cyrillic (KOI8-R)' },
-  { label: 'koi8-u', name: 'Cyrillic (KOI8-U)' },
-  { label: 'iso-8859-5', name: 'Cyrillic (ISO-8859-5)' },
-  { label: 'iso-8859-7', name: 'Greek (ISO-8859-7)' },
-  { label: 'windows-1253', name: 'Greek (Windows-1253)' },
-  { label: 'iso-8859-9', name: 'Turkish (ISO-8859-9)' },
-  { label: 'windows-1254', name: 'Turkish (Windows-1254)' },
-  { label: 'windows-1257', name: 'Baltic (Windows-1257)' },
-  { label: 'shift_jis', name: 'Japanese (Shift_JIS)' },
-  { label: 'euc-jp', name: 'Japanese (EUC-JP)' },
-  { label: 'gbk', name: 'Chinese Simplified (GBK)' },
-  { label: 'big5', name: 'Chinese Traditional (Big5)' },
-  { label: 'euc-kr', name: 'Korean (EUC-KR)' },
+  {
+    label: 'iso-8859-1',
+    name: 'Western — Español, Português, Français (ISO-8859-1)',
+  },
+  {
+    label: 'iso-8859-15',
+    name: 'Western — Español, Français + € (ISO-8859-15)',
+  },
+  {
+    label: 'windows-1252',
+    name: 'Western — Español, Português, Français (Windows-1252)',
+  },
+  {
+    label: 'iso-8859-2',
+    name: 'Central European — Polski, Čeština, Magyar (ISO-8859-2)',
+  },
+  {
+    label: 'windows-1250',
+    name: 'Central European — Polski, Čeština, Magyar (Windows-1250)',
+  },
+  {
+    label: 'windows-1251',
+    name: 'Cyrillic — Русский, Српски, Български (Windows-1251)',
+  },
+  { label: 'koi8-r', name: 'Cyrillic — Русский (KOI8-R)' },
+  { label: 'koi8-u', name: 'Cyrillic — Українська (KOI8-U)' },
+  { label: 'iso-8859-5', name: 'Cyrillic — Русский (ISO-8859-5)' },
+  { label: 'iso-8859-7', name: 'Greek — Ελληνικά (ISO-8859-7)' },
+  { label: 'windows-1253', name: 'Greek — Ελληνικά (Windows-1253)' },
+  { label: 'iso-8859-9', name: 'Turkish — Türkçe (ISO-8859-9)' },
+  { label: 'windows-1254', name: 'Turkish — Türkçe (Windows-1254)' },
+  { label: 'windows-1257', name: 'Baltic — Lietuvių, Latviešu (Windows-1257)' },
+  { label: 'shift_jis', name: 'Japanese — 日本語 (Shift_JIS)' },
+  { label: 'euc-jp', name: 'Japanese — 日本語 (EUC-JP)' },
+  { label: 'gbk', name: 'Chinese Simplified — 简体中文 (GBK)' },
+  { label: 'big5', name: 'Chinese Traditional — 繁體中文 (Big5)' },
+  { label: 'euc-kr', name: 'Korean — 한국어 (EUC-KR)' },
 ];
 
 const SUPPORTED_LABELS = new Set(SUPPORTED_ENCODINGS.map(e => e.label));
