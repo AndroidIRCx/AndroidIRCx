@@ -46,10 +46,10 @@
     "react-native": "0.87.0",
     "react-native-battery-optimization-check": "^1.0.8",
     "react-native-bootsplash": "7.3.2",
-    "react-native-config": "^1.6.1",
+    "react-native-config": "^1.6.2",
     "react-native-fs": "^2.20.0",
     "react-native-google-mobile-ads": "^16.5.0",
-    "react-native-iap": "16.3.2",
+    "react-native-iap": "16.3.3",
     "react-native-keyboard-controller": "1.22.4",
     "react-native-keychain": "^10.0.0",
     "react-native-libsodium": "^1.7.0",
@@ -77,9 +77,9 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/runtime": "^7.29.7",
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "@babel/runtime": "^8.0.0",
     "@eslint/compat": "2.1.0",
     "@react-native-community/cli": "20.2.0",
     "@react-native-community/cli-platform-android": "20.2.0",
@@ -105,7 +105,7 @@
     "prettier": "3.9.6",
     "react-test-renderer": "19.2.8",
     "test-renderer": "1.2.0",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=24"
@@ -120,9 +120,9 @@
     "picomatch": "4.0.4",
     "postcss": "8.5.26",
     "uuid": "14.0.0",
-    "@babel/core": "7.29.7",
-    "@babel/preset-env": "7.29.7",
-    "@babel/runtime": "7.29.7",
+    "@babel/core": "8.0.1",
+    "@babel/preset-env": "8.0.2",
+    "@babel/runtime": "8.0.0",
     "@babel/plugin-transform-modules-systemjs": "7.29.7",
     "@protobufjs/utf8": "1.1.1",
     "protobufjs": "7.6.5",
