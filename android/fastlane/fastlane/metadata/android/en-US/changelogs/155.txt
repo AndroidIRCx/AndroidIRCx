@@ -1,0 +1,5 @@
+What's new in v1.9.48:
+- Updated React Native and Android dependencies for better compatibility and reliability.
+- Refreshed Firebase, billing, localization, crypto, and Jest tooling dependencies.
+- Patched transitive XML parser security advisories reported by Dependabot.
+- Kept Babel 8 and TypeScript 7 on hold until the React Native toolchain supports them cleanly.
