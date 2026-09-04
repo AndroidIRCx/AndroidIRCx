@@ -116,6 +116,7 @@
     "fast-xml-parser": "5.7.0",
     "fast-xml-builder": "1.2.0",
     "flatted": "3.4.2",
+    "browserslist": "4.28.7",
     "yaml": "2.8.3",
     "picomatch": "4.0.4",
     "postcss": "8.5.26",
