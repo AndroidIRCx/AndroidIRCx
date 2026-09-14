@@ -17,6 +17,9 @@
         android:name="android.hardware.nfc"
         android:required="false" />
     <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="false" />
+    <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
     <uses-feature
@@ -75,5 +78,18 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="remoteMessaging" />
+
+        <!-- HCE service: emulates a Type 4 NDEF tag for phone-to-phone key sharing -->
+        <service
+            android:name=".NdefHostApduService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/nfc_ndef_apduservice" />
+        </service>
     </application>
 </manifest>

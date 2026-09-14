@@ -1,0 +1,6 @@
+What's new in v1.9.49:
+- Share an encryption key over NFC by holding two phones together; the app now turns NFC on for you if it is off.
+- Clearer messages when a media upload does not finish.
+- Updated Firebase, React, in-app billing, keyboard, networking, sound and QR code libraries for better reliability.
+- Fixed several security advisories reported by Dependabot.
+- Kept Babel 8 and TypeScript 7 on hold until the React Native toolchain supports them cleanly.

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AndroidIRCX</string>
+    <string name="nfc_hce_description">Share an encryption key with a nearby phone</string>
 </resources>

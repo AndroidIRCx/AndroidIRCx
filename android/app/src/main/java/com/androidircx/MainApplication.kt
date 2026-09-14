@@ -133,6 +133,15 @@ class MainApplication : Application(), ReactApplication {
               // Don't fail completely if custom package fails
           }
 
+          // Add our custom package for phone-to-phone NFC key sharing (HCE)
+          try {
+              packages.add(NfcHcePackage())
+              Log.d(TAG, "Added NfcHcePackage")
+          } catch (e: Throwable) {
+              Log.e(TAG, "Failed to add NfcHcePackage: ${e.message}", e)
+              // Don't fail completely if custom package fails
+          }
+
           Log.d(TAG, "Creating ReactHost with ${packages.size} packages...")
           val host = getDefaultReactHost(
               context = applicationContext,

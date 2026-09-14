@@ -248,7 +248,7 @@ describe('MediaPreviewModal', () => {
     const { getByText } = await render(<MediaPreviewModal {...baseProps} />);
     await fireEvent.press(getByText('Send'));
     await waitFor(async () => {
-      expect(getByText('Upload failed')).toBeTruthy();
+      expect(getByText('Upload failed (pending)')).toBeTruthy();
     });
   });
 
