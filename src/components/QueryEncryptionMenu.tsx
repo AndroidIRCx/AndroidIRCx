@@ -30,10 +30,7 @@ import {
   errorCodes,
   isErrorWithCode,
 } from '@react-native-documents/picker';
-import {
-  shareKeyViaNfc,
-  receiveKeyViaNfc,
-} from '../utils/nfcKeyExchange';
+import { shareKeyViaNfc, receiveKeyViaNfc } from '../utils/nfcKeyExchange';
 import { ircService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { useTheme } from '../hooks/useTheme';
