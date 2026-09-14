@@ -202,6 +202,31 @@ export const HelpTroubleshootingScreen: React.FC<
           <HelpBullet>{t('Verify E2EE is enabled')}</HelpBullet>
           <HelpBullet>{t('Check Key Management in Settings')}</HelpBullet>
         </HelpSubsection>
+
+        <HelpSubsection title={t('Text Looks Garbled')}>
+          <HelpParagraph>
+            {t(
+              'Symptoms: accented, Cyrillic, or Asian characters show as boxes or wrong symbols. This is a text encoding problem, not encryption.',
+            )}
+          </HelpParagraph>
+          <HelpParagraph>{t('Solutions:')}</HelpParagraph>
+          <HelpBullet>
+            {t(
+              "Set the network's character set: Network Settings → Text Encoding (e.g. Windows-1251 for Cyrillic, Shift_JIS for Japanese)",
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'Enable "Prefer UTF-8 (fallback to encoding)" for mixed channels',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'Or set a global default: Settings → Connection & Network → Default Text Encoding',
+            )}
+          </HelpBullet>
+          <HelpBullet>{t('Changes apply on the next reconnect')}</HelpBullet>
+        </HelpSubsection>
       </HelpSection>
 
       <HelpSection title={t('Channel Problems')}>

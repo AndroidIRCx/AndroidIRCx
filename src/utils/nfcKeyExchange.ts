@@ -32,6 +32,8 @@ const { NfcHce } = NativeModules as {
 };
 
 const HCE_READ_EVENT = 'NfcHceReadComplete';
+// Keep the sharing window open long enough for the user to physically bring
+// the two phones together after tapping the button.
 const SHARE_TIMEOUT_MS = 60000;
 
 export interface NfcExchangeResult {
@@ -88,7 +90,9 @@ async function shareViaHce(
   t: TFn,
   onStatus?: StatusFn,
 ): Promise<NfcExchangeResult> {
-  onStatus?.(t('Hold the two phones back-to-back...'));
+  onStatus?.(
+    t('Keep the phones together. Tap Receive via NFC on the other phone.'),
+  );
   return new Promise<NfcExchangeResult>(resolve => {
     let settled = false;
     let timer: ReturnType<typeof setTimeout>;
@@ -190,7 +194,9 @@ export async function receiveKeyViaNfc(
   }
 
   try {
-    onStatus?.(t('Hold the two phones back-to-back...'));
+    onStatus?.(
+      t('Keep the phones together. Tap Share via NFC on the other phone.'),
+    );
     await NfcManager.requestTechnology(NfcTech.Ndef);
     const tag = await NfcManager.getTag();
     const ndefMessage = tag?.ndefMessage?.[0];

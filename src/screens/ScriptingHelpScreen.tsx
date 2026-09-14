@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 
 interface Props {
   visible: boolean;
@@ -27,7 +28,7 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
   if (!visible) return null;
 
   return (
-    <View style={styles.container}>
+    <ModalSafeArea style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('Scripting Help')}</Text>
         <TouchableOpacity onPress={onClose}>
@@ -249,13 +250,13 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
 
         <View style={styles.footerSpace} />
       </ScrollView>
-    </View>
+    </ModalSafeArea>
   );
 };
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background, paddingTop: 24 },
+    container: { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',

@@ -87,6 +87,79 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
         </HelpSubsection>
       </HelpSection>
 
+      <HelpSection title={t('Sharing keys in person')}>
+        <HelpParagraph>
+          {t(
+            'Encryption keys are generated automatically when you install the app. To exchange them in person, open a private chat and tap the encryption menu (the lock icon).',
+          )}
+        </HelpParagraph>
+        <HelpInfoBox>
+          {t(
+            'In-person exchange methods are turned on under Settings → Security (Allow QR Verification, Allow File Key Exchange, Allow NFC Key Exchange).',
+          )}
+        </HelpInfoBox>
+
+        <HelpSubsection title={t('QR code')}>
+          <HelpBullet>
+            {t(
+              'Tap "Share Key Bundle QR" to display your key, and have the other person tap "Scan QR Code" to import it.',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'To verify an existing key, tap "Show Fingerprint QR (Verify)", scan it on the other phone, and if the fingerprints match tap "Mark Verified".',
+            )}
+          </HelpBullet>
+        </HelpSubsection>
+
+        <HelpSubsection title={t('NFC (phone to phone)')}>
+          <HelpBullet>{t('On one phone, tap "Share via NFC".')}</HelpBullet>
+          <HelpBullet>
+            {t('On the other phone, tap "Receive via NFC".')}
+          </HelpBullet>
+          <HelpBullet>
+            {t('Hold the two phones back to back until they connect.')}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'The receiver taps "Accept" on the "Import DM Key" prompt to save the key.',
+            )}
+          </HelpBullet>
+          <HelpInfoBox>
+            {t(
+              'If NFC is turned off, the app opens your NFC settings so you can enable it, then try again.',
+            )}
+          </HelpInfoBox>
+        </HelpSubsection>
+
+        <HelpSubsection title={t('Key file')}>
+          <HelpBullet>
+            {t(
+              'Tap "Share Key File" to export your key, then send the file however you like.',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t('The other person taps "Import Key File" to load it.')}
+          </HelpBullet>
+        </HelpSubsection>
+      </HelpSection>
+
+      <HelpSection title={t('Device security')}>
+        <HelpBullet>
+          {t(
+            'App Lock: require a PIN or biometric to open the app (Settings → Security).',
+          )}
+        </HelpBullet>
+        <HelpBullet>
+          {t(
+            'Kill Switch: instantly disconnect from everything, optionally wiping your data (Settings → Security).',
+          )}
+        </HelpBullet>
+        <HelpBullet>
+          {t('Screenshot protection: block screenshots while the app is open.')}
+        </HelpBullet>
+      </HelpSection>
+
       <HelpSection title={t('Security Best Practices')}>
         <HelpSuccessBox>
           {t(

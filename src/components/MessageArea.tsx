@@ -2334,8 +2334,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             const payload =
               await encryptedDMService.exportBundlePayload(selfNick);
             const result = await shareKeyViaNfc(payload, t);
-            if (!result.ok && !result.cancelled && result.message) {
-              Alert.alert(t('Error'), result.message);
+            if (!result.cancelled && result.message) {
+              Alert.alert(
+                result.ok ? t('Success') : t('Error'),
+                result.message,
+              );
             }
           } catch {
             Alert.alert(t('Error'), t('Failed to share via NFC'));

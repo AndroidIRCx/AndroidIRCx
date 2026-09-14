@@ -233,6 +233,14 @@ export function useStoreSetters() {
     useUIStore.getState().setShowHelpTroubleshooting(value);
   }, []);
 
+  const setShowHelpProtection = useCallback((value: boolean) => {
+    useUIStore.getState().setShowHelpProtection(value);
+  }, []);
+
+  const setShowHelpAway = useCallback((value: boolean) => {
+    useUIStore.getState().setShowHelpAway(value);
+  }, []);
+
   const setShowIRCv3Info = useCallback((value: boolean) => {
     useUIStore.getState().setShowIRCv3Info(value);
   }, []);
@@ -290,6 +298,8 @@ export function useStoreSetters() {
     setShowHelpMedia,
     setShowHelpChannelManagement,
     setShowHelpTroubleshooting,
+    setShowHelpProtection,
+    setShowHelpAway,
     setShowIRCv3Info,
   };
 }

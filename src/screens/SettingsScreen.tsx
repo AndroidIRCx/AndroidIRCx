@@ -3733,6 +3733,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <Modal
           visible={showScriptingHelp}
           animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowScriptingHelp(false)}
         >
           <ScriptingHelpScreen

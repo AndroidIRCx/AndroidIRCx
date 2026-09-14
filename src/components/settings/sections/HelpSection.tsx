@@ -20,6 +20,8 @@ export const HelpSection: React.FC = () => {
     setShowHelpMedia,
     setShowHelpChannelManagement,
     setShowHelpTroubleshooting,
+    setShowHelpProtection,
+    setShowHelpAway,
   } = useUIStore();
 
   const styles = StyleSheet.create({
@@ -98,6 +100,18 @@ export const HelpSection: React.FC = () => {
       title: t('Channel Management'),
       description: t('Manage channels, modes, and permissions'),
       onPress: () => setShowHelpChannelManagement(true),
+    },
+    {
+      icon: 'shield-alt',
+      title: t('Protection & Anti-Flood'),
+      description: t('Anti-spam and anti-flood defenses'),
+      onPress: () => setShowHelpProtection(true),
+    },
+    {
+      icon: 'user-clock',
+      title: t('Away & Presence'),
+      description: t('Away status, auto-away, and announcements'),
+      onPress: () => setShowHelpAway(true),
     },
   ];
 
