@@ -771,8 +771,19 @@ jest.mock('react-native-nfc-manager', () => ({
     registerTagEvent: jest.fn().mockResolvedValue(undefined),
     unregisterTagEvent: jest.fn().mockResolvedValue(undefined),
     isSupported: jest.fn().mockResolvedValue(true),
+    isEnabled: jest.fn().mockResolvedValue(true),
+    goToNfcSetting: jest.fn().mockResolvedValue(undefined),
+    requestTechnology: jest.fn().mockResolvedValue(undefined),
+    cancelTechnologyRequest: jest.fn().mockResolvedValue(undefined),
+    writeNdefMessage: jest.fn().mockResolvedValue(undefined),
+    getTag: jest.fn().mockResolvedValue(null),
   },
-  NfcTech: {},
+  NfcTech: { Ndef: 'Ndef' },
+  Ndef: {
+    encodeMessage: jest.fn(() => [1, 2, 3]),
+    textRecord: jest.fn(() => ({})),
+    text: { decodePayload: jest.fn(() => '') },
+  },
 }));
 
 jest.mock('react-native-localize', () => ({

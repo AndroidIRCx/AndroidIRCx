@@ -150,6 +150,8 @@ jest.mock('@react-native-documents/picker', () => ({
 }));
 jest.mock('react-native-nfc-manager', () => ({
   isSupported: (...args: unknown[]) => mockNfcIsSupported(...args),
+  isEnabled: jest.fn().mockResolvedValue(true),
+  goToNfcSetting: jest.fn().mockResolvedValue(undefined),
   start: (...args: unknown[]) => mockNfcStart(...args),
   requestTechnology: (...args: unknown[]) => mockNfcRequestTechnology(...args),
   writeNdefMessage: (...args: unknown[]) => mockNfcWriteNdefMessage(...args),
@@ -566,7 +568,7 @@ describe('QueryEncryptionMenu', () => {
       expect(mockNdefEncodeMessage).toHaveBeenCalled();
       expect(mockNfcWriteNdefMessage).toHaveBeenCalledWith([1, 2, 3]);
       expect(mockNfcCancelTechnologyRequest).toHaveBeenCalled();
-      expect(getByText('NFC key ready, tap devices')).toBeTruthy();
+      expect(getByText('Key written to NFC tag')).toBeTruthy();
     });
   });
 

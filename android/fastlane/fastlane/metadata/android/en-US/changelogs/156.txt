@@ -1,0 +1,5 @@
+What's new in v1.9.49:
+- Updated Firebase, in-app billing, and sound libraries for better reliability.
+- Refreshed QR code, animation (Worklets), and development tooling dependencies.
+- Patched transitive security advisories (js-yaml, joi, sharp) reported by Dependabot.
+- Kept Babel 8 and TypeScript 7 on hold until the React Native toolchain supports them cleanly.

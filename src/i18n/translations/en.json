@@ -2519,6 +2519,24 @@
   "Failed to read NFC": {
     "string": "Failed to read NFC"
   },
+  "NFC is off. Enable it in settings, then try again.": {
+    "string": "NFC is off. Enable it in settings, then try again."
+  },
+  "Hold the two phones back-to-back...": {
+    "string": "Hold the two phones back-to-back..."
+  },
+  "Hold the phone against the NFC tag...": {
+    "string": "Hold the phone against the NFC tag..."
+  },
+  "Key sent via NFC": {
+    "string": "Key sent via NFC"
+  },
+  "Key written to NFC tag": {
+    "string": "Key written to NFC tag"
+  },
+  "NFC timed out. Try again, holding the phones together.": {
+    "string": "NFC timed out. Try again, holding the phones together."
+  },
   "No DM key for {nick}": {
     "string": "No DM key for {nick}"
   },

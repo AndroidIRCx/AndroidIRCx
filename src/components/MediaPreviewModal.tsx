@@ -165,7 +165,11 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       );
 
       if (uploadResult.status !== 'ready') {
-        throw new Error(t('Upload failed'));
+        // Surface the real server status so failures are actionable instead
+        // of an opaque "Upload failed".
+        throw new Error(
+          `${t('Upload failed')} (${uploadResult.status || 'unknown status'})`,
+        );
       }
 
       // Step 4: Notify parent with IRC tag

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (c) 2025-2026 Velimir Majstorov
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  Registers the app as an HCE service for the NFC Forum NDEF Tag Application
+  AID (D2760000850101) so a peer phone can read the emulated Type 4 tag.
+-->
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/nfc_hce_description"
+    android:requireDeviceUnlock="false"
+    android:requireDeviceScreenOn="true">
+    <aid-group
+        android:category="other"
+        android:description="@string/nfc_hce_description">
+        <aid-filter android:name="D2760000850101" />
+    </aid-group>
+</host-apdu-service>

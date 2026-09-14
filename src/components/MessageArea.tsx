@@ -42,7 +42,7 @@ import {
   errorCodes,
   isErrorWithCode,
 } from '@react-native-documents/picker';
-import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
+import { shareKeyViaNfc, receiveKeyViaNfc } from '../utils/nfcKeyExchange';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   IRCMessage,
@@ -2330,59 +2330,27 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           break;
         case 'enc_share_nfc':
           try {
-            const supported = await NfcManager.isSupported();
-            if (!supported) {
-              Alert.alert(t('Error'), t('NFC not supported'));
-              break;
-            }
             const selfNick = activeIrc.getCurrentNick();
             const payload =
               await encryptedDMService.exportBundlePayload(selfNick);
-            await NfcManager.start();
-            await NfcManager.requestTechnology(NfcTech.Ndef);
-            const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
-            if (bytes) {
-              await (
-                NfcManager as typeof NfcManager & {
-                  writeNdefMessage: (message: number[]) => Promise<void>;
-                }
-              ).writeNdefMessage(bytes);
+            const result = await shareKeyViaNfc(payload, t);
+            if (!result.ok && !result.cancelled && result.message) {
+              Alert.alert(t('Error'), result.message);
             }
           } catch {
             Alert.alert(t('Error'), t('Failed to share via NFC'));
-          } finally {
-            try {
-              await NfcManager.cancelTechnologyRequest();
-            } catch {}
           }
           break;
         case 'enc_receive_nfc':
           try {
-            const supported = await NfcManager.isSupported();
-            if (!supported) {
-              Alert.alert(t('Error'), t('NFC not supported'));
-              break;
+            const result = await receiveKeyViaNfc(t);
+            if (result.payload) {
+              await handleExternalPayload(result.payload);
+            } else if (!result.cancelled && result.message) {
+              Alert.alert(t('Error'), result.message);
             }
-            await NfcManager.start();
-            await NfcManager.requestTechnology(NfcTech.Ndef);
-            const tag = await NfcManager.getTag();
-            const ndefMessage = tag?.ndefMessage?.[0];
-            const payload = ndefMessage
-              ? Ndef.text.decodePayload(
-                  new Uint8Array(ndefMessage.payload as number[]),
-                )
-              : null;
-            if (!payload) {
-              Alert.alert(t('Error'), t('No NFC payload'));
-              break;
-            }
-            await handleExternalPayload(payload);
           } catch {
             Alert.alert(t('Error'), t('Failed to read NFC'));
-          } finally {
-            try {
-              await NfcManager.cancelTechnologyRequest();
-            } catch {}
           }
           break;
         case 'enc_verify':

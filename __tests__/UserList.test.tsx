@@ -210,6 +210,8 @@ jest.mock('react-native-nfc-manager', () => ({
   __esModule: true,
   default: {
     isSupported: jest.fn(() => Promise.resolve(true)),
+    isEnabled: jest.fn(() => Promise.resolve(true)),
+    goToNfcSetting: jest.fn(() => Promise.resolve()),
     start: jest.fn(() => Promise.resolve()),
     requestTechnology: jest.fn(() => Promise.resolve()),
     writeNdefMessage: jest.fn(() => Promise.resolve()),
