@@ -43,6 +43,8 @@ import { HelpCommandsScreen } from '../screens/help/HelpCommandsScreen';
 import { HelpEncryptionScreen } from '../screens/help/HelpEncryptionScreen';
 import { HelpMediaScreen } from '../screens/help/HelpMediaScreen';
 import { HelpChannelManagementScreen } from '../screens/help/HelpChannelManagementScreen';
+import { HelpProtectionScreen } from '../screens/help/HelpProtectionScreen';
+import { HelpAwayScreen } from '../screens/help/HelpAwayScreen';
 import { WebRTCCallModal } from './WebRTCCallModal';
 import { ReviewPromptModal } from './ReviewPromptModal';
 import { channelNotesService } from '../services/ChannelNotesService';
@@ -109,6 +111,8 @@ type AppModalKey =
   | 'helpEncryption'
   | 'helpMedia'
   | 'helpChannelManagement'
+  | 'helpProtection'
+  | 'helpAway'
   | 'settings'
   | 'networksList'
   | 'channel'
@@ -200,6 +204,8 @@ export function AppModals({
     showHelpMedia,
     showHelpChannelManagement,
     showHelpTroubleshooting,
+    showHelpProtection,
+    showHelpAway,
     showIRCv3Info,
   } = uiState;
 
@@ -219,6 +225,8 @@ export function AppModals({
     setShowHelpMedia,
     setShowHelpChannelManagement,
     setShowHelpTroubleshooting,
+    setShowHelpProtection,
+    setShowHelpAway,
     setShowIRCv3Info,
   } = setters;
 
@@ -254,6 +262,8 @@ export function AppModals({
       ['helpEncryption', showHelpEncryption],
       ['helpMedia', showHelpMedia],
       ['helpChannelManagement', showHelpChannelManagement],
+      ['helpProtection', showHelpProtection],
+      ['helpAway', showHelpAway],
       ['settings', showSettings],
       ['networksList', showNetworksList],
       ['channel', showChannelModal],
@@ -285,6 +295,8 @@ export function AppModals({
     showHelpEncryption,
     showHelpMedia,
     showHelpTroubleshooting,
+    showHelpProtection,
+    showHelpAway,
     showIgnoreList,
     showNetworksList,
     showOptionsMenu,
@@ -309,6 +321,8 @@ export function AppModals({
         <Modal
           visible={isModalVisible('firstRunSetup')}
           animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => {
             setShowFirstRunSetup(false);
           }}
@@ -665,6 +679,18 @@ export function AppModals({
         <HelpChannelManagementScreen
           visible={isModalVisible('helpChannelManagement')}
           onClose={() => setShowHelpChannelManagement(false)}
+        />
+      )}
+      {showHelpProtection && (
+        <HelpProtectionScreen
+          visible={isModalVisible('helpProtection')}
+          onClose={() => setShowHelpProtection(false)}
+        />
+      )}
+      {showHelpAway && (
+        <HelpAwayScreen
+          visible={isModalVisible('helpAway')}
+          onClose={() => setShowHelpAway(false)}
         />
       )}
 

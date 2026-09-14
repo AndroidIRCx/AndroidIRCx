@@ -106,6 +106,60 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
         </HelpSubsection>
       </HelpSection>
 
+      <HelpSection title={t('Voice and Video Calls')}>
+        <HelpSubsection title={t('Starting a Call')}>
+          <HelpParagraph>
+            {t(
+              'Open a user context menu (tap a nick in the user list or private chat) and choose:',
+            )}
+          </HelpParagraph>
+          <HelpBullet>{t('"Audio Call" - voice only')}</HelpBullet>
+          <HelpBullet>{t('"Video Call" - camera and voice')}</HelpBullet>
+          <HelpParagraph>
+            {t(
+              'Calls run peer-to-peer over WebRTC, using CTCP and DCC signalling to reach the other person. If the call actions are hidden, enable "Show Audio/Video Call In Nick Menu" in Settings → Media.',
+            )}
+          </HelpParagraph>
+        </HelpSubsection>
+
+        <HelpSubsection title={t('During a Call')}>
+          <HelpBullet>{t('Mute or unmute your microphone')}</HelpBullet>
+          <HelpBullet>
+            {t('Toggle your video on or off (video calls)')}
+          </HelpBullet>
+          <HelpBullet>{t('Hang up to end the call')}</HelpBullet>
+          <HelpBullet>
+            {t('Minimize the call into a draggable overlay and keep chatting')}
+          </HelpBullet>
+        </HelpSubsection>
+
+        <HelpSubsection title={t('Call Requirements')}>
+          <HelpBullet>{t('Both users must be on AndroidIRCX')}</HelpBullet>
+          <HelpBullet>{t('An active internet connection')}</HelpBullet>
+          <HelpBullet>
+            {t('Microphone permission (and camera permission for video)')}
+          </HelpBullet>
+        </HelpSubsection>
+
+        <HelpSubsection title={t('Call Settings')}>
+          <HelpParagraph>
+            {t('Settings → Media includes the call options:')}
+          </HelpParagraph>
+          <HelpBullet>
+            {t('STUN servers used to connect calls directly')}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'Optional external TURN relay server for connecting when behind strict routers/NAT',
+            )}
+          </HelpBullet>
+          <HelpBullet>{t('Live call video quality')}</HelpBullet>
+          <HelpBullet>
+            {t('Ongoing-call notification so you can jump back quickly')}
+          </HelpBullet>
+        </HelpSubsection>
+      </HelpSection>
+
       <HelpSection title={t('Settings')}>
         <HelpSubsection title={t('Media Quality')}>
           <HelpParagraph>{t('Settings → Media → Media Quality')}</HelpParagraph>

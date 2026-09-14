@@ -69,9 +69,23 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
           <HelpParagraph>{t('Change channel modes')}</HelpParagraph>
           <HelpCode>
             {t(
-              'Examples:\n/mode #channel +m (moderated)\n/mode #channel +o John (give op)\n/mode #channel +b *!*@spam.com (ban)',
+              'Examples:\n/mode #channel +m (moderated)\n/mode #channel +o John (give op)\n/mode #channel -o John (take op)\n/mode #channel +v John (give voice)\n/mode #channel -v John (take voice)\n/mode #channel +b *!*@spam.com (ban)',
             )}
           </HelpCode>
+          <HelpParagraph>
+            {t(
+              'There are no /op, /deop, /voice or /devoice commands. Grant or remove status with /mode as shown above, with the ChanServ aliases (/csop, /csdeop, /cvoice, /csdevoice), or from the Operator Controls in a nickname context menu.',
+            )}
+          </HelpParagraph>
+        </HelpSubsection>
+
+        <HelpSubsection title="/mode <yournick> <+/-mode>">
+          <HelpParagraph>
+            {t(
+              'Set your own user modes with /mode and your own nickname (there is no /umode command).',
+            )}
+          </HelpParagraph>
+          <HelpCode>{t('Example: /mode YourNick +w')}</HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/topic [new topic]">
@@ -146,6 +160,24 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
           </HelpParagraph>
           <HelpCode>{t('Example: /clones #channel')}</HelpCode>
           <HelpCode>{t('Aliases: /dc, /detectclones, /clonesdetect')}</HelpCode>
+        </HelpSubsection>
+      </HelpSection>
+
+      <HelpSection title={t('DCC (Direct Client-to-Client)')}>
+        <HelpSubsection title="/dcc chat <nick>">
+          <HelpParagraph>
+            {t('Start a direct DCC chat session with a user')}
+          </HelpParagraph>
+          <HelpCode>{t('Example: /dcc chat Alice')}</HelpCode>
+        </HelpSubsection>
+
+        <HelpSubsection title="/dcc send <nick> [path] [port]">
+          <HelpParagraph>
+            {t(
+              'Send a file directly to a user. Provide the file path (an optional port can follow).',
+            )}
+          </HelpParagraph>
+          <HelpCode>{t('Example: /dcc send Alice /sdcard/photo.jpg')}</HelpCode>
         </HelpSubsection>
       </HelpSection>
 
@@ -343,6 +375,12 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         <HelpParagraph>
           {t(
             'AndroidIRCX includes convenience aliases that expand into common NickServ/ChanServ commands. These depend on services availability on your network.',
+          )}
+        </HelpParagraph>
+
+        <HelpParagraph>
+          {t(
+            'You can also create your own aliases and custom commands in Settings > Commands (there is no /alias command). Use the placeholders {channel}, {nick}, {param1} and {param2} in the expansion, for example: /msg ChanServ OP {channel} {nick}',
           )}
         </HelpParagraph>
 

@@ -134,6 +134,8 @@ export interface UIState {
   showHelpMedia: boolean;
   showHelpChannelManagement: boolean;
   showHelpTroubleshooting: boolean;
+  showHelpProtection: boolean;
+  showHelpAway: boolean;
 
   // Actions - First Run
   setShowFirstRunSetup: (show: boolean) => void;
@@ -256,6 +258,8 @@ export interface UIState {
   setShowHelpMedia: (show: boolean) => void;
   setShowHelpChannelManagement: (show: boolean) => void;
   setShowHelpTroubleshooting: (show: boolean) => void;
+  setShowHelpProtection: (show: boolean) => void;
+  setShowHelpAway: (show: boolean) => void;
   setShowIRCv3Info: (show: boolean) => void;
   setShowReviewPrompt: (show: boolean) => void;
 
@@ -334,6 +338,8 @@ const initialState = {
   showHelpMedia: false,
   showHelpChannelManagement: false,
   showHelpTroubleshooting: false,
+  showHelpProtection: false,
+  showHelpAway: false,
   showIRCv3Info: false,
   showReviewPrompt: false,
 } satisfies Pick<
@@ -405,6 +411,8 @@ const initialState = {
   | 'showHelpMedia'
   | 'showHelpChannelManagement'
   | 'showHelpTroubleshooting'
+  | 'showHelpProtection'
+  | 'showHelpAway'
   | 'showIRCv3Info'
   | 'showReviewPrompt'
 >;
@@ -523,6 +531,8 @@ export const useUIStore = create<UIState>()(
         set({ showHelpChannelManagement: show }),
       setShowHelpTroubleshooting: show =>
         set({ showHelpTroubleshooting: show }),
+      setShowHelpProtection: show => set({ showHelpProtection: show }),
+      setShowHelpAway: show => set({ showHelpAway: show }),
       setShowIRCv3Info: (show: boolean) => set({ showIRCv3Info: show }),
       setShowReviewPrompt: (show: boolean) => set({ showReviewPrompt: show }),
 
@@ -559,6 +569,8 @@ export const useUIStore = create<UIState>()(
           showHelpMedia: false,
           showHelpChannelManagement: false,
           showHelpTroubleshooting: false,
+          showHelpProtection: false,
+          showHelpAway: false,
           showReviewPrompt: false,
         }),
     }),

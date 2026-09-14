@@ -168,6 +168,24 @@ export const HelpChannelManagementScreen: React.FC<
         </HelpSubsection>
       </HelpSection>
 
+      <HelpSection title={t('Protection and Anti-Flood')}>
+        <HelpBullet>
+          {t(
+            'AndroidIRCX has automated anti-spam and anti-flood defenses: CTCP flood, text flood, DCC flood, query flood, and D.O.S./Tsunami protection.',
+          )}
+        </HelpBullet>
+        <HelpBullet>
+          {t(
+            'Anti-deop/ban/kick protection helps guard operators against channel takeover attempts.',
+          )}
+        </HelpBullet>
+        <HelpBullet>
+          {t(
+            'Enable and tune these in Settings → Protection to auto-handle spammers and channel attacks.',
+          )}
+        </HelpBullet>
+      </HelpSection>
+
       <HelpSection title={t('Advanced Management')}>
         <HelpSubsection title={t('Channel Registration')}>
           <HelpParagraph>

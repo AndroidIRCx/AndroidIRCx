@@ -46,6 +46,13 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
         <HelpBullet>
           {t('4. Save, then tap the network name to connect')}
         </HelpBullet>
+        <HelpInfoBox>
+          <Text style={needMoreHelpTextStyle}>
+            {t(
+              'First time? A setup wizard runs on first launch. On the network step, choose "Custom Server" to connect to your own network. The DBase option is just the app\'s demo network, so only pick it if you want to join DBase.',
+            )}
+          </Text>
+        </HelpInfoBox>
       </HelpSection>
 
       <HelpSection title={t('Detailed Guide')}>
@@ -116,6 +123,56 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
             {t('Or tap a specific server under that network to connect to it')}
           </HelpBullet>
         </HelpSubsection>
+      </HelpSection>
+
+      <HelpSection title={t('Staying Logged In (Authentication)')}>
+        <HelpParagraph>
+          {t(
+            'To keep your registered nick and channel access, set up a login. The app tries these automatically, in order.',
+          )}
+        </HelpParagraph>
+        <HelpSubsection title={t('SASL (recommended)')}>
+          <HelpBullet>
+            {t('Open Network Settings → SASL Authentication')}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'Mechanism: PLAIN, or SCRAM-SHA-256 (password is never sent over the network)',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t('Enter your SASL Account and SASL Password')}
+          </HelpBullet>
+        </HelpSubsection>
+        <HelpSubsection title={t('NickServ auto-identify (fallback)')}>
+          <HelpBullet>
+            {t(
+              'Set a NickServ Password on the Identity Profile (Settings → Identity Profiles)',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t('After connecting, the app sends IDENTIFY to NickServ for you')}
+          </HelpBullet>
+        </HelpSubsection>
+        <HelpSubsection title={t('Client certificate (SASL EXTERNAL)')}>
+          <HelpBullet>
+            {t(
+              'Network Settings → SASL EXTERNAL: Generate New or Select Existing',
+            )}
+          </HelpBullet>
+          <HelpBullet>
+            {t(
+              'Then add the fingerprint: /msg NickServ CERT ADD <fingerprint>',
+            )}
+          </HelpBullet>
+        </HelpSubsection>
+        <HelpInfoBox>
+          <Text style={needMoreHelpTextStyle}>
+            {t(
+              'Order tried: 1) SASL EXTERNAL (client cert)  2) SASL PLAIN/SCRAM  3) NickServ IDENTIFY  4) network-specific (QuakeNet Q, Undernet X).',
+            )}
+          </Text>
+        </HelpInfoBox>
       </HelpSection>
 
       <HelpSection title={t('Quick Connect Tips')}>

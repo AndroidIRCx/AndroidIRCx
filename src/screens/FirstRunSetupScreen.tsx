@@ -26,6 +26,7 @@ import type {
 } from '../services/SettingsService';
 import { identityProfilesService } from '../services/IdentityProfilesService';
 import { consentService } from '../services/ConsentService';
+import { ModalSafeArea } from '../components/ModalSafeArea';
 
 interface FirstRunSetupScreenProps {
   onComplete: (networkConfig?: IRCNetworkConfig | null) => void;
@@ -55,9 +56,9 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
   const [username, setUsername] = useState('androidircx');
 
   // Network selection
-  const [networkMode, setNetworkMode] = useState<'dbase' | 'custom' | 'later'>(
-    'dbase',
-  );
+  const [networkMode, setNetworkMode] = useState<
+    'dbase' | 'custom' | 'later' | null
+  >(null);
   const [customNetwork, setCustomNetwork] = useState('');
   const [customServer, setCustomServer] = useState('');
   const [customPort, setCustomPort] = useState('6697');
@@ -101,6 +102,13 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
       }
       setStep('network');
     } else if (step === 'network') {
+      if (!networkMode) {
+        Alert.alert(
+          t('Required'),
+          t('Please choose a network option to continue.'),
+        );
+        return;
+      }
       setStep('channels');
     } else if (step === 'channels') {
       handleComplete();
@@ -835,11 +843,13 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
   };
 
   if (step === 'complete') {
-    return <View style={styles.container}>{renderStep()}</View>;
+    return (
+      <ModalSafeArea style={styles.container}>{renderStep()}</ModalSafeArea>
+    );
   }
 
   return (
-    <View style={styles.container}>
+    <ModalSafeArea style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerStep}>{getStepNumber()}</Text>
@@ -874,7 +884,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ModalSafeArea>
   );
 };
 

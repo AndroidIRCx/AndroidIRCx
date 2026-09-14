@@ -122,6 +122,8 @@ export function useUIState() {
   const showHelpTroubleshooting = useUIStore(
     state => state.showHelpTroubleshooting,
   );
+  const showHelpProtection = useUIStore(state => state.showHelpProtection);
+  const showHelpAway = useUIStore(state => state.showHelpAway);
   const showIRCv3Info = useUIStore(state => state.showIRCv3Info);
 
   return {
@@ -203,6 +205,8 @@ export function useUIState() {
     showHelpMedia,
     showHelpChannelManagement,
     showHelpTroubleshooting,
+    showHelpProtection,
+    showHelpAway,
     showIRCv3Info,
   };
 }

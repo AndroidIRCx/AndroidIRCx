@@ -183,6 +183,7 @@ describe('FirstRunSetupScreen', () => {
       'Velimir',
     );
     await fireEvent.press(await findByText('Next'));
+    await fireEvent.press(await findByText('DBase (Optional Default)'));
     await fireEvent.press(await findByText('Next'));
     await fireEvent.press(await findByText('Complete Setup'));
 
@@ -325,6 +326,7 @@ describe('FirstRunSetupScreen', () => {
       'FallbackNick',
     );
     await fireEvent.press(await findByText('Next'));
+    await fireEvent.press(await findByText('DBase (Optional Default)'));
     await fireEvent.press(await findByText('Next'));
     await fireEvent.changeText(
       await findByDisplayValue('#DBase, #AndroidIRCX'),
@@ -459,6 +461,7 @@ describe('FirstRunSetupScreen', () => {
 
     await fireEvent.press(await findByText('Next'));
     await fireEvent.press(await findByText('Next'));
+    await fireEvent.press(await findByText('DBase (Optional Default)'));
     await fireEvent.press(await findByText('Next'));
 
     identityProfilesService.add.mockRejectedValueOnce(new Error('save failed'));

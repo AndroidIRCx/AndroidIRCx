@@ -2525,6 +2525,12 @@
   "Hold the two phones back-to-back...": {
     "string": "Hold the two phones back-to-back..."
   },
+  "Keep the phones together. Tap Receive via NFC on the other phone.": {
+    "string": "Keep the phones together. Tap Receive via NFC on the other phone."
+  },
+  "Keep the phones together. Tap Share via NFC on the other phone.": {
+    "string": "Keep the phones together. Tap Share via NFC on the other phone."
+  },
   "Hold the phone against the NFC tag...": {
     "string": "Hold the phone against the NFC tag..."
   },
