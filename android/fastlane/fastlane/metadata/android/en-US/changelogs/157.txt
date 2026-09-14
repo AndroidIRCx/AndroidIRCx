@@ -1,7 +1,7 @@
 What's new in v1.9.50:
-- Share an encryption key over NFC by holding two phones together; the app now turns NFC on for you if it is off.
+- Share an encryption key over NFC by holding two phones together; the app turns NFC on for you if it is off.
+- Refreshed the in-app Help and added new guides (setup, protection, away, calls).
 - Better full-screen layout on tablets and large screens.
-- Clearer messages when a media upload does not finish.
-- Updated Firebase, React, in-app billing, keyboard, networking, sound and QR code libraries for better reliability.
-- Fixed several security advisories reported by Dependabot.
-- The app is now available on more devices.
+- Clearer media upload errors.
+- Updated libraries and fixed Dependabot security advisories.
+- Available on more devices.
