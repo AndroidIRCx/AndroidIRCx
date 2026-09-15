@@ -34,7 +34,7 @@ Upload AAB to Production (100%)
 
 ---
 
-This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+This README.md is maintained manually. The Fastfile disables automatic docs generation so this Android-only project can document lanes as `fastlane internal` and `fastlane production`.
 
 More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
 

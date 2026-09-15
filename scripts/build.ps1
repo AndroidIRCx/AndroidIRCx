@@ -41,6 +41,10 @@ if ($Clean)
     Remove-Item -Recurse -Force android\build -ErrorAction SilentlyContinue
 }
 
+Write-Host "Applying package patches..." -ForegroundColor Cyan
+yarn postinstall
+if ($LASTEXITCODE -ne 0) { throw "patch-package failed (exit $LASTEXITCODE)" }
+
 # -----------------------------
 # Enter android safely
 # -----------------------------
