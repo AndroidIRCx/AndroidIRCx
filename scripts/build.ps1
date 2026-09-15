@@ -127,4 +127,9 @@ if ($pushed)
     Pop-Location
 }
 
+# Shut down the adb daemon started above. It inherits this script's stdout handle
+# and, if left running, keeps the pipe open so a parent process (e.g. fastlane's
+# `sh`) never sees EOF and hangs after the build finishes.
+adb kill-server | Out-Null
+
 Write-Host "== BUILD FINISHED ==" -ForegroundColor Green

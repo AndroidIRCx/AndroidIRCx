@@ -14,7 +14,7 @@ platform :android do
   end
 
   def metadata_path
-    File.join(__dir__, "fastlane", "metadata", "android")
+    File.join(repo_root, "android", "fastlane", "metadata", "android")
   end
 
   def build_clean_aab
@@ -23,6 +23,11 @@ platform :android do
   end
 
   def upload_aab(track:, version: nil, aab_path:)
+    # Uploading release notes/metadata requires the service account to hold the
+    # "Manage store presence" permission in Play Console. Without it the commit
+    # fails with "Google Api Error: Invalid request - The caller does not have
+    # permission" (build upload and track update still succeed, only the commit
+    # is rejected). The release notes come from metadata_path/<lang>/changelogs.
     options = {
       track: track,
       aab: aab_path,
