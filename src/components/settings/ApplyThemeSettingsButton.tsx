@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { tx } from '../../i18n/transifex';
+import { tx } from '../../i18n/localization';
 import { useTheme } from '../../hooks/useTheme';
 import {
   themeService,

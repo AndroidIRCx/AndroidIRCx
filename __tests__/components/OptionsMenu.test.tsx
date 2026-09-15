@@ -7,7 +7,7 @@ const mockDisconnect = jest.fn();
 const mockGetActiveNetworkId = jest.fn();
 const mockSortTabsGrouped = jest.fn();
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (key === 'Disconnect {network}' && params?.network)
       return `Disconnect ${params.network}`;

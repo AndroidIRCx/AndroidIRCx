@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,

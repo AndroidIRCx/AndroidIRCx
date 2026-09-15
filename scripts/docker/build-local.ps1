@@ -47,7 +47,6 @@ Write-Host "Secrets dir:  $resolvedSecretsDir"
 Write-Host "Artifacts:    $resolvedArtifactsDir"
 
 $gradleProps = Read-KeyValueFile -Path (Join-Path $resolvedSecretsDir "gradle.properties")
-$transifexEnv = Read-KeyValueFile -Path (Join-Path $resolvedSecretsDir "transifex.env")
 
 $storeFile = $gradleProps["MYAPP_UPLOAD_STORE_FILE"]
 if (-not $storeFile) {
@@ -85,12 +84,6 @@ if (Test-Path -LiteralPath $playServicePath) {
   $env:PLAY_SERVICE_ACCOUNT_JSON = Get-Content -LiteralPath $playServicePath -Raw
 }
 
-$env:TRANSIFEX_TOKEN = $transifexEnv["TRANSIFEX_TOKEN"]
-$env:TRANSIFEX_SECRET = $transifexEnv["TRANSIFEX_SECRET"]
-$env:TRANSIFEX_NATIVE_TOKEN = $transifexEnv["TRANSIFEX_NATIVE_TOKEN"]
-$env:TRANSIFEX_CDS_HOST = $transifexEnv["TRANSIFEX_CDS_HOST"]
-$env:TRANSIFEX_API_TOKEN = $transifexEnv["TRANSIFEX_API_TOKEN"]
-
 Push-Location $projectRoot
 try {
   if (-not $SkipImageBuild) {
@@ -114,11 +107,6 @@ try {
     -e ANDROID_KEY_PASSWORD `
     -e GOOGLE_SERVICES_JSON `
     -e PLAY_SERVICE_ACCOUNT_JSON `
-    -e TRANSIFEX_API_TOKEN `
-    -e TRANSIFEX_TOKEN `
-    -e TRANSIFEX_SECRET `
-    -e TRANSIFEX_CDS_HOST `
-    -e TRANSIFEX_NATIVE_TOKEN `
     $ImageName | Out-Null
 
   Write-Host "Starting Android release build in Docker..."

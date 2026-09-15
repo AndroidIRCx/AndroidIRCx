@@ -8,7 +8,7 @@
  * Manages activeBatches and pendingLabels state.
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type { IRCMessage } from '../../IRCService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

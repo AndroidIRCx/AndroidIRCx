@@ -8,7 +8,7 @@
  * ECHO, CLEAR, CLOSE, HELP, RAW, DNS, TIMER, WINDOW, FILTER, CLONES/DETECTCLONES/CLONESDETECT
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

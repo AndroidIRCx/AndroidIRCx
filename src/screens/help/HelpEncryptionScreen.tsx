@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 import {
   HelpScreenBase,
   HelpSection,

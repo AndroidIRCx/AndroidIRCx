@@ -9,7 +9,7 @@ import {
   readMarkerCommandHandlers,
 } from '../../../../src/services/irc/commands/ReadMarkerCommandHandlers';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

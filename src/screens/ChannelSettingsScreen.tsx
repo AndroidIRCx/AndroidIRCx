@@ -24,7 +24,7 @@ import { connectionManager } from '../services/ConnectionManager';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { channelEncryptionSettingsService } from '../services/ChannelEncryptionSettingsService';
 import { settingsService } from '../services/SettingsService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { getChannelModeDescription } from '../utils/modeDescriptions';
 import {
   formatIRCTextAsComponent,

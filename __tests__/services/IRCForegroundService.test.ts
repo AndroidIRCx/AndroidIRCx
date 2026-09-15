@@ -26,7 +26,7 @@ jest.mock('react-native', () => ({
 }));
 
 // Mock i18n
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: jest.fn((key: string, params?: Record<string, unknown>) => {
       if (key === 'IRC Connected') return 'IRC Connected';

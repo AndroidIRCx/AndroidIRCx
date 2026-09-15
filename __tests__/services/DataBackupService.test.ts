@@ -66,7 +66,7 @@ jest.mock('../../src/services/SettingsService', () => ({
   settingsService: { reloadNetworks: jest.fn().mockResolvedValue(undefined) },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: { t: jest.fn((key: string) => key) },
 }));
 

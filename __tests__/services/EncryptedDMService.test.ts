@@ -103,7 +103,7 @@ jest.mock('@noble/curves/ed25519.js', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: (key: string, params?: Record<string, unknown>) => {
       if (!params) return key;

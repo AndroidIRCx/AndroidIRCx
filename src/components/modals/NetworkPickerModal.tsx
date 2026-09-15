@@ -24,7 +24,7 @@ import {
   IRCNetworkConfig,
 } from '../../services/SettingsService';
 import { useTheme } from '../../hooks/useTheme';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 import { compareStringsCaseInsensitive } from '../../utils/localeSafe';
 import { ModalSafeArea } from '../ModalSafeArea';
 

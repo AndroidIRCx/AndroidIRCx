@@ -29,7 +29,7 @@ import {
 } from '../services/IdentityProfilesService';
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { Picker } from '@react-native-picker/picker';
 
 interface ConnectionProfilesScreenProps {

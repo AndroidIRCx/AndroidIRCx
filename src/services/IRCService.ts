@@ -18,7 +18,7 @@ import { userManagementService, BlacklistEntry } from './UserManagementService';
 import { notifyService } from './NotifyService';
 import { protectionService } from './ProtectionService';
 import { useTabStore } from '../stores/tabStore';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { IRCNumericHandlers } from './irc/IRCNumericHandlers';
 import { IRCCommandHandlers } from './irc/IRCCommandHandlers';
 import { CAPHandlers } from './irc/cap/CAPHandlers';

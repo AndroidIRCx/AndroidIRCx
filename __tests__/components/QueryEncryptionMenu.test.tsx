@@ -53,7 +53,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   }),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
     if (!params) return key;
     return key.replace('{nick}', String(params.nick ?? ''));

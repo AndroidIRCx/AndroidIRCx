@@ -8,7 +8,7 @@
  * OPER, REHASH, SQUIT, KILL, CONNECT, DIE, WALLOPS, LOCOPS, GLOBOPS, ADCHAT
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

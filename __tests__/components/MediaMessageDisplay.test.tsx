@@ -20,7 +20,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   }),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: jest.fn().mockReturnValue((key: string, params?: any) => {
     if (key === 'Downloading... {progress}%') {
       return `Downloading... ${params?.progress}%`;
@@ -215,8 +215,8 @@ describe('MediaMessageDisplay', () => {
   });
 
   it('loads media only once despite translation-function churn (guards the reload loop)', async () => {
-    const { useT } = require('../../src/i18n/transifex');
-    // Simulate @transifex/react handing back a NEW `t` reference on every
+    const { useT } = require('../../src/i18n/localization');
+    // Simulate the previous i18n hook handing back a NEW `t` reference on every
     // render (e.g. after the TRANSLATIONS_FETCHED event). That churns the
     // loadMedia useCallback identity and re-runs the load effect. The load
     // guard must keep the download from re-firing — the fragility that could

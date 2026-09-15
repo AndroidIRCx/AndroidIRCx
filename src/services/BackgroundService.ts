@@ -29,7 +29,7 @@ import {
   OpenOptimizationSettings,
 } from 'react-native-battery-optimization-check';
 import { connectionManager } from './ConnectionManager';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 // Keep for backward compatibility, but use NotificationService internally
 export interface BackgroundNotificationConfig {

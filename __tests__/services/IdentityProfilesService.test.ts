@@ -21,7 +21,7 @@ jest.mock('../../src/services/SecureStorageService', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: (key: string, params?: any) => {
       if (params) {

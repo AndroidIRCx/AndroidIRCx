@@ -13,7 +13,7 @@ import {
   messageCommands,
 } from '../../../../src/services/irc/sendCommands/MessageCommands';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

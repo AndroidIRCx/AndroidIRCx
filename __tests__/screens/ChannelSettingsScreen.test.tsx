@@ -65,7 +65,7 @@ const mockChannelEncryptionSettingsService = {
   setAlwaysEncrypt: jest.fn(),
 };
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

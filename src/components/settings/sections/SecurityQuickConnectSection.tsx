@@ -16,7 +16,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SettingItem } from '../SettingItem';
 import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,

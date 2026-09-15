@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import type { Theme } from '../services/ThemeService';
 import {
   getDefaultMessageFormats,

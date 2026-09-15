@@ -8,7 +8,7 @@ import {
   noticeCommandHandlers,
 } from '../../../../src/services/irc/commands/NoticeCommandHandlers';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

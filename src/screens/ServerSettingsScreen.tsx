@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { IRCServerConfig, settingsService } from '../services/SettingsService';
 import { ModalSafeArea } from '../components/ModalSafeArea';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 
 interface ServerSettingsScreenProps {

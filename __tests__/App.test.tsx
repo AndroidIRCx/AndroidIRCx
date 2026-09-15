@@ -523,10 +523,11 @@ jest.mock('../src/services/SecureStorageService', () => ({
 }));
 
 // Mock i18n
-jest.mock('../src/i18n/transifex', () => ({
-  initTransifex: jest.fn().mockResolvedValue(undefined),
+jest.mock('../src/i18n/localization', () => ({
+  initLocalization: jest.fn().mockResolvedValue(undefined),
   listenToLocaleChanges: jest.fn().mockReturnValue(jest.fn()),
-  TXProvider: ({ children }: { children: React.ReactNode }) => children,
+  LocalizationProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
   tx: {
     t: jest.fn().mockReturnValue('translated'),
   },
@@ -566,17 +567,17 @@ describe('App', () => {
     await unmount();
   });
 
-  it('initializes Transifex on mount', async () => {
-    const { initTransifex } = require('../src/i18n/transifex');
+  it('initializes localization on mount', async () => {
+    const { initLocalization } = require('../src/i18n/localization');
     await render(<App />);
     await waitFor(async () => {
-      expect(initTransifex).toHaveBeenCalled();
+      expect(initLocalization).toHaveBeenCalled();
     });
   });
 
   it('cleans up locale listener on unmount', async () => {
     const mockUnsubscribe = jest.fn();
-    const { listenToLocaleChanges } = require('../src/i18n/transifex');
+    const { listenToLocaleChanges } = require('../src/i18n/localization');
     (listenToLocaleChanges as jest.Mock).mockReturnValue(mockUnsubscribe);
 
     const { unmount } = await render(<App />);

@@ -7,7 +7,7 @@
  * JOIN command handler.
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

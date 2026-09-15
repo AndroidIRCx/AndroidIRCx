@@ -17,7 +17,7 @@ const mockListChannelPreferences = jest.fn(() => []);
 const mockUpdateChannelPreferences = jest.fn(async () => undefined);
 const mockRemoveChannelPreferences = jest.fn(async () => undefined);
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

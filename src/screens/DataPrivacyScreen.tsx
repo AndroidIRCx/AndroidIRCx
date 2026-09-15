@@ -18,7 +18,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { dataPrivacyService } from '../services/DataPrivacyService';
 import { killSwitchService } from '../services/KillSwitchService';
 

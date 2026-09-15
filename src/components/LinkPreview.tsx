@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface LinkPreviewProps {
   url: string;

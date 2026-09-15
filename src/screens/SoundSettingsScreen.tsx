@@ -33,7 +33,7 @@ const Slider = SliderNative as unknown as ComponentType<SliderProps>;
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useSoundSettings } from '../hooks/useSoundSettings';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   SoundEventType,
   SOUND_EVENT_LABELS,

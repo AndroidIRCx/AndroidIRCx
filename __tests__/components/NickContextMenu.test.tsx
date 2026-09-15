@@ -94,7 +94,7 @@ jest.mock('../../src/stores/uiStore', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (params) {
       return Object.entries(params).reduce(

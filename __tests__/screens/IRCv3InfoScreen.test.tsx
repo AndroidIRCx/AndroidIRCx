@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react-native';
 import { IRCv3InfoScreen } from '../../src/screens/IRCv3InfoScreen';
 import { connectionManager } from '../../src/services/ConnectionManager';
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

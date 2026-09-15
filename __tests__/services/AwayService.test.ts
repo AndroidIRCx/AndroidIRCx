@@ -28,7 +28,7 @@ jest.mock('../../src/services/ConnectionManager', () => {
   };
 });
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: jest.fn((key: string) => key),
   },

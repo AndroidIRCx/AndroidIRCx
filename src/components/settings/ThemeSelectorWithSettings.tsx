@@ -14,7 +14,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { tx } from '../../i18n/transifex';
+import { tx } from '../../i18n/localization';
 import { useThemeWithSettings } from '../../hooks/useThemeWithSettings';
 import { Theme } from '../../services/ThemeService';
 import { useTheme } from '../../hooks/useTheme';

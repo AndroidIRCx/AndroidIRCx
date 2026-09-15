@@ -20,7 +20,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   }),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (key === 'Saved to {path}' && params?.path)
       return `Saved to ${params.path}`;

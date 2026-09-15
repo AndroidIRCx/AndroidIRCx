@@ -38,13 +38,13 @@ const mockRNFSReadFile = jest.fn(async () => '{}');
 const mockRNFSUnlink = jest.fn(async () => undefined);
 
 // Mock modules
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: any) => {
     if (params?.name) return `${key} (${params.name})`;
     if (params?.path) return `${key} at ${params.path}`;
     return key;
   },
-  applyTransifexLocale: jest.fn(async () => undefined),
+  applyLocale: jest.fn(async () => undefined),
 }));
 
 jest.mock('../../../src/components/settings/SettingItem', () => {

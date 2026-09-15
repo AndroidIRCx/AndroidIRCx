@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   IRC_EXTENDED_COLOR_MAP,
   IRC_STANDARD_COLOR_MAP,

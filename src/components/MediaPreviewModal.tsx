@@ -30,7 +30,7 @@ import {
 import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { MediaPickResult } from '../services/MediaPickerService';
 import { mediaEncryptionService } from '../services/MediaEncryptionService';
 import { mediaUploadService } from '../services/MediaUploadService';

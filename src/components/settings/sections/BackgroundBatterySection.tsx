@@ -6,7 +6,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { SettingItem } from '../SettingItem';
 import { useSettingsNotifications } from '../../../hooks/useSettingsNotifications';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,

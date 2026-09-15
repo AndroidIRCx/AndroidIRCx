@@ -38,7 +38,7 @@ jest.mock('../../src/services/BackgroundService', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

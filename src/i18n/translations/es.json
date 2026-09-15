@@ -1095,7 +1095,7 @@
     "string": "Agregue un canal para anular la configuración de notificaciones globales."
   },
   "#channel": {
-    "string": "#canal"
+    "string": "#channel"
   },
   "Add": {
     "string": "Agregar"
@@ -1482,7 +1482,7 @@
     "string": "No se pudo guardar el perfil de identificación"
   },
   "DCC Chat Request": {
-    "string": "Solicitud de Chat DDC"
+    "string": "Solicitud de Chat DCC"
   },
   "{from} wants to start a DCC chat. Accept?": {
     "string": "{from} quiere iniciar un DCC chat. ¿Aceptar?"
@@ -1710,7 +1710,7 @@
     "string": "Red"
   },
   "IRC Database": {
-    "string": "Base de Datos IRC"
+    "string": "IRC Database"
   },
   "IRC Nick": {
     "string": "IRC Nick"
@@ -2070,7 +2070,7 @@
     "string": "Canales (separados por comas)"
   },
   "#channel1, #channel2": {
-    "string": "#canal1, #canal2"
+    "string": "#channel1, #channel2"
   },
   "SASL PLAIN (Optional)": {
     "string": "SASL PLANO (Opcional)"
@@ -2127,7 +2127,7 @@
     "string": "Clave Privada del Cliente (PEM)"
   },
   "-----BEGIN PRIVATE KEY-----...": {
-    "string": "-----INCIO CLAVE PRIVADA-----..."
+    "string": "Bloque de clave privada PEM"
   },
   "Failed to save network": {
     "string": "No se pudo guardar la red"
@@ -4074,7 +4074,7 @@
     "string": "Este servidor no admite la REDACCIÓN DE MENSAJES"
   },
   "Usage: /{command} <nick|channel> <message>": {
-    "string": "Uso: /{command} <nick|canal> <message>"
+    "string": "Uso: /{command} <nick|channel> <message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
     "string": "*** Clave de cifrado enviada a {nick}. Esperando aceptación..."
@@ -4257,7 +4257,7 @@
     "string": "Alias de Comando Perzonalizados"
   },
   "Adds /hello alias as example.": {
-    "string": "Agrega /hola alias de ejemplo"
+    "string": "Agrega /hello alias de ejemplo"
   },
   "Script {name} failed to compile: {error}": {
     "string": "Script {name} no se pudo compilar: {error}"
@@ -4296,7 +4296,7 @@
     "string": "Solicitud de WHOIS para {nick} tiempo agotado."
   },
   "WHOIS data for {nick} not found after completion signal.": {
-    "string": "{nick} no está en el IRC."
+    "string": "Datos WHOIS de {nick} no encontrados tras la señal de finalización."
   },
   "Kill switch requires PIN or biometric authentication.": {
     "string": "Kill switch requiere PIN o autenticación biométrica."
@@ -5166,7 +5166,7 @@
     "string": "Advertencia de Seguridad"
   },
   "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
-    "string": "Esta URL contiene una contraseña que es visible en TXT. Esto es inseguro.\nServidor: {server}\n¿Continuar de todos modos?"
+    "string": "Esta URL contiene una contraseña visible en texto plano. Esto es inseguro.\n\nServidor: {server}\n\n¿Continuar de todos modos?"
   },
   "Continue": {
     "string": "Continuar"
@@ -5496,7 +5496,7 @@
     "string": "¿A qué canales quieres unirte automáticamente?"
   },
   "#channel1, #channel2, #channel3": {
-    "string": "#canal1, #canal2, #canal3"
+    "string": "#channel1, #channel2, #channel3"
   },
   "Enter channel names separated by commas. Channels should start with # or &": {
     "string": "Introduzca los nombres de los canales separados por comas. Los canales deben empezar con # o &."
@@ -5877,7 +5877,7 @@
     "string": "Conectado"
   },
   "Reconnected to ZNC for DBase.": {
-    "string": "Reconectado a ZNC para dBase."
+    "string": "Reconectado a ZNC para DBase."
   },
   "Connection Failed": {
     "string": "Error de Conexión"
@@ -6018,7 +6018,7 @@
     "string": "Habilitar Sonidos"
   },
   "Master switch for all notification sounds": {
-    "string": "Botón principal para todos los sonidos de notificación\n \n \n \n \n \n "
+    "string": "Interruptor principal para todos los sonidos de notificación"
   },
   "Master Volume": {
     "string": "Volumen maestro"
@@ -6051,7 +6051,7 @@
     "string": "Error de tienda"
   },
   "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
-    "string": "El producto de suscripción ZNC (znc) no está disponible en la tienda.\n• Esto puede deberse a que\n• No estás en el grupo de prueba\n• El certificado de firma de la aplicación no coincide con Play Console\n• La suscripción no está publicada en su región\n• Necesitas unirte al programa beta/testing"
+    "string": "El producto de suscripción ZNC (znc) no está disponible en la tienda. Esto puede deberse a:\n• No estás en el grupo de prueba\n• El certificado de firma de la aplicación no coincide con Play Console\n• La suscripción no está publicada en tu región\n• Necesitas unirte al programa beta/de prueba"
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
     "string": "No se pudo conectar a la tienda. Por favor, revisa tu conexión a internet y vuelve a intentarlo."
@@ -6551,11 +6551,11 @@
   "Help Translate": {
     "string": "Ayuda a traducir"
   },
-  "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
-    "string": "¿Quieres ayudar a traducir AndroidIRCX a tu idioma? Usamos Transifex para las traducciones y nos encantaría contar con tu ayuda."
+  "Want to help translate AndroidIRCX into your language? Translation updates now happen through GitHub.": {
+    "string": "¿Quieres ayudar a traducir AndroidIRCX a tu idioma? Las actualizaciones de traducción ahora se hacen a través de GitHub."
   },
-  "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
-    "string": "Envíe un correo electrónico a la dirección que aparece a continuación con el idioma que desea traducir y le invitaremos a nuestro proyecto Transifex. Una vez que complete las traducciones, su nombre se añadirá a esta página de créditos."
+  "Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page.": {
+    "string": "Abre un pull request de GitHub con cambios en los archivos JSON en src/i18n/translations. Una vez incluida tu traducción, tu nombre se podrá añadir a esta página de créditos."
   },
   "Thank you to all contributors!": {
     "string": "¡Gracias a todos los contribuyentes!"
@@ -6702,7 +6702,7 @@
     "string": "Reconectar al servidor"
   },
   "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]": {
-    "string": "Conectar al servidor: /server [-m] [-e] [-t] <address> [puerto] [clave] [-l method pass] [-i nick anick email name] [-jn #channel clave] [-sar]"
+    "string": "Conectar al servidor: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]"
   },
   "Set alternate nickname": {
     "string": "Apodo alternativo establecido"
@@ -6966,7 +6966,7 @@
     "string": "*** Detalles de conexión del servidor actualizados"
   },
   "No server specified. Use /server <address> [port]": {
-    "string": "No se ha especificado ningún servidor. Uso /servidor <address> [puerto]"
+    "string": "No se ha especificado ningún servidor. Uso /server <address> [port]"
   },
   "*** Server command error: {error}": {
     "string": "*** Error de comando del servidor: {error}"
@@ -7098,7 +7098,7 @@
     "string": "En la Lista Negra"
   },
   "Usage: /part <channel> [message]": {
-    "string": "Uso: /part <channel> [mensaje]"
+    "string": "Uso: /part <channel> [message]"
   },
   "*** You are now away: {message}": {
     "string": "*** Ahora estás ausente: {message}"
@@ -7110,31 +7110,31 @@
     "string": "*** Invitó a {nick} al {channel}"
   },
   "Usage: /invite <nick> [channel]": {
-    "string": "Uso: /invite <nick> [canal]"
+    "string": "Uso: /invite <nick> [channel]"
   },
   "*** Requesting channel list...": {
     "string": "*** Solicitud de lista de canales..."
   },
   "Usage: /names [channel]": {
-    "string": "Uso: /names [canal]"
+    "string": "Uso: /names [channel]"
   },
   "*** Banning {nick} from {channel}": {
     "string": "*** Baneado {nick} de {channel}"
   },
   "Usage: /ban <nick> [channel]": {
-    "string": "Uso: /ban <nick> [canal]"
+    "string": "Uso: /ban <nick> [channel]"
   },
   "*** Unbanning {mask} from {channel}": {
     "string": "*** Desbaneado {mask} de {channel}"
   },
   "Usage: /unban <nick|mask> [channel]": {
-    "string": "Uso: /unban <nick|máscara> [canal]"
+    "string": "Uso: /unban <nick|mask> [channel]"
   },
   "*** Kicking and banning {nick} from {channel}": {
     "string": "*** {nick} Expulsado de {channel}"
   },
   "Usage: /kickban <nick> [channel] [reason]": {
-    "string": "Uso: /kickban <nick> [canal] [motivo]"
+    "string": "Uso: /kickban <nick> [channel] [reason]"
   },
   "Usage: /notice <target> <message>": {
     "string": "Uso: /notice <target> <message>"
@@ -7146,7 +7146,7 @@
     "string": "*** No se pudo ignorar al usuario: {message}"
   },
   "Usage: /ignore <nick|mask> [reason]": {
-    "string": "Uso: /ignore <nick|máscara> [motivo]"
+    "string": "Uso: /ignore <nick|mask> [reason]"
   },
   "*** No longer ignoring {mask}": {
     "string": "*** Ya no está ignorado {mask}"
@@ -7155,7 +7155,7 @@
     "string": "*** No se pudo designorar al usuario: {message}"
   },
   "Usage: /unignore <nick|mask>": {
-    "string": "Uso: /unignore <nick|máscara>"
+    "string": "Uso: /unignore <nick|mask>"
   },
   "*** Messages cleared": {
     "string": "*** Mensajes borrados"
@@ -7266,7 +7266,7 @@
     "string": "*** Golpe enviado a {channel}"
   },
   "Usage: /knock <channel> [message]": {
-    "string": "Uso: /knock <channel> [mensaje]"
+    "string": "Uso: /knock <channel> [message]"
   },
   "Usage: /userhost <nick1> [nick2] ...": {
     "string": "Uso: /userhost <nick1> [nick2] ..."
@@ -7290,7 +7290,7 @@
     "string": "*** Solicitud de desconexión del servidor: {server}"
   },
   "Usage: /squit <server> [message]": {
-    "string": "Uso: /squit <server> [mensaje]"
+    "string": "Uso: /squit <server> [message]"
   },
   "*** Killing user: {nick}": {
     "string": "*** {nick} Kill"
@@ -7302,7 +7302,7 @@
     "string": "*** Solicitud de conexión al servidor: {server}:{port}"
   },
   "Usage: /connect <server> <port> [remote]": {
-    "string": "Uso: /connect <server> <port> [remoto]"
+    "string": "Uso: /connect <server> <port> [remote]"
   },
   "*** Requesting server shutdown...": {
     "string": "*** Solicitud de apagado del servidor..."
@@ -10818,7 +10818,7 @@
     "string": "¿Qué es un Canal?"
   },
   "IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).": {
-    "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse. Los nombres empiezan con # (e.j., #Ayuda)."
+    "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse.\\nLos nombres de los canales empiezan con # (ej., #DBase)."
   },
   "Channel Types": {
     "string": "Tipos de Canal"
@@ -11034,7 +11034,7 @@
     "string": "Únete a un canal de IRC"
   },
   "Example: /join #DBase": {
-    "string": "Ejemplo: /join #Ayuda"
+    "string": "Ejemplo: /join #DBase"
   },
   "Example: /part #channel Goodbye!": {
     "string": "Ejemplo: /part #Ayuda Adiós"
@@ -11067,7 +11067,7 @@
     "string": "Ver o establecer topic de canal"
   },
   "Example: /topic Welcome to #DBase!": {
-    "string": "Ejemplo: /topic Bienvenido a #AndroidIRCx"
+    "string": "Ejemplo: /topic ¡Bienvenido a #DBase!"
   },
   "Example: /kick Spammer Stop spamming": {
     "string": "Ejemplo: /kick #Ayuda John Spammer deja de enviar spam"
@@ -11076,7 +11076,7 @@
     "string": "Ban (y opcionalmente kick/silenciar) a un usuario. Normalmente se usa en una pestaña de canal, por lo que el canal está implícito."
   },
   "Examples:\n/ban spammer\n/ban -k spammer Stop spamming\n/ban -q spammer\n/ban #channel spammer": {
-    "string": "Ejemplos:\n/ban spammer\n/ban -ku300 spammer no spam. Ban por 5 minutos.\n/ban -k spammer no spam\n/ban -q spammer\n/ban #Ayuda John spammer"
+    "string": "Ejemplos:\n/ban spammer\n/ban -k spammer Stop spamming\n/ban -q spammer\n/ban #channel spammer"
   },
   "Tip: Options are client-side helpers. Common ones are -k (kick), -q (quiet), and -u (auto-unban).": {
     "string": "Sugerencia: Las opciones son ayudantes del lado del cliente. Los más comunes son -k (kick), -q (silencio) y -uN (N es un número en segundos, ej: 300 seria ban por 5 minutos)."
@@ -11097,13 +11097,13 @@
     "string": "Invitar a un usuario a un canal"
   },
   "Example: /invite FriendNick #DBase": {
-    "string": "Ejemplo: /invite NickDeConocido #Ayuda"
+    "string": "Ejemplo: /invite NickDeConocido #DBase"
   },
   "Quickly part and rejoin a channel": {
     "string": "Salir rápidamente y volver al canal"
   },
   "Example: /hop #DBase brb": {
-    "string": "Ejemplo: /hop #Ayuda ya vuelvo"
+    "string": "Ejemplo: /hop #DBase ya vuelvo"
   },
   "Get information about user": {
     "string": "Obtener información sobre el usuario"
@@ -11217,7 +11217,7 @@
     "string": "Ejemplo: /server irc.tuservidorfavorito.org 6697"
   },
   "Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.": {
-    "string": "Consejo: En la mayoría de los casos, es más fácil agregar redes/servidores a través de la interfaz de usuario, pero /server es útil para realizar pruebas rápidas."
+    "string": "Consejo: En la mayoría de los casos, es más fácil agregar redes/servers a través de la interfaz de usuario, pero /server es útil para realizar pruebas rápidas."
   },
   "Utility Commands": {
     "string": "Comandos de Utilidad"
@@ -11262,7 +11262,7 @@
     "string": "Abrir/crear una ficha o activar una ficha existente"
   },
   "Examples:\n/window #DBase\n/window -a #DBase": {
-    "string": "Ejemplos:\n/window #Ayuda\n/window -a #Ayuda"
+    "string": "Ejemplos:\n/window #DBase\n/window -a #DBase"
   },
   "Filter messages by text (use -g for global filter)": {
     "string": "Filtrar mensajes por texto (use -g para filtro global)"
@@ -11292,7 +11292,7 @@
     "string": "Ejemplos:\n/nsid miclave\n/nsreg miclave user@example.com\n/nsghost MiNick miclave\n/nsrecover MiNick miclave"
   },
   "Examples:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel password\n/cspass #channel newpassword": {
-    "string": "Ejemplos:\n/csop #canal Nick\n/csdeop #canal Nick\n/cvoice #canal Nick\n/csdevoice #canal Nick\n/csregister #canal clave\n/cspass #canal nuevaclave"
+    "string": "Ejemplos:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel clave\n/cspass #channel nuevaclave"
   },
   "Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.": {
     "string": "Sugerencia: También puede usar la finalización con pestañas para auto-completar comandos y apodos en el campo de entrada del mensaje."
@@ -11463,13 +11463,13 @@
     "string": "¿Necesita Más Ayuda?"
   },
   "Join #AndroidIRCX on irc.dbase.in.rs\\nVisit our website: androidircx.com\\nEmail: support@androidircx.com": {
-    "string": "Únase a #AndroidIRCX en irc.dbase.in.rs\nVisite nuestro sitio web: androidircx.com\nCorreo: support@androidircx.com"
+    "string": "Únase a #AndroidIRCX en irc.dbase.in.rs\\nVisite nuestro sitio web: androidircx.com\\nCorreo: support@androidircx.com"
   },
   "What is E2EE?": {
     "string": "¿Qué es E2EE?"
   },
   "End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.": {
-    "string": "El cifrado de extremo-a-extremo garantiza que solo usted y el destinatario puedan leer los mensajes.\nIncluso el servidor IRC no puede descifrarlos."
+    "string": "El cifrado de extremo-a-extremo garantiza que solo usted y el destinatario puedan leer los mensajes.\\nIncluso el servidor IRC no puede descifrarlos."
   },
   "DM (Direct Message) Encryption": {
     "string": "Cifrado DM (Mensaje directo) "
@@ -12006,7 +12006,7 @@
     "string": "+i (solo invitados): Solicite una invitación al operador"
   },
   "+k (Key required): Join with password: /join #channel password": {
-    "string": "+k (Clave requerida): entra con clave: /join #canal laclave"
+    "string": "+k (Clave requerida): entra con clave: /join #channel laclave"
   },
   "+l (User limit): Wait for space": {
     "string": "+l (Límite de usuarios): Espere un espacio para entrar"
@@ -12249,7 +12249,7 @@
     "string": "Pasos para reproducirse"
   },
   "Enable Debug Logging:\\nSettings → Development → Enable Console Logging (debug builds only)\\nSend logs with your report.": {
-    "string": "Habilite el registro de depuración:\nConfiguración → Desarrollo → Habilite el registro de consola (solo compilaciones de depuración)\nEnviar logs con su informe."
+    "string": "Habilite el registro de depuración:\\nConfiguración → Desarrollo → Habilite el registro de consola (solo compilaciones de depuración)\\nEnviar logs con su informe."
   },
   "Some errors occurred:": {
     "string": "Se produjeron algunos errores:"
@@ -12306,16 +12306,16 @@
     "string": "Desliza a la derecha para el panel de pestañas y la izquierda para nicklist"
   },
   "WHOIS Display": {
-    "string": "Ver Whois en"
+    "string": "Ver WHOIS en"
   },
   "Show WHOIS in a popup modal": {
-    "string": "Mostrar whois en ventana emergente"
+    "string": "Mostrar WHOIS en ventana emergente"
   },
   "Show WHOIS in the active tab": {
-    "string": "Mostrar whois en pestaña activa"
+    "string": "Mostrar WHOIS en pestaña activa"
   },
   "Show WHOIS in the status tab": {
-    "string": "Mostrar whois en la pestaña de servidor"
+    "string": "Mostrar WHOIS en la pestaña de servidor"
   },
   "Modal (popup)": {
     "string": "Cuadro de diálogo (ventana emergente)"
@@ -12417,7 +12417,7 @@
     "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse."
   },
   "Channel names start with # (e.g., #DBase).": {
-    "string": "Los nombres de los canales comienzan con # (e.j. #Ayuda)."
+    "string": "Los nombres de los canales comienzan con # (e.j. #DBase)."
   },
   "Visit our website: androidircx.com": {
     "string": "Visite nuestro sitio web: androidircx.com"
@@ -12570,25 +12570,25 @@
     "string": "Uso: /unnotify <nick>"
   },
   "Usage: /autoop <nick> [#channel]": {
-    "string": "Uso: /autoop <nick> #canal"
+    "string": "Uso: /autoop <nick> [#channel]"
   },
   "Usage: /unautoop <nick>": {
     "string": "Uso: /unautoop <nick>"
   },
   "Usage: /autovoice <nick> [#channel]": {
-    "string": "Uso: /autovoice <nick> #canal"
+    "string": "Uso: /autovoice <nick> [#channel]"
   },
   "Usage: /unautovoice <nick>": {
     "string": "Uso: /unautovoice <nick>"
   },
   "Usage: /autohalfop <nick> [#channel]": {
-    "string": "Uso: /autohalfop <nick> #canal"
+    "string": "Uso: /autohalfop <nick> [#channel]"
   },
   "Usage: /unautohalfop <nick>": {
     "string": "Uso: /unautohalfop <nick>"
   },
   "Usage: /protect <nick> [#channel]": {
-    "string": "Uso: /protect <nick> #canal"
+    "string": "Uso: /protect <nick> [#channel]"
   },
   "{nick} is already protected": {
     "string": "{nick} ya está protegido"
@@ -12684,7 +12684,7 @@
     "string": "Servidores STUN gratuitos para llamadas"
   },
   "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
-    "string": "Lista de respaldo actual: {count} Puntos de STUN. Las llamadas premium siguen usando TURN cuando sea neceario."
+    "string": "Lista de respaldo actual: {count} Puntos de TURN. Las llamadas premium siguen usando TURN cuando sea neceario."
   },
   "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
     "string": "Lista actual de respaldo: {count} endpoints STUN para llamadas gratuitas directas. Se utiliza una lista ordenada como respaldo."
@@ -12738,7 +12738,7 @@
     "string": "Aún no se han añadido servidores STUN."
   },
   "No TURN servers added yet.": {
-    "string": "Aún no se han añadido servidores STUN."
+    "string": "Aún no se han añadido servidores TURN."
   },
   "STUN Servers": {
     "string": "Servidores STUN"
@@ -12768,597 +12768,621 @@
     "string": "Nombre de usuario de TURN"
   },
   "TURN Credential": {
-    "string": ""
+    "string": "Credencial TURN"
   },
   "Auto-show Biometric Prompt": {
-    "string": ""
+    "string": "Mostrar automáticamente el aviso biométrico"
   },
   "Automatically shows fingerprint prompt when lock screen opens": {
-    "string": ""
+    "string": "Muestra automáticamente el aviso de huella al abrir la pantalla de bloqueo"
   },
   "Fingerprint prompt appears only when you tap the button": {
-    "string": ""
+    "string": "El aviso de huella aparece solo al pulsar el botón"
   },
   "Starting audio call with {nick}": {
-    "string": ""
+    "string": "Iniciando llamada de audio con {nick}"
   },
   "Failed to start audio call": {
-    "string": ""
+    "string": "No se pudo iniciar la llamada de audio"
   },
   "Starting video call with {nick}": {
-    "string": ""
+    "string": "Iniciando videollamada con {nick}"
   },
   "Failed to start video call": {
-    "string": ""
+    "string": "No se pudo iniciar la videollamada"
   },
   "Idle time was not provided by this server for this user": {
-    "string": ""
+    "string": "Este servidor no proporcionó el tiempo de inactividad de este usuario"
   },
   "Generating backup...": {
-    "string": ""
+    "string": "Generando copia de seguridad..."
   },
   "Saving backup file...": {
-    "string": ""
+    "string": "Guardando archivo de copia de seguridad..."
   },
   "Loading backup file...": {
-    "string": ""
+    "string": "Cargando archivo de copia de seguridad..."
   },
   "Restoring backup...": {
-    "string": ""
+    "string": "Restaurando copia de seguridad..."
   },
   "Decrypting backup...": {
-    "string": ""
+    "string": "Descifrando copia de seguridad..."
   },
   "selected backup file": {
-    "string": ""
+    "string": "archivo de copia de seguridad seleccionado"
   },
   "Backup Loaded": {
-    "string": ""
+    "string": "Copia de seguridad cargada"
   },
   "Backup file loaded successfully. Please wait during restore and do not close the app.": {
-    "string": ""
+    "string": "Archivo de copia de seguridad cargado correctamente. Espera durante la restauración y no cierres la app."
   },
   "Please paste backup data or load a backup file first": {
-    "string": ""
+    "string": "Pega primero los datos de la copia de seguridad o carga un archivo"
   },
   "Restarting after backup restore": {
-    "string": ""
+    "string": "Reiniciando tras restaurar la copia de seguridad"
   },
   "Restart Required": {
-    "string": ""
+    "string": "Reinicio necesario"
   },
   "Please close and reopen the app manually to complete restore.": {
-    "string": ""
+    "string": "Cierra y vuelve a abrir la app manualmente para completar la restauración."
   },
   "Loaded from file. JSON preview is hidden for large backups. You can restore now.": {
-    "string": ""
+    "string": "Cargado desde archivo. La vista previa JSON se oculta en copias grandes. Ya puedes restaurar."
   },
   "Loaded Backup File": {
-    "string": ""
+    "string": "Archivo de copia de seguridad cargado"
   },
   "File: {name}": {
-    "string": ""
+    "string": "Archivo: {name}"
   },
   "Size: {size} MB": {
-    "string": ""
+    "string": "Tamaño: {size} MB"
   },
   "Items: {count}": {
-    "string": ""
+    "string": "Elementos: {count}"
   },
   "Please wait while restoring. Do not close the app.": {
-    "string": ""
+    "string": "Espera mientras se restaura. No cierres la app."
   },
   "Switch to Manual JSON Paste": {
-    "string": ""
+    "string": "Cambiar a pegado manual de JSON"
   },
   "Backup restored successfully. Please restart the app to reload all restored data.": {
-    "string": ""
+    "string": "Copia de seguridad restaurada correctamente. Reinicia la app para recargar todos los datos restaurados."
   },
   "Exit to Restart App": {
-    "string": ""
+    "string": "Salir para reiniciar la app"
   },
   "Please wait... Do not close the app while this operation is in progress.": {
-    "string": ""
+    "string": "Espera... No cierres la app mientras esta operación está en curso."
   },
   "Saving...": {
-    "string": ""
+    "string": "Guardando..."
   },
   "Unavailable": {
-    "string": ""
+    "string": "No disponible"
   },
   "Syncing subscription with backend...": {
-    "string": ""
+    "string": "Sincronizando la suscripción con el servidor..."
   },
   "Fetching TURN credentials from backend...": {
-    "string": ""
+    "string": "Obteniendo credenciales TURN del servidor..."
   },
   "TURN credentials loaded. TTL: {ttl}s": {
-    "string": ""
+    "string": "Credenciales TURN cargadas. TTL: {ttl}s"
   },
   "Failed to load Privacy Relay subscription.": {
-    "string": ""
+    "string": "No se pudo cargar la suscripción de Privacy Relay."
   },
   "Privacy Relay enabled": {
-    "string": ""
+    "string": "Privacy Relay activado"
   },
   "Relay routing is now available for eligible calls.": {
-    "string": ""
+    "string": "El enrutamiento por relé ya está disponible para las llamadas compatibles."
   },
   "Failed to complete subscription.": {
-    "string": ""
+    "string": "No se pudo completar la suscripción."
   },
   "Unable to start subscription purchase.": {
-    "string": ""
+    "string": "No se pudo iniciar la compra de la suscripción."
   },
   "Checking existing purchases...": {
-    "string": ""
+    "string": "Comprobando compras existentes..."
   },
   "Your Privacy Relay subscription was restored.": {
-    "string": ""
+    "string": "Tu suscripción de Privacy Relay se ha restaurado."
   },
   "No Privacy Relay subscriptions were found to restore.": {
-    "string": ""
+    "string": "No se encontraron suscripciones de Privacy Relay para restaurar."
   },
   "Unable to restore purchases.": {
-    "string": ""
+    "string": "No se pudieron restaurar las compras."
   },
   "No subscription": {
-    "string": ""
+    "string": "Sin suscripción"
   },
   "Buy or restore Privacy Relay first.": {
-    "string": ""
+    "string": "Compra o restaura Privacy Relay primero."
   },
   "Relay ready": {
-    "string": ""
+    "string": "Relé listo"
   },
   "TURN credentials were fetched successfully.": {
-    "string": ""
+    "string": "Las credenciales TURN se obtuvieron correctamente."
   },
   "Relay test failed": {
-    "string": ""
+    "string": "La prueba del relé falló"
   },
   "Unable to fetch TURN credentials.": {
-    "string": ""
+    "string": "No se pudieron obtener las credenciales TURN."
   },
   "Monthly relay access using turn.dbase.in.rs": {
-    "string": ""
+    "string": "Acceso de relé mensual mediante turn.dbase.in.rs"
   },
   "Yearly relay access using turn.dbase.in.rs": {
-    "string": ""
+    "string": "Acceso de relé anual mediante turn.dbase.in.rs"
   },
   "Active": {
-    "string": ""
+    "string": "Activo"
   },
   "Subscribe": {
-    "string": ""
+    "string": "Suscribirse"
   },
   "Privacy Relay": {
-    "string": ""
+    "string": "Privacy Relay"
   },
   "Subscription active": {
-    "string": ""
+    "string": "Suscripción activa"
   },
   "Subscription inactive": {
-    "string": ""
+    "string": "Suscripción inactiva"
   },
   "Relay routing can be offered for calls that need TURN fallback.": {
-    "string": ""
+    "string": "El enrutamiento por relé puede ofrecerse a las llamadas que necesitan respaldo TURN."
   },
   "Direct P2P remains default. TURN relay is only offered to subscribed users.": {
-    "string": ""
+    "string": "El P2P directo sigue siendo lo predeterminado. El relé TURN solo se ofrece a usuarios suscritos."
   },
   "TURN setup": {
-    "string": ""
+    "string": "Configuración de TURN"
   },
   "Credentials are not embedded in the app. They must be issued by your backend per session.": {
-    "string": ""
+    "string": "Las credenciales no están integradas en la app. Tu servidor debe emitirlas por sesión."
   },
   "Monthly": {
-    "string": ""
+    "string": "Mensual"
   },
   "Yearly": {
-    "string": ""
+    "string": "Anual"
   },
   "Test Relay Credentials": {
-    "string": ""
+    "string": "Probar credenciales del relé"
   },
   "Last backend test": {
-    "string": ""
+    "string": "Última prueba del servidor"
   },
   "Copying backup data...": {
-    "string": ""
+    "string": "Copiando datos de la copia de seguridad..."
   },
   "No backup data to save": {
-    "string": ""
+    "string": "No hay datos de copia de seguridad para guardar"
   },
   "Privacy Relay for Calls": {
-    "string": ""
+    "string": "Privacy Relay para llamadas"
   },
   "Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P": {
-    "string": ""
+    "string": "Gestiona el acceso al relé TURN en turn.dbase.in.rs para las llamadas que no pueden mantenerse P2P directas"
   },
   "*** Keepalive timeout: no PONG received, reconnecting socket...": {
-    "string": ""
+    "string": "*** Tiempo de keepalive agotado: no se recibió PONG, reconectando el socket..."
   },
   "Calls": {
-    "string": ""
+    "string": "Llamadas"
   },
   "Query": {
-    "string": ""
+    "string": "Consultar"
   },
   "Failed to load options": {
-    "string": ""
+    "string": "No se pudieron cargar las opciones"
   },
   "DBase (Optional Default)": {
-    "string": ""
+    "string": "DBase (predeterminado opcional)"
   },
   "Use the built-in DBase network now. You can still change or remove it later.": {
-    "string": ""
+    "string": "Usa ahora la red DBase integrada. Puedes cambiarla o eliminarla más tarde."
   },
   "Choose Another Server Later": {
-    "string": ""
+    "string": "Elegir otro servidor más tarde"
   },
   "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
-    "string": ""
+    "string": "Termina la configuración ahora y abre Elegir red más tarde para añadir o recargar redes desde la lista de la API."
   },
   "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
-    "string": ""
+    "string": "Tu identidad está guardada. Abre Elegir red para añadir un servidor o recargar la lista de redes aprobadas de la API."
   },
   "Open Choose Network": {
-    "string": ""
+    "string": "Abrir Elegir red"
   },
   "No new networks imported": {
-    "string": ""
+    "string": "No se importaron redes nuevas"
   },
   "No new networks were imported from IRC Database. Existing entries are unchanged.": {
-    "string": ""
+    "string": "No se importaron redes nuevas desde IRC Database. Las entradas existentes no han cambiado."
   },
   "Import partially completed": {
-    "string": ""
+    "string": "Importación completada parcialmente"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
-    "string": ""
+    "string": "Importadas: {importedNetworks} redes ({importedServers} servidores). Combinadas: {mergedNetworks} redes (+{mergedServers} servidores). Error al guardar: {failed}. Omitidas sin cambios: {skipped}."
   },
   "Import completed": {
-    "string": ""
+    "string": "Importación completada"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
-    "string": ""
+    "string": "Importadas: {importedNetworks} redes ({importedServers} servidores). Combinadas: {mergedNetworks} redes (+{mergedServers} servidores). Omitidas sin cambios: {skipped}."
   },
   "Import failed": {
-    "string": ""
+    "string": "Error de importación"
   },
   "Unable to load data from IRC Database: {error}": {
-    "string": ""
+    "string": "No se pudieron cargar los datos de IRC Database: {error}"
   },
   "Unable to open link": {
-    "string": ""
+    "string": "No se pudo abrir el enlace"
   },
   "Reload from IRC Database": {
-    "string": ""
+    "string": "Recargar desde IRC Database"
   },
   "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
-    "string": ""
+    "string": "Puedes añadir tus propias redes aquí, o recargar la lista de redes aprobadas desde la API de IRC Database. Las redes existentes se conservan; se añaden los servidores que falten."
   },
   "Reload Networks from IRC Database": {
-    "string": ""
+    "string": "Recargar redes desde IRC Database"
   },
   "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
-    "string": ""
+    "string": "IRC Database contiene redes que aceptaron explícitamente ser visibles públicamente en clientes IRC."
   },
   "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
-    "string": ""
+    "string": "Recargar significa actualizar: las redes coincidentes se omiten y solo se añaden los servidores que faltan a las redes existentes."
   },
   "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
-    "string": ""
+    "string": "AndroidIRCX recarga los preajustes aprobados desde IRC Database. Las entradas importadas se añaden a tu lista local de Redes. Tu configuración predeterminada de DBase no cambia."
   },
   "If your network is not listed and you want inclusion in AndroidIRCX:": {
-    "string": ""
+    "string": "Si tu red no aparece en la lista y quieres incluirla en AndroidIRCX:"
   },
   "By submitting your network, you accept:": {
-    "string": ""
+    "string": "Al enviar tu red, aceptas:"
   },
   "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
-    "string": ""
+    "string": "El envío implica que tu red permite las acciones de descubrimiento del bot de IRCDBase, como /list, /lusers y unirse al canal más activo."
   },
   "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
-    "string": ""
+    "string": "La recopilación de apodos mediante /names es opcional y puede desactivarse en la configuración de tu red en IRC Database."
   },
   "Update from IRC Database": {
-    "string": ""
+    "string": "Actualizar desde IRC Database"
   },
   "Enable Category Debug Logging": {
-    "string": ""
+    "string": "Activar registro de depuración por categoría"
   },
   "Enable optional debug logs by category in development builds": {
-    "string": ""
+    "string": "Activa registros de depuración opcionales por categoría en compilaciones de desarrollo"
   },
   "Requires console logging to be enabled": {
-    "string": ""
+    "string": "Requiere que el registro en consola esté activado"
   },
   "Unexpected syntax check failure.": {
-    "string": ""
+    "string": "Fallo inesperado en la comprobación de sintaxis."
   },
   "Invalid audio source": {
-    "string": ""
+    "string": "Fuente de audio no válida"
   },
   "Unsupported audio source": {
-    "string": ""
+    "string": "Fuente de audio no compatible"
   },
   "Reply": {
-    "string": ""
+    "string": "Responder"
   },
   "Failed to scan QR": {
-    "string": ""
+    "string": "No se pudo escanear el código QR"
   },
   "Load older history": {
-    "string": ""
+    "string": "Cargar historial anterior"
   },
   "Loading history...": {
-    "string": ""
+    "string": "Cargando historial..."
   },
   "Copy user@host": {
-    "string": ""
+    "string": "Copiar user@host"
   },
   "Copy hostmask": {
-    "string": ""
+    "string": "Copiar hostmask"
   },
   "IRCv3 Info": {
-    "string": ""
+    "string": "Información de IRCv3"
   },
   "IRCv3 Diagnostics": {
-    "string": ""
+    "string": "Diagnóstico de IRCv3"
   },
   "Select or connect a network before opening IRCv3 diagnostics.": {
-    "string": ""
+    "string": "Selecciona o conecta una red antes de abrir el diagnóstico de IRCv3."
   },
   "No active IRC connection for this network.": {
-    "string": ""
+    "string": "No hay conexión IRC activa para esta red."
   },
   "View CAP, ISUPPORT, transport, and unavailable feature details": {
-    "string": ""
+    "string": "Ver detalles de CAP, ISUPPORT, transporte y funciones no disponibles"
   },
   "Connect a network to inspect IRCv3 details": {
-    "string": ""
+    "string": "Conecta una red para inspeccionar los detalles de IRCv3"
   },
   "Allow Screenshots": {
-    "string": ""
+    "string": "Permitir capturas de pantalla"
   },
   "Copy WHOIS Details": {
-    "string": ""
+    "string": "Copiar detalles de WHOIS"
   },
   "Backup generation returned empty data": {
-    "string": ""
+    "string": "La generación de la copia de seguridad devolvió datos vacíos"
   },
   "No backup data available to copy": {
-    "string": ""
+    "string": "No hay datos de copia de seguridad para copiar"
   },
   "No backup data available to save": {
-    "string": ""
+    "string": "No hay datos de copia de seguridad para guardar"
   },
   "Failed to decrypt backup": {
-    "string": ""
+    "string": "No se pudo descifrar la copia de seguridad"
   },
   "Generated backup is large, so inline JSON preview is hidden to keep the app stable. You can still copy, save, or restore it.": {
-    "string": ""
+    "string": "La copia generada es grande, así que la vista previa JSON integrada se oculta para mantener la app estable. Aun así puedes copiarla, guardarla o restaurarla."
   },
   "Generated Backup": {
-    "string": ""
+    "string": "Copia de seguridad generada"
   },
   "Encrypted: Yes": {
-    "string": ""
+    "string": "Cifrado: Sí"
   },
   "Encrypted: No": {
-    "string": ""
+    "string": "Cifrado: No"
   },
   "IRCv3 Features": {
-    "string": ""
+    "string": "Funciones de IRCv3"
   },
   "Core Capabilities": {
-    "string": ""
+    "string": "Capacidades principales"
   },
   "Extended Capabilities": {
-    "string": ""
+    "string": "Capacidades extendidas"
   },
   "Server Support (ISUPPORT)": {
-    "string": ""
+    "string": "Compatibilidad del servidor (ISUPPORT)"
   },
   "Refresh Data": {
-    "string": ""
+    "string": "Actualizar datos"
   },
   "Advertised": {
-    "string": ""
+    "string": "Anunciado"
   },
   "Connect to an IRC network to view IRCv3 capabilities and server features.": {
-    "string": ""
+    "string": "Conecta a una red IRC para ver las capacidades de IRCv3 y las funciones del servidor."
   },
   "WHOIS response format": {
-    "string": ""
+    "string": "Formato de respuesta WHOIS"
   },
   "WHO response format": {
-    "string": ""
+    "string": "Formato de respuesta WHO"
   },
   "NAMES response format": {
-    "string": ""
+    "string": "Formato de respuesta NAMES"
   },
   "user@host": {
-    "string": ""
+    "string": "user@host"
   },
   "real name": {
-    "string": ""
+    "string": "nombre real"
   },
   "channels": {
-    "string": ""
+    "string": "canales"
   },
   "names": {
-    "string": ""
+    "string": "apodos"
   },
   "owners": {
-    "string": ""
+    "string": "propietarios"
   },
   "admins": {
-    "string": ""
+    "string": "administradores"
   },
   "ops": {
-    "string": ""
+    "string": "ops"
   },
   "halfops": {
-    "string": ""
+    "string": "halfops"
   },
   "voices": {
-    "string": ""
+    "string": "voices"
   },
   "normal": {
-    "string": ""
+    "string": "normal"
   },
   "count": {
-    "string": ""
+    "string": "recuento"
   },
   "idle": {
-    "string": ""
+    "string": "inactivo"
   },
   "date": {
-    "string": ""
+    "string": "fecha"
   },
   "status": {
-    "string": ""
+    "string": "estado"
   },
   "is connecting from {userhost}": {
-    "string": ""
+    "string": "se conecta desde {userhost}"
   },
   "Gs*! 8": {
-    "string": ""
+    "string": "Gs*! 8"
   },
   "Nicks on {channel}": {
-    "string": ""
+    "string": "Apodos en {channel}"
   },
   "[{hostmask} has joined]": {
-    "string": ""
+    "string": "[{hostmask} se ha unido]"
   },
   "Raw response presets": {
-    "string": ""
+    "string": "Preajustes de respuesta sin procesar"
   },
   "Search history...": {
-    "string": ""
+    "string": "Buscar en el historial..."
   },
   "WEBIRC requires password, gateway, hostname, and IP before it can be enabled.": {
-    "string": ""
+    "string": "WEBIRC requiere contraseña, puerta de enlace, nombre de host e IP antes de poder activarse."
   },
   "IRCv3 Transport and Gateway": {
-    "string": ""
+    "string": "Transporte y puerta de enlace IRCv3"
   },
   "Use IRCv3 WebSocket": {
-    "string": ""
+    "string": "Usar IRCv3 WebSocket"
   },
   "WebSocket URL": {
-    "string": ""
+    "string": "URL de WebSocket"
   },
   "wss://irc.example.net:6697/": {
-    "string": ""
+    "string": "wss://irc.example.net:6697/"
   },
   "WebSocket Subprotocols": {
-    "string": ""
+    "string": "Subprotocolos de WebSocket"
   },
   "binary.ircv3.net, text.ircv3.net": {
-    "string": ""
+    "string": "binary.ircv3.net, text.ircv3.net"
   },
   "Leave URL blank to use ws/wss with the network host and port.": {
-    "string": ""
+    "string": "Deja la URL en blanco para usar ws/wss con el host y el puerto de la red."
   },
   "Enable WEBIRC": {
-    "string": ""
+    "string": "Activar WEBIRC"
   },
   "WEBIRC is only for trusted gateway/browser-style deployments where the IRC server has configured this password.": {
-    "string": ""
+    "string": "WEBIRC solo es para implementaciones de confianza tipo puerta de enlace/navegador donde el servidor IRC haya configurado esta contraseña."
   },
   "WEBIRC Password": {
-    "string": ""
+    "string": "Contraseña WEBIRC"
   },
   "shared WEBIRC password": {
-    "string": ""
+    "string": "contraseña WEBIRC compartida"
   },
   "WEBIRC Gateway": {
-    "string": ""
+    "string": "Puerta de enlace WEBIRC"
   },
   "WEBIRC Hostname": {
-    "string": ""
+    "string": "Nombre de host WEBIRC"
   },
   "client.example.net": {
-    "string": ""
+    "string": "client.example.net"
   },
   "WEBIRC IP": {
-    "string": ""
+    "string": "IP de WEBIRC"
   },
   "203.0.113.10": {
-    "string": ""
+    "string": "203.0.113.10"
   },
   "WEBIRC Options": {
-    "string": ""
+    "string": "Opciones de WEBIRC"
   },
   "secure, tls": {
-    "string": ""
+    "string": "secure, tls"
   },
   "Backup payload is empty": {
-    "string": ""
+    "string": "La carga útil de la copia de seguridad está vacía"
   },
   "Encryption password is required": {
-    "string": ""
+    "string": "Se requiere contraseña de cifrado"
   },
   "Failed to encode encrypted backup": {
-    "string": ""
+    "string": "No se pudo codificar la copia de seguridad cifrada"
   },
   "Decryption password is required": {
-    "string": ""
+    "string": "Se requiere contraseña de descifrado"
   },
   "Invalid encrypted backup payload": {
-    "string": ""
+    "string": "Carga útil de copia de seguridad cifrada no válida"
   },
   "Decryption failed - decrypted payload was empty": {
-    "string": ""
+    "string": "Error de descifrado: la carga útil descifrada estaba vacía"
   },
   "End of WHO list for {channel}": {
-    "string": ""
+    "string": "Fin de la lista WHO para {channel}"
   },
   "*** Nicks on {channel}: {names}": {
-    "string": ""
+    "string": "*** Apodos en {channel}: {names}"
   },
   "is away: {message}": {
-    "string": ""
+    "string": "está ausente: {message}"
   },
   "is {userhost} * {realname}": {
-    "string": ""
+    "string": "es {userhost} * {realname}"
   },
   "using {server} {info}": {
-    "string": ""
+    "string": "usando {server} {info}"
   },
   "has been idle {idle}, signed on {date}": {
-    "string": ""
+    "string": "ha estado inactivo {idle}, conectado desde {date}"
   },
   "End of WHOIS for {nick}": {
-    "string": ""
+    "string": "Fin de WHOIS para {nick}"
   },
   "is on channels: {channels}": {
-    "string": ""
+    "string": "está en los canales: {channels}"
   },
   "is logged in as {account}": {
-    "string": ""
+    "string": "ha iniciado sesión como {account}"
   },
   "is actually using host {host}": {
-    "string": ""
+    "string": "en realidad usa el host {host}"
   },
   "is connecting from {host}": {
-    "string": ""
+    "string": "se conecta desde {host}"
   },
   "is using modes {modes}": {
-    "string": ""
+    "string": "usa los modos {modes}"
   },
   "WebSocket connection error": {
-    "string": ""
+    "string": "Error de conexión de WebSocket"
   },
   "Invalid WebIRC {field}": {
-    "string": ""
+    "string": "WebIRC {field} no válido"
   },
   "METADATA is not supported by this server": {
-    "string": ""
+    "string": "Este servidor no admite METADATA"
+  },
+  "NFC is off. Enable it in settings, then try again.": {
+    "string": "La NFC está desactivada. Actívala en los ajustes e inténtalo de nuevo."
+  },
+  "Hold the two phones back-to-back...": {
+    "string": "Sujeta los dos teléfonos espalda con espalda..."
+  },
+  "Keep the phones together. Tap Receive via NFC on the other phone.": {
+    "string": "Mantén los teléfonos juntos. Toca Recibir por NFC en el otro teléfono."
+  },
+  "Keep the phones together. Tap Share via NFC on the other phone.": {
+    "string": "Mantén los teléfonos juntos. Toca Compartir por NFC en el otro teléfono."
+  },
+  "Hold the phone against the NFC tag...": {
+    "string": "Acerca el teléfono a la etiqueta NFC..."
+  },
+  "Key sent via NFC": {
+    "string": "Clave enviada por NFC"
+  },
+  "Key written to NFC tag": {
+    "string": "Clave escrita en la etiqueta NFC"
+  },
+  "NFC timed out. Try again, holding the phones together.": {
+    "string": "Se agotó el tiempo de NFC. Inténtalo de nuevo manteniendo los teléfonos juntos."
   }
 }

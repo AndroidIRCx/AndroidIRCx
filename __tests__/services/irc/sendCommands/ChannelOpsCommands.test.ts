@@ -11,7 +11,7 @@ import {
   channelOpsCommands,
 } from '../../../../src/services/irc/sendCommands/ChannelOpsCommands';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

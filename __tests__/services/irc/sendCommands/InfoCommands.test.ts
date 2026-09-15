@@ -28,7 +28,7 @@ import {
   infoCommands,
 } from '../../../../src/services/irc/sendCommands/InfoCommands';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

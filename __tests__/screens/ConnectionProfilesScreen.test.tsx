@@ -71,7 +71,7 @@ const mockT = (key: string, params?: Record<string, unknown>) => {
   );
 };
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => mockT,
 }));
 

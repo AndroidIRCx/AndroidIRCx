@@ -13,7 +13,7 @@ import {
   HelpBullet,
   HelpCode,
 } from './HelpScreenBase';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 
 interface HelpChannelManagementScreenProps {
   visible: boolean;

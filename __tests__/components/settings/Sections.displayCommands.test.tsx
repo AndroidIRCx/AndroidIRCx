@@ -34,7 +34,7 @@ const mockClearHistory = jest.fn(async () => undefined);
 const mockSetSwipeBehavior = jest.fn();
 const mockSetWhoisDisplayMode = jest.fn();
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

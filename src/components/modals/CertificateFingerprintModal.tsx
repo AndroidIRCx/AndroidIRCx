@@ -27,7 +27,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import { certificateManager } from '../../services/CertificateManagerService';
 import { FingerprintFormat, IRCService } from '../../types/certificate';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 
 interface CertificateFingerprintModalProps {
   visible: boolean;

@@ -169,10 +169,6 @@
 -keep class com.zoontek.rnbootsplash.** { *; }
 -dontwarn com.zoontek.rnbootsplash.**
 
-# React Native Config
--keep class com.lugg.ReactNativeConfig.** { *; }
--dontwarn com.lugg.ReactNativeConfig.**
-
 # Document Picker
 -keep class com.reactnativedocumentpicker.** { *; }
 -dontwarn com.reactnativedocumentpicker.**
@@ -252,10 +248,6 @@
 # Vision Camera
 -keep class com.mrousavy.camera.** { *; }
 -dontwarn com.mrousavy.camera.**
-
-# Transifex
--keep class com.transifex.** { *; }
--dontwarn com.transifex.**
 
 # Custom IRC Foreground Service Package
 -keep class com.androidircx.** { *; }

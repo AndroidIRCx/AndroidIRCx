@@ -10,7 +10,7 @@ jest.mock('../../../src/hooks/useThemeWithSettings', () => ({
   useThemeWithSettings: () => mockUseThemeWithSettings(),
 }));
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   tx: {
     t: (key: string, params?: Record<string, string>) => {
       if (params?.themeName) return `${key}:${params.themeName}`;

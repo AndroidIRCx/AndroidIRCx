@@ -8,7 +8,7 @@
  * JOIN, PART, NICK, SETNAME, BOT, QUIT, MODE, TOPIC, KICK
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

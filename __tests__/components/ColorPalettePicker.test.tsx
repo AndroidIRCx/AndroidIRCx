@@ -3,7 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ColorPalettePicker } from '../../src/components/ColorPalettePicker';
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

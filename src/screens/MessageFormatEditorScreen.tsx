@@ -15,7 +15,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { ModalSafeArea } from '../components/ModalSafeArea';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   MessageFormatPart,
   MessageFormatStyle,

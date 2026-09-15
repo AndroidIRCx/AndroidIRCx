@@ -8,7 +8,7 @@
  * SHAREKEY, SENDKEY, REQUESTKEY, ENCMSG, ENC, ENCRYPT, CHANKEY
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

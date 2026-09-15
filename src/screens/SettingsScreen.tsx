@@ -73,7 +73,7 @@ import {
   RawMessageCategory,
   getDefaultRawCategoryVisibility,
 } from '../services/IRCService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import consoleManager from '../utils/consoleManager';
 import { SettingItem as SettingItemComponent } from '../components/settings/SettingItem';
 import { SettingsSectionHeader } from '../components/settings/SettingsSectionHeader';
@@ -211,6 +211,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ro: 'Română',
       ru: 'Русский',
       sr: 'Srpski',
+      'sr@Cyrl': 'Српски (ћирилица)',
       es: 'Español',
       id: 'Indonesian',
     }),

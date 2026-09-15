@@ -9,7 +9,7 @@ import notifee from '@notifee/react-native';
 import NotifeeService from '../../src/services/NotifeeService';
 
 // Mock i18n
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: jest.fn((key: string) => {
       const translations: Record<string, string> = {

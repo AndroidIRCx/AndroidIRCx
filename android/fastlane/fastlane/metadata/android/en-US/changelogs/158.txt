@@ -1,0 +1,6 @@
+What's new in v1.9.51:
+- Replaced Transifex with bundled JSON translations.
+- Completed and refreshed all supported languages.
+- Added Serbian Cyrillic localization support.
+- Updated translator credits flow for GitHub contributions.
+- Removed unused translation build scripts and dependencies.

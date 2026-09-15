@@ -17,7 +17,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   }),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (key === '{count} result(s) found' && params?.count) {
       return `${params.count} result(s) found`;

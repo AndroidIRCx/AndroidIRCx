@@ -87,7 +87,7 @@ jest.mock('../../src/services/DCCFileService', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

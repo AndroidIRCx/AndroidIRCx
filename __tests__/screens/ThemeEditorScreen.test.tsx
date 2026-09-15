@@ -91,7 +91,7 @@ const mockTheme = {
   },
 };
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, unknown>) => {
     if (!params) {
       return key;

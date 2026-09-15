@@ -10,7 +10,7 @@
 import { IRCService } from './IRCService';
 import { serviceDetectionService } from './ServiceDetectionService';
 import { DetectionResult } from '../interfaces/ServiceTypes';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

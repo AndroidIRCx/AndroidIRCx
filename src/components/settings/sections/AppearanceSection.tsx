@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,
@@ -30,7 +30,7 @@ import {
 } from '../../../services/ThemeService';
 import { layoutService, FontSize } from '../../../services/LayoutService';
 import { settingsService } from '../../../services/SettingsService';
-import { applyTransifexLocale } from '../../../i18n/transifex';
+import { applyLocale } from '../../../i18n/localization';
 import { SUPPORTED_LOCALES } from '../../../i18n/config';
 import {
   pick,
@@ -613,7 +613,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             type: 'button' as const,
             onPress: async () => {
               await setAppLanguageFromHook('system');
-              await applyTransifexLocale('system');
+              await applyLocale('system');
             },
           },
           ...SUPPORTED_LOCALES.map(locale => ({
@@ -623,7 +623,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             type: 'button' as const,
             onPress: async () => {
               await setAppLanguageFromHook(locale);
-              await applyTransifexLocale(locale);
+              await applyLocale(locale);
             },
           })),
         ],

@@ -6,7 +6,7 @@
 import { identityProfilesService } from './IdentityProfilesService';
 import { secureStorageService } from './SecureStorageService';
 import { storageCache } from './StorageCache';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => {
   const translator = (tx as any)?.t;

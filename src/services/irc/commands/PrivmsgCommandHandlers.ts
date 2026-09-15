@@ -9,7 +9,7 @@
  * CTCP routing, protection checks, and multiline assembly.
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   CommandHandler,
   CommandHandlerContext,

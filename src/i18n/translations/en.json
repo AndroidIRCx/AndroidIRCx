@@ -2127,7 +2127,7 @@
     "string": "Client Private Key (PEM)"
   },
   "-----BEGIN PRIVATE KEY-----...": {
-    "string": "-----BEGIN PRIVATE KEY-----..."
+    "string": "PEM private key block"
   },
   "Failed to save network": {
     "string": "Failed to save network"
@@ -6575,11 +6575,11 @@
   "Help Translate": {
     "string": "Help Translate"
   },
-  "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
-    "string": "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!"
+  "Want to help translate AndroidIRCX into your language? Translation updates now happen through GitHub.": {
+    "string": "Want to help translate AndroidIRCX into your language? Translation updates now happen through GitHub."
   },
-  "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
-    "string": "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page."
+  "Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page.": {
+    "string": "Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page."
   },
   "Thank you to all contributors!": {
     "string": "Thank you to all contributors!"

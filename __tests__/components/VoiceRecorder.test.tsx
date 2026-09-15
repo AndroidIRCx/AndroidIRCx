@@ -60,7 +60,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   }),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
     if (key === 'Max duration: {duration} seconds')
       return `Max duration: ${params?.duration} seconds`;

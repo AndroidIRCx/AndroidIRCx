@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface AudioPlayerProps {
   url: string;

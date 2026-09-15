@@ -39,7 +39,7 @@ import {
   makeServerTab,
   sortTabsGrouped,
 } from '../utils/tabUtils';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
 import { debugLogger } from '../services/DebugLogger';

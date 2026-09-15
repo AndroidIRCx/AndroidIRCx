@@ -26,7 +26,7 @@ const mockSetSecret = jest.fn(async () => undefined);
 const mockRemoveSecret = jest.fn(async () => undefined);
 const mockSetAllowScreenshots = jest.fn(async () => undefined);
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

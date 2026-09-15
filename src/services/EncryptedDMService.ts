@@ -7,7 +7,7 @@ import sodium from 'react-native-libsodium';
 import { x25519 } from '@noble/curves/ed25519.js';
 import { TextEncoder, TextDecoder } from 'text-encoding';
 import { secureStorageService } from './SecureStorageService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { compareStringsCaseInsensitive } from '../utils/localeSafe';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

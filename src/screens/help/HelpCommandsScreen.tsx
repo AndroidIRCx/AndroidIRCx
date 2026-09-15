@@ -13,7 +13,7 @@ import {
   HelpInfoBox,
   HelpWarningBox,
 } from './HelpScreenBase';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 
 interface HelpCommandsScreenProps {
   visible: boolean;

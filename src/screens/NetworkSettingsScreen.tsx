@@ -22,7 +22,7 @@ import {
   IRCWebSocketSubprotocol,
   settingsService,
 } from '../services/SettingsService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { CertificateGeneratorModal } from '../components/modals/CertificateGeneratorModal';
 import { CertificateSelectorModal } from '../components/modals/CertificateSelectorModal';
 import { CertificateFingerprintModal } from '../components/modals/CertificateFingerprintModal';

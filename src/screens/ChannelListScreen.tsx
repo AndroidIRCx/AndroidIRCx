@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   channelListService as singletonChannelListService,
   ChannelListItem,

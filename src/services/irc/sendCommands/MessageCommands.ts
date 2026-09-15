@@ -8,7 +8,7 @@
  * MSG, QUERY, ME, ACTION, NOTICE, AMSG, AME, ANOTICE
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

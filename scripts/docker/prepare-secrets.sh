@@ -27,15 +27,6 @@ if [ -n "${PLAY_SERVICE_ACCOUNT_JSON:-}" ]; then
   printf "%s" "$PLAY_SERVICE_ACCOUNT_JSON" > "$SECRETS_DIR/play-service-account.json"
 fi
 
-if [ -n "${TRANSIFEX_TOKEN:-}${TRANSIFEX_SECRET:-}${TRANSIFEX_NATIVE_TOKEN:-}${TRANSIFEX_CDS_HOST:-}${TRANSIFEX_API_TOKEN:-}" ]; then
-  cat > "$SECRETS_DIR/transifex.env" <<EOF
-TRANSIFEX_TOKEN=${TRANSIFEX_TOKEN:-${TRANSIFEX_API_TOKEN:-}}
-TRANSIFEX_SECRET=${TRANSIFEX_SECRET:-}
-TRANSIFEX_NATIVE_TOKEN=${TRANSIFEX_NATIVE_TOKEN:-}
-TRANSIFEX_CDS_HOST=${TRANSIFEX_CDS_HOST:-https://cds.svc.transifex.net}
-EOF
-fi
-
 cd "$ROOT_DIR/android"
 chmod +x gradlew
 exec "$@"

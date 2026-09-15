@@ -50,7 +50,7 @@ import { ReviewPromptModal } from './ReviewPromptModal';
 import { channelNotesService } from '../services/ChannelNotesService';
 import { dccFileService } from '../services/DCCFileService';
 import { ChannelTab } from '../types';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface AppModalsProps {
   activeTab: ChannelTab | null;

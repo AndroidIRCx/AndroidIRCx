@@ -811,14 +811,6 @@ jest.mock('react-native-localize', () => ({
   findBestLanguageTag: jest.fn(() => ({ languageTag: 'en-US', isRTL: false })),
 }));
 
-jest.mock('react-native-config', () => ({
-  __esModule: true,
-  default: {
-    TRANSIFEX_NATIVE_TOKEN: '',
-    TRANSIFEX_CDS_HOST: 'https://cds.svc.transifex.net',
-  },
-}));
-
 jest.mock('@react-native-documents/picker', () => ({
   __esModule: true,
   pick: jest.fn().mockResolvedValue([]),

@@ -7,8 +7,8 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { VideoPlayer } from '../../src/components/VideoPlayer';
 
-// Mock i18n transifex
-jest.mock('../../src/i18n/transifex', () => ({
+// Mock i18n localization
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: any) => {
     if (params) {
       return key.replace('{error}', params.error || '');

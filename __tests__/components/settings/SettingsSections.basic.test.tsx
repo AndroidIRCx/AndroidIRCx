@@ -31,7 +31,7 @@ const mockUIStore = {
   setShowHelpTroubleshooting: jest.fn(),
 };
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
     if (params?.count !== undefined)
       return `${key}`.replace('{count}', String(params.count));

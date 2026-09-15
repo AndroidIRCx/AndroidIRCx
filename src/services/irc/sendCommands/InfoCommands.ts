@@ -9,7 +9,7 @@
  * SERVLIST, ISON, USERHOST, USERIP, USERS, WATCH, KNOCK, SQUERY, LIST, NAMES
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

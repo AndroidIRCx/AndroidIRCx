@@ -7,7 +7,7 @@
  * User state command handlers (ACCOUNT, AWAY, CHGHOST, TAGMSG).
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

@@ -17,7 +17,7 @@ import {
   operCommands,
 } from '../../../../src/services/irc/sendCommands/OperCommands';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

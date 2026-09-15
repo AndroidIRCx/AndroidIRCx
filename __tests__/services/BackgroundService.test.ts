@@ -80,7 +80,7 @@ jest.mock('../../src/services/IRCService', () => ({
   },
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: jest.fn((key: string, params?: Record<string, any>) => {
       if (!params) return key;

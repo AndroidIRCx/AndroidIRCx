@@ -26,7 +26,7 @@ import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import { mediaDownloadService } from '../services/MediaDownloadService';
 import { ImagePreview } from './ImagePreview';

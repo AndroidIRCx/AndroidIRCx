@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { ReviewPromptModal } from '../components/ReviewPromptModal';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { APP_VERSION } from '../config/appVersion';
 
 interface AboutScreenProps {

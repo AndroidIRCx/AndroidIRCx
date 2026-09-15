@@ -11,8 +11,8 @@ import {
 } from '../../src/services/ConnectionProfilesService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Mock transifex
-jest.mock('../../src/i18n/transifex', () => ({
+// Mock localization
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: (key: string) => key,
   },
