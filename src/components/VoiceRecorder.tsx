@@ -24,7 +24,7 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import RNFS from 'react-native-fs';
 import Video from 'react-native-video';

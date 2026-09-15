@@ -26,7 +26,7 @@ const mockSetShowHelpMedia = jest.fn();
 const mockSetShowHelpChannelManagement = jest.fn();
 const mockSetShowHelpTroubleshooting = jest.fn();
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

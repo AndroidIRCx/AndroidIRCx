@@ -18,7 +18,7 @@ jest.mock('../../../src/services/CertificateManagerService', () => ({
   },
 }));
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (params?.service) return `${key}:${params.service}`;
     return key;

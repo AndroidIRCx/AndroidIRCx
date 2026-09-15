@@ -3,7 +3,7 @@
 [![Build](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/test.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/releases)
 [![Downloads](https://img.shields.io/github/downloads/AndroidIRCx/AndroidIRCx/total)](https://github.com/AndroidIRCx/AndroidIRCx/releases)
-[![GitHub License](https://img.shields.io/github/license/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/blob/master/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/blob/master/LICENSE.md)
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11929/badge)](https://www.bestpractices.dev/projects/11929)
 [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-blue)](https://github.com/AndroidIRCx/AndroidIRCx/security/code-scanning)
@@ -116,6 +116,7 @@ small enough to review safely and to include local verification evidence.
 
 - Connect to multiple IRC networks simultaneously
 - Multiple servers per network with failover
+- Per-network and global proxy support (SOCKS5, HTTP CONNECT, Tor)
 - Background service for persistent connections
 - Auto-connect favorites on startup
 - Auto-join channels after connect
@@ -165,6 +166,15 @@ reply, react, channel-context, rename
 - RAW command logging with 7 category filters
 - Picture-in-Picture mode
 - Landscape and portrait support
+- Custom sound schemes and per-event notification sounds
+- Hardware keyboard shortcuts and gesture navigation
+
+### Data, Logs & Backup
+
+- Encrypted backup and restore for app settings, networks, keys, aliases, scripts, and lists
+- Message history, channel logs, and searchable buffers
+- RAW/debug logging filters for troubleshooting protocol, proxy, and registration flow
+- Performance controls for batching, buffers, and heavier UI features
 
 ### Protection & Moderation
 
@@ -177,7 +187,7 @@ reply, react, channel-context, rename
 ### Built-in Scripting Engine
 
 - Write scripts to automate IRC tasks
-- 50+ script hooks for events
+- JavaScript hook exports for connection, message, channel, CTCP, raw, command, and timer events
 - Time-based access (rewarded ads) or unlimited with Pro purchase
 - Inspired by the mIRC scripting tradition
 - Quick example:
@@ -189,7 +199,7 @@ reply, react, channel-context, rename
 
 - 10 languages: English, French, German, Indonesian, Italian, Portuguese, Romanian, Russian,
   Serbian (Latin + Cyrillic), Spanish
-- Transifex Native integration
+- Local JSON translation resources
 
 ---
 
@@ -197,18 +207,18 @@ reply, react, channel-context, rename
 
 |                   |                                                   |
 | ----------------- | ------------------------------------------------- |
-| **Framework**     | React Native 0.86.0, React 19.2.7                 |
+| **Framework**     | React Native 0.87.1, React 19.3.0                 |
 | **Language**      | TypeScript 6.0.3                                  |
-| **State**         | Zustand 5.0.14                                    |
+| **State**         | Zustand 5.0.15                                    |
 | **Networking**    | react-native-tcp-socket (raw TCP/TLS)             |
 | **Encryption**    | libsodium, node-forge, @noble/curves              |
 | **Storage**       | AsyncStorage + Keychain (react-native-keychain)   |
 | **UI/Lists**      | FlashList, Reanimated, react-native-vector-icons  |
-| **Testing**       | Jest 30.4, Testing Library                        |
+| **Testing**       | Jest 30.5, Testing Library 14                     |
 | **CI/CD**         | GitHub Actions, Docker                            |
 | **Notifications** | @notifee/react-native                             |
 | **Media**         | vision-camera, react-native-video, audio-recorder |
-| **i18n**          | Transifex Native (10 languages)                   |
+| **i18n**          | Local JSON translations (10 languages)            |
 | **Analytics**     | Firebase Crashlytics, Firebase App Check          |
 
 ---
@@ -282,12 +292,12 @@ AndroidIRCX/
 |
 +-- __tests__/          Unit, integration, and journey tests
 +-- android/            Android native code
-+-- scripts/            Build and translation scripts
++-- scripts/            Build, verification, and maintenance scripts
 +-- patches/            patch-package patches
 +-- .github/workflows/  CI/CD workflows
 +-- Dockerfile          Docker-based release builds
 +-- App.tsx             Main component
-+-- package.json        v1.9.41, GPL-3.0-or-later
++-- package.json        v1.9.51, GPL-3.0-or-later
 ```
 
 ---
@@ -325,11 +335,6 @@ yarn test             # Run the Jest suite
 yarn type-check       # TypeScript check (tsc --noEmit)
 yarn lint             # ESLint
 yarn pre-push-check   # type-check + lint
-
-# Translation management
-yarn tx:pull          # Pull translations from Transifex
-yarn tx:push          # Push source strings
-yarn tx:merge-sr      # Merge missing Serbian keys
 ```
 
 ### Running Tests
@@ -338,7 +343,7 @@ yarn tx:merge-sr      # Merge missing Serbian keys
 # All tests with coverage
 yarn test --coverage
 
-# IRC protocol tests only (938+ tests)
+# IRC protocol tests only
 npx jest --testPathPatterns="IRCService" --no-coverage
 
 # Specific service
@@ -405,7 +410,7 @@ For end-user setup guides, feature walkthroughs, and troubleshooting, see the wi
 - **IRC Services and Commands:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/IRC-Services-and-Commands
 - **Channel Operations:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/Channel-Operations
 - **Channels and Tabs:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/Channels-and-Tabs
-- **DCC and File Transfers:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/DCC-%26-File-Transfers
+- **DCC and File Transfers:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/DCC-and-File-Transfers
 - **Security and Encryption:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/Security-and-Encryption
 - **SASL EXTERNAL Certificates:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/SASL-EXTERNAL-Certificates
 - **Commands and Scripting:** https://github.com/AndroidIRCx/AndroidIRCx/wiki/Commands-and-Scripting
@@ -449,6 +454,12 @@ For networks that support it, SCRAM-SHA-256 provides challenge-response authenti
 sending your password in cleartext. Configure SASL with mechanism "SCRAM-SHA-256" in network
 settings.
 
+### Proxy and Tor
+
+- Per-network proxy: edit a network and enable proxy (Tor/SOCKS5/HTTP)
+- Global proxy: Settings -> Connection & Network -> Global Proxy
+- Tor default: `127.0.0.1:9050`
+
 ---
 
 ## ⚙️ CI/CD
@@ -480,7 +491,7 @@ AndroidIRCX is open source and contributions are welcome.
 
 - IRC protocol -- new IRCv3 capabilities, IRCd-specific features
 - Testing -- more edge cases, integration tests
-- Translations -- add or improve translations via Transifex
+- Translations -- add or improve JSON translations through GitHub
 - UI/UX -- accessibility, new themes, layout improvements
 - Documentation -- guides, tutorials, examples
 - Security -- audit, improvements, new encryption features

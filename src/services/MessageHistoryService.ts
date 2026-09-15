@@ -11,7 +11,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IRCMessage } from './IRCService';
 import { storageCache } from './StorageCache';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { messageHistoryBatching } from './MessageHistoryBatching';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

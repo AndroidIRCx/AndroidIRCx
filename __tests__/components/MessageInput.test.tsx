@@ -183,7 +183,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
   })),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: jest.fn(() => (key: string, _params?: any) => key),
 }));
 

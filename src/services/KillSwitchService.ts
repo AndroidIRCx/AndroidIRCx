@@ -11,7 +11,7 @@ import { secureStorageService } from './SecureStorageService';
 import { settingsService, DEFAULT_PART_MESSAGE } from './SettingsService';
 import { useTabStore } from '../stores/tabStore';
 import { logger } from './Logger';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

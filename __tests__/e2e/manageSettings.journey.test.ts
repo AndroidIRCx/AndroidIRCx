@@ -198,7 +198,7 @@ jest.mock('../../src/utils/tabUtils', () => ({
   sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: jest.fn().mockReturnValue(str => str),
 }));
 

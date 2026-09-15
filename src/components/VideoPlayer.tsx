@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface VideoPlayerProps {
   url: string;

@@ -4,13 +4,6 @@ apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 apply plugin: "com.google.firebase.crashlytics"
 
-project.ext.envConfigFiles = [
-        debug  : "secrets/transifex.env",
-        release: "secrets/transifex.env"
-]
-
-apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
-
 import java.util.Properties
 
 def repoRootDir = rootProject.projectDir.parentFile
@@ -263,8 +256,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 157
-        versionName = "1.9.50"
+        versionCode = 158
+        versionName = "1.9.51"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -351,15 +344,6 @@ android {
     }
 }
 
-def transifexPullScript = new File(repoRootDir, "scripts/transifex/pull.js")
-
-tasks.register("transifexPull", Exec) {
-    workingDir repoRootDir
-    onlyIf { transifexPullScript.exists() }
-    commandLine "node", transifexPullScript.absolutePath
-}
-
-preBuild.dependsOn("transifexPull")
 preBuild.dependsOn("copyGoogleServices")
 preBuild.dependsOn("ensureAutolinkingCodegenStubs")
 

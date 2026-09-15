@@ -34,7 +34,7 @@ import { shareKeyViaNfc, receiveKeyViaNfc } from '../utils/nfcKeyExchange';
 import { ircService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { settingsService } from '../services/SettingsService';
 import Clipboard from '@react-native-clipboard/clipboard';

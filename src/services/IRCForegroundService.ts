@@ -4,7 +4,7 @@
  */
 
 import { NativeModules, Platform } from 'react-native';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

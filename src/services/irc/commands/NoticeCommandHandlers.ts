@@ -7,7 +7,7 @@
  * NOTICE command handlers.
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import { protectionService } from '../../ProtectionService';
 import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 

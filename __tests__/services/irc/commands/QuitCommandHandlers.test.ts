@@ -8,7 +8,7 @@ import {
   quitCommandHandlers,
 } from '../../../../src/services/irc/commands/QuitCommandHandlers';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

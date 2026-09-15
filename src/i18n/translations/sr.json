@@ -1710,7 +1710,7 @@
     "string": "Mreža"
   },
   "IRC Database": {
-    "string": "IRC baza podataka"
+    "string": "IRC Database"
   },
   "IRC Nick": {
     "string": "IRC nadimak"
@@ -1997,7 +1997,9 @@
   "Enter a mask to ignore. Examples:": {
     "string": "Unesite masku za ignorisanje. Primeri:"
   },
-  "nick (ignore specific nick)": {},
+  "nick (ignore specific nick)": {
+    "string": "nick (ignoriši određeni nick)"
+  },
   "*!*@host.com (ignore all from host)": {
     "string": "*!*@host.com (ignoriši sve sa hosta)"
   },
@@ -2125,7 +2127,7 @@
     "string": "Privatni ključ klijenta (PEM)"
   },
   "-----BEGIN PRIVATE KEY-----...": {
-    "string": "-----BEGIN PRIVATE KEY-----..."
+    "string": "Blok privatnog PEM ključa"
   },
   "Failed to save network": {
     "string": "Čuvanje mreže nije uspelo"
@@ -3996,7 +3998,9 @@
   "*** You are now an IRC operator. Quick aliases: /oper /kill /gline /rehash /locops /wallops": {
     "string": "*** Sada si IRC operator. Brze prečice: /oper /kill /gline /rehash /locops /wallops"
   },
-  "is a bot": {},
+  "is a bot": {
+    "string": "je bot"
+  },
   "is using a secure connection": {
     "string": "koristi sigurnu vezu"
   },
@@ -4070,7 +4074,7 @@
     "string": "MESSAGE-REDACTION nije podržan na ovom serveru"
   },
   "Usage: /{command} <nick|channel> <message>": {
-    "string": "Upotreba: /{command} <nadimak|kanal> <poruka>"
+    "string": "Upotreba: /{command} <nick|channel> <message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
     "string": "*** Ponuda šifrovanog ključa poslata {nick}. Čekanje prihvatanja..."
@@ -4079,37 +4083,37 @@
     "string": "*** Deljenje šifrovanog ključa nije uspelo: {message}"
   },
   "Usage: /sharekey <nick>": {
-    "string": "Upotreba: /sharekey <nadimak>"
+    "string": "Upotreba: /sharekey <nick>"
   },
   "*** Encryption key requested from {nick}": {
     "string": "*** Šifrovani ključ zatražen od {nick}"
   },
   "Usage: /requestkey <nick>": {
-    "string": "Upotreba: /requestkey <nadimak>"
+    "string": "Upotreba: /requestkey <nick>"
   },
   "*** Encrypted send failed ({message}). Use \"Request Encryption Key\" from the user menu.": {
     "string": "*** Šifrovano slanje nije uspelo ({message}). Koristi \"Zatraži šifrovani ključ\" iz korisničkog menija."
   },
   "Usage: /encmsg <nick> <message>": {
-    "string": "Upotreba: /encmsg <nadimak> <poruka>"
+    "string": "Upotreba: /encmsg <nick> <message>"
   },
   "DM encryption:": {
     "string": "Šifrovanje DM:"
   },
   "/sharekey <nick>          Offer your DM key": {
-    "string": "/sharekey <nadimak>          Ponudi svoj DM ključ"
+    "string": "/sharekey <nick>          Ponudi svoj DM ključ"
   },
   "/requestkey <nick>        Request DM key": {
-    "string": "/requestkey <nadimak>        Zatraži DM ključ"
+    "string": "/requestkey <nick>        Zatraži DM ključ"
   },
   "/encmsg <nick> <message>  Send encrypted DM": {
-    "string": "/encmsg <nadimak> <poruka>  Pošalji šifrovani DM"
+    "string": "/encmsg <nick> <message>  Pošalji šifrovani DM"
   },
   "Tips: keys must be exchanged first; use /requestkey if not paired.": {
     "string": "Savet: ključevi moraju prvo biti razmenjeni; koristi /requestkey ako niste upareni."
   },
   "Usage: /chankey <generate|share|request|remove|send|help> [args]": {
-    "string": "Upotreba: /chankey <generate|share|request|remove|send|help> [argumenti]"
+    "string": "Upotreba: /chankey <generate|share|request|remove|send|help> [args]"
   },
   "Channel encryption:": {
     "string": "Šifrovanje kanala:"
@@ -4118,13 +4122,13 @@
     "string": "/chankey generate          Kreiraj ključ za trenutni kanal"
   },
   "/chankey share <nick>     Send key to a user (in channel)": {
-    "string": "/chankey share <nadimak>     Pošalji ključ korisniku (na kanalu)"
+    "string": "/chankey share <nick>     Pošalji ključ korisniku (na kanalu)"
   },
   "/chankey request <nick>   Ask a user for the channel key": {
-    "string": "/chankey request <nadimak>   Zatraži od korisnika ključ kanala"
+    "string": "/chankey request <nick>   Zatraži od korisnika ključ kanala"
   },
   "/chankey send <msg>       Send encrypted message to channel": {
-    "string": "/chankey send <poruka>       Pošalji šifrovanu poruku na kanal"
+    "string": "/chankey send <msg>       Pošalji šifrovanu poruku na kanal"
   },
   "/chankey remove           Delete stored key for channel": {
     "string": "/chankey remove           Obriši sačuvani ključ za kanal"
@@ -4133,13 +4137,13 @@
     "string": "*** Ključ kanala se može generisati samo na kanalu"
   },
   "*** Channel encryption key generated for {channel}. Use /chankey share <nick> to share with others.": {
-    "string": "*** Šifrovani ključ kanala generisan za {channel}. Koristi /chankey share <nadimak> da podeliš sa drugima."
+    "string": "*** Šifrovani ključ kanala generisan za {channel}. Koristi /chankey share <nick> da podeliš sa drugima."
   },
   "*** Failed to generate channel key: {message}": {
     "string": "*** Generisanje ključa kanala nije uspelo: {message}"
   },
   "Usage: /chankey send <message>": {
-    "string": "Upotreba: /chankey send <poruka>"
+    "string": "Upotreba: /chankey send <message>"
   },
   "*** Channel key send must be used from a channel": {
     "string": "*** Slanje ključa kanala mora biti sa kanala"
@@ -4151,7 +4155,7 @@
     "string": "Nedostaje ključ kanala. Prvo koristi /chankey generate i podeli."
   },
   "Usage: /chankey share <nick>": {
-    "string": "Upotreba: /chankey share <nadimak>"
+    "string": "Upotreba: /chankey share <nick>"
   },
   "*** Channel key can only be shared from a channel": {
     "string": "*** Ključ kanala se može podeliti samo sa kanala"
@@ -4163,7 +4167,7 @@
     "string": "*** Deljenje ključa kanala nije uspelo: {message}. Prvo generiši ključ sa /chankey generate"
   },
   "Usage: /chankey request <nick>": {
-    "string": "Upotreba: /chankey request <nadimak>"
+    "string": "Upotreba: /chankey request <nick>"
   },
   "*** Channel key request must be done from a channel": {
     "string": "*** Zahtev za ključem kanala mora biti sa kanala"
@@ -4253,7 +4257,7 @@
     "string": "Prilagođena prečica komande"
   },
   "Adds /hello alias as example.": {
-    "string": "Dodaje /zdravo prečicu kao primer."
+    "string": "Dodaje /hello prečicu kao primer."
   },
   "Script {name} failed to compile: {error}": {
     "string": "Skripta {name} nije uspela da se kompajlira: {error}"
@@ -5186,13 +5190,13 @@
     "string": "Neuspešna obrada IRC URL-a: {error}"
   },
   "Usage: /ctcp <nick> <command> [args]": {
-    "string": "Upotreba: /ctcp <nick> <komanda> [args]"
+    "string": "Upotreba: /ctcp <nick> <command> [args]"
   },
   "Usage: /xdcc <bot> <command> [args]": {
-    "string": "Upotreba: /xdcc <bot> <komanda> [args]"
+    "string": "Upotreba: /xdcc <bot> <command> [args]"
   },
   "Usage: /dcc <chat|send> <nick> [path] [port]": {
-    "string": "Upotreba: /dcc <chat|send> <nick> [putanja] [port]"
+    "string": "Upotreba: /dcc <chat|send> <nick> [path] [port]"
   },
   "Failed to open battery optimization settings. Please enable it manually in system settings.": {
     "string": "Neuspešno otvaranje podešavanja optimizacije baterije. Omogući ručno u sistemskim podešavanjima."
@@ -5995,7 +5999,9 @@
   "Reset": {
     "string": "Vrati"
   },
-  "Reset All Sounds": {},
+  "Reset All Sounds": {
+    "string": "Resetuj sve zvukove"
+  },
   "This will reset all sound settings to defaults. Continue?": {
     "string": "Ovo će vratiti sva podešavanja zvuka na podrazumevano. Nastavi?"
   },
@@ -6545,11 +6551,11 @@
   "Help Translate": {
     "string": "Pomozite u prevođenju"
   },
-  "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
-    "string": "Želite da pomognete u prevođenju AndroidIRCX-a na vaš jezik? Koristimo Transifex za prevode i voleli bismo vašu pomoć!"
+  "Want to help translate AndroidIRCX into your language? Translation updates now happen through GitHub.": {
+    "string": "Želite da pomognete u prevođenju AndroidIRCX-a na vaš jezik? Izmene prevoda se sada rade preko GitHub-a."
   },
-  "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
-    "string": "Pošaljite email na adresu ispod sa jezikom koji želite da prevedete, i pozvaćemo vas u naš Transifex projekat. Kada završite prevode, vaše ime će biti dodato na ovu stranicu zasluga."
+  "Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page.": {
+    "string": "Otvorite GitHub pull request sa izmenama JSON fajlova u src/i18n/translations. Kada vaš prevod bude uključen, vaše ime može biti dodato na ovu stranicu zasluga."
   },
   "Thank you to all contributors!": {
     "string": "Hvala svim saradnicima!"
@@ -6696,7 +6702,7 @@
     "string": "Ponovo se poveži na server"
   },
   "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]": {
-    "string": "Poveži se na server: /server [-m] [-e] [-t] <adresa> [port] [lozinka] [-l metod lozinka] [-i nick anick email ime] [-jn #kanal lozinka] [-sar]"
+    "string": "Poveži se na server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]"
   },
   "Set alternate nickname": {
     "string": "Postavi alternativni nadimak"
@@ -6960,7 +6966,7 @@
     "string": "*** Detalji konekcije servera ažurirani"
   },
   "No server specified. Use /server <address> [port]": {
-    "string": "Nije naveden server. Koristi /server <adresa> [port]"
+    "string": "Nije naveden server. Koristi /server <address> [port]"
   },
   "*** Server command error: {error}": {
     "string": "*** Greška server komande: {error}"
@@ -6978,13 +6984,13 @@
     "string": "*** DNS A za {hostname}: {records}"
   },
   "*** DNS A for {hostname}: <none>": {
-    "string": "*** DNS A za {hostname}: <nema>"
+    "string": "*** DNS A za {hostname}: <none>"
   },
   "*** DNS AAAA for {hostname}: {records}": {
     "string": "*** DNS AAAA za {hostname}: {records}"
   },
   "*** DNS AAAA for {hostname}: <none>": {
-    "string": "*** DNS AAAA za {hostname}: <nema>"
+    "string": "*** DNS AAAA za {hostname}: <none>"
   },
   "*** DNS lookup failed for {hostname}: {error}": {
     "string": "*** DNS pretraga nije uspela za {hostname}: {error}"
@@ -7092,7 +7098,7 @@
     "string": "Na crnoj listi"
   },
   "Usage: /part <channel> [message]": {
-    "string": "Upotreba: /part <kanal> [poruka]"
+    "string": "Upotreba: /part <channel> [message]"
   },
   "*** You are now away: {message}": {
     "string": "*** Sada ste odsutni: {message}"
@@ -7104,34 +7110,34 @@
     "string": "*** {nick} pozvan na {channel}"
   },
   "Usage: /invite <nick> [channel]": {
-    "string": "Upotreba: /invite <nick> [kanal]"
+    "string": "Upotreba: /invite <nick> [channel]"
   },
   "*** Requesting channel list...": {
     "string": "*** Traženje liste kanala..."
   },
   "Usage: /names [channel]": {
-    "string": "Upotreba: /names [kanal]"
+    "string": "Upotreba: /names [channel]"
   },
   "*** Banning {nick} from {channel}": {
     "string": "*** Zabranjivanje {nick} sa {channel}"
   },
   "Usage: /ban <nick> [channel]": {
-    "string": "Upotreba: /ban <nick> [kanal]"
+    "string": "Upotreba: /ban <nick> [channel]"
   },
   "*** Unbanning {mask} from {channel}": {
     "string": "*** Skidanje zabrane {mask} sa {channel}"
   },
   "Usage: /unban <nick|mask> [channel]": {
-    "string": "Upotreba: /unban <nick|maska> [kanal]"
+    "string": "Upotreba: /unban <nick|mask> [channel]"
   },
   "*** Kicking and banning {nick} from {channel}": {
     "string": "*** Izbacivanje i zabranjivanje {nick} sa {channel}"
   },
   "Usage: /kickban <nick> [channel] [reason]": {
-    "string": "Upotreba: /kickban <nick> [kanal] [razlog]"
+    "string": "Upotreba: /kickban <nick> [channel] [reason]"
   },
   "Usage: /notice <target> <message>": {
-    "string": "Upotreba: /notice <cilj> <poruka>"
+    "string": "Upotreba: /notice <target> <message>"
   },
   "*** Now ignoring {mask}": {
     "string": "*** Sada se ignoriše {mask}"
@@ -7140,7 +7146,7 @@
     "string": "*** Ignorisanje korisnika nije uspelo: {message}"
   },
   "Usage: /ignore <nick|mask> [reason]": {
-    "string": "Upotreba: /ignore <nick|maska> [razlog]"
+    "string": "Upotreba: /ignore <nick|mask> [reason]"
   },
   "*** No longer ignoring {mask}": {
     "string": "*** {mask} se više ne ignoriše"
@@ -7149,37 +7155,37 @@
     "string": "*** Skidanje ignorisanja nije uspelo: {message}"
   },
   "Usage: /unignore <nick|mask>": {
-    "string": "Upotreba: /unignore <nick|maska>"
+    "string": "Upotreba: /unignore <nick|mask>"
   },
   "*** Messages cleared": {
     "string": "*** Poruke obrisane"
   },
   "Usage: /echo <message>": {
-    "string": "Upotreba: /echo <poruka>"
+    "string": "Upotreba: /echo <message>"
   },
   "*** Sending message to all channels...": {
     "string": "*** Slanje poruke na sve kanale..."
   },
   "Usage: /amsg <message>": {
-    "string": "Upotreba: /amsg <poruka>"
+    "string": "Upotreba: /amsg <message>"
   },
   "*** Sending action to all channels...": {
     "string": "*** Slanje akcije na sve kanale..."
   },
   "Usage: /ame <action>": {
-    "string": "Upotreba: /ame <akcija>"
+    "string": "Upotreba: /ame <action>"
   },
   "*** Sending notice to all channels...": {
     "string": "*** Slanje obaveštenja na sve kanale..."
   },
   "Usage: /anotice <message>": {
-    "string": "Upotreba: /anotice <poruka>"
+    "string": "Upotreba: /anotice <message>"
   },
   "Usage: /ison <nick1> [nick2] ...": {
     "string": "Upotreba: /ison <nick1> [nick2] ..."
   },
   "Usage: /squery <service> <message>": {
-    "string": "Upotreba: /squery <servis> <poruka>"
+    "string": "Upotreba: /squery <service> <message>"
   },
   "*** Reconnecting to server...": {
     "string": "*** Ponovno povezivanje na server..."
@@ -7191,7 +7197,7 @@
     "string": "*** Alternativni nadimak postavljen na: {nick}"
   },
   "Usage: /anick <nickname>": {
-    "string": "Upotreba: /anick <nadimak>"
+    "string": "Upotreba: /anick <nickname>"
   },
   "*** Auto-join on invite: {state}": {
     "string": "*** Automatsko pridruživanje na poziv: {state}"
@@ -7200,10 +7206,10 @@
     "string": "*** Bip!"
   },
   "Usage: /cnotice <nick> <channel> <message>": {
-    "string": "Upotreba: /cnotice <nick> <kanal> <poruka>"
+    "string": "Upotreba: /cnotice <nick> <channel> <message>"
   },
   "Usage: /cprivmsg <nick> <channel> <message>": {
-    "string": "Upotreba: /cprivmsg <nick> <kanal> <poruka>"
+    "string": "Upotreba: /cprivmsg <nick> <channel> <message>"
   },
   "*** Help for /{command} - Use Settings > Help for full documentation": {
     "string": "*** Pomoć za /{command} - Koristite Podešavanja > Pomoć za potpunu dokumentaciju"
@@ -7212,13 +7218,13 @@
     "string": "*** Pomoć za IRC komande"
   },
   "*** Use /help <command> for specific command help": {
-    "string": "*** Koristite /help <komanda> za pomoć za određenu komandu"
+    "string": "*** Koristite /help <command> za pomoć za određenu komandu"
   },
   "*** Or go to Settings > Help for full documentation": {
     "string": "*** Ili idite na Podešavanja > Pomoć za potpunu dokumentaciju"
   },
   "Usage: /raw <command>": {
-    "string": "Upotreba: /raw <komanda>"
+    "string": "Upotreba: /raw <command>"
   },
   "*** Looking up DNS for {hostname}...": {
     "string": "*** DNS pretraga za {hostname}..."
@@ -7227,40 +7233,40 @@
     "string": "*** Tajmer \"{name}\" postavljen: {delay}ms, {repetitions} ponavljanja"
   },
   "Usage: /timer <name> <delay> <repetitions> <command>": {
-    "string": "Upotreba: /timer <ime> <kašnjenje> <ponavljanja> <komanda>"
+    "string": "Upotreba: /timer <name> <delay> <repetitions> <command>"
   },
   "Usage: /window -a <name>": {
-    "string": "Upotreba: /window -a <ime>"
+    "string": "Upotreba: /window -a <name>"
   },
   "Usage: /window [-a] <name>": {
-    "string": "Upotreba: /window [-a] <ime>"
+    "string": "Upotreba: /window [-a] <name>"
   },
   "*** Filtering messages containing: {text}": {
     "string": "*** Filtriranje poruka koje sadrže: {text}"
   },
   "Usage: /filter [-g] <text>": {
-    "string": "Upotreba: /filter [-g] <tekst>"
+    "string": "Upotreba: /filter [-g] <text>"
   },
   "Usage: /wallops <message>": {
-    "string": "Upotreba: /wallops <poruka>"
+    "string": "Upotreba: /wallops <message>"
   },
   "Usage: /locops <message>": {
-    "string": "Upotreba: /locops <poruka>"
+    "string": "Upotreba: /locops <message>"
   },
   "Usage: /globops <message>": {
-    "string": "Upotreba: /globops <poruka>"
+    "string": "Upotreba: /globops <message>"
   },
   "Usage: /adchat <message>": {
-    "string": "Upotreba: /adchat <poruka>"
+    "string": "Upotreba: /adchat <message>"
   },
   "Usage: /chat <service> <message>": {
-    "string": "Upotreba: /chat <servis> <poruka>"
+    "string": "Upotreba: /chat <service> <message>"
   },
   "*** Knock sent to {channel}": {
     "string": "*** Kucanje poslato na {channel}"
   },
   "Usage: /knock <channel> [message]": {
-    "string": "Upotreba: /knock <kanal> [poruka]"
+    "string": "Upotreba: /knock <channel> [message]"
   },
   "Usage: /userhost <nick1> [nick2] ...": {
     "string": "Upotreba: /userhost <nick1> [nick2] ..."
@@ -7275,7 +7281,7 @@
     "string": "*** Pokušaj IRCop prijave..."
   },
   "Usage: /oper <nick> <password>": {
-    "string": "Upotreba: /oper <nick> <lozinka>"
+    "string": "Upotreba: /oper <nick> <password>"
   },
   "*** Requesting server rehash...": {
     "string": "*** Traženje rehash servera..."
@@ -7284,19 +7290,19 @@
     "string": "*** Traženje diskonektovanja servera: {server}"
   },
   "Usage: /squit <server> [message]": {
-    "string": "Upotreba: /squit <server> [poruka]"
+    "string": "Upotreba: /squit <server> [message]"
   },
   "*** Killing user: {nick}": {
     "string": "*** Ubijanje korisnika: {nick}"
   },
   "Usage: /kill <nick> <reason>": {
-    "string": "Upotreba: /kill <nick> <razlog>"
+    "string": "Upotreba: /kill <nick> <reason>"
   },
   "*** Requesting server connection: {server}:{port}": {
     "string": "*** Traženje konekcije servera: {server}:{port}"
   },
   "Usage: /connect <server> <port> [remote]": {
-    "string": "Upotreba: /connect <server> <port> [udaljeni]"
+    "string": "Upotreba: /connect <server> <port> [remote]"
   },
   "*** Requesting server shutdown...": {
     "string": "*** Traženje gašenja servera..."
@@ -7527,7 +7533,7 @@
     "string": "Promeni nadimak prema obrascu"
   },
   "Example: <me>^away": {
-    "string": "Primer: <ja>^odsutan"
+    "string": "Primer: <me>^odsutan"
   },
   "Notify away if nick is mentioned": {
     "string": "Obavesti o odsutnosti ako je nadimak pomensnut"
@@ -7923,10 +7929,10 @@
     "string": "Uredi stil"
   },
   "Use <nick>": {
-    "string": "Koristi <nadimak>"
+    "string": "Koristi <nick>"
   },
   "Use <text>": {
-    "string": "Koristi <tekst>"
+    "string": "Koristi <text>"
   },
   "KILL sent to {nick}": {
     "string": "KILL poslat ka {nick}"
@@ -7994,7 +8000,9 @@
   "Enter decryption password": {
     "string": "Unesite lozinku za dešifrovanje"
   },
-  "Decrypt & Restore": {},
+  "Decrypt & Restore": {
+    "string": "Dešifruj i restauriraj"
+  },
   "Topic Preview": {
     "string": "Pregled teme"
   },
@@ -8017,7 +8025,7 @@
     "string": "Stilovi tema"
   },
   "Use <TOPIC>": {
-    "string": "Koristi <TEMA>"
+    "string": "Koristi <TOPIC>"
   },
   "IRcap Credits": {
     "string": "IRcap zaslugama"
@@ -8251,7 +8259,7 @@
     "string": "postavlja temu"
   },
   "Usage: /clones <channel> - Must be used in a channel or specify a channel": {
-    "string": "Korišćenje: /clones <kanal> - Mora se koristiti u kanalu ili navesti kanal"
+    "string": "Korišćenje: /clones <channel> - Mora se koristiti u kanalu ili navesti kanal"
   },
   "*** No clones detected in {channel}": {
     "string": "*** Nisu otkriveni klonovi u {channel}"
@@ -9993,7 +10001,9 @@
   "help.media.autoDownloadTitle": {
     "string": "help.media.autoDownloadTitle"
   },
-  "help.media.autoDownloadDescription": {},
+  "help.media.autoDownloadDescription": {
+    "string": "help.media.autoDownloadDescription"
+  },
   "help.media.manualDownloadTitle": {
     "string": "help.media.manualDownloadTitle"
   },
@@ -10793,10 +10803,10 @@
     "string": "Registracija naloga nije podržana na ovom serveru"
   },
   "Usage: /register <email|*> <password> OR /register <account> <email|*> <password>": {
-    "string": "Upotreba: /register <email|*> <lozinka> ILI /register <nalog> <email|*> <lozinka>"
+    "string": "Upotreba: /register <email|*> <password> OR /register <account> <email|*> <password>"
   },
   "Usage: /MSG <nick|channel> <message>": {
-    "string": "Upotreba: /MSG <nick|kanal> <poruka>"
+    "string": "Upotreba: /MSG <nick|channel> <message>"
   },
   "Channel Management Guide": {
     "string": "Vodič za upravljanje kanalima"
@@ -11165,13 +11175,13 @@
     "string": "Registrujte nalog koristeći IRCv3 registraciju naloga (samo ako je podržana na serveru)."
   },
   "Example: /register user@example.com mypassword": {
-    "string": "Primer: /register korisnik@primer.com mojazaporka"
+    "string": "Primer: /register user@example.com mypassword"
   },
   "Alternative syntax that includes an explicit account name": {
     "string": "Alternativna sintaksa koja uključuje eksplicitno ime naloga"
   },
   "Example: /register MyAccount user@example.com mypassword": {
-    "string": "Primer: /register MojNalog korisnik@primer.com mojazaporka"
+    "string": "Primer: /register MyAccount user@example.com mypassword"
   },
   "Connection & Status": {
     "string": "Konekcija i status"
@@ -11207,7 +11217,7 @@
     "string": "Primer: /server irc.libera.chat 6697"
   },
   "Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.": {
-    "string": "Savet: U većini slučajeva je lakše dodavati mreže/servere putem korisničkog interfejsa, ali /server je koristan za brzo testiranje."
+    "string": "Savet: U većini slučajeva je lakše dodavati mreže/servers putem korisničkog interfejsa, ali /server je koristan za brzo testiranje."
   },
   "Utility Commands": {
     "string": "Pomoćne komande"
@@ -11279,7 +11289,7 @@
     "string": "AndroidIRCX uključuje praktične pseudonime koji se proširuju u uobičajene NickServ/ChanServ komande. Zavise od dostupnosti servisa na vašoj mreži."
   },
   "Examples:\n/nsid mypassword\n/nsreg mypassword user@example.com\n/nsghost YourNick mypassword\n/nsrecover YourNick mypassword": {
-    "string": "Primeri:\n/nsid mojalozinka\n/nsreg mojalozinka user@example.com\n/nsghost VašNadimak mojalozinka\n/nsrecover VašNadimak mojalozinka"
+    "string": "Primeri:\n/nsid mypassword\n/nsreg mypassword user@example.com\n/nsghost YourNick mypassword\n/nsrecover YourNick mypassword"
   },
   "Examples:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel password\n/cspass #channel newpassword": {
     "string": "Primeri:\n/csop #kanal Nick\n/csdeop #kanal Nick\n/cvoice #kanal Nick\n/csdevoice #kanal Nick\n/csregister #kanal lozinka\n/cspass #kanal novalozinka"
@@ -11456,220 +11466,220 @@
     "string": "Pridružite se #AndroidIRCX na irc.dbase.in.rs\\nPosetite naš sajt: androidircx.com\\nEmail: support@androidircx.com"
   },
   "What is E2EE?": {
-    "string": ""
+    "string": "Šta je E2EE?"
   },
   "End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.": {
-    "string": ""
+    "string": "End-to-end enkripcija garantuje da samo ti i primalac možete da čitate poruke.\\nČak ni IRC server ne može da ih dešifruje."
   },
   "DM (Direct Message) Encryption": {
-    "string": ""
+    "string": "Enkripcija DM (direktnih poruka)"
   },
   "Step 1: Generate Keys": {
-    "string": ""
+    "string": "Korak 1: Generiši ključeve"
   },
   "Encryption keys are automatically generated when you install AndroidIRCX.": {
-    "string": ""
+    "string": "Ključevi za enkripciju se automatski generišu kada instaliraš AndroidIRCX."
   },
   "Step 2: Share Your Key": {
-    "string": ""
+    "string": "Korak 2: Podeli svoj ključ"
   },
   "To start encrypted conversation:": {
-    "string": ""
+    "string": "Da započneš šifrovanu konverzaciju:"
   },
   "Open private chat: /query Nick": {
-    "string": ""
+    "string": "Otvori privatni čet: /query Nick"
   },
   "Share your key: /sharekey Nick": {
-    "string": ""
+    "string": "Podeli svoj ključ: /sharekey Nick"
   },
   "Wait for them to share their key": {
-    "string": ""
+    "string": "Sačekaj da podeli svoj ključ"
   },
   "Messages are now automatically encrypted 🔒": {
-    "string": ""
+    "string": "Poruke su sada automatski šifrovane 🔒"
   },
   "Request Someone's Key": {
-    "string": ""
+    "string": "Zatraži nečiji ključ"
   },
   "Channel Encryption": {
-    "string": ""
+    "string": "Enkripcija kanala"
   },
   "As a channel operator:": {
-    "string": ""
+    "string": "Kao operator kanala:"
   },
   "Share key with trusted members:": {
-    "string": ""
+    "string": "Podeli ključ sa pouzdanim članovima:"
   },
   "Check Encryption Status": {
-    "string": ""
+    "string": "Proveri status enkripcije"
   },
   "Revoke Access": {
-    "string": ""
+    "string": "Opozovi pristup"
   },
   "Remove someone's access:": {
-    "string": ""
+    "string": "Ukloni nečiji pristup:"
   },
   "Security Best Practices": {
-    "string": ""
+    "string": "Najbolje bezbednosne prakse"
   },
   "✅ Verify key fingerprints out-of-band (phone call)\n✅ Rotate channel keys periodically\n✅ Only share keys with trusted users\n✅ Keep your device secure with PIN/biometric lock": {
-    "string": ""
+    "string": "✅ Verifikuj otiske ključeva van kanala (telefonskim pozivom)\n✅ Rotiraj ključeve kanala periodično\n✅ Deli ključeve samo sa pouzdanim korisnicima\n✅ Čuvaj uređaj zaštićen PIN/biometrijskim zaključavanjem"
   },
   "❌ Don't share keys over unencrypted channels\n❌ Don't share keys publicly\n❌ Don't ignore key verification warnings\n❌ Don't leave encrypted channels unattended": {
-    "string": ""
+    "string": "❌ Ne deli ključeve preko nešifrovanih kanala\n❌ Ne deli ključeve javno\n❌ Ne ignoriši upozorenja o verifikaciji ključa\n❌ Ne ostavljaj šifrovane kanale bez nadzora"
   },
   "Messages appear as gibberish": {
-    "string": ""
+    "string": "Poruke izgledaju kao besmislice"
   },
   "The sender hasn't shared their encryption key with you yet.": {
-    "string": ""
+    "string": "Pošiljalac ti još nije podelio svoj ključ za enkripciju."
   },
   "Solution:": {
-    "string": ""
+    "string": "Rešenje:"
   },
   "Can't decrypt old messages": {
-    "string": ""
+    "string": "Ne mogu da dešifrujem stare poruke"
   },
   "You joined the channel after messages were sent, or key was rotated.": {
-    "string": ""
+    "string": "Pridružio si se kanalu nakon što su poruke poslate, ili je ključ rotiran."
   },
   "Solution: Ask channel operator to reshare the key.": {
-    "string": ""
+    "string": "Rešenje: Zamoli operatora kanala da ponovo podeli ključ."
   },
   "Lock icon not showing": {
-    "string": ""
+    "string": "Ikona katanca se ne prikazuje"
   },
   "Encryption may be disabled or keys not exchanged.": {
-    "string": ""
+    "string": "Enkripcija je možda onemogućena ili ključevi nisu razmenjeni."
   },
   "Solution: Check Settings → Display & UI → Show Encryption Indicators": {
-    "string": ""
+    "string": "Rešenje: Proveri Podešavanja → Prikaz i interfejs → Prikaži indikatore enkripcije"
   },
   "Key Management": {
-    "string": ""
+    "string": "Upravljanje ključevima"
   },
   "View and manage your keys in:\nSettings → Security → Manage Encryption Keys": {
-    "string": ""
+    "string": "Pregledaj i upravljaj ključevima u:\nPodešavanja → Bezbednost → Upravljanje ključevima za enkripciju"
   },
   "Overview": {
-    "string": ""
+    "string": "Pregled"
   },
   "AndroidIRCX supports end-to-end encrypted media sharing:": {
-    "string": ""
+    "string": "AndroidIRCX podržava end-to-end šifrovanu razmenu medija:"
   },
   "📷 Photos (camera or gallery)": {
-    "string": ""
+    "string": "📷 Fotografije (kamera ili galerija)"
   },
   "🎥 Videos (camera or gallery)": {
-    "string": ""
+    "string": "🎥 Video snimci (kamera ili galerija)"
   },
   "🎤 Voice messages": {
-    "string": ""
+    "string": "🎤 Govorne poruke"
   },
   "📁 Files": {
-    "string": ""
+    "string": "📁 Fajlovi"
   },
   "Requirements": {
-    "string": ""
+    "string": "Zahtevi"
   },
   "E2EE must be enabled for the channel/DM": {
-    "string": ""
+    "string": "E2EE mora biti omogućen za kanal/DM"
   },
   "Both sender and recipient must have exchanged encryption keys": {
-    "string": ""
+    "string": "I pošiljalac i primalac moraju da razmene ključeve za enkripciju"
   },
   "Internet connection for upload/download": {
-    "string": ""
+    "string": "Internet veza za otpremanje/preuzimanje"
   },
   "How to Send Media": {
-    "string": ""
+    "string": "Kako poslati medije"
   },
   "Step 1: Enable Media Feature": {
-    "string": ""
+    "string": "Korak 1: Omogući funkciju medija"
   },
   "Open Settings (☰ menu)": {
-    "string": ""
+    "string": "Otvori Podešavanja (☰ meni)"
   },
   "Go to \"Media\"": {
-    "string": ""
+    "string": "Idi na \"Mediji\""
   },
   "Enable \"Enable Encrypted Media Sharing\"": {
-    "string": ""
+    "string": "Omogući \"Omogući šifrovanu razmenu medija\""
   },
   "Step 2: Send Photo": {
-    "string": ""
+    "string": "Korak 2: Pošalji fotografiju"
   },
   "Open encrypted channel or DM (must have 🔒 icon)": {
-    "string": ""
+    "string": "Otvori šifrovani kanal ili DM (mora imati 🔒 ikonu)"
   },
   "Tap the 📎 attachment button": {
-    "string": ""
+    "string": "Dodirni 📎 dugme za prilog"
   },
   "Select \"Photo\" or \"Camera\"": {
-    "string": ""
+    "string": "Izaberi \"Fotografija\" ili \"Kamera\""
   },
   "Choose or take photo": {
-    "string": ""
+    "string": "Izaberi ili uslikaj fotografiju"
   },
   "Add optional caption": {
-    "string": ""
+    "string": "Dodaj opcioni opis"
   },
   "Tap \"Send\"": {
-    "string": ""
+    "string": "Dodirni \"Pošalji\""
   },
   "Step 3: Send Video": {
-    "string": ""
+    "string": "Korak 3: Pošalji video"
   },
   "Tap 📎 attachment button": {
-    "string": ""
+    "string": "Dodirni 📎 dugme za prilog"
   },
   "Select \"Video\" or \"Record Video\"": {
-    "string": ""
+    "string": "Izaberi \"Video\" ili \"Snimi video\""
   },
   "Choose or record video": {
-    "string": ""
+    "string": "Izaberi ili snimi video"
   },
   "Preview and add caption": {
-    "string": ""
+    "string": "Pregledaj i dodaj opis"
   },
   "Step 4: Voice Message": {
-    "string": ""
+    "string": "Korak 4: Govorna poruka"
   },
   "Select \"Voice Message\"": {
-    "string": ""
+    "string": "Izaberi \"Govorna poruka\""
   },
   "Record your message": {
-    "string": ""
+    "string": "Snimi svoju poruku"
   },
   "Preview and send": {
-    "string": ""
+    "string": "Pregledaj i pošalji"
   },
   "How to Receive Media": {
-    "string": ""
+    "string": "Kako primiti medije"
   },
   "Automatic Download": {
-    "string": ""
+    "string": "Automatsko preuzimanje"
   },
   "By default, media is downloaded automatically on WiFi.": {
-    "string": ""
+    "string": "Podrazumevano se mediji automatski preuzimaju na WiFi mreži."
   },
   "Manual Download": {
-    "string": ""
+    "string": "Ručno preuzimanje"
   },
   "If auto-download is disabled:": {
-    "string": ""
+    "string": "Ako je automatsko preuzimanje onemogućeno:"
   },
   "Tap the media message": {
-    "string": ""
+    "string": "Dodirni poruku sa medijem"
   },
   "Tap \"Download\" button": {
-    "string": ""
+    "string": "Dodirni dugme \"Preuzmi\""
   },
   "Wait for decryption": {
-    "string": ""
+    "string": "Sačekaj dešifrovanje"
   },
   "View Media": {
-    "string": ""
+    "string": "Prikaži medije"
   },
   "Tap image/video to open in full screen": {
     "string": "Tapnite sliku/video za prikaz na celom ekranu"
@@ -11792,569 +11802,571 @@
     "string": "Problemi s konekcijom"
   },
   "Can't Connect to Server": {
-    "string": ""
+    "string": "Ne mogu da se povežem na server"
   },
   "Symptoms: Connection timeout, \"Unable to connect\"": {
-    "string": ""
+    "string": "Simptomi: Isteklo vreme veze, \"Nije moguće povezivanje\""
   },
   "Solutions:": {
-    "string": ""
+    "string": "Rešenja:"
   },
   "Verify server address is correct": {
-    "string": ""
+    "string": "Proveri da li je adresa servera ispravna"
   },
   "Try different port (6667 for non-SSL, 6697 for SSL)": {
-    "string": ""
+    "string": "Probaj drugi port (6667 za non-SSL, 6697 za SSL)"
   },
   "Disable VPN/proxy temporarily": {
-    "string": ""
+    "string": "Privremeno onemogući VPN/proxy"
   },
   "Try connecting via mobile data instead of WiFi": {
-    "string": ""
+    "string": "Probaj povezivanje preko mobilnih podataka umesto WiFi"
   },
   "Disconnects Frequently": {
-    "string": ""
+    "string": "Često se prekida veza"
   },
   "Symptoms: Random disconnections, \"Connection lost\"": {
-    "string": ""
+    "string": "Simptomi: Nasumični prekidi, \"Veza izgubljena\""
   },
   "Enable auto-reconnect: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Omogući automatsko ponovno povezivanje: Podešavanja → Veza i mreža → Automatsko ponovno povezivanje"
   },
   "Adjust auto-reconnect delays: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Podesi kašnjenja automatskog ponovnog povezivanja: Podešavanja → Veza i mreža → Automatsko ponovno povezivanje"
   },
   "Check network stability": {
-    "string": ""
+    "string": "Proveri stabilnost mreže"
   },
   "Try different server in same network": {
-    "string": ""
+    "string": "Probaj drugi server u istoj mreži"
   },
   "Review lag settings: Settings → Connection & Network → Connection Quality": {
-    "string": ""
+    "string": "Pregledaj podešavanja kašnjenja: Podešavanja → Veza i mreža → Kvalitet veze"
   },
   "SSL/TLS Errors": {
-    "string": ""
+    "string": "SSL/TLS greške"
   },
   "Symptoms: \"SSL handshake failed\", \"Certificate error\"": {
-    "string": ""
+    "string": "Simptomi: \"SSL handshake nije uspeo\", \"Greška sertifikata\""
   },
   "Verify server supports SSL on that port (usually 6697)": {
-    "string": ""
+    "string": "Proveri da li server podržava SSL na tom portu (obično 6697)"
   },
   "Try disabling \"Verify SSL Certificate\" in network settings": {
-    "string": ""
+    "string": "Probaj da onemogućiš \"Verifikuj SSL sertifikat\" u podešavanjima mreže"
   },
   "Update to latest app version": {
-    "string": ""
+    "string": "Ažuriraj na najnoviju verziju aplikacije"
   },
   "Check server certificate validity": {
-    "string": ""
+    "string": "Proveri validnost sertifikata servera"
   },
   "Authentication Problems": {
-    "string": ""
+    "string": "Problemi sa autentifikacijom"
   },
   "Symptoms: \"Nickname is already in use\"": {
-    "string": ""
+    "string": "Simptomi: \"Nadimak je već u upotrebi\""
   },
   "Try alternate nickname": {
-    "string": ""
+    "string": "Probaj alternativni nadimak"
   },
   "Wait a few minutes (old session timeout)": {
-    "string": ""
+    "string": "Sačekaj nekoliko minuta (istek stare sesije)"
   },
   "Use /msg NickServ GHOST YourNick password": {
-    "string": ""
+    "string": "Koristi /msg NickServ GHOST YourNick password"
   },
   "Change nickname: dropdown (▼) → Choose Network → Edit → Nickname": {
-    "string": ""
+    "string": "Promeni nadimak: padajući meni (▼) → Izaberi mrežu → Uredi → Nadimak"
   },
   "NickServ Won't Identify": {
-    "string": ""
+    "string": "NickServ neće da identifikuje"
   },
   "Symptoms: \"Password incorrect\", Not identified": {
-    "string": ""
+    "string": "Simptomi: \"Pogrešna lozinka\", Nije identifikovan"
   },
   "Verify password is correct": {
-    "string": ""
+    "string": "Proveri da li je lozinka ispravna"
   },
   "Wait for NickServ notice before identifying": {
-    "string": ""
+    "string": "Sačekaj obaveštenje od NickServ pre identifikacije"
   },
   "Manually identify: /msg NickServ IDENTIFY password": {
-    "string": ""
+    "string": "Ručno se identifikuj: /msg NickServ IDENTIFY password"
   },
   "Check if account is suspended": {
-    "string": ""
+    "string": "Proveri da li je nalog suspendovan"
   },
   "SASL Authentication Failed": {
-    "string": ""
+    "string": "SASL autentifikacija nije uspela"
   },
   "Symptoms: \"SASL authentication failed\"": {
-    "string": ""
+    "string": "Simptomi: \"SASL autentifikacija nije uspela\""
   },
   "Verify SASL username and password": {
-    "string": ""
+    "string": "Proveri SASL korisničko ime i lozinku"
   },
   "Check if SASL is enabled on server": {
-    "string": ""
+    "string": "Proveri da li je SASL omogućen na serveru"
   },
   "Try plain authentication method": {
-    "string": ""
+    "string": "Probaj metodu obične autentifikacije"
   },
   "Ensure nickname matches SASL account": {
-    "string": ""
+    "string": "Postaraj se da se nadimak poklapa sa SASL nalogom"
   },
   "Message Issues": {
-    "string": ""
+    "string": "Problemi sa porukama"
   },
   "Messages Not Sending": {
-    "string": ""
+    "string": "Poruke se ne šalju"
   },
   "Symptoms: Message appears locally but others don't see it": {
-    "string": ""
+    "string": "Simptomi: Poruka se prikazuje lokalno ali je drugi ne vide"
   },
   "Check if you're still connected": {
-    "string": ""
+    "string": "Proveri da li si još uvek povezan"
   },
   "Verify you're not banned/quieted": {
-    "string": ""
+    "string": "Proveri da nisi banovan/utišan"
   },
   "Check channel modes (+m moderated)": {
-    "string": ""
+    "string": "Proveri modove kanala (+m moderisan)"
   },
   "Ensure you have voice (+v) if channel is moderated": {
-    "string": ""
+    "string": "Postaraj se da imaš voice (+v) ako je kanal moderisan"
   },
   "Keyboard Covers Input": {
-    "string": ""
+    "string": "Tastatura prekriva polje za unos"
   },
   "Symptoms: Keyboard overlaps the message input": {
-    "string": ""
+    "string": "Simptomi: Tastatura se preklapa sa poljem za unos poruke"
   },
   "Go to Settings \u001a Display & UI \u001a Keyboard Avoiding": {
-    "string": ""
+    "string": "Idi na Podešavanja \u001a Prikaz i interfejs \u001a Izbegavanje tastature"
   },
   "Android: try Behavior = Height (default) or Padding": {
-    "string": ""
+    "string": "Android: probaj Ponašanje = Visina (podrazumevano) ili Popuna"
   },
   "iOS: try Behavior = Padding or Position": {
-    "string": ""
+    "string": "iOS: probaj Ponašanje = Popuna ili Pozicija"
   },
   "Adjust Keyboard Vertical Offset (e.g., 16-48)": {
-    "string": ""
+    "string": "Podesi vertikalni pomeraj tastature (npr. 16-48)"
   },
   "Android: toggle \"Android Bottom Safe Area\" for fullscreen vs. inset": {
-    "string": ""
+    "string": "Android: prebaci \"Android donja sigurna zona\" za fullscreen ili inset"
   },
   "Can't See Messages": {
-    "string": ""
+    "string": "Ne mogu da vidim poruke"
   },
   "Symptoms: Channel appears empty, no messages visible": {
-    "string": ""
+    "string": "Simptomi: Kanal izgleda prazno, nema vidljivih poruka"
   },
   "Check Settings → Display & UI → Show Raw Commands": {
-    "string": ""
+    "string": "Proveri Podešavanja → Prikaz i interfejs → Prikaži sirove komande"
   },
   "Verify filters in Settings → Messages & History": {
-    "string": ""
+    "string": "Proveri filtere u Podešavanja → Poruke i istorija"
   },
   "Restart app to reload message history": {
-    "string": ""
+    "string": "Restartuj aplikaciju da ponovo učita istoriju poruka"
   },
   "Check if user is ignored": {
-    "string": ""
+    "string": "Proveri da li je korisnik ignorisan"
   },
   "Encrypted Messages Show as Gibberish": {
-    "string": ""
+    "string": "Šifrovane poruke se prikazuju kao besmislice"
   },
   "Symptoms: Messages display as random characters": {
-    "string": ""
+    "string": "Simptomi: Poruke se prikazuju kao nasumični znakovi"
   },
   "Exchange encryption keys with sender": {
-    "string": ""
+    "string": "Razmeni ključeve za enkripciju sa pošiljaocem"
   },
   "Request key: /requestkey TheirNick": {
-    "string": ""
+    "string": "Zatraži ključ: /requestkey TheirNick"
   },
   "Verify E2EE is enabled": {
-    "string": ""
+    "string": "Proveri da li je E2EE omogućen"
   },
   "Check Key Management in Settings": {
-    "string": ""
+    "string": "Proveri Upravljanje ključevima u Podešavanjima"
   },
   "Channel Problems": {
-    "string": ""
+    "string": "Problemi sa kanalom"
   },
   "Can't Join Channel": {
-    "string": ""
+    "string": "Ne mogu da se pridružim kanalu"
   },
   "Symptoms: \"Cannot join channel\", Error 473-475": {
-    "string": ""
+    "string": "Simptomi: \"Ne mogu da se pridružim kanalu\", Greška 473-475"
   },
-  "+i (Invite-only): Ask operator for invite": {},
+  "+i (Invite-only): Ask operator for invite": {
+    "string": "+i (samo na poziv): Zamoli operatora za pozivnicu"
+  },
   "+k (Key required): Join with password: /join #channel password": {
-    "string": ""
+    "string": "+k (potreban ključ): Pridruži se sa lozinkom: /join #channel password"
   },
   "+l (User limit): Wait for space": {
-    "string": ""
+    "string": "+l (ograničenje korisnika): Sačekaj slobodno mesto"
   },
   "+b (Banned): Ask operator to unban you": {
-    "string": ""
+    "string": "+b (banovan): Zamoli operatora da te odbanuje"
   },
   "Can't Send Messages in Channel": {
-    "string": ""
+    "string": "Ne mogu da šaljem poruke na kanal"
   },
   "Symptoms: Message rejected, channel is quiet": {
-    "string": ""
+    "string": "Simptomi: Poruka odbijena, kanal je utišan"
   },
   "Check if channel is moderated (+m)": {
-    "string": ""
+    "string": "Proveri da li je kanal moderisan (+m)"
   },
   "Ask operator for voice (+v)": {
-    "string": ""
+    "string": "Zamoli operatora za voice (+v)"
   },
   "Check if you're banned or quieted": {
-    "string": ""
+    "string": "Proveri da li si banovan ili utišan"
   },
   "Verify you're still in the channel": {
-    "string": ""
+    "string": "Proveri da li si još uvek na kanalu"
   },
   "Channel Won't Stay Open": {
-    "string": ""
+    "string": "Kanal se ne zadržava otvoren"
   },
   "Symptoms: Channel tab closes automatically": {
-    "string": ""
+    "string": "Simptomi: Kartica kanala se automatski zatvara"
   },
   "Add it to auto-join: dropdown (▼) → Choose Network → Edit → Auto-Join Channels": {
-    "string": ""
+    "string": "Dodaj ga u automatsko pridruživanje: padajući meni (▼) → Izaberi mrežu → Uredi → Kanali za automatsko pridruživanje"
   },
   "Rejoin channel manually": {
-    "string": ""
+    "string": "Ponovo se pridruži kanalu ručno"
   },
   "Check network connection": {
-    "string": ""
+    "string": "Proveri mrežnu vezu"
   },
   "App Performance": {
-    "string": ""
+    "string": "Performanse aplikacije"
   },
   "App is Slow/Laggy": {
-    "string": ""
+    "string": "Aplikacija je spora/koči"
   },
   "Clear message history cache": {
-    "string": ""
+    "string": "Obriši keš istorije poruka"
   },
   "Reduce message batch size: Settings → Performance": {
-    "string": ""
+    "string": "Smanji veličinu paketa poruka: Podešavanja → Performanse"
   },
   "Disable animated emojis/GIFs": {
-    "string": ""
+    "string": "Onemogući animirane emodžije/GIF-ove"
   },
   "Close unused tabs": {
-    "string": ""
+    "string": "Zatvori nekorišćene kartice"
   },
   "Restart app": {
-    "string": ""
+    "string": "Restartuj aplikaciju"
   },
   "High Battery Usage": {
-    "string": ""
+    "string": "Visoka potrošnja baterije"
   },
   "Disable background service": {
-    "string": ""
+    "string": "Onemogući uslugu u pozadini"
   },
   "Reduce notification frequency": {
-    "string": ""
+    "string": "Smanji učestalost obaveštenja"
   },
   "Use WiFi instead of mobile data": {
-    "string": ""
+    "string": "Koristi WiFi umesto mobilnih podataka"
   },
   "Enable battery optimization": {
-    "string": ""
+    "string": "Omogući optimizaciju baterije"
   },
   "App Crashes": {
-    "string": ""
+    "string": "Aplikacija se ruši"
   },
   "Update to latest version": {
-    "string": ""
+    "string": "Ažuriraj na najnoviju verziju"
   },
   "Clear app cache and data": {
-    "string": ""
+    "string": "Obriši keš i podatke aplikacije"
   },
   "Restart device": {
-    "string": ""
+    "string": "Restartuj uređaj"
   },
   "Report crash with logs to developers": {
-    "string": ""
+    "string": "Prijavi rušenje programerima uz logove"
   },
   "Notification Issues": {
-    "string": ""
+    "string": "Problemi sa obaveštenjima"
   },
   "Not Receiving Notifications": {
-    "string": ""
+    "string": "Ne primam obaveštenja"
   },
   "Check notification permissions": {
-    "string": ""
+    "string": "Proveri dozvole za obaveštenja"
   },
   "Verify Settings → Notifications → Enabled": {
-    "string": ""
+    "string": "Proveri Podešavanja → Obaveštenja → Omogućeno"
   },
   "Disable battery optimization for app": {
-    "string": ""
+    "string": "Onemogući optimizaciju baterije za aplikaciju"
   },
   "Check Do Not Disturb is off": {
-    "string": ""
+    "string": "Proveri da li je Ne uznemiravaj isključeno"
   },
   "Re-enable background service": {
-    "string": ""
+    "string": "Ponovo omogući uslugu u pozadini"
   },
   "Too Many Notifications": {
-    "string": ""
+    "string": "Previše obaveštenja"
   },
   "Adjust notification filters": {
-    "string": ""
+    "string": "Podesi filtere obaveštenja"
   },
   "Enable \"Highlights only\" mode": {
-    "string": ""
+    "string": "Omogući režim \"Samo istaknuto\""
   },
   "Mute specific channels": {
-    "string": ""
+    "string": "Utišaj određene kanale"
   },
   "Set quiet hours": {
-    "string": ""
+    "string": "Podesi sate tišine"
   },
   "Media/File Issues": {
-    "string": ""
+    "string": "Problemi sa medijima/fajlovima"
   },
   "Can't Send Media": {
-    "string": ""
+    "string": "Ne mogu da pošaljem medije"
   },
   "Symptoms: Attachment button missing/disabled": {
-    "string": ""
+    "string": "Simptomi: Dugme za prilog nedostaje/onemogućeno"
   },
   "Verify E2EE is enabled for channel/DM": {
-    "string": ""
+    "string": "Proveri da li je E2EE omogućen za kanal/DM"
   },
   "Media Won't Download": {
-    "string": ""
+    "string": "Mediji se ne preuzimaju"
   },
   "Enable auto-download: Settings → Media → Auto-Download Media": {
-    "string": ""
+    "string": "Omogući automatsko preuzimanje: Podešavanja → Mediji → Automatsko preuzimanje medija"
   },
   "Verify storage permission": {
-    "string": ""
+    "string": "Proveri dozvolu za skladište"
   },
   "Clear media cache": {
-    "string": ""
+    "string": "Obriši keš medija"
   },
   "Media Appears Encrypted": {
-    "string": ""
+    "string": "Mediji izgledaju šifrovano"
   },
   "Request decryption key from sender": {
-    "string": ""
+    "string": "Zatraži ključ za dešifrovanje od pošiljaoca"
   },
   "Verify E2EE key exchange": {
-    "string": ""
+    "string": "Proveri razmenu E2EE ključeva"
   },
   "Check Security → Manage Encryption Keys": {
-    "string": ""
+    "string": "Proveri Bezbednost → Upravljanje ključevima za enkripciju"
   },
   "Account & Settings": {
-    "string": ""
+    "string": "Nalog i podešavanja"
   },
   "Lost PIN/Password": {
-    "string": ""
+    "string": "Izgubljen PIN/lozinka"
   },
   "Use biometric unlock if enabled": {
-    "string": ""
+    "string": "Koristi biometrijsko otključavanje ako je omogućeno"
   },
   "Settings → Security → Reset PIN": {
-    "string": ""
+    "string": "Podešavanja → Bezbednost → Resetuj PIN"
   },
   "Backup/restore may help": {
-    "string": ""
+    "string": "Kopija/restauracija može pomoći"
   },
   "Last resort: Clear app data (loses all data)": {
-    "string": ""
+    "string": "Krajnja opcija: Obriši podatke aplikacije (gubi se svi podaci)"
   },
   "Settings Not Saving": {
-    "string": ""
+    "string": "Podešavanja se ne čuvaju"
   },
   "Check storage permission": {
-    "string": ""
+    "string": "Proveri dozvolu za skladište"
   },
   "Verify storage space available": {
-    "string": ""
+    "string": "Proveri raspoloživ prostor za skladištenje"
   },
   "Clear app cache": {
-    "string": ""
+    "string": "Obriši keš aplikacije"
   },
   "Backup/Restore Failed": {
-    "string": ""
+    "string": "Kopiranje/restauracija nije uspela"
   },
   "Verify file integrity": {
-    "string": ""
+    "string": "Proveri integritet fajla"
   },
   "Use latest backup file": {
-    "string": ""
+    "string": "Koristi najnoviji fajl kopije"
   },
   "Try export/import individually": {
-    "string": ""
+    "string": "Probaj izvoz/uvoz pojedinačno"
   },
   "Still Need Help?": {
-    "string": ""
+    "string": "Potrebna ti je dodatna pomoć?"
   },
   "Get Support": {
-    "string": ""
+    "string": "Zatraži podršku"
   },
   "Join #AndroidIRCX on irc.dbase.in.rs": {
-    "string": ""
+    "string": "Pridruži se #AndroidIRCX na irc.dbase.in.rs"
   },
   "Email: support@androidircx.com": {
-    "string": ""
+    "string": "Email: support@androidircx.com"
   },
   "GitHub Issues: github.com/yourrepo/issues": {
-    "string": ""
+    "string": "GitHub Issues: github.com/yourrepo/issues"
   },
   "Gather Information": {
-    "string": ""
+    "string": "Prikupljanje informacija"
   },
   "Before reporting, collect:": {
-    "string": ""
+    "string": "Pre prijave prikupi:"
   },
   "App version": {
-    "string": ""
+    "string": "Verzija aplikacije"
   },
   "Android version": {
-    "string": ""
+    "string": "Verzija Androida"
   },
   "Device model": {
-    "string": ""
+    "string": "Model uređaja"
   },
   "Error message/screenshot": {
-    "string": ""
+    "string": "Poruka o grešci/snimak ekrana"
   },
   "Steps to reproduce": {
-    "string": ""
+    "string": "Koraci za reprodukciju"
   },
   "Enable Debug Logging:\\nSettings → Development → Enable Console Logging (debug builds only)\\nSend logs with your report.": {
-    "string": ""
+    "string": "Omogući logovanje za otklanjanje grešaka:\\nPodešavanja → Razvoj → Omogući logovanje u konzoli (samo debug verzije)\\nPošalji logove uz prijavu."
   },
   "Some errors occurred:": {
     "string": "Došlo je do grešaka:"
   },
   "Add to Notify": {
-    "string": ""
+    "string": "Dodaj u Obavesti"
   },
   "Add to AutoOp": {
-    "string": ""
+    "string": "Dodaj u AutoOp"
   },
   "Add to AutoVoice": {
-    "string": ""
+    "string": "Dodaj u AutoVoice"
   },
   "Add to Protected": {
-    "string": ""
+    "string": "Dodaj u Zaštićeno"
   },
   "Open Networks list to choose and manage networks": {
-    "string": ""
+    "string": "Otvori listu mreža da izabereš i upravljaš mrežama"
   },
   "Invert scroll & swipe direction": {
-    "string": ""
+    "string": "Obrni smer skrolovanja i prevlačenja"
   },
   "Reverse direction for tab switching gestures": {
-    "string": ""
+    "string": "Obrni smer za gestove menjanja kartica"
   },
   "Swipe Behavior": {
-    "string": ""
+    "string": "Ponašanje prevlačenja"
   },
   "Swipe left/right to switch tabs": {
-    "string": ""
+    "string": "Prevuci levo/desno za menjanje kartica"
   },
   "Swipe to show/hide panels": {
-    "string": ""
+    "string": "Prevuci za prikaz/skrivanje panela"
   },
   "Swipe gestures disabled": {
-    "string": ""
+    "string": "Gestovi prevlačenja onemogućeni"
   },
   "Off": {
-    "string": ""
+    "string": "Isključeno"
   },
   "No swipe gestures": {
-    "string": ""
+    "string": "Nema gestova prevlačenja"
   },
   "Switch tabs": {
-    "string": ""
+    "string": "Menjanje kartica"
   },
   "Swipe left/right to switch to next/previous tab": {
-    "string": ""
+    "string": "Prevuci levo/desno za prelazak na sledeću/prethodnu karticu"
   },
   "Show/hide panels": {
-    "string": ""
+    "string": "Prikaži/sakrij panele"
   },
   "Swipe right for tabs panel, swipe left for nicklist": {
-    "string": ""
+    "string": "Prevuci desno za panel kartica, prevuci levo za listu nadimaka"
   },
   "WHOIS Display": {
-    "string": ""
+    "string": "Prikaz WHOIS"
   },
   "Show WHOIS in a popup modal": {
-    "string": ""
+    "string": "Prikaži WHOIS u iskačućem prozoru"
   },
   "Show WHOIS in the active tab": {
-    "string": ""
+    "string": "Prikaži WHOIS u aktivnoj kartici"
   },
   "Show WHOIS in the status tab": {
-    "string": ""
+    "string": "Prikaži WHOIS u statusnoj kartici"
   },
   "Modal (popup)": {
-    "string": ""
+    "string": "Modalni (iskačući)"
   },
   "Status tab": {
-    "string": ""
+    "string": "Statusna kartica"
   },
   "User Lists": {
-    "string": ""
+    "string": "Liste korisnika"
   },
   "Manage notify, autoop, autovoice and protected lists": {
-    "string": ""
+    "string": "Upravljaj listama obaveštenja, autoop, autovoice i zaštićenih"
   },
   "Modes:": {
-    "string": ""
+    "string": "Modovi:"
   },
   "Connecting from:": {
-    "string": ""
+    "string": "Povezivanje sa:"
   },
   "Privileges": {
-    "string": ""
+    "string": "Privilegije"
   },
   "IRC Operator:": {
-    "string": ""
+    "string": "IRC operator:"
   },
   "Admin:": {
-    "string": ""
+    "string": "Admin:"
   },
   "Services Admin:": {
-    "string": ""
+    "string": "Services admin:"
   },
   "Help Operator:": {
-    "string": ""
+    "string": "Help operator:"
   },
   "Registered:": {
-    "string": ""
+    "string": "Registrovan:"
   },
   "Bot:": {
-    "string": ""
+    "string": "Bot:"
   },
   "Special:": {
-    "string": ""
+    "string": "Specijalno:"
   },
   "Connection:": {
-    "string": ""
+    "string": "Veza:"
   },
   "Secure (SSL/TLS)": {
-    "string": ""
+    "string": "Sigurno (SSL/TLS)"
   },
   "Connection Activity": {
-    "string": ""
+    "string": "Aktivnost veze"
   },
   "User Activity": {
     "string": "Aktivnost korisnika"
@@ -12558,25 +12570,25 @@
     "string": "Upotreba: /unnotify <nick>"
   },
   "Usage: /autoop <nick> [#channel]": {
-    "string": "Upotreba: /autoop <nick> [#kanal]"
+    "string": "Upotreba: /autoop <nick> [#channel]"
   },
   "Usage: /unautoop <nick>": {
     "string": "Upotreba: /unautoop <nick>"
   },
   "Usage: /autovoice <nick> [#channel]": {
-    "string": "Upotreba: /autovoice <nick> [#kanal]"
+    "string": "Upotreba: /autovoice <nick> [#channel]"
   },
   "Usage: /unautovoice <nick>": {
     "string": "Upotreba: /unautovoice <nick>"
   },
   "Usage: /autohalfop <nick> [#channel]": {
-    "string": "Upotreba: /autohalfop <nick> [#kanal]"
+    "string": "Upotreba: /autohalfop <nick> [#channel]"
   },
   "Usage: /unautohalfop <nick>": {
     "string": "Upotreba: /unautohalfop <nick>"
   },
   "Usage: /protect <nick> [#channel]": {
-    "string": "Upotreba: /protect <nick> [#kanal]"
+    "string": "Upotreba: /protect <nick> [#channel]"
   },
   "{nick} is already protected": {
     "string": "{nick} je već zaštićen"
@@ -12606,10 +12618,10 @@
     "string": "*** {nick} je sada offline"
   },
   "CTCP VERSION Response": {
-    "string": "CTCP VERSION odgovor"
+    "string": "CTCP CTCP VERSION odgovor"
   },
   "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
-    "string": "Tekst dodat na VERSION odgovor (npr. 'https://example.com' ili 'React Native'). Ostavite prazno za samo verziju."
+    "string": "Tekst dodat na CTCP VERSION odgovor (npr. 'https://example.com' ili 'React Native'). Ostavite prazno za samo verziju."
   },
   "Open Link": {
     "string": "Otvori link"
@@ -12645,7 +12657,7 @@
     "string": "Auto-detekcija WHOIS idle formata"
   },
   "Automatically use \"/WHOIS nick nick\" on networks like Undernet": {
-    "string": ""
+    "string": "Automatski koristi \"/WHOIS nick nick\" na mrežama kao što je Undernet"
   },
   "Use manual WHOIS format setting": {
     "string": "Koristi ručno podešavanje WHOIS formata"
@@ -12672,7 +12684,7 @@
     "string": "STUN serveri za besplatne pozive"
   },
   "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
-    "string": "Trenutna fallback lista: {count} STUN endpointa. Premium pozivi i dalje koriste TURN kada je potrebno."
+    "string": "Trenutna fallback lista: {count} TURN endpointa. Premium pozivi i dalje koriste TURN kada je potrebno."
   },
   "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
     "string": "Trenutna fallback lista: {count} STUN endpointa za direktne besplatne pozive. Poređana lista se koristi za fallback."
@@ -12972,172 +12984,172 @@
     "string": "Pozivi"
   },
   "Query": {
-    "string": ""
+    "string": "Upit"
   },
   "Failed to load options": {
-    "string": ""
+    "string": "Neuspešno učitavanje opcija"
   },
   "DBase (Optional Default)": {
-    "string": ""
+    "string": "DBase (opcionalno podrazumevano)"
   },
   "Use the built-in DBase network now. You can still change or remove it later.": {
-    "string": ""
+    "string": "Koristi ugrađenu DBase mrežu sada. Možeš je kasnije promeniti ili ukloniti."
   },
   "Choose Another Server Later": {
-    "string": ""
+    "string": "Izaberi drugi server kasnije"
   },
   "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
-    "string": ""
+    "string": "Završi podešavanje sada i otvori Izaberi mrežu kasnije da dodaš ili ponovo učitaš mreže sa API liste."
   },
   "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
-    "string": ""
+    "string": "Tvoj identitet je sačuvan. Otvori Izaberi mrežu da dodaš server ili ponovo učitaš odobrenu API listu mreža."
   },
   "Open Choose Network": {
-    "string": ""
+    "string": "Otvori Izaberi mrežu"
   },
   "No new networks imported": {
-    "string": ""
+    "string": "Nije uvezena nijedna nova mreža"
   },
   "No new networks were imported from IRC Database. Existing entries are unchanged.": {
-    "string": ""
+    "string": "Nijedna nova mreža nije uvezena iz IRC Database. Postojeći unosi su nepromenjeni."
   },
   "Import partially completed": {
-    "string": ""
+    "string": "Uvoz delimično završen"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
-    "string": ""
+    "string": "Uvezeno: {importedNetworks} mreža ({importedServers} servera). Spojeno: {mergedNetworks} mreža (+{mergedServers} servera). Neuspešno čuvanje: {failed}. Preskočeno nepromenjenih: {skipped}."
   },
   "Import completed": {
-    "string": ""
+    "string": "Uvoz završen"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
-    "string": ""
+    "string": "Uvezeno: {importedNetworks} mreža ({importedServers} servera). Spojeno: {mergedNetworks} mreža (+{mergedServers} servera). Preskočeno nepromenjenih: {skipped}."
   },
   "Import failed": {
-    "string": ""
+    "string": "Uvoz nije uspeo"
   },
   "Unable to load data from IRC Database: {error}": {
-    "string": ""
+    "string": "Nije moguće učitati podatke iz IRC Database: {error}"
   },
   "Unable to open link": {
-    "string": ""
+    "string": "Nije moguće otvoriti link"
   },
   "Reload from IRC Database": {
-    "string": ""
+    "string": "Ponovo učitaj iz IRC Database"
   },
   "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
-    "string": ""
+    "string": "Ovde možeš dodati sopstvene mreže ili ponovo učitati odobrenu listu mreža sa IRC Database API-ja. Postojeće mreže se zadržavaju; dodaju se serveri koji nedostaju."
   },
   "Reload Networks from IRC Database": {
-    "string": ""
+    "string": "Ponovo učitaj mreže iz IRC Database"
   },
   "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
-    "string": ""
+    "string": "IRC Database sadrži mreže koje su izričito pristale da budu javno otkrivane u IRC klijentima."
   },
   "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
-    "string": ""
+    "string": "Ponovno učitavanje znači ažuriranje: poklapajuće mreže se preskaču, a postojećim mrežama se dodaju samo serveri koji nedostaju."
   },
   "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
-    "string": ""
+    "string": "AndroidIRCX ponovo učitava odobrene pripreme iz IRC Database. Uvezeni unosi se dodaju u tvoju lokalnu listu mreža. Podrazumevano DBase podešavanje ostaje nepromenjeno."
   },
   "If your network is not listed and you want inclusion in AndroidIRCX:": {
-    "string": ""
+    "string": "Ako tvoja mreža nije na listi i želiš da bude uključena u AndroidIRCX:"
   },
   "By submitting your network, you accept:": {
-    "string": ""
+    "string": "Podnošenjem svoje mreže prihvataš:"
   },
   "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
-    "string": ""
+    "string": "Podnošenje znači da tvoja mreža dozvoljava radnje otkrivanja IRCDBase bota kao što su /list, /lusers i pridruživanje najaktivnijem kanalu."
   },
   "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
-    "string": ""
+    "string": "Prikupljanje nadimaka preko /names je opciono i može se onemogućiti u podešavanjima tvoje mreže na IRC Database."
   },
   "Update from IRC Database": {
-    "string": ""
+    "string": "Ažuriraj iz IRC Database"
   },
   "Enable Category Debug Logging": {
-    "string": ""
+    "string": "Omogući logovanje za otklanjanje grešaka po kategoriji"
   },
   "Enable optional debug logs by category in development builds": {
-    "string": ""
+    "string": "Omogući opciono logovanje za otklanjanje grešaka po kategoriji u razvojnim verzijama"
   },
   "Requires console logging to be enabled": {
-    "string": ""
+    "string": "Zahteva da logovanje u konzoli bude omogućeno"
   },
   "Unexpected syntax check failure.": {
-    "string": ""
+    "string": "Neočekivani neuspeh provere sintakse."
   },
   "Invalid audio source": {
-    "string": ""
+    "string": "Nevažeći izvor zvuka"
   },
   "Unsupported audio source": {
-    "string": ""
+    "string": "Nepodržani izvor zvuka"
   },
   "Reply": {
-    "string": ""
+    "string": "Odgovori"
   },
   "Failed to scan QR": {
-    "string": ""
+    "string": "Skeniranje QR koda nije uspelo"
   },
   "Load older history": {
-    "string": ""
+    "string": "Učitaj stariju istoriju"
   },
   "Loading history...": {
-    "string": ""
+    "string": "Učitavanje istorije..."
   },
   "Copy user@host": {
-    "string": ""
+    "string": "Kopiraj user@host"
   },
   "Copy hostmask": {
-    "string": ""
+    "string": "Kopiraj hostmask"
   },
   "IRCv3 Info": {
     "string": "IRCv3 Info"
   },
   "IRCv3 Diagnostics": {
-    "string": ""
+    "string": "IRCv3 dijagnostika"
   },
   "Select or connect a network before opening IRCv3 diagnostics.": {
-    "string": ""
+    "string": "Izaberi ili poveži mrežu pre otvaranja IRCv3 dijagnostike."
   },
   "No active IRC connection for this network.": {
-    "string": ""
+    "string": "Nema aktivne IRC veze za ovu mrežu."
   },
   "View CAP, ISUPPORT, transport, and unavailable feature details": {
-    "string": ""
+    "string": "Prikaži detalje o CAP, ISUPPORT, transportu i nedostupnim funkcijama"
   },
   "Connect a network to inspect IRCv3 details": {
-    "string": ""
+    "string": "Poveži mrežu da pregledaš IRCv3 detalje"
   },
   "Allow Screenshots": {
-    "string": ""
+    "string": "Dozvoli snimke ekrana"
   },
   "Copy WHOIS Details": {
-    "string": ""
+    "string": "Kopiraj WHOIS detalje"
   },
   "Backup generation returned empty data": {
-    "string": ""
+    "string": "Generisanje kopije je vratilo prazne podatke"
   },
   "No backup data available to copy": {
-    "string": ""
+    "string": "Nema podataka kopije za kopiranje"
   },
   "No backup data available to save": {
-    "string": ""
+    "string": "Nema podataka kopije za čuvanje"
   },
   "Failed to decrypt backup": {
-    "string": ""
+    "string": "Dešifrovanje kopije nije uspelo"
   },
   "Generated backup is large, so inline JSON preview is hidden to keep the app stable. You can still copy, save, or restore it.": {
-    "string": ""
+    "string": "Generisana kopija je velika, pa je ugrađeni JSON pregled sakriven radi stabilnosti aplikacije. Ipak možeš da je kopiraš, sačuvaš ili restauriraš."
   },
   "Generated Backup": {
-    "string": ""
+    "string": "Generisana kopija"
   },
   "Encrypted: Yes": {
-    "string": ""
+    "string": "Šifrovano: Da"
   },
   "Encrypted: No": {
-    "string": ""
+    "string": "Šifrovano: Ne"
   },
   "IRCv3 Features": {
     "string": "IRCv3 Mogućnosti"
@@ -13161,192 +13173,216 @@
     "string": "Povežite se na IRC mrežu da vidite IRCv3 mogućnosti i serverske funkcije."
   },
   "WHOIS response format": {
-    "string": ""
+    "string": "Format WHOIS odgovora"
   },
   "WHO response format": {
-    "string": ""
+    "string": "Format WHO odgovora"
   },
   "NAMES response format": {
-    "string": ""
+    "string": "Format NAMES odgovora"
   },
   "user@host": {
-    "string": ""
+    "string": "user@host"
   },
   "real name": {
-    "string": ""
+    "string": "ime i prezime"
   },
   "channels": {
-    "string": ""
+    "string": "kanali"
   },
   "names": {
-    "string": ""
+    "string": "nadimci"
   },
   "owners": {
-    "string": ""
+    "string": "vlasnici"
   },
   "admins": {
-    "string": ""
+    "string": "admini"
   },
   "ops": {
-    "string": ""
+    "string": "ops"
   },
   "halfops": {
-    "string": ""
+    "string": "halfops"
   },
   "voices": {
-    "string": ""
+    "string": "voice"
   },
   "normal": {
-    "string": ""
+    "string": "normalno"
   },
   "count": {
-    "string": ""
+    "string": "broj"
   },
   "idle": {
-    "string": ""
+    "string": "neaktivnost"
   },
   "date": {
-    "string": ""
+    "string": "datum"
   },
   "status": {
-    "string": ""
+    "string": "status"
   },
   "is connecting from {userhost}": {
-    "string": ""
+    "string": "se povezuje sa {userhost}"
   },
   "Gs*! 8": {
-    "string": ""
+    "string": "Gs*! 8"
   },
   "Nicks on {channel}": {
-    "string": ""
+    "string": "Nadimci na {channel}"
   },
   "[{hostmask} has joined]": {
-    "string": ""
+    "string": "[{hostmask} se pridružio]"
   },
   "Raw response presets": {
-    "string": ""
+    "string": "Pripreme sirovih odgovora"
   },
   "Search history...": {
-    "string": ""
+    "string": "Pretraži istoriju..."
   },
   "WEBIRC requires password, gateway, hostname, and IP before it can be enabled.": {
-    "string": ""
+    "string": "WEBIRC zahteva lozinku, gateway, hostname i IP pre nego što može da se omogući."
   },
   "IRCv3 Transport and Gateway": {
-    "string": ""
+    "string": "IRCv3 transport i gateway"
   },
   "Use IRCv3 WebSocket": {
-    "string": ""
+    "string": "Koristi IRCv3 WebSocket"
   },
   "WebSocket URL": {
-    "string": ""
+    "string": "WebSocket URL"
   },
   "wss://irc.example.net:6697/": {
-    "string": ""
+    "string": "wss://irc.example.net:6697/"
   },
   "WebSocket Subprotocols": {
-    "string": ""
+    "string": "WebSocket podprotokoli"
   },
   "binary.ircv3.net, text.ircv3.net": {
-    "string": ""
+    "string": "binary.ircv3.net, text.ircv3.net"
   },
   "Leave URL blank to use ws/wss with the network host and port.": {
-    "string": ""
+    "string": "Ostavi URL prazan da koristiš ws/wss sa hostom i portom mreže."
   },
   "Enable WEBIRC": {
-    "string": ""
+    "string": "Omogući WEBIRC"
   },
   "WEBIRC is only for trusted gateway/browser-style deployments where the IRC server has configured this password.": {
-    "string": ""
+    "string": "WEBIRC je samo za pouzdane gateway/browser implementacije gde je IRC server konfigurisao ovu lozinku."
   },
   "WEBIRC Password": {
-    "string": ""
+    "string": "WEBIRC lozinka"
   },
   "shared WEBIRC password": {
-    "string": ""
+    "string": "deljena WEBIRC lozinka"
   },
   "WEBIRC Gateway": {
-    "string": ""
+    "string": "WEBIRC gateway"
   },
   "WEBIRC Hostname": {
-    "string": ""
+    "string": "WEBIRC hostname"
   },
   "client.example.net": {
-    "string": ""
+    "string": "client.example.net"
   },
   "WEBIRC IP": {
-    "string": ""
+    "string": "WEBIRC IP"
   },
   "203.0.113.10": {
-    "string": ""
+    "string": "203.0.113.10"
   },
   "WEBIRC Options": {
-    "string": ""
+    "string": "WEBIRC opcije"
   },
   "secure, tls": {
-    "string": ""
+    "string": "secure, tls"
   },
   "Backup payload is empty": {
-    "string": ""
+    "string": "Sadržaj kopije je prazan"
   },
   "Encryption password is required": {
-    "string": ""
+    "string": "Potrebna je lozinka za šifrovanje"
   },
   "Failed to encode encrypted backup": {
-    "string": ""
+    "string": "Kodiranje šifrovane kopije nije uspelo"
   },
   "Decryption password is required": {
-    "string": ""
+    "string": "Potrebna je lozinka za dešifrovanje"
   },
   "Invalid encrypted backup payload": {
-    "string": ""
+    "string": "Nevažeći sadržaj šifrovane kopije"
   },
   "Decryption failed - decrypted payload was empty": {
-    "string": ""
+    "string": "Dešifrovanje nije uspelo - dešifrovani sadržaj je bio prazan"
   },
   "End of WHO list for {channel}": {
-    "string": ""
+    "string": "Kraj WHO liste za {channel}"
   },
   "*** Nicks on {channel}: {names}": {
-    "string": ""
+    "string": "*** Nadimci na {channel}: {names}"
   },
   "is away: {message}": {
-    "string": ""
+    "string": "je odsutan: {message}"
   },
   "is {userhost} * {realname}": {
-    "string": ""
+    "string": "je {userhost} * {realname}"
   },
   "using {server} {info}": {
-    "string": ""
+    "string": "koristi {server} {info}"
   },
   "has been idle {idle}, signed on {date}": {
-    "string": ""
+    "string": "je neaktivan {idle}, prijavljen {date}"
   },
   "End of WHOIS for {nick}": {
-    "string": ""
+    "string": "Kraj WHOIS-a za {nick}"
   },
   "is on channels: {channels}": {
-    "string": ""
+    "string": "je na kanalima: {channels}"
   },
   "is logged in as {account}": {
-    "string": ""
+    "string": "je prijavljen kao {account}"
   },
   "is actually using host {host}": {
-    "string": ""
+    "string": "zapravo koristi host {host}"
   },
   "is connecting from {host}": {
-    "string": ""
+    "string": "se povezuje sa {host}"
   },
   "is using modes {modes}": {
-    "string": ""
+    "string": "koristi modove {modes}"
   },
   "WebSocket connection error": {
-    "string": ""
+    "string": "Greška WebSocket veze"
   },
   "Invalid WebIRC {field}": {
-    "string": ""
+    "string": "Nevažeći WebIRC {field}"
   },
   "METADATA is not supported by this server": {
-    "string": ""
+    "string": "Ovaj server ne podržava METADATA"
+  },
+  "NFC is off. Enable it in settings, then try again.": {
+    "string": "NFC je isključen. Omogući ga u podešavanjima pa pokušaj ponovo."
+  },
+  "Hold the two phones back-to-back...": {
+    "string": "Drži dva telefona leđa uz leđa..."
+  },
+  "Keep the phones together. Tap Receive via NFC on the other phone.": {
+    "string": "Drži telefone zajedno. Dodirni Primi preko NFC-a na drugom telefonu."
+  },
+  "Keep the phones together. Tap Share via NFC on the other phone.": {
+    "string": "Drži telefone zajedno. Dodirni Podeli preko NFC-a na drugom telefonu."
+  },
+  "Hold the phone against the NFC tag...": {
+    "string": "Prinesi telefon NFC oznaci..."
+  },
+  "Key sent via NFC": {
+    "string": "Ključ poslat preko NFC-a"
+  },
+  "Key written to NFC tag": {
+    "string": "Ključ upisan na NFC oznaku"
+  },
+  "NFC timed out. Try again, holding the phones together.": {
+    "string": "NFC je istekao. Pokušaj ponovo, držeći telefone zajedno."
   }
 }

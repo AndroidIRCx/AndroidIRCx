@@ -20,7 +20,7 @@ import {
   miscHandlers,
 } from '../../../../src/services/irc/numerics/MiscNumerics';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: {
     t: (key: string, params?: Record<string, unknown>) => {
       let result = key;

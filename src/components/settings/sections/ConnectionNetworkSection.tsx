@@ -31,7 +31,7 @@ import {
 } from '@react-native-documents/picker';
 import { SettingItem } from '../SettingItem';
 import { useSettingsConnection } from '../../../hooks/useSettingsConnection';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,

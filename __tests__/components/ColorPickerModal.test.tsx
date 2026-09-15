@@ -7,8 +7,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ColorPickerModal } from '../../src/components/ColorPickerModal';
 
-// Mock i18n transifex
-jest.mock('../../src/i18n/transifex', () => ({
+// Mock i18n localization
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

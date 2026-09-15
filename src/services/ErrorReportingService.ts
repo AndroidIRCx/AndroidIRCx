@@ -12,7 +12,7 @@ import {
 } from '@react-native-firebase/crashlytics';
 import { Linking, Platform } from 'react-native';
 import { logger } from './Logger';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

@@ -59,9 +59,9 @@ const mockConnectionStatsGet = jest.fn(() => ({
 const mockConnectionGet = jest.fn(() => null as any);
 const mockServiceDetectionGet = jest.fn(() => null as any);
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
-  applyTransifexLocale: jest.fn(async () => undefined),
+  applyLocale: jest.fn(async () => undefined),
 }));
 
 jest.mock('../../../src/components/settings/SettingItem', () => {

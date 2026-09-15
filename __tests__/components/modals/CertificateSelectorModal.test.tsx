@@ -64,7 +64,7 @@ jest.mock('../../../src/components/modals/CertificateGeneratorModal', () => ({
   CertificateGeneratorModal: () => null,
 }));
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => t,
 }));
 

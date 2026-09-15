@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Text } from 'react-native';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 import {
   HelpScreenBase,
   HelpSection,

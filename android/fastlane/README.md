@@ -14,17 +14,27 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## Android
 
-### android production
+### internal
 
 ```sh
-[bundle exec] fastlane android production
+[bundle exec] fastlane internal
+```
+
+Clean build release AAB and upload it to Play Internal
+
+---
+
+### production
+
+```sh
+[bundle exec] fastlane production
 ```
 
 Upload AAB to Production (100%)
 
 ---
 
-This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+This README.md is maintained manually. The Fastfile disables automatic docs generation so this Android-only project can document lanes as `fastlane internal` and `fastlane production`.
 
 More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
 

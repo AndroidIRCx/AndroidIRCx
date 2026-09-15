@@ -32,7 +32,7 @@ jest.mock('react-native-vector-icons/FontAwesome5', () => {
   return ({ name }: any) => <Text>{name}</Text>;
 });
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, unknown>) => {
     if (!params) {
       return key;

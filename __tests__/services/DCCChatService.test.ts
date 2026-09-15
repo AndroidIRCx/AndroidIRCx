@@ -26,7 +26,7 @@ jest.mock('react-native-tcp-socket', () => ({
   createServer: jest.fn().mockReturnValue(mockServer),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: { t: jest.fn((key: string) => key) },
 }));
 

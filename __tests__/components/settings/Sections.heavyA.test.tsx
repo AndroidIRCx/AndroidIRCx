@@ -18,7 +18,7 @@ const mockAwayClear = jest.fn();
 const mockGetSpamLog = jest.fn(async () => 'spam log');
 const mockClearSpamLog = jest.fn(async () => undefined);
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

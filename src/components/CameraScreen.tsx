@@ -25,7 +25,7 @@ import {
 } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface CameraScreenProps {
   visible: boolean;

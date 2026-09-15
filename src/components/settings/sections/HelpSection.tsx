@@ -8,7 +8,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../../../hooks/useTheme';
 import { useUIStore } from '../../../stores/uiStore';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 
 export const HelpSection: React.FC = () => {
   const { colors } = useTheme();

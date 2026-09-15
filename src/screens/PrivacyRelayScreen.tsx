@@ -30,7 +30,7 @@ import type {
 import { ErrorCode } from 'react-native-iap';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   privacyRelayService,
   PRIVACY_RELAY_BASE_PLAN_IDS,

@@ -8,7 +8,7 @@
  * AWAY, BACK, RECONNECT, DISCONNECT, SERVER
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,

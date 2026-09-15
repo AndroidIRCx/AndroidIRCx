@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
 import { IRCAP_THEME } from '../themes/IRcapTheme';
 import { DARK_THEME } from '../themes/DarkTheme';

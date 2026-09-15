@@ -22,7 +22,7 @@ const mockRemoveCustomCommand = jest.fn(async () => undefined);
 const mockDeleteHistoryEntry = jest.fn(async () => undefined);
 const mockClearHistory = jest.fn(async () => undefined);
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

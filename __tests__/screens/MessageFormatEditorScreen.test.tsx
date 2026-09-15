@@ -44,7 +44,7 @@ const buildFormats = () => ({
   event: [{ type: 'token', value: 'message', style: {} }],
 });
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

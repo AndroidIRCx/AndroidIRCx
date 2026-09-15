@@ -9,7 +9,7 @@
  * These are responses to WHOIS and WHOWAS commands.
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type { NumericHandler } from '../types';
 import { useUIStore } from '../../../stores/uiStore';
 

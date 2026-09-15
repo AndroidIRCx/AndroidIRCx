@@ -1,5 +1,0 @@
-What's new in v1.9.28:
-- Updated React Native and Android dependencies for better compatibility
-- Improved startup and native module stability
-- Fixed a chat layout issue where the message window could remain shifted after hiding the Android keyboard
-- Refreshed internal test support for the latest React Native tooling

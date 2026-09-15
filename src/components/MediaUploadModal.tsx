@@ -26,7 +26,7 @@ import {
   Alert,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   mediaPickerService,
   MediaPickResult,

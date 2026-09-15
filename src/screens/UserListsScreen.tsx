@@ -23,7 +23,7 @@ import {
   IgnoredUser,
 } from '../services/UserManagementService';
 import { connectionManager } from '../services/ConnectionManager';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useUIStore } from '../stores/uiStore';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../services/ThemeService';

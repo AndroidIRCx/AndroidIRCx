@@ -1,33 +1,59 @@
 default_platform(:android)
+skip_docs
 
 platform :android do
-
-    def aab_path
-      "../android/app/build/outputs/bundle/release/app-release.aab"
-    end
   ########################################
-  # Common helper
+  # Common helpers
   ########################################
-  def upload_closed(track:, version:, aab_path:)
-    upload_to_play_store(
-      track: track,
-      aab: aab_path,
-      release_status: "completed",
-      version_name: version
-          )
+  def repo_root
+    File.expand_path("../..", __dir__)
   end
 
-########################################
-# Production – full rollout
-########################################
-desc "Upload AAB to Production (100%)"
-lane :production do
-  upload_to_play_store(
-    track: "production",
-    aab: "D:/AndroidProjects/androidircx/android/app/build/outputs/bundle/release/app-release.aab",
-    # aab: aab_path,
-    release_status: "completed"
-  )
-end
+  def aab_path
+    File.join(repo_root, "android", "app", "build", "outputs", "bundle", "release", "app-release.aab")
+  end
+
+  def metadata_path
+    File.join(repo_root, "android", "fastlane", "metadata", "android")
+  end
+
+  def build_clean_aab
+    script_path = File.join(repo_root, "scripts", "build.ps1").tr("\\", "/")
+    sh("powershell -NoProfile -ExecutionPolicy Bypass -File \"#{script_path}\" -Clean -AabOnly")
+  end
+
+  def upload_aab(track:, version: nil, aab_path:)
+    # Uploading release notes/metadata requires the service account to hold the
+    # "Manage store presence" permission in Play Console. Without it the commit
+    # fails with "Google Api Error: Invalid request - The caller does not have
+    # permission" (build upload and track update still succeed, only the commit
+    # is rejected). The release notes come from metadata_path/<lang>/changelogs.
+    options = {
+      track: track,
+      aab: aab_path,
+      metadata_path: metadata_path,
+      release_status: "completed"
+    }
+    options[:version_name] = version if version
+
+    upload_to_play_store(options)
+  end
+
+  ########################################
+  # Internal testing
+  ########################################
+  desc "Clean build release AAB and upload it to Play Internal"
+  lane :internal do
+    build_clean_aab
+    upload_aab(track: "internal", aab_path: aab_path)
+  end
+
+  ########################################
+  # Production - full rollout
+  ########################################
+  desc "Upload AAB to Production (100%)"
+  lane :production do
+    upload_aab(track: "production", aab_path: aab_path)
+  end
 
 end

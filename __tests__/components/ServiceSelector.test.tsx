@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ServiceSelector } from '../../src/components/ServiceSelector';
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
     if (key === 'Detected: {service}' && params?.service) {
       return `Detected: ${params.service}`;

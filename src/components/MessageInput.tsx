@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { commandService } from '../services/CommandService';
 import { layoutService } from '../services/LayoutService';
 import { connectionManager } from '../services/ConnectionManager';

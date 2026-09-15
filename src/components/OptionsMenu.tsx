@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Modal, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 import { useUIStore } from '../stores/uiStore';
 import { connectionManager } from '../services/ConnectionManager';

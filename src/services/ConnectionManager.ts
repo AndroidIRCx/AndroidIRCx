@@ -18,7 +18,7 @@ import { IRCNetworkConfig } from './SettingsService';
 import { identityProfilesService } from './IdentityProfilesService';
 import { autoReconnectService } from './AutoReconnectService';
 import { ircForegroundService } from './IRCForegroundService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { serviceDetectionService } from './ServiceDetectionService';
 import { serviceCommandProvider } from './ServiceCommandProvider';
 import { AutoAuthService, createAutoAuthService } from './AutoAuthService';

@@ -8,7 +8,7 @@ import { Alert } from 'react-native';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { adRewardService } from '../services/AdRewardService';
 import { settingsService } from '../services/SettingsService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 export interface UseSettingsPremiumReturn {
   // Premium status

@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsPremium } from '../../../hooks/useSettingsPremium';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 import {
   SettingItem as SettingItemType,
   SettingIcon,

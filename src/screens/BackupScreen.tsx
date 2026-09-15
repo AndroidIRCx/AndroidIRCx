@@ -30,7 +30,7 @@ import {
   errorCodes,
   types,
 } from '@react-native-documents/picker';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { connectionManager } from '../services/ConnectionManager';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 

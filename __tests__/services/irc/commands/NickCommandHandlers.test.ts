@@ -8,7 +8,7 @@ import {
   nickCommandHandlers,
 } from '../../../../src/services/irc/commands/NickCommandHandlers';
 
-jest.mock('../../../../src/i18n/transifex', () => ({
+jest.mock('../../../../src/i18n/localization', () => ({
   tx: { t: (key: string) => key },
 }));
 

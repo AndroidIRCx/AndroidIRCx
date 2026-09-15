@@ -85,7 +85,7 @@ const mockRNIap = {
 let mockIsZncAccountActive = jest.fn(() => true);
 let mockIsZncAccountReady = jest.fn(() => true);
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

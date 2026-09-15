@@ -11,6 +11,7 @@ import ptJson from './pt.json';
 import roJson from './ro.json';
 import ruJson from './ru.json';
 import srJson from './sr.json';
+import srCyrlJson from './sr@Cyrl.json';
 import esJson from './es.json';
 import idJson from './id.json';
 
@@ -23,6 +24,7 @@ export const bundledTranslations: Record<string, Record<string, unknown>> = {
   ro: roJson,
   ru: ruJson,
   sr: srJson,
+  'sr@Cyrl': srCyrlJson,
   es: esJson,
   id: idJson,
 };

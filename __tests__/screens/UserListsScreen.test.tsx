@@ -52,7 +52,7 @@ const mockIrcService = {
   getChannelUsers: jest.fn(),
 };
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

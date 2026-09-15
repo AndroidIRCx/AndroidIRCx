@@ -10,7 +10,7 @@ import {
   NotificationPreferences,
 } from '../services/NotificationService';
 import { backgroundService } from '../services/BackgroundService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 export interface UseSettingsNotificationsReturn {
   // Notification preferences

@@ -23,7 +23,7 @@ import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { settingsService } from '../services/SettingsService';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface PrivacyAdsScreenProps {
   visible: boolean;

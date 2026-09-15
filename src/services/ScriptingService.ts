@@ -8,7 +8,7 @@ import { IRCMessage } from './IRCService';
 import { connectionManager } from './ConnectionManager';
 import { logger } from './Logger';
 import { adRewardService } from './AdRewardService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { useTabStore } from '../stores/tabStore';
 import { highlightService } from './HighlightService';
 import { channelNotesService } from './ChannelNotesService';

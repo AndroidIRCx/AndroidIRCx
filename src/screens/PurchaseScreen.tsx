@@ -24,7 +24,7 @@ import {
   PRODUCT_SUPPORTER_PRO,
   PRODUCT_CATALOG,
 } from '../services/InAppPurchaseService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import * as RNIap from 'react-native-iap';
 import type { Product, Purchase, PurchaseError } from 'react-native-iap';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';

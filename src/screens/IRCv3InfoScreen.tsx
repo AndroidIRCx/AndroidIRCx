@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { ModalSafeArea } from '../components/ModalSafeArea';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 import { connectionManager } from '../services/ConnectionManager';
 import { IRCService } from '../services/IRCService';

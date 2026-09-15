@@ -32,7 +32,7 @@ import {
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import Prism from 'prismjs';
 import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';

@@ -5,7 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IRCService, type IRCMessage } from './IRCService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 export interface BouncerConfig {
   enabled: boolean;

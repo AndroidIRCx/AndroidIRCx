@@ -9,7 +9,7 @@ import {
   SettingItem as SettingItemType,
   SettingIcon,
 } from '../../../types/settings';
-import { useT } from '../../../i18n/transifex';
+import { useT } from '../../../i18n/localization';
 
 interface PremiumSectionProps {
   colors: {

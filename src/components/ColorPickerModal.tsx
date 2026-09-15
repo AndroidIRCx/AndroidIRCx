@@ -5,7 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { ColorPalettePicker } from './ColorPalettePicker';
 
 interface ColorPickerModalProps {

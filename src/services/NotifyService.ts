@@ -15,7 +15,7 @@ import { userManagementService, UserListEntry } from './UserManagementService';
 import { soundService } from './SoundService';
 import { SoundEventType } from '../types/sound';
 import { notificationService } from './NotificationService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import EventEmitter from 'eventemitter3';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

@@ -23,7 +23,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import { certificateManager } from '../../services/CertificateManagerService';
 import { CertificateInfo, FingerprintFormat } from '../../types/certificate';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 import { ModalSafeArea } from '../ModalSafeArea';
 
 interface CertificateGeneratorModalProps {

@@ -15,7 +15,7 @@
  * - 250 RPL_STATSCONN - Connection stats
  */
 
-import { tx } from '../../../i18n/transifex';
+import { tx } from '../../../i18n/localization';
 import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

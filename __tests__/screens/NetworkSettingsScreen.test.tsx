@@ -12,7 +12,7 @@ import { NetworkSettingsScreen } from '../../src/screens/NetworkSettingsScreen';
 // useCallback keyed on `t`, and its load effect depends on loadNetwork. A fresh
 // `t` per render would recreate loadNetwork every render and re-fire the effect
 // forever (infinite loading loop) whenever a networkId is provided.
-jest.mock('../../src/i18n/transifex', () => {
+jest.mock('../../src/i18n/localization', () => {
   const t = (key: string) => key;
   return { useT: () => t };
 });

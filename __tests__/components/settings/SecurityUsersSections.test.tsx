@@ -40,7 +40,7 @@ const mockSecurityHookState = {
   setQuickConnectNetworkId: jest.fn(async () => undefined),
 };
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

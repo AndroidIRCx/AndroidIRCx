@@ -7,7 +7,7 @@ import TcpSocket from 'react-native-tcp-socket';
 import type Socket from 'react-native-tcp-socket/lib/types/Socket';
 import type Server from 'react-native-tcp-socket/lib/types/Server';
 import type { IRCService } from './IRCService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { settingsService } from './SettingsService';
 
 /* eslint-disable no-bitwise, no-control-regex -- DCC file transfer framing intentionally uses bitwise IP conversion and CTCP control bytes. */

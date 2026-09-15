@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { identityProfilesService } from './IdentityProfilesService';
 import { settingsService } from './SettingsService';
 import { storageCache } from './StorageCache';

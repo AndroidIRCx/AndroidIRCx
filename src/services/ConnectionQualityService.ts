@@ -6,7 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IRCService } from './IRCService';
 import { settingsService } from './SettingsService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

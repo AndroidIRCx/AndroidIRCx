@@ -17,7 +17,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { ServiceCommand } from '../interfaces/ServiceTypes';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 

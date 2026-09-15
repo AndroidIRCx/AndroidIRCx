@@ -25,7 +25,7 @@ import {
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 import { ircDatabaseImportService } from '../services/IrcDatabaseImportService';
 

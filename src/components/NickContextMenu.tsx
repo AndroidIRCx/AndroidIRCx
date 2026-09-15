@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   ircService,
   ChannelUser,

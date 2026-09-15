@@ -31,12 +31,11 @@ import { secureStorageService } from './src/services/SecureStorageService';
 import { useTheme } from './src/hooks/useTheme';
 import { dccFileService } from './src/services/DCCFileService';
 import {
-  initTransifex,
+  initLocalization,
   listenToLocaleChanges,
-  TXProvider,
-  tx,
+  LocalizationProvider,
   useT,
-} from './src/i18n/transifex';
+} from './src/i18n/localization';
 
 // Zustand stores and custom hooks
 import { useUIStore } from './src/stores/uiStore';
@@ -149,7 +148,7 @@ function App() {
   const ageCompliance = useAgeCompliance();
 
   useEffect(() => {
-    initTransifex().catch(() => {});
+    initLocalization().catch(() => {});
     const unsubscribe = listenToLocaleChanges();
     return () => unsubscribe();
   }, []);
@@ -168,14 +167,14 @@ function App() {
   }
 
   return (
-    <TXProvider tx={tx}>
+    <LocalizationProvider>
       <KeyboardProvider>
         <SafeAreaProvider>
           <StatusBar barStyle="light-content" />
           <AppContent />
         </SafeAreaProvider>
       </KeyboardProvider>
-    </TXProvider>
+    </LocalizationProvider>
   );
 }
 

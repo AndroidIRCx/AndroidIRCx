@@ -52,7 +52,7 @@ import {
 } from '../services/IRCService';
 import { ChannelTab } from '../types';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import {
   parseMessage,
   isVideoUrl,

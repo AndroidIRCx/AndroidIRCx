@@ -23,7 +23,7 @@ import { certificateManager } from '../../services/CertificateManagerService';
 import { CertificateMetadata, CertificateInfo } from '../../types/certificate';
 import { CertificateGeneratorModal } from './CertificateGeneratorModal';
 import { ModalSafeArea } from '../ModalSafeArea';
-import { useT } from '../../i18n/transifex';
+import { useT } from '../../i18n/localization';
 
 interface CertificateSelectorModalProps {
   visible: boolean;

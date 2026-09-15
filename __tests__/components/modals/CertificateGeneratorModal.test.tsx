@@ -19,7 +19,7 @@ jest.mock('../../../src/services/CertificateManagerService', () => ({
   },
 }));
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

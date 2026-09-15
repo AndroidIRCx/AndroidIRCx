@@ -30,7 +30,7 @@ const mockMediaSettingsService = {
   markNicklistCallActionsAutoEnabledFromRelay: jest.fn(),
 };
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => tMock,
 }));
 

@@ -1,5 +1,0 @@
-What's new in v1.9.31:
-- DBase is now included by default in the Networks list
-- ChatZona is highlighted directly after DBase for quicker access
-- IRC Database presets auto-load on Networks so users get the latest approved networks
-- Updated React runtime, ESLint and TypeScript for compatibility and security fixes

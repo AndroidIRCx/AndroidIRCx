@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 
 interface Props {

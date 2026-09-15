@@ -50,7 +50,7 @@ import { secureStorageService } from '../services/SecureStorageService';
 import { NetworkPickerModal } from '../components/modals/NetworkPickerModal';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 
 interface ZncSubscriptionScreenProps {

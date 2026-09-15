@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 
 interface CreditsScreenProps {
   visible: boolean;
@@ -139,12 +139,12 @@ export const CreditsScreen: React.FC<CreditsScreenProps> = ({
             <Text style={styles.helpTitle}>{t('Help Translate')}</Text>
             <Text style={styles.helpText}>
               {t(
-                'Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!',
+                'Want to help translate AndroidIRCX into your language? Translation updates now happen through GitHub.',
               )}
             </Text>
             <Text style={styles.helpInstructions}>
               {t(
-                'Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.',
+                'Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page.',
               )}
             </Text>
             <TouchableOpacity

@@ -11,7 +11,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: (...args: any[]) => mockSetItem(...args),
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: jest.fn((key: string, params?: Record<string, any>) => {
       if (!params) return key;

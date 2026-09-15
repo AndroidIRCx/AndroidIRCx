@@ -8,7 +8,7 @@ import { Alert, Modal, Switch } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { MediaSection } from '../../../src/components/settings/sections/MediaSection';
 
-jest.mock('../../../src/i18n/transifex', () => ({
+jest.mock('../../../src/i18n/localization', () => ({
   useT: jest.fn().mockReturnValue((k: string, params?: any) => {
     if (k === 'Current cache: {size} / Max: {max}') {
       return `Current cache: ${params?.size} / Max: ${params?.max}`;

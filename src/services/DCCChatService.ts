@@ -7,7 +7,7 @@ import TcpSocket from 'react-native-tcp-socket';
 import type Server from 'react-native-tcp-socket/lib/types/Server';
 import type Socket from 'react-native-tcp-socket/lib/types/Socket';
 import { IRCMessage } from './IRCService';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 
 /* eslint-disable no-bitwise, no-control-regex -- DCC framing uses bitwise IP conversion and CTCP control bytes. */
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

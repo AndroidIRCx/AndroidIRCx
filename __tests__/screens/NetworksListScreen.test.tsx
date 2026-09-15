@@ -7,7 +7,7 @@ import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { NetworksListScreen } from '../../src/screens/NetworksListScreen';
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string, params?: Record<string, unknown>) => {
     if (!params) {
       return key;

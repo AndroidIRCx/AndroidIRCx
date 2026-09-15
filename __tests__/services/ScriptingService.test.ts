@@ -123,7 +123,7 @@ jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: mockConnectionManager,
 }));
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   tx: {
     t: (key: string, params?: Record<string, unknown>) =>
       key.replace(/\{(\w+)\}/g, (_, p) => String(params?.[p] ?? `{${p}}`)),

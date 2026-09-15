@@ -50,7 +50,7 @@ import { banService } from '../services/BanService';
 import { connectionManager } from '../services/ConnectionManager';
 import { dccChatService } from '../services/DCCChatService';
 import { useTheme } from '../hooks/useTheme';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { settingsService } from '../services/SettingsService';

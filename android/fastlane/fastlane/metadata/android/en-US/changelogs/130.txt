@@ -1,5 +1,0 @@
-What's new in v1.9.26:
-- Updated dependencies
-- Fixed a startup crash caused by stale or mismatched native libraries in SoLoader cache
-- Added a native-library retry path that clears corrupted extracted libraries before failing startup
-- Strengthened release verification to reject missing or wrong-architecture native libraries

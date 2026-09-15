@@ -16,7 +16,7 @@ import notifee, {
   AndroidCategory,
   EventType,
 } from '@notifee/react-native';
-import { tx } from '../i18n/transifex';
+import { tx } from '../i18n/localization';
 import { highlightService } from './HighlightService';
 
 /** Android notification channel IDs for category-based grouping */

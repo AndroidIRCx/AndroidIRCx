@@ -9,7 +9,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ServerSettingsScreen } from '../../src/screens/ServerSettingsScreen';
 import { settingsService } from '../../src/services/SettingsService';
 
-jest.mock('../../src/i18n/transifex', () => ({
+jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
 

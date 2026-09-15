@@ -27,7 +27,7 @@ import {
   UserActivity,
 } from '../services/UserActivityService';
 import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../services/ThemeService';
 

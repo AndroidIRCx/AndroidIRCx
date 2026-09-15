@@ -21,7 +21,7 @@ import {
   ThemeColors,
   ThemeMessageFormats,
 } from '../services/ThemeService';
-import { useT } from '../i18n/transifex';
+import { useT } from '../i18n/localization';
 import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
 
