@@ -67,7 +67,7 @@ class HttpPostModule(reactContext: ReactApplicationContext) :
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             )
             connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
-            connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br")
+            connection.setRequestProperty("Accept-Encoding", "identity")
             connection.setRequestProperty("Cache-Control", "no-cache")
             connection.setRequestProperty("Pragma", "no-cache")
 
@@ -186,7 +186,7 @@ class HttpPostModule(reactContext: ReactApplicationContext) :
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
                 )
                 redirectConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
-                redirectConnection.setRequestProperty("Accept-Encoding", "gzip, deflate, br")
+                redirectConnection.setRequestProperty("Accept-Encoding", "identity")
                 redirectConnection.setRequestProperty("Cache-Control", "no-cache")
                 redirectConnection.setRequestProperty("Pragma", "no-cache")
 
@@ -230,7 +230,9 @@ class HttpPostModule(reactContext: ReactApplicationContext) :
             }
 
             // Check if response is gzipped
-            val responseInputStream = if ("gzip" == currentConnection.getContentEncoding()) {
+            val responseInputStream = if (
+                currentConnection.getContentEncoding()?.equals("gzip", ignoreCase = true) == true
+            ) {
                 java.util.zip.GZIPInputStream(inputStream)
             } else {
                 inputStream
