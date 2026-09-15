@@ -1,0 +1,5 @@
+What's new in v1.9.52:
+- Fixed encrypted media uploads after transient DNS/network failures.
+- Fixed media preview layout before sending uploads.
+- Fixed upload token parsing behind Cloudflare compression.
+- Improved Android native upload response handling.

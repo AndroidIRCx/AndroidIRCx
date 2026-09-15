@@ -33,6 +33,22 @@ const API_BASE_URL = 'https://www.androidircx.com/api';
 // Maximum file size: 50MB (configurable)
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
 const MAX_UPLOAD_API_RESPONSE_BYTES = 128 * 1024; // API responses should be tiny JSON payloads
+const TRANSIENT_RETRY_BASE_DELAY_MS = 750;
+const TRANSIENT_NETWORK_ERROR_PATTERNS = [
+  'unknownhostexception',
+  'unable to resolve host',
+  'no address associated with hostname',
+  'timeout',
+  'timed out',
+  'failed to connect',
+  'connection reset',
+  'unexpected end of stream',
+  'software caused connection abort',
+  'network is unreachable',
+  'eai_again',
+  'econnreset',
+  'etimedout',
+];
 
 export type MediaType =
   'image' | 'video' | 'voice' | 'gif' | 'sticker' | 'file';
@@ -105,15 +121,19 @@ class MediaUploadService {
         throw new Error('HttpPost native module is not available');
       }
 
-      const responseBody = await HttpPost.postRequest(url, requestBody, {
-        ...withPlayIntegrityHeaders(
-          {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          playIntegrity,
-        ),
-      });
+      const responseBody = await this.withTransientNetworkRetry(
+        'upload token request',
+        () =>
+          HttpPost.postRequest(url, requestBody, {
+            ...withPlayIntegrityHeaders(
+              {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+              },
+              playIntegrity,
+            ),
+          }),
+      );
 
       if (typeof responseBody !== 'string') {
         throw new Error('Invalid upload token response');
@@ -229,17 +249,21 @@ class MediaUploadService {
         `media-upload:PUT:/media/upload/${mediaId}`,
       );
 
-      const responseBody = await HttpPut.putFile(
-        uploadUrl,
-        tempBinaryPath,
-        withPlayIntegrityHeaders(
-          {
-            'Content-Type': 'application/octet-stream',
-            Accept: 'application/json',
-          },
-          playIntegrity,
-        ),
-        mediaId,
+      const responseBody = await this.withTransientNetworkRetry(
+        'encrypted media upload',
+        () =>
+          HttpPut.putFile(
+            uploadUrl,
+            tempBinaryPath,
+            withPlayIntegrityHeaders(
+              {
+                'Content-Type': 'application/octet-stream',
+                Accept: 'application/json',
+              },
+              playIntegrity,
+            ),
+            mediaId,
+          ),
       );
 
       // Clean up temporary binary file
@@ -421,6 +445,64 @@ class MediaUploadService {
 
     // Retry network errors and server errors
     return true;
+  }
+
+  private async withTransientNetworkRetry<T>(
+    label: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= this.retryCount; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+
+        if (
+          attempt >= this.retryCount ||
+          !this.isTransientNetworkError(error)
+        ) {
+          throw error;
+        }
+
+        const backoffMs = TRANSIENT_RETRY_BASE_DELAY_MS * attempt;
+        console.warn(
+          `[MediaUploadService] ${label} transient network error; retrying ${attempt + 1}/${this.retryCount} in ${backoffMs}ms:`,
+          this.getErrorText(error),
+        );
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+    }
+
+    throw lastError;
+  }
+
+  private isTransientNetworkError(error: unknown): boolean {
+    const errorText = this.getErrorText(error).toLowerCase();
+    return TRANSIENT_NETWORK_ERROR_PATTERNS.some(pattern =>
+      errorText.includes(pattern),
+    );
+  }
+
+  private getErrorText(error: unknown): string {
+    if (!error) {
+      return '';
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    const maybeError = error as {
+      code?: unknown;
+      message?: unknown;
+      name?: unknown;
+    };
+
+    return [maybeError.name, maybeError.code, maybeError.message, String(error)]
+      .filter(Boolean)
+      .join(' ');
   }
 
   /**

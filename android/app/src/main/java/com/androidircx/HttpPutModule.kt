@@ -64,6 +64,7 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             )
             connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
+            connection.setRequestProperty("Accept-Encoding", "identity")
             connection.setRequestProperty("Cache-Control", "no-cache")
             connection.setRequestProperty("Pragma", "no-cache")
             connection.setRequestProperty("Connection", "keep-alive")
@@ -124,7 +125,9 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
             }
 
             // Check if response is gzipped
-            val responseInputStream = if ("gzip" == connection.getContentEncoding()) {
+            val responseInputStream = if (
+                connection.getContentEncoding()?.equals("gzip", ignoreCase = true) == true
+            ) {
                 java.util.zip.GZIPInputStream(inputStream2)
             } else {
                 inputStream2

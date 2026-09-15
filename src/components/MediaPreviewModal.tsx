@@ -482,6 +482,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 };
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const modalHeight = Math.min(screenHeight * 0.9, screenHeight - 80);
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -493,7 +494,8 @@ const createStyles = (colors: any) =>
     },
     modalContainer: {
       width: screenWidth * 0.95,
-      maxHeight: screenHeight * 0.9,
+      height: modalHeight,
+      maxHeight: modalHeight,
       borderRadius: 12,
       elevation: 24,
       overflow: 'hidden',

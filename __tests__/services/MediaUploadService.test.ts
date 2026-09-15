@@ -73,6 +73,43 @@ describe('MediaUploadService', () => {
     expect(mockHttpPost.postRequest).toHaveBeenCalled();
   });
 
+  it('retries transient DNS failure when requesting upload token', async () => {
+    (mediaUploadService as any).retryCount = 2;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const setTimeoutSpy = jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((callback: any) => {
+        callback();
+        return 0 as any;
+      });
+
+    mockHttpPost.postRequest
+      .mockRejectedValueOnce({
+        name: 'java.net.UnknownHostException',
+        message:
+          'Unable to resolve host "www.androidircx.com": No address associated with hostname',
+      })
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          id: 'media-retry',
+          status: 'pending',
+          upload_token: 'token-retry',
+          expires: Math.floor(Date.now() / 1000) + 300,
+        }),
+      );
+
+    const token = await mediaUploadService.requestUploadToken(
+      'image',
+      'image/jpeg',
+    );
+
+    expect(token.id).toBe('media-retry');
+    expect(mockHttpPost.postRequest).toHaveBeenCalledTimes(2);
+
+    setTimeoutSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
   it('rejects html response when requesting token', async () => {
     mockHttpPost.postRequest.mockResolvedValueOnce('<html>error</html>');
 
@@ -228,6 +265,36 @@ describe('MediaUploadService', () => {
       expect.objectContaining({ bytesUploaded: 0, percentage: 0 }),
     );
     expect(result).toEqual({ size: 1000, sha256: 'abc123', status: 'ready' });
+  });
+
+  it('retries transient network failure during direct file upload', async () => {
+    (mediaUploadService as any).retryCount = 2;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const setTimeoutSpy = jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((callback: any) => {
+        callback();
+        return 0 as any;
+      });
+
+    mockHttpPut.putFile
+      .mockRejectedValueOnce(new Error('unexpected end of stream'))
+      .mockResolvedValueOnce(
+        JSON.stringify({ size: 1000, sha256: 'abc123', status: 'ready' }),
+      );
+
+    const result = await mediaUploadService.uploadFile(
+      '/mock/file',
+      'media-live',
+      'token-live',
+      Math.floor(Date.now() / 1000) + 300,
+    );
+
+    expect(mockHttpPut.putFile).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ size: 1000, sha256: 'abc123', status: 'ready' });
+
+    setTimeoutSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
   it('validateFile returns too-large error', async () => {
