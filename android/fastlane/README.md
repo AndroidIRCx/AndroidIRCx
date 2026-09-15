@@ -14,10 +14,20 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## Android
 
-### android production
+### internal
 
 ```sh
-[bundle exec] fastlane android production
+[bundle exec] fastlane internal
+```
+
+Clean build release AAB and upload it to Play Internal
+
+---
+
+### production
+
+```sh
+[bundle exec] fastlane production
 ```
 
 Upload AAB to Production (100%)

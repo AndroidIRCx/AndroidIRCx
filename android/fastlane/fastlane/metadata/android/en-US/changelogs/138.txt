@@ -1,4 +1,0 @@
-What's new in v1.9.33:
-- Updated Transifex localization runtime to the latest release with the newest security patches
-- Refreshed build-time type definitions for the Node 26 toolchain
-- Hardened dependency resolutions to keep the build pinned to the supported Babel runtime

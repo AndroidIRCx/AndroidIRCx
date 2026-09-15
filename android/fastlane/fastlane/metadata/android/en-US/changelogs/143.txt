@@ -1,4 +1,0 @@
-What's new in v1.9.37:
-- Fixed a rare "maximum update depth exceeded" crash by hardening media loading and the settings search against repeated re-render loops
-- Updated app dependencies to their latest compatible releases for better stability and security
-- Refreshed React, Reanimated, in-app purchases, keyboard handling and developer tooling

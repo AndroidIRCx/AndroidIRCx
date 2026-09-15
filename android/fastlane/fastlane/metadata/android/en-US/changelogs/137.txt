@@ -1,3 +1,0 @@
-What's new in v1.9.32:
-- Upgraded test framework to Jest 30 and React Native Testing Library 14 for stronger release verification
-- Internal test toolchain alignment to keep builds stable on newer Node and React Native runtimes

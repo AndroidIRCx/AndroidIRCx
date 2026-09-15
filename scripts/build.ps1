@@ -1,5 +1,6 @@
 param(
     [switch]$Clean,
+    [switch]$AabOnly,
     [switch]$Help
 )
 
@@ -14,6 +15,7 @@ if ($Help)
     Write-Host "Usage:" -ForegroundColor Yellow
     Write-Host "  ./scripts/build.ps1           -> normal build"
     Write-Host "  ./scripts/build.ps1 -Clean    -> full clean + build"
+    Write-Host "  ./scripts/build.ps1 -Clean -AabOnly -> full clean + AAB build"
     Write-Host "  ./scripts/build.ps1 -Help     -> show this help"
     Write-Host ""
     return
@@ -76,25 +78,42 @@ if ($LASTEXITCODE -ne 0) { throw "Gradle clean failed (exit $LASTEXITCODE)" }
 if ($LASTEXITCODE -ne 0) { throw "Codegen failed (exit $LASTEXITCODE)" }
 
 # Build
-.\gradlew.bat assembleRelease bundleRelease -P"reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64" --no-configuration-cache --stacktrace
+$architectures = "armeabi-v7a,arm64-v8a,x86,x86_64"
+if ($AabOnly)
+{
+    .\gradlew.bat bundleRelease -P"reactNativeArchitectures=$architectures" --no-configuration-cache --stacktrace
+}
+else
+{
+    .\gradlew.bat assembleRelease bundleRelease -P"reactNativeArchitectures=$architectures" --no-configuration-cache --stacktrace
+}
 if ($LASTEXITCODE -ne 0) { throw "Release build failed (exit $LASTEXITCODE)" }
 
 $verifyScript = Join-Path $projectRoot "scripts\verify-android-native-libs.ps1"
-$releaseArtifacts = @(
-    ".\app\build\outputs\apk\release\app-release.apk",
-    ".\app\build\outputs\bundle\release\app-release.aab"
-)
+if ($AabOnly)
+{
+    $releaseArtifacts = @(".\app\build\outputs\bundle\release\app-release.aab")
+}
+else
+{
+    $releaseArtifacts = @(
+        ".\app\build\outputs\apk\release\app-release.apk",
+        ".\app\build\outputs\bundle\release\app-release.aab"
+    )
+}
 
 foreach ($artifact in $releaseArtifacts)
 {
-    if (Test-Path $artifact)
+    if (-not (Test-Path $artifact))
     {
-        Write-Host "Verifying native libraries in $artifact..." -ForegroundColor Cyan
-        powershell -NoProfile -ExecutionPolicy Bypass -File $verifyScript -ArtifactPath $artifact
-        if ($LASTEXITCODE -ne 0)
-        {
-            throw "Native library verification failed for $artifact"
-        }
+        throw "Expected release artifact not found: $artifact"
+    }
+
+    Write-Host "Verifying native libraries in $artifact..." -ForegroundColor Cyan
+    powershell -NoProfile -ExecutionPolicy Bypass -File $verifyScript -ArtifactPath $artifact
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Native library verification failed for $artifact"
     }
 }
 

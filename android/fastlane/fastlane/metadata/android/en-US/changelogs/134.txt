@@ -1,6 +1,0 @@
-What's new in v1.9.29:
-- Updated React Native and Android dependencies for better compatibility
-- Improved startup and native module stability
-- Fixed chat layout issues after hiding the Android keyboard and rotating the device
-- Kept the message input visible in supported portrait and landscape layouts
-- Refreshed internal test support for the latest React Native tooling

@@ -1,4 +1,0 @@
-What's new in v1.9.28:
-- Updated React Native and Android dependencies for better compatibility
-- Improved startup and native module stability
-- Refreshed internal test support for the latest React Native tooling
