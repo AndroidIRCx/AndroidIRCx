@@ -8,10 +8,14 @@
 import {
   notificationService,
   NotificationPreferences,
+  CALL_NOTIFICATION_ACTIONS,
 } from '../../src/services/NotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
 import { Platform } from 'react-native';
+import { highlightService } from '../../src/services/HighlightService';
+
+const PENDING_CALL_ACTION_KEY = '@AndroidIRCX:pendingCallNotificationAction';
 
 jest.mock('react-native', () => ({
   Platform: {
@@ -88,6 +92,7 @@ describe('NotificationService', () => {
       networkPreferences: new Map(),
     };
     (notificationService as any).notificationIdCounter = 0;
+    (notificationService as any).callActionListener = null;
   });
 
   describe('checkPermission', () => {
@@ -899,6 +904,315 @@ describe('NotificationService', () => {
       );
 
       expect(result).toBe(false);
+    });
+
+    it('should return true when highlightService flags the message', () => {
+      const highlightSpy = jest
+        .spyOn(highlightService, 'isHighlighted')
+        .mockReturnValue(true);
+
+      const result = notificationService.shouldNotify(
+        { text: 'nothing to match here', channel: '#general', type: 'message' },
+        'TestNick',
+      );
+
+      expect(result).toBe(true);
+      highlightSpy.mockRestore();
+    });
+  });
+
+  describe('checkPermission outer error path', () => {
+    it('should return false when iOS getNotificationSettings throws', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const originalOS = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios' });
+      notifee.getNotificationSettings.mockRejectedValue(
+        new Error('ios settings error'),
+      );
+
+      const result = await notificationService.checkPermission();
+
+      expect(result).toBe(false);
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error checking permission:',
+        expect.any(Error),
+      );
+      Object.defineProperty(Platform, 'OS', { value: originalOS });
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('requestPermission outer error path', () => {
+    it('should return false when iOS requestPermission throws', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const originalOS = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios' });
+      notifee.requestPermission.mockRejectedValue(
+        new Error('ios request error'),
+      );
+
+      const result = await notificationService.requestPermission();
+
+      expect(result).toBe(false);
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error requesting permission:',
+        expect.any(Error),
+      );
+      Object.defineProperty(Platform, 'OS', { value: originalOS });
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('initialize foreground ACTION_PRESS handler', () => {
+    it('should route action-press events to the call action handler', async () => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      const { EventType } = require('@notifee/react-native');
+      let handler: ((event: any) => void) | undefined;
+      notifee.onForegroundEvent.mockImplementation(cb => {
+        handler = cb;
+      });
+      const handleSpy = jest
+        .spyOn(notificationService, 'handleCallNotificationAction')
+        .mockResolvedValue(undefined);
+
+      await notificationService.initialize();
+
+      handler?.({
+        type: EventType.ACTION_PRESS,
+        detail: { pressAction: { id: CALL_NOTIFICATION_ACTIONS.RETURN } },
+      });
+
+      expect(handleSpy).toHaveBeenCalledWith(CALL_NOTIFICATION_ACTIONS.RETURN);
+      expect(logSpy).toHaveBeenCalledWith(
+        'NotificationService: User pressed notification action',
+        { id: CALL_NOTIFICATION_ACTIONS.RETURN },
+      );
+      handleSpy.mockRestore();
+      logSpy.mockRestore();
+    });
+
+    it('should fall back to DEFAULT action when press action id is missing', async () => {
+      const { EventType } = require('@notifee/react-native');
+      let handler: ((event: any) => void) | undefined;
+      notifee.onForegroundEvent.mockImplementation(cb => {
+        handler = cb;
+      });
+      const handleSpy = jest
+        .spyOn(notificationService, 'handleCallNotificationAction')
+        .mockResolvedValue(undefined);
+
+      await notificationService.initialize();
+
+      handler?.({ type: EventType.ACTION_PRESS, detail: {} });
+
+      expect(handleSpy).toHaveBeenCalledWith(CALL_NOTIFICATION_ACTIONS.DEFAULT);
+      handleSpy.mockRestore();
+    });
+  });
+
+  describe('showNotification channel resolution', () => {
+    it('should route server-type messages to the server channel', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
+
+      await notificationService.showNotification(
+        'Server',
+        'System event',
+        '#general',
+        'freenode',
+        'error',
+      );
+
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          android: expect.objectContaining({ channelId: 'server' }),
+        }),
+      );
+    });
+  });
+
+  describe('showOngoingCallNotification', () => {
+    it('should skip display when permission is not granted', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(false);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
+
+      await notificationService.showOngoingCallNotification({
+        peerNick: 'bob',
+        mediaType: 'audio',
+        statusText: 'Connected',
+      });
+
+      expect(notifee.displayNotification).not.toHaveBeenCalled();
+    });
+
+    it('should display a minimized video call notification', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
+
+      await notificationService.showOngoingCallNotification({
+        peerNick: 'bob',
+        mediaType: 'video',
+        statusText: 'Connected',
+        network: 'freenode',
+        minimized: true,
+      });
+
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Video call in progress',
+          body: 'bob · Connected · Tap to return to call',
+          android: expect.objectContaining({ channelId: 'calls' }),
+        }),
+      );
+    });
+
+    it('should display an active audio call notification', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
+
+      await notificationService.showOngoingCallNotification({
+        peerNick: 'bob',
+        mediaType: 'audio',
+        statusText: 'Ringing',
+      });
+
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Audio call in progress',
+          body: 'bob · Ringing · Call is active',
+        }),
+      );
+    });
+  });
+
+  describe('cancelOngoingCallNotification', () => {
+    it('should cancel the ongoing call notification', async () => {
+      notifee.cancelNotification.mockResolvedValueOnce(undefined);
+
+      await notificationService.cancelOngoingCallNotification();
+
+      expect(notifee.cancelNotification).toHaveBeenCalledWith(
+        'androidircx-ongoing-call',
+      );
+    });
+
+    it('should swallow errors while cancelling the ongoing call', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      notifee.cancelNotification.mockRejectedValueOnce(
+        new Error('cancel failed'),
+      );
+
+      await expect(
+        notificationService.cancelOngoingCallNotification(),
+      ).resolves.toBeUndefined();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error cancelling ongoing call notification:',
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('call notification action handling', () => {
+    it('should store the action when no listener is registered', async () => {
+      notificationService.setCallNotificationActionListener(null);
+
+      await notificationService.handleCallNotificationAction(
+        CALL_NOTIFICATION_ACTIONS.HANGUP,
+      );
+
+      const stored = await AsyncStorage.getItem(PENDING_CALL_ACTION_KEY);
+      expect(stored).toBe(CALL_NOTIFICATION_ACTIONS.HANGUP);
+    });
+
+    it('should invoke the listener and clear any pending action', async () => {
+      await AsyncStorage.setItem(
+        PENDING_CALL_ACTION_KEY,
+        CALL_NOTIFICATION_ACTIONS.RETURN,
+      );
+      const listener = jest.fn().mockResolvedValue(undefined);
+      notificationService.setCallNotificationActionListener(listener);
+
+      await notificationService.handleCallNotificationAction(
+        CALL_NOTIFICATION_ACTIONS.RETURN,
+      );
+
+      expect(listener).toHaveBeenCalledWith(CALL_NOTIFICATION_ACTIONS.RETURN);
+      const stored = await AsyncStorage.getItem(PENDING_CALL_ACTION_KEY);
+      expect(stored).toBeNull();
+    });
+
+    it('should log when the listener throws', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const listener = jest
+        .fn()
+        .mockRejectedValue(new Error('listener failed'));
+      notificationService.setCallNotificationActionListener(listener);
+
+      await expect(
+        notificationService.handleCallNotificationAction(
+          CALL_NOTIFICATION_ACTIONS.DEFAULT,
+        ),
+      ).resolves.toBeUndefined();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error handling call notification action:',
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('consumePendingCallNotificationAction', () => {
+    it('should return and clear a stored pending action', async () => {
+      await AsyncStorage.setItem(
+        PENDING_CALL_ACTION_KEY,
+        CALL_NOTIFICATION_ACTIONS.HANGUP,
+      );
+
+      const result =
+        await notificationService.consumePendingCallNotificationAction();
+
+      expect(result).toBe(CALL_NOTIFICATION_ACTIONS.HANGUP);
+      const stored = await AsyncStorage.getItem(PENDING_CALL_ACTION_KEY);
+      expect(stored).toBeNull();
+    });
+
+    it('should return null when nothing is pending', async () => {
+      const result =
+        await notificationService.consumePendingCallNotificationAction();
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null and log when storage read fails', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      jest
+        .spyOn(AsyncStorage, 'getItem')
+        .mockRejectedValueOnce(new Error('read failed'));
+
+      const result =
+        await notificationService.consumePendingCallNotificationAction();
+
+      expect(result).toBeNull();
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error consuming pending call action:',
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
     });
   });
 });

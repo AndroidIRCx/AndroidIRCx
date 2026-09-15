@@ -700,5 +700,374 @@ describe('MessageHistoryService', () => {
 
       expect(result.migrated).toBe(false);
     });
+
+    it('should report progress and merge with existing history', async () => {
+      const legacyKeys = ['MESSAGES_freenode_#general'];
+      const messages = [
+        { ...mockMessage, id: 'a', timestamp: 2000 },
+        { ...mockMessage, id: 'b', timestamp: 1000 },
+      ];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(legacyKeys);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [legacyKeys[0]]: JSON.stringify(messages),
+      });
+      (storageCache.getItem as jest.Mock).mockResolvedValue([
+        { ...mockMessage, id: 'existing', timestamp: 500 },
+      ]);
+
+      const progress = jest.fn();
+      const result =
+        await messageHistoryService.ensureHistoryMigrated(progress);
+
+      expect(progress).toHaveBeenCalledWith(1, 1);
+      expect(result.migrated).toBe(true);
+      expect(result.migratedCount).toBe(1);
+      const written = (storageCache.setBatch as jest.Mock).mock.calls[0][0];
+      expect(written[0].value).toHaveLength(3);
+      // Merged messages are sorted ascending by timestamp
+      expect(written[0].value[0].timestamp).toBe(500);
+      expect(written[0].value[2].timestamp).toBe(2000);
+    });
+
+    it('should tolerate a throwing progress callback', async () => {
+      const legacyKeys = ['MESSAGES_freenode_#general'];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(legacyKeys);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [legacyKeys[0]]: JSON.stringify([mockMessage]),
+      });
+      (storageCache.getItem as jest.Mock).mockResolvedValue(null);
+
+      const progress = jest.fn(() => {
+        throw new Error('progress boom');
+      });
+
+      const result =
+        await messageHistoryService.ensureHistoryMigrated(progress);
+
+      expect(progress).toHaveBeenCalled();
+      expect(result.migrated).toBe(true);
+    });
+
+    it('should skip legacy entries with invalid JSON', async () => {
+      const legacyKeys = ['MESSAGES_freenode_#general'];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(legacyKeys);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [legacyKeys[0]]: 'not-valid-json',
+      });
+
+      const result = await messageHistoryService.ensureHistoryMigrated();
+
+      expect(result.migrated).toBe(false);
+      expect(result.migratedCount).toBe(0);
+      expect(storageCache.setBatch).not.toHaveBeenCalled();
+    });
+
+    it('should remove empty legacy entries without migrating', async () => {
+      const legacyKeys = ['MESSAGES_freenode_#general'];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(legacyKeys);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [legacyKeys[0]]: JSON.stringify([]),
+      });
+
+      const result = await messageHistoryService.ensureHistoryMigrated();
+
+      expect(result.migrated).toBe(false);
+      expect(result.migratedCount).toBe(0);
+      expect(storageCache.removeBatch).toHaveBeenCalledWith(legacyKeys);
+      expect(storageCache.setBatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('loadMessages (additional)', () => {
+    it('should return empty array when no data found across candidates', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(null);
+
+      const result = await messageHistoryService.loadMessages(
+        'freenode',
+        '#general',
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('searchMessages filters (additional)', () => {
+    const loaded: IRCMessage[] = [
+      {
+        ...mockMessage,
+        id: 's1',
+        channel: '#general',
+        from: 'User1',
+        text: 'Hello world',
+        type: 'message',
+        timestamp: 1000,
+      },
+    ];
+
+    it('should exclude messages when from does not match', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(loaded);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        from: 'nobody',
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude messages when text does not match', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(loaded);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        text: 'zzzznomatch',
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude messages when type does not match', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(loaded);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        type: 'notice',
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude messages before startDate', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(loaded);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        startDate: 5000,
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude messages after endDate', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(loaded);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        endDate: 500,
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude raw messages via loaded channel history', async () => {
+      const withRaw: IRCMessage[] = [
+        ...loaded,
+        {
+          ...mockMessage,
+          id: 's2',
+          channel: '#general',
+          type: 'raw',
+          isRaw: true,
+          timestamp: 1000,
+        },
+      ];
+      (storageCache.getItem as jest.Mock).mockResolvedValue(withRaw);
+
+      const result = await messageHistoryService.searchMessages({
+        network: 'freenode',
+        channel: '#general',
+        excludeRaw: true,
+      });
+
+      expect(result.every(m => m.type !== 'raw' && !m.isRaw)).toBe(true);
+      expect(result).toHaveLength(1);
+    });
+
+    it('should return empty array on search error', async () => {
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
+
+      const result = await messageHistoryService.searchMessages({});
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getStats (additional)', () => {
+    it('should return empty stats when getAllKeys throws (no network)', async () => {
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
+
+      const stats = await messageHistoryService.getStats();
+
+      expect(stats.totalMessages).toBe(0);
+      expect(stats.channelCount).toBe(0);
+    });
+  });
+
+  describe('exportHistory (additional)', () => {
+    it('should include ISO timestamp column in CSV when requested', async () => {
+      const messages = [
+        { ...mockMessage, text: 'row', timestamp: 1609459200000 },
+      ];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue([
+        '@AndroidIRCX:history:freenode:#general',
+      ]);
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messages),
+      );
+
+      const result = await messageHistoryService.exportHistory({
+        format: 'csv',
+        includeTimestamps: true,
+      });
+
+      expect(result).toContain('Timestamp');
+      expect(result).toContain('"2021-01-01T00:00:00.000Z"');
+    });
+
+    it('should throw when loading all messages fails', async () => {
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
+
+      await expect(
+        messageHistoryService.exportHistory({ format: 'json' }),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('deleteNetworkMessages (additional)', () => {
+    it('should remove only history keys for the network', async () => {
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue([
+        '@AndroidIRCX:history:freenode:#general',
+        '@AndroidIRCX:history:freenode:#help',
+        '@AndroidIRCX:history:libera:#general',
+        'unrelated-key',
+      ]);
+
+      await messageHistoryService.deleteNetworkMessages('freenode');
+
+      expect(storageCache.removeItem).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('deleteMessageById (additional)', () => {
+    it('should throw when stored data is malformed', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('not-json');
+
+      await expect(
+        messageHistoryService.deleteMessageById(
+          'freenode',
+          '#general',
+          'msg-1',
+        ),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('listStoredChannels (additional)', () => {
+    it('should skip entries with invalid JSON values', async () => {
+      const keys = ['@AndroidIRCX:history:freenode:#general'];
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [keys[0]]: 'not-json',
+      });
+
+      const result = await messageHistoryService.listStoredChannels();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('clearAll (additional)', () => {
+    it('should remove all history keys and clear the queue', async () => {
+      const {
+        messageHistoryBatching,
+      } = require('../../src/services/MessageHistoryBatching');
+      (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue([
+        '@AndroidIRCX:history:freenode:#general',
+        '@AndroidIRCX:history:libera:#help',
+        'unrelated-key',
+      ]);
+
+      await messageHistoryService.clearAll();
+
+      expect(messageHistoryBatching.clearQueue).toHaveBeenCalled();
+      expect(storageCache.removeItem).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('cleanupOldMessages (private)', () => {
+    it('should trim to the maximum when exceeding the limit', async () => {
+      const many: IRCMessage[] = Array.from({ length: 10005 }, (_, i) => ({
+        ...mockMessage,
+        id: `m-${i}`,
+        timestamp: i,
+      }));
+      (storageCache.getItem as jest.Mock).mockResolvedValue(many);
+
+      await (messageHistoryService as any).cleanupOldMessages('some-key');
+
+      const kept = (storageCache.setItem as jest.Mock).mock.calls[0][1];
+      expect(kept).toHaveLength(10000);
+      // Newest messages are kept (sorted descending, sliced from the top)
+      expect(kept[0].timestamp).toBe(10004);
+    });
+
+    it('should not write when under the limit', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue([mockMessage]);
+
+      await (messageHistoryService as any).cleanupOldMessages('some-key');
+
+      expect(storageCache.setItem).not.toHaveBeenCalled();
+    });
+
+    it('should swallow errors during cleanup', async () => {
+      const many: IRCMessage[] = Array.from({ length: 10005 }, (_, i) => ({
+        ...mockMessage,
+        id: `m-${i}`,
+        timestamp: i,
+      }));
+      (storageCache.getItem as jest.Mock).mockResolvedValue(many);
+      (storageCache.setItem as jest.Mock).mockRejectedValue(
+        new Error('write error'),
+      );
+
+      await expect(
+        (messageHistoryService as any).cleanupOldMessages('some-key'),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('loadMessagesByKey (private)', () => {
+    it('should return empty array when no data is cached', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(null);
+
+      const result = await (messageHistoryService as any).loadMessagesByKey(
+        'some-key',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array on error', async () => {
+      (storageCache.getItem as jest.Mock).mockRejectedValue(
+        new Error('load error'),
+      );
+
+      const result = await (messageHistoryService as any).loadMessagesByKey(
+        'some-key',
+      );
+
+      expect(result).toEqual([]);
+    });
   });
 });

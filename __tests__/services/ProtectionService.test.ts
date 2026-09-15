@@ -6,6 +6,7 @@
  */
 
 import { protectionService } from '../../src/services/ProtectionService';
+import { settingsService } from '../../src/services/SettingsService';
 import type { IRCMessage } from '../../src/services/IRCService';
 
 const mockExists = jest.fn();
@@ -442,6 +443,231 @@ describe('ProtectionService', () => {
       );
       await Promise.resolve();
       expect(mockAppendFile).toHaveBeenCalled();
+    });
+  });
+
+  describe('subscribeSettings listener callbacks', () => {
+    const buildMessage = (overrides: Partial<IRCMessage> = {}): IRCMessage => ({
+      type: 'message',
+      from: 'user1',
+      text: 'plain harmless text',
+      channel: '#room',
+      network: 'TestNetwork',
+      timestamp: Date.now(),
+      ...overrides,
+    });
+
+    it('applies validated values from settingsService change events', () => {
+      // Register the protection service listeners.
+      // @ts-ignore - private method invoked for coverage
+      protectionService.subscribeSettings();
+
+      const notify = (key: string, value: unknown) => {
+        // @ts-ignore - private method used to fire listeners synchronously
+        settingsService.notifyListeners(key, value);
+      };
+
+      notify('spamPmMode', 'always');
+      // @ts-ignore
+      expect(protectionService.settings.spamPmMode).toBe('always');
+
+      notify('spamPmKeywords', ['*only*']);
+      // @ts-ignore
+      expect(protectionService.settings.spamPmKeywords).toEqual(['*only*']);
+
+      notify('spamChannelEnabled', true);
+      // @ts-ignore
+      expect(protectionService.settings.spamChannelEnabled).toBe(true);
+
+      notify('spamNoSpamOnQuits', true);
+      // @ts-ignore
+      expect(protectionService.settings.spamNoSpamOnQuits).toBe(true);
+
+      notify('spamLoggingEnabled', true);
+      // @ts-ignore
+      expect(protectionService.settings.spamLoggingEnabled).toBe(true);
+
+      notify('protCtcpFlood', true);
+      // @ts-ignore
+      expect(protectionService.settings.protCtcpFlood).toBe(true);
+
+      notify('protTextFlood', true);
+      // @ts-ignore
+      expect(protectionService.settings.protTextFlood).toBe(true);
+
+      notify('protDccFlood', true);
+      // @ts-ignore
+      expect(protectionService.settings.protDccFlood).toBe(true);
+
+      notify('protQueryFlood', true);
+      // @ts-ignore
+      expect(protectionService.settings.protQueryFlood).toBe(true);
+
+      notify('protDosAttacks', true);
+      // @ts-ignore
+      expect(protectionService.settings.protDosAttacks).toBe(true);
+
+      notify('protAntiDeopEnabled', true);
+      // @ts-ignore
+      expect(protectionService.settings.protAntiDeopEnabled).toBe(true);
+
+      notify('protAntiDeopUseChanserv', true);
+      // @ts-ignore
+      expect(protectionService.settings.protAntiDeopUseChanserv).toBe(true);
+
+      notify('protExcludeTokens', 'safeword');
+      // @ts-ignore
+      expect(protectionService.settings.protExcludeTokens).toBe('safeword');
+
+      notify('protEnforceSilence', true);
+      // @ts-ignore
+      expect(protectionService.settings.protEnforceSilence).toBe(true);
+
+      notify('protBlockTsunamis', true);
+      // @ts-ignore
+      expect(protectionService.settings.protBlockTsunamis).toBe(true);
+
+      notify('protTextFloodNet', true);
+      // @ts-ignore
+      expect(protectionService.settings.protTextFloodNet).toBe(true);
+
+      notify('protIrcopAction', 'kill');
+      // @ts-ignore
+      expect(protectionService.settings.protIrcopAction).toBe('kill');
+
+      notify('protIrcopReason', 'custom reason');
+      // @ts-ignore
+      expect(protectionService.settings.protIrcopReason).toBe('custom reason');
+
+      notify('protIrcopDuration', '2h');
+      // @ts-ignore
+      expect(protectionService.settings.protIrcopDuration).toBe('2h');
+
+      // Invalid values must fall back to the current value (validator branches).
+      notify('spamPmMode', 'not-a-mode');
+      // @ts-ignore
+      expect(protectionService.settings.spamPmMode).toBe('always');
+      notify('protIrcopAction', 'bogus');
+      // @ts-ignore
+      expect(protectionService.settings.protIrcopAction).toBe('kill');
+    });
+
+    it('blocks text flood once the per-user bucket exceeds five messages', () => {
+      // @ts-ignore
+      protectionService.settings.protTextFlood = true;
+      // @ts-ignore
+      protectionService.settings.protQueryFlood = false;
+      // @ts-ignore
+      protectionService.settings.protCtcpFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDccFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDosAttacks = false;
+      // @ts-ignore
+      protectionService.settings.protBlockTsunamis = false;
+      // @ts-ignore
+      protectionService.settings.protTextFloodNet = false;
+      // @ts-ignore
+      protectionService.settings.spamChannelEnabled = false;
+      // @ts-ignore
+      protectionService.settings.protExcludeTokens = '';
+
+      const msg = buildMessage({ from: 'text-flooder', channel: '#flood' });
+      let blocked = false;
+      for (let i = 0; i < 6; i++) {
+        const decision = protectionService.evaluateIncomingMessage(msg, {
+          isChannel: true,
+        });
+        blocked = blocked || decision?.kind === 'flood';
+      }
+      expect(blocked).toBe(true);
+    });
+
+    it('blocks query flood on private messages after five messages', () => {
+      // @ts-ignore
+      protectionService.settings.protTextFlood = false;
+      // @ts-ignore
+      protectionService.settings.protQueryFlood = true;
+      // @ts-ignore
+      protectionService.settings.protCtcpFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDccFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDosAttacks = false;
+      // @ts-ignore
+      protectionService.settings.protBlockTsunamis = false;
+      // @ts-ignore
+      protectionService.settings.protTextFloodNet = false;
+      // @ts-ignore
+      protectionService.settings.spamPmMode = 'when_open';
+      // @ts-ignore
+      protectionService.settings.protExcludeTokens = '';
+
+      const pm = buildMessage({ from: 'pm-flooder', channel: 'somenick' });
+      let blocked = false;
+      for (let i = 0; i < 5; i++) {
+        const decision = protectionService.evaluateIncomingMessage(pm, {
+          isChannel: false,
+        });
+        blocked = blocked || decision?.kind === 'flood';
+      }
+      expect(blocked).toBe(true);
+    });
+
+    it('flags repeated-word tsunami text via the word-uniqueness branch', () => {
+      // @ts-ignore
+      protectionService.settings.protBlockTsunamis = true;
+      // @ts-ignore
+      protectionService.settings.protTextFlood = false;
+      // @ts-ignore
+      protectionService.settings.protExcludeTokens = '';
+      // @ts-ignore
+      protectionService.settings.spamChannelEnabled = false;
+
+      // >200 chars, no single char dominates (>0.65), but >20 words with
+      // very low unique ratio (<0.35) -> word-repetition tsunami branch.
+      const repeated = 'alpha bravo charlie '.repeat(30).trim();
+      const decision = protectionService.evaluateIncomingMessage(
+        buildMessage({ text: repeated, from: 'tsu-words', channel: '#tsu' }),
+        { isChannel: true },
+      );
+      expect(decision?.kind).toBe('tsunami');
+    });
+
+    it('does not flag long, high-variety text as tsunami', () => {
+      // @ts-ignore
+      protectionService.settings.protBlockTsunamis = true;
+      // @ts-ignore
+      protectionService.settings.protTextFlood = false;
+      // @ts-ignore
+      protectionService.settings.protQueryFlood = false;
+      // @ts-ignore
+      protectionService.settings.protCtcpFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDccFlood = false;
+      // @ts-ignore
+      protectionService.settings.protDosAttacks = false;
+      // @ts-ignore
+      protectionService.settings.protTextFloodNet = false;
+      // @ts-ignore
+      protectionService.settings.spamChannelEnabled = false;
+      // @ts-ignore
+      protectionService.settings.protExcludeTokens = '';
+
+      // >200 chars, >20 words but all unique -> falls through to return false.
+      const varied = Array.from({ length: 40 }, (_, i) => `token${i}`).join(
+        ' ',
+      );
+      const decision = protectionService.evaluateIncomingMessage(
+        buildMessage({ text: varied, from: 'no-tsu', channel: '#calm' }),
+        { isChannel: true },
+      );
+      expect(decision).toBeNull();
+    });
+
+    it('returns empty string when reading the spam log throws', async () => {
+      mockExists.mockRejectedValueOnce(new Error('fs failure'));
+      await expect(protectionService.getSpamLog()).resolves.toBe('');
     });
   });
 });

@@ -436,6 +436,178 @@ describe('ServiceDetectionService', () => {
     });
   });
 
+  describe('isServiceNick built-in list', () => {
+    it('identifies memoserv/botserv via the built-in service-nick list', () => {
+      // Neither nick exists in the bundled config nicks nor SERVICE_NICK_MAP,
+      // so detection falls through to the hard-coded service-nick list.
+      expect(serviceDetectionService.isServiceNick('MemoServ')).toBe(true);
+      expect(serviceDetectionService.isServiceNick('BotServ')).toBe(true);
+    });
+  });
+
+  describe('detectServicesFromToken', () => {
+    it('detects operserv/botserv/memoserv/groupserv nicks from ISUPPORT tokens', () => {
+      serviceDetectionService.initializeNetwork('test-network');
+
+      serviceDetectionService.processISupport('test-network', [
+        'NICKSERV=NickServ',
+        'CHANSERV=ChanServ',
+        'OPERSERV=OperServ',
+        'BOTSERV=BotServ',
+        'MEMOSERV=MemoServ',
+        'GROUPSERV=GroupServ',
+      ]);
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.rawData?.detectedServices).toMatchObject({
+        nickserv: 'nickserv',
+        chanserv: 'chanserv',
+        operserv: 'operserv',
+        botserv: 'botserv',
+        memoserv: 'memoserv',
+        groupserv: 'groupserv',
+      });
+    });
+  });
+
+  describe('identifyServiceFromMessage content heuristics', () => {
+    // "x@channels.undernet.org" is a known service nick but does not contain
+    // any of the recognised service-name substrings, so identification falls
+    // through to message-content heuristics.
+    const ambiguousNick = 'x@channels.undernet.org';
+
+    it('identifies nickserv from "nickname" + "register" content', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        ambiguousNick,
+        'To register your nickname use REGISTER',
+      );
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.rawData?.detectedServices?.[ambiguousNick]).toBe(
+        'nickserv',
+      );
+    });
+
+    it('identifies chanserv from "channel" + "register" content', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        ambiguousNick,
+        'You may register this channel now',
+      );
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.rawData?.detectedServices?.[ambiguousNick]).toBe(
+        'chanserv',
+      );
+    });
+
+    it('identifies hostserv from "vhost" content', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        ambiguousNick,
+        'Your vhost has been activated',
+      );
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.rawData?.detectedServices?.[ambiguousNick]).toBe(
+        'hostserv',
+      );
+    });
+
+    it('identifies memoserv from "memo" content', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        ambiguousNick,
+        'You have a new memo waiting',
+      );
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.rawData?.detectedServices?.[ambiguousNick]).toBe(
+        'memoserv',
+      );
+    });
+
+    it('returns no service when content matches no heuristic', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        ambiguousNick,
+        'Hello there friend',
+      );
+
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('detectFromServices Q nick', () => {
+    it('detects QuakeNet from the Q service nick', () => {
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        'Q',
+        'anything at all',
+      );
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.serviceType).toBe('quakenet');
+      expect(result?.method).toBe('services');
+    });
+  });
+
+  describe('detectFromNetworkName pattern fallbacks', () => {
+    it('matches undernet via the partial "under" pattern', () => {
+      serviceDetectionService.processNetworkName('test-network', 'Underworld');
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.serviceType).toBe('undernet');
+      expect(result?.ircdType).toBe('charybdis');
+    });
+
+    it('matches quakenet via the partial "quake" pattern', () => {
+      serviceDetectionService.processNetworkName('test-network', 'Earthquake');
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.serviceType).toBe('quakenet');
+    });
+
+    it('matches dalnet via the partial "dal" pattern', () => {
+      serviceDetectionService.processNetworkName('test-network', 'Scandal');
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.serviceType).toBe('dalnet');
+    });
+
+    it('infers unrealircd for an anope network mapped directly', () => {
+      serviceDetectionService.processNetworkName('test-network', 'anope');
+
+      const result = serviceDetectionService.getDetectionResult('test-network');
+      expect(result?.serviceType).toBe('anope');
+      expect(result?.ircdType).toBe('unrealircd');
+    });
+
+    it('returns no detection for an unrecognised network name', () => {
+      serviceDetectionService.processNetworkName('test-network', 'Libera');
+
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('detectFromVersion no match', () => {
+    it('returns no detection for an unrecognised version string', () => {
+      serviceDetectionService.processVersion(
+        'test-network',
+        'MysteryServer-1.0',
+      );
+
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeUndefined();
+    });
+  });
+
   describe('detection precedence', () => {
     it('keeps a high-confidence detection instead of replacing it with a weaker one', () => {
       serviceDetectionService.processNetworkName('test-network', 'DALnet');

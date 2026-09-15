@@ -31,7 +31,10 @@ jest.mock('../../src/i18n/localization', () => ({
   },
 }));
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DARK_THEME } from '../../src/themes/DarkTheme';
+import { LIGHT_THEME } from '../../src/themes/LightTheme';
+import { IRCAP_THEME } from '../../src/themes/IRcapTheme';
 import { themeService } from '../../src/services/ThemeService';
 
 describe('ThemeService', () => {
@@ -135,5 +138,189 @@ describe('ThemeService', () => {
     expect(
       themeService.getAvailableThemes().some(t => t.id === 'custom_x'),
     ).toBe(true);
+  });
+
+  it('picks base theme from background luminance and invalid values', () => {
+    const getBase = (colors: any) =>
+      (themeService as any).getBaseThemeForColors(colors);
+
+    // No background -> defaults to dark
+    expect(getBase(undefined).id).toBe('dark');
+    expect(getBase({}).id).toBe('dark');
+
+    // Background not starting with '#' -> dark
+    expect(getBase({ background: 'white' }).id).toBe('dark');
+
+    // Invalid hex length (not 4 or 7) -> dark
+    expect(getBase({ background: '#12345' }).id).toBe('dark');
+
+    // Bright colors -> light theme (including 3-digit shorthand)
+    expect(getBase({ background: '#ffffff' }).id).toBe('light');
+    expect(getBase({ background: '#fff' }).id).toBe('light');
+
+    // Dark colors -> dark theme
+    expect(getBase({ background: '#000000' }).id).toBe('dark');
+  });
+
+  it('initializes from stored built-in dark theme id', async () => {
+    mockStorage.set('@AndroidIRCX:currentTheme', 'dark');
+    await themeService.initialize();
+    expect(themeService.getCurrentTheme().id).toBe('dark');
+    expect(themeService.getCurrentTheme().isCustom).toBe(false);
+  });
+
+  it('initializes from stored built-in light theme id', async () => {
+    mockStorage.set('@AndroidIRCX:currentTheme', 'light');
+    await themeService.initialize();
+    expect(themeService.getCurrentTheme().id).toBe('light');
+  });
+
+  it('initializes from stored built-in ircap theme id', async () => {
+    mockStorage.set('@AndroidIRCX:currentTheme', 'ircap');
+    await themeService.initialize();
+    expect(themeService.getCurrentTheme().id).toBe('ircap');
+  });
+
+  it('handles initialize failure gracefully', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('storage blew up'),
+    );
+    await expect(themeService.initialize()).resolves.toBeUndefined();
+    // Falls back to the default dark theme without throwing
+    expect(themeService.getCurrentTheme().id).toBe('dark');
+  });
+
+  it('handles corrupt custom themes storage without throwing', async () => {
+    mockStorage.set('@AndroidIRCX:currentTheme', 'dark');
+    mockStorage.set('@AndroidIRCX:customThemes', '{not valid json');
+    await themeService.initialize();
+    expect(themeService.getCustomThemes()).toEqual([]);
+    expect(themeService.getCurrentTheme().id).toBe('dark');
+  });
+
+  it('handles saveCustomThemes failure gracefully', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('write failed'),
+    );
+    const custom = await themeService.createCustomTheme('Persist Fail', 'dark');
+    // Theme still added in-memory even though persistence failed
+    expect(themeService.getCustomThemes().some(t => t.id === custom.id)).toBe(
+      true,
+    );
+  });
+
+  it('exposes recommended settings for themes that provide them', async () => {
+    await themeService.setTheme('ircap');
+    expect(themeService.getCurrentTheme().id).toBe('ircap');
+    expect(themeService.hasRecommendedSettings()).toBe(true);
+    expect(themeService.getRecommendedSettings()).toEqual(
+      IRCAP_THEME.recommendedSettings,
+    );
+
+    await themeService.setTheme('dark');
+    expect(themeService.hasRecommendedSettings()).toBe(false);
+    expect(themeService.getRecommendedSettings()).toBeUndefined();
+  });
+
+  it('falls back to dark theme when setting an unknown theme id', async () => {
+    const result = await themeService.setTheme('does-not-exist');
+    expect(themeService.getCurrentTheme().id).toBe('dark');
+    expect(result).toBeUndefined();
+  });
+
+  it('handles setTheme persistence failure gracefully', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('write failed'),
+    );
+    await themeService.setTheme('light');
+    // Theme is still switched in-memory despite the save failing
+    expect(themeService.getCurrentTheme().id).toBe('light');
+  });
+
+  it('returns the three built-in themes', () => {
+    const builtIn = themeService.getBuiltInThemes();
+    expect(builtIn.map(t => t.id)).toEqual(['dark', 'light', 'ircap']);
+  });
+
+  it('returns false when updating a non-existent custom theme', async () => {
+    const result = await themeService.updateCustomTheme('missing', {
+      name: 'x',
+    });
+    expect(result).toBe(false);
+  });
+
+  it('updates message formats and syncs the active custom theme', async () => {
+    const custom = await themeService.createCustomTheme('Formats', 'dark');
+    await themeService.setTheme(custom.id);
+
+    const updated = await themeService.updateCustomTheme(custom.id, {
+      messageFormats: {
+        ...DARK_THEME.messageFormats!,
+        message: [{ type: 'text', value: 'CHANGED' }],
+      } as any,
+    });
+
+    expect(updated).toBe(true);
+    expect(
+      themeService.getCurrentTheme().messageFormats?.message?.[0]?.value,
+    ).toBe('CHANGED');
+  });
+
+  it('returns false when deleting a non-existent custom theme', async () => {
+    const result = await themeService.deleteCustomTheme('missing');
+    expect(result).toBe(false);
+  });
+
+  it('exports each built-in theme and returns null for unknown ids', () => {
+    for (const id of ['dark', 'light', 'ircap']) {
+      const exported = themeService.exportTheme(id);
+      expect(exported).toBeTruthy();
+      expect(JSON.parse(exported as string).theme.name).toBeTruthy();
+    }
+    expect(themeService.exportTheme('nope')).toBeNull();
+  });
+
+  it('exports a custom theme by id', async () => {
+    const custom = await themeService.createCustomTheme('Exportable', 'dark');
+    const exported = themeService.exportTheme(custom.id);
+    expect(exported).toBeTruthy();
+    expect(JSON.parse(exported as string).theme.name).toBe('Exportable');
+  });
+
+  it('rejects import when the theme object is missing', async () => {
+    const result = await themeService.importTheme(JSON.stringify({}));
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Invalid theme file format');
+  });
+
+  it('renames imported theme when a name collision exists', async () => {
+    const payload = JSON.stringify({
+      theme: {
+        name: 'Duplicate Name',
+        colors: {
+          background: '#000000',
+          surface: '#111111',
+          text: '#ffffff',
+          primary: '#00ff00',
+          messageText: '#ffffff',
+        },
+      },
+    });
+
+    const first = await themeService.importTheme(payload);
+    const second = await themeService.importTheme(payload);
+
+    expect(first.success).toBe(true);
+    expect(second.success).toBe(true);
+    expect(first.theme?.name).toBe('Duplicate Name');
+    expect(second.theme?.name).not.toBe('Duplicate Name');
+    expect(second.theme?.name).toContain('Duplicate Name');
+  });
+
+  it('exports the current theme', async () => {
+    await themeService.setTheme('light');
+    const exported = themeService.exportCurrentTheme();
+    expect(exported).toBeTruthy();
+    expect(JSON.parse(exported).theme.name).toBe(LIGHT_THEME.name);
   });
 });

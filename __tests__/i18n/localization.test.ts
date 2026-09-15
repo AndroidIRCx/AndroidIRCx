@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import React from 'react';
+import { Text } from 'react-native';
+import { render } from '@testing-library/react-native';
+
 type Mocks = {
   bestLanguageTag?: string | undefined;
   withLocaleApi?: boolean;
@@ -148,5 +152,37 @@ describe('i18n/localization', () => {
     const { mod } = loadModule();
     expect(mod.LocalizationProvider).toBeDefined();
     expect(mod.useT).toBeDefined();
+  });
+
+  it('leaves underscore-prefixed placeholders untouched during interpolation', () => {
+    const { mod } = loadModule({
+      bundled: { en: { greet: 'Hi {name} {_raw}' } },
+    });
+
+    // `{name}` is substituted; `{_raw}` is intentionally preserved verbatim.
+    expect(mod.tx.t('greet', { name: 'Ana', _raw: 'X' })).toBe('Hi Ana {_raw}');
+  });
+
+  it('applyLocale returns early when the resolved locale is unchanged', async () => {
+    const { mod } = loadModule();
+
+    // currentLocale starts at DEFAULT_LOCALE ('en'); re-applying it hits the
+    // early-return branch without mutating state or notifying listeners.
+    expect(mod.tx.getCurrentLocale()).toBe('en');
+    await mod.applyLocale('en');
+    expect(mod.tx.getCurrentLocale()).toBe('en');
+  });
+
+  it('LocalizationProvider renders its children', async () => {
+    const { mod } = loadModule();
+
+    const { getByText } = await render(
+      React.createElement(
+        mod.LocalizationProvider,
+        null,
+        React.createElement(Text, null, 'child-node'),
+      ),
+    );
+    expect(getByText('child-node')).toBeTruthy();
   });
 });

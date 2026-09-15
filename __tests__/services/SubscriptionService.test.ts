@@ -29,6 +29,22 @@ const {
   subscriptionService,
 } = require('../../src/services/SubscriptionService');
 
+const mkAccount = (over: any = {}) => ({
+  id: 'id',
+  zncUsername: 'user',
+  zncPassword: 'pw',
+  status: 'active',
+  provisioningStatus: 'ready',
+  expiresAt: null,
+  purchaseToken: 'tok',
+  subscriptionId: ZNC_PRODUCT_ID,
+  assignedNetworkId: null,
+  assignedServerId: null,
+  createdAt: new Date().toISOString(),
+  lastRefreshedAt: null,
+  ...over,
+});
+
 describe('SubscriptionService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -479,5 +495,367 @@ describe('SubscriptionService', () => {
     await expect(
       subscriptionService.checkUsernameAvailability('z'),
     ).resolves.toBeUndefined();
+  });
+
+  it('handles secure storage failures in prepareAccountsForStorage', async () => {
+    const svc = subscriptionService as any;
+
+    // password setSecret fails -> password not cleared (line 88)
+    mockSecure.setSecret.mockRejectedValueOnce(new Error('pw fail'));
+    let out = await svc.prepareAccountsForStorage(
+      [mkAccount({ id: 'p1' })],
+      true,
+    );
+    expect(out[0].zncPassword).toBe('pw');
+
+    // password ok, token setSecret fails -> token not cleared (line 103)
+    mockSecure.setSecret
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('tok fail'));
+    out = await svc.prepareAccountsForStorage([mkAccount({ id: 'p2' })], true);
+    expect(out[0].purchaseToken).toBe('tok');
+
+    // lockEnabled false + removeSecret fails -> warn (line 115)
+    mockSecure.removeSecret.mockRejectedValueOnce(new Error('rm fail'));
+    out = await svc.prepareAccountsForStorage([mkAccount({ id: 'p3' })], false);
+    expect(out).toHaveLength(1);
+
+    // outer catch -> account persisted without sensitive data (lines 124-134)
+    let count = 0;
+    const trap: any = mkAccount({ id: 'oc1', purchaseToken: 't' });
+    Object.defineProperty(trap, 'zncPassword', {
+      enumerable: true,
+      configurable: true,
+      get() {
+        count++;
+        if (count === 2) {
+          throw new Error('trap');
+        }
+        return 'pw';
+      },
+    });
+    out = await svc.prepareAccountsForStorage([trap], true);
+    expect(out[0].zncPassword).toBeNull();
+    expect(out[0].purchaseToken).toBe('');
+  });
+
+  it('handles empty storage and initialize failure', async () => {
+    // empty storage -> loadAccounts "no accounts" branch (lines 205-206)
+    mockGetSetting.mockImplementation(async () => false);
+    await subscriptionService.initialize();
+    expect(subscriptionService.getAccounts()).toEqual([]);
+
+    // initialize failure -> isPasswordLockEnabled rejects (line 191)
+    (subscriptionService as any).initialized = false;
+    mockGetSetting.mockRejectedValue(new Error('settings down'));
+    await subscriptionService.initialize();
+    expect((subscriptionService as any).initialized).toBe(false);
+
+    mockGetSetting.mockImplementation(async () => false);
+  });
+
+  it('handles storage read/write failures', async () => {
+    const svc = subscriptionService as any;
+    mockGetSetting.mockImplementation(async () => false);
+
+    // loadAccounts: getItem throws on both attempts -> inner catch (line 218)
+    const getSpy = jest
+      .spyOn(AsyncStorage, 'getItem')
+      .mockRejectedValue(new Error('io'));
+    await svc.loadAccounts();
+    expect(svc.accounts).toEqual([]);
+    getSpy.mockRestore();
+
+    // saveAccounts + savePurchaseTokens: setItem throws -> catch (lines 243, 280)
+    svc.accounts = [mkAccount({ id: 'w1' })];
+    const setSpy = jest
+      .spyOn(AsyncStorage, 'setItem')
+      .mockRejectedValue(new Error('io'));
+    await svc.saveAccounts();
+    await svc.savePurchaseTokens();
+    setSpy.mockRestore();
+
+    // savePurchaseTokens lockEnabled path writes token to secure storage (line 257)
+    mockGetSetting.mockImplementation(
+      async (k: string) => k === 'biometricPasswordLock',
+    );
+    svc.accounts = [mkAccount({ id: 'sp1', purchaseToken: 'ptok' })];
+    await svc.savePurchaseTokens();
+    expect(mockSecure.setSecret).toHaveBeenCalledWith(
+      expect.stringContaining('sp1'),
+      'ptok',
+    );
+    mockGetSetting.mockImplementation(async () => false);
+  });
+
+  it('handles getPurchaseTokens parse error and secure fallback', async () => {
+    // malformed TOKENS json -> catch (line 315), fallback to account tokens
+    mockGetSetting.mockImplementation(async () => false);
+    const badGetSpy = jest
+      .spyOn(AsyncStorage, 'getItem')
+      .mockResolvedValue('{bad');
+    (subscriptionService as any).accounts = [
+      mkAccount({ id: 'g1', purchaseToken: 'acc-tok' }),
+    ];
+    await expect(subscriptionService.getPurchaseTokens()).resolves.toEqual([
+      'acc-tok',
+    ]);
+    badGetSpy.mockRestore();
+
+    // no TOKENS + lockEnabled -> secure storage fallback (lines 324-334)
+    await AsyncStorage.removeItem(ZNC_STORAGE_KEYS.TOKENS);
+    mockGetSetting.mockImplementation(
+      async (k: string) => k === 'pinPasswordLock',
+    );
+    (subscriptionService as any).accounts = [
+      mkAccount({ id: 'g2' }),
+      mkAccount({ id: 'g3' }),
+    ];
+    mockSecure.getSecret
+      .mockResolvedValueOnce('secure-tok')
+      .mockResolvedValueOnce(null);
+    await expect(subscriptionService.getPurchaseTokens()).resolves.toEqual([
+      'secure-tok',
+    ]);
+    mockGetSetting.mockImplementation(async () => false);
+  });
+
+  it('catches listener errors during notify', async () => {
+    mockGetSetting.mockImplementation(async () => false);
+    let calls = 0;
+    const off = subscriptionService.addListener(() => {
+      calls++;
+      if (calls > 1) {
+        throw new Error('listener boom');
+      }
+    });
+    // clearAllData triggers notifyListeners; the throw is caught (lines 352-355)
+    await subscriptionService.clearAllData();
+    expect(calls).toBe(2);
+    off();
+  });
+
+  it('throws on register error and swallows save/token/notify failures', async () => {
+    // response.error -> throw (line 462)
+    (global as any).fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ error: 'nope' }),
+    });
+    await expect(
+      subscriptionService.registerZncSubscription({
+        purchaseToken: 'p',
+        subscriptionId: ZNC_PRODUCT_ID,
+        zncUsername: 'n',
+      }),
+    ).rejects.toThrow('nope');
+
+    // save/token/notify all fail -> each caught (lines 517, 527, 537)
+    mockGetSetting.mockImplementation(async () => false);
+    (global as any).fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 'reg-1',
+        status: 'active',
+        expires_at: null,
+        znc_username: 'n2',
+        znc_password: 'pw',
+        znc_status: 'ready',
+      }),
+    });
+    const svc = subscriptionService as any;
+    const saveSpy = jest
+      .spyOn(svc, 'saveAccounts')
+      .mockRejectedValueOnce(new Error('save'));
+    const tokSpy = jest
+      .spyOn(svc, 'savePurchaseTokens')
+      .mockRejectedValueOnce(new Error('tok'));
+    const notifySpy = jest
+      .spyOn(svc, 'notifyListeners')
+      .mockImplementationOnce(() => {
+        throw new Error('notify');
+      });
+    const acc = await subscriptionService.registerZncSubscription({
+      purchaseToken: 'p2',
+      subscriptionId: ZNC_PRODUCT_ID,
+      zncUsername: 'n2',
+    });
+    expect(acc.id).toBe('reg-1');
+    saveSpy.mockRestore();
+    tokSpy.mockRestore();
+    notifySpy.mockRestore();
+  });
+
+  it('covers refreshAccountStatus branches', async () => {
+    mockGetSetting.mockImplementation(async () => false);
+    const svc = subscriptionService as any;
+
+    // account not found -> null (lines 554-555)
+    await expect(
+      subscriptionService.refreshAccountStatus('none'),
+    ).resolves.toBeNull();
+
+    // expired but not past expiry -> reset to active (lines 567, 569)
+    svc.accounts = [
+      mkAccount({
+        id: 'rf1',
+        status: 'expired',
+        expiresAt: '2999-01-01T00:00:00.000Z',
+      }),
+    ];
+    const r = await subscriptionService.refreshAccountStatus('rf1');
+    expect(r?.status).toBe('active');
+
+    // saveAccounts throws -> catch + rethrow (lines 582-583)
+    svc.accounts = [mkAccount({ id: 'rf2', expiresAt: null })];
+    const saveSpy = jest
+      .spyOn(svc, 'saveAccounts')
+      .mockRejectedValueOnce(new Error('save'));
+    await expect(
+      subscriptionService.refreshAccountStatus('rf2'),
+    ).rejects.toThrow('save');
+    saveSpy.mockRestore();
+  });
+
+  it('refreshAllAccounts catches per-account errors', async () => {
+    mockGetSetting.mockImplementation(async () => false);
+    const trap: any = mkAccount({ id: 'ra1' });
+    Object.defineProperty(trap, 'expiresAt', {
+      enumerable: true,
+      configurable: true,
+      get() {
+        throw new Error('expiry boom');
+      },
+    });
+    (subscriptionService as any).accounts = [trap];
+    // per-account error is caught inside the loop (line 610)
+    await expect(
+      subscriptionService.refreshAllAccounts(),
+    ).resolves.toBeUndefined();
+  });
+
+  it('restore batch updates existing account and handles per-account errors', async () => {
+    mockGetSetting.mockImplementation(async () => false);
+    (subscriptionService as any).accounts = [
+      mkAccount({
+        id: 'br1',
+        assignedNetworkId: 'net-x',
+        assignedServerId: 'srv-x',
+      }),
+    ];
+    (global as any).fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        accounts: [
+          {
+            id: 'br1',
+            status: 'active',
+            expires_at: null,
+            znc_username: 'updated',
+            znc_password: 'np',
+            znc_status: 'ready',
+          },
+          {
+            id: 'br2',
+            znc_username: 'x',
+            status: 'active',
+            get znc_password() {
+              throw new Error('bad');
+            },
+          },
+        ],
+      }),
+    });
+
+    // existing index found + update (lines 655, 698); per-account catch (705-706)
+    const res = await subscriptionService.restorePurchases(['t1']);
+    expect(res.restored).toBe(1);
+    expect(res.failed).toBe(1);
+    expect(subscriptionService.getAccount('br1')?.assignedNetworkId).toBe(
+      'net-x',
+    );
+  });
+
+  it('restore falls back to individual when batch throws, updating by token', async () => {
+    mockGetSetting.mockImplementation(async () => false);
+    (subscriptionService as any).accounts = [
+      mkAccount({
+        id: 'old-id',
+        purchaseToken: 'tok-i',
+        assignedNetworkId: 'n-keep',
+        assignedServerId: 's-keep',
+      }),
+    ];
+    (global as any).fetch
+      .mockRejectedValueOnce(new Error('batch down')) // batch throws -> lines 722-723
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'new-id',
+          znc_username: 'ind',
+          znc_password: 'pw',
+          status: 'active',
+          znc_status: 'ready',
+          expires_at: null,
+        }),
+      });
+
+    // individual existing index found by token + update (lines 742, 782)
+    const res = await subscriptionService.restorePurchases(['tok-i']);
+    expect(res.restored).toBe(1);
+    expect(subscriptionService.getAccount('new-id')?.assignedNetworkId).toBe(
+      'n-keep',
+    );
+  });
+
+  it('apiCall enforces size/content-type limits and parses errors', async () => {
+    const svc = subscriptionService as any;
+    mockGetSetting.mockImplementation(async () => false);
+
+    // content-length too large -> throw (line 971)
+    (global as any).fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: {
+        get: (h: string) =>
+          h === 'content-length' ? String(1024 * 1024) : null,
+      },
+      json: async () => ({}),
+    });
+    await expect(svc.apiCall('/x', 'POST', {})).rejects.toThrow('too large');
+
+    // !ok + small content-length + structured JSON error (lines 980, 983-984)
+    (global as any).fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      headers: { get: (h: string) => (h === 'content-length' ? '40' : null) },
+      text: async () => JSON.stringify({ error: 'structured' }),
+    });
+    await expect(svc.apiCall('/x', 'POST', {})).rejects.toThrow('structured');
+
+    // !ok + small content-length + non-JSON body -> warn (line 990)
+    (global as any).fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      headers: { get: (h: string) => (h === 'content-length' ? '10' : null) },
+      text: async () => 'plain text error',
+    });
+    await expect(svc.apiCall('/x', 'POST', {})).rejects.toThrow(
+      'Request failed with status 500',
+    );
+
+    // ok but non-JSON content-type -> throw (line 1005)
+    (global as any).fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: {
+        get: (h: string) => (h === 'content-type' ? 'text/html' : null),
+      },
+      json: async () => ({}),
+    });
+    await expect(svc.apiCall('/x', 'GET')).rejects.toThrow('non-JSON response');
   });
 });

@@ -497,6 +497,252 @@ describe('NotifyService', () => {
     });
   });
 
+  describe('cap_ack MONITOR detection', () => {
+    const getCapHandler = () =>
+      mockIRCService.on.mock.calls.find(
+        (call: [string, Function]) => call[0] === 'cap_ack',
+      )[1];
+
+    it('should switch to monitor and resubscribe when monitor cap is acked', () => {
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+      service.setNetwork('TestNetwork');
+      service.isConnected = true;
+      service.protocol = 'ison';
+
+      const capHandler = getCapHandler();
+      capHandler(['monitor', 'sasl']);
+
+      expect(service.getProtocol()).toBe('monitor');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('MONITOR + Friend1');
+    });
+
+    it('should ignore cap_ack without monitor', () => {
+      service.isConnected = true;
+      service.protocol = 'ison';
+
+      const capHandler = getCapHandler();
+      capHandler(['sasl']);
+
+      expect(service.getProtocol()).toBe('ison');
+    });
+  });
+
+  describe('ISUPPORT protocol detection and subscription', () => {
+    const getNumericHandler = () =>
+      mockIRCService.on.mock.calls.find(
+        (call: [string, Function]) => call[0] === 'numeric',
+      )[1];
+
+    const getConnectionHandler = () =>
+      mockIRCService.onConnectionChange.mock.calls[0][0];
+
+    it('should detect MONITOR from ISUPPORT and send MONITOR on connect', () => {
+      const handler = getNumericHandler();
+      // params.slice(1, -1) yields the ISUPPORT tokens
+      handler(
+        5,
+        'server',
+        ['MyNick', 'WATCH=128', 'MONITOR=100', ':are supported'],
+        Date.now(),
+      );
+
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+
+      const connect = getConnectionHandler();
+      connect(true);
+
+      expect(service.getProtocol()).toBe('monitor');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('MONITOR + Friend1');
+    });
+
+    it('should detect WATCH from ISUPPORT and send WATCH on connect', () => {
+      const handler = getNumericHandler();
+      handler(
+        105,
+        'server',
+        ['MyNick', 'WATCH=128', ':are supported'],
+        Date.now(),
+      );
+
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+
+      const connect = getConnectionHandler();
+      connect(true);
+
+      expect(service.getProtocol()).toBe('watch');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WATCH +Friend1');
+    });
+
+    it('should detect monitor via hasCapability on connect', () => {
+      mockIRCService.hasCapability = jest.fn().mockReturnValue(true);
+
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+
+      const connect = getConnectionHandler();
+      connect(true);
+
+      expect(service.getProtocol()).toBe('monitor');
+    });
+
+    it('should fall back to ISON polling and re-poll on interval', () => {
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+
+      const connect = getConnectionHandler();
+      connect(true);
+
+      expect(service.getProtocol()).toBe('ison');
+      // Initial ISON sent immediately
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('ISON Friend1');
+
+      // Fire retry timers (2000/8000) first; they re-arm the ISON interval
+      jest.advanceTimersByTime(8000);
+      mockIRCService.sendRaw.mockClear();
+      // Now advance a full polling interval to trigger the interval callback
+      jest.advanceTimersByTime(30000);
+
+      // Interval callback (367-370) fired and re-sent ISON
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('ISON Friend1');
+    });
+  });
+
+  describe('numeric edge cases', () => {
+    const getNumericHandler = () =>
+      mockIRCService.on.mock.calls.find(
+        (call: [string, Function]) => call[0] === 'numeric',
+      )[1];
+
+    it('should handle RPL_ENDOFMONLIST (733) without error', () => {
+      const handler = getNumericHandler();
+      expect(() => handler(733, 'server', ['*'], Date.now())).not.toThrow();
+    });
+
+    it('should set a previously-online nick offline via ISON when absent', () => {
+      service.setNetwork('TestNetwork');
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+      // Mark the nick as currently online
+      service.notifyStatus.set('friend', { online: true });
+
+      const offlineListener = jest.fn();
+      service.on('offline', offlineListener);
+
+      const handler = getNumericHandler();
+      // ISON response with no online nicks -> Friend should go offline
+      handler(303, 'server', ['*', ':'], Date.now());
+
+      expect(offlineListener).toHaveBeenCalledWith(
+        expect.objectContaining({ nick: 'Friend' }),
+      );
+    });
+  });
+
+  describe('addNotify/removeNotify ISON protocol', () => {
+    beforeEach(() => {
+      service.setNetwork('TestNetwork');
+      service.isConnected = true;
+      service.protocol = 'ison';
+    });
+
+    it('should send ISON immediately when adding with ison protocol', async () => {
+      await service.addNotify('NewFriend');
+
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('ISON NewFriend');
+    });
+
+    it('should remove entry with ison protocol without sending', async () => {
+      await service.removeNotify('OldFriend');
+
+      expect(userManagementService.removeUserListEntry).toHaveBeenCalledWith(
+        'notify',
+        'OldFriend',
+        'TestNetwork',
+      );
+      expect(mockIRCService.sendRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('clearAll protocol variants', () => {
+    beforeEach(() => {
+      service.setNetwork('TestNetwork');
+      service.isConnected = true;
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+        {
+          mask: 'Friend2!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+      ]);
+    });
+
+    it('should send individual WATCH - for each entry with watch protocol', async () => {
+      service.protocol = 'watch';
+
+      await service.clearAll();
+
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WATCH -Friend1');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WATCH -Friend2');
+    });
+
+    it('should not send raw commands with ison protocol', async () => {
+      service.protocol = 'ison';
+
+      await service.clearAll();
+
+      expect(mockIRCService.sendRaw).not.toHaveBeenCalled();
+      expect(userManagementService.removeUserListEntry).toHaveBeenCalledTimes(
+        2,
+      );
+    });
+  });
+
   describe('destroy', () => {
     it('should clear ISON interval', () => {
       service.isonInterval = setInterval(() => {}, 1000);
