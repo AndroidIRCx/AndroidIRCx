@@ -5,7 +5,7 @@
 
 import { tx } from '../i18n/localization';
 import { Theme } from '../services/ThemeService';
-import { BLUE, SELECTION_TINT, withAlpha } from './palette';
+import { BLUE, ROLE_COLORS_LIGHT, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);
 
@@ -77,11 +77,11 @@ export const IRCAP_THEME: Theme = {
     userListBackground: '#FAFAFA',
     userListText: '#212121',
     userListBorder: '#E0E0E0',
-    userOwner: '#B91C1C',
-    userAdmin: '#B91C1C',
-    userOp: '#B91C1C',
-    userHalfop: '#B91C1C',
-    userVoice: '#212121',
+    userOwner: ROLE_COLORS_LIGHT.owner, // ~ owner (purple) — distinct role ramp
+    userAdmin: ROLE_COLORS_LIGHT.admin, // & admin (red)
+    userOp: ROLE_COLORS_LIGHT.op, // @ op (orange)
+    userHalfop: ROLE_COLORS_LIGHT.halfop, // % halfop (blue)
+    userVoice: ROLE_COLORS_LIGHT.voice, // + voice (green)
     userNormal: '#212121',
     highlightBackground: withAlpha(BLUE.base, 0.1),
     highlightText: '#000000',
@@ -1409,7 +1409,7 @@ export const IRCAP_THEME: Theme = {
         type: 'token',
         value: 'owners',
         style: {
-          color: '#B91C1C',
+          color: '#7B1FA2',
         },
       },
       {
@@ -1421,7 +1421,7 @@ export const IRCAP_THEME: Theme = {
         type: 'token',
         value: 'admins',
         style: {
-          color: '#B91C1C',
+          color: '#D32F2F',
         },
       },
       {
@@ -1433,7 +1433,7 @@ export const IRCAP_THEME: Theme = {
         type: 'token',
         value: 'ops',
         style: {
-          color: '#B91C1C',
+          color: '#F57C00',
         },
       },
       {
@@ -1445,7 +1445,7 @@ export const IRCAP_THEME: Theme = {
         type: 'token',
         value: 'halfops',
         style: {
-          color: '#B91C1C',
+          color: '#1976D2',
         },
       },
       {
@@ -1457,7 +1457,7 @@ export const IRCAP_THEME: Theme = {
         type: 'token',
         value: 'voices',
         style: {
-          color: '#212121',
+          color: '#388E3C',
         },
       },
       {

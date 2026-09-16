@@ -106,14 +106,23 @@ describe('Themes - IRcapTheme', () => {
       expect(IRCAP_THEME.colors.userListBorder).toBe('#E0E0E0');
     });
 
-    it('should have uniform user role colors (IRcap style)', () => {
-      // IRcap uses same color for all operator levels
-      expect(IRCAP_THEME.colors.userOwner).toBe('#B91C1C');
-      expect(IRCAP_THEME.colors.userAdmin).toBe('#B91C1C');
-      expect(IRCAP_THEME.colors.userOp).toBe('#B91C1C');
-      expect(IRCAP_THEME.colors.userHalfop).toBe('#B91C1C');
-      expect(IRCAP_THEME.colors.userVoice).toBe('#212121');
+    it('should have a distinct colour per user role', () => {
+      // Roles use a distinguishable ramp (owner→purple … voice→green) tuned
+      // for the light nick list, instead of collapsing everything to red.
+      expect(IRCAP_THEME.colors.userOwner).toBe('#7B1FA2');
+      expect(IRCAP_THEME.colors.userAdmin).toBe('#D32F2F');
+      expect(IRCAP_THEME.colors.userOp).toBe('#F57C00');
+      expect(IRCAP_THEME.colors.userHalfop).toBe('#1976D2');
+      expect(IRCAP_THEME.colors.userVoice).toBe('#388E3C');
       expect(IRCAP_THEME.colors.userNormal).toBe('#212121');
+      const roles = [
+        IRCAP_THEME.colors.userOwner,
+        IRCAP_THEME.colors.userAdmin,
+        IRCAP_THEME.colors.userOp,
+        IRCAP_THEME.colors.userHalfop,
+        IRCAP_THEME.colors.userVoice,
+      ];
+      expect(new Set(roles).size).toBe(roles.length);
     });
   });
 
