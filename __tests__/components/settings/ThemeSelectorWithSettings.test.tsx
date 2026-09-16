@@ -30,6 +30,7 @@ const themes = [
     name: 'Oceanic',
     colors: { background: '#001122', primary: '#33ccff' },
     recommendedSettings: { fontSize: 'large' },
+    isCustom: true,
   },
 ] as any;
 
@@ -141,5 +142,27 @@ describe('ThemeSelectorWithSettings', () => {
     expect(
       getByText('Current theme has recommended settings that can be applied.'),
     ).toBeTruthy();
+  });
+
+  it('renders grouped section headers (built-in family + Custom)', async () => {
+    const { getByText } = await render(
+      <ThemeSelectorWithSettings themes={themes} />,
+    );
+    // 'light' is a known built-in (Originals); 'oceanic' is unknown -> Custom.
+    expect(getByText('Originals')).toBeTruthy();
+    expect(getByText('Custom')).toBeTruthy();
+    // Rows still render their names and the recommended badge.
+    expect(getByText('Light')).toBeTruthy();
+    expect(getByText('Oceanic')).toBeTruthy();
+    expect(getByText('Recommended settings available')).toBeTruthy();
+  });
+
+  it('shows light/dark mode chips based on background luminance', async () => {
+    const { getByText } = await render(
+      <ThemeSelectorWithSettings themes={themes} />,
+    );
+    // Chip text is upper-cased and distinct from the theme names.
+    expect(getByText('LIGHT')).toBeTruthy();
+    expect(getByText('DARK')).toBeTruthy();
   });
 });
