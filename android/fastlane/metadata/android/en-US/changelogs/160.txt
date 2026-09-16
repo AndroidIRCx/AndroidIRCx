@@ -1,0 +1,5 @@
+What's new in v1.9.53:
+- Added 17 new built-in themes (dark & light): Dracula, Nord, Tokyo Night, Catppuccin, Gruvbox, Solarized, Monokai, One Dark, Rosé Pine, Matrix, Matrix Light, Amber CRT, Synthwave, mIRC Classic and more.
+- Theme picker now grouped by family with colour previews.
+- Theme editor: live preview, generate a theme from a few seed colours, WCAG contrast checker, HSL picker, palette import, and shareable theme codes with QR.
+- IRcap now uses a distinct colour per user role.
