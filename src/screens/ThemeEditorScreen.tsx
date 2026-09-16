@@ -24,6 +24,9 @@ import {
 import { useT } from '../i18n/localization';
 import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
+import { deriveThemeColors } from '../themes/generateTheme';
+
+type SeedSlot = 'background' | 'accent' | 'text';
 
 interface ThemeEditorScreenProps {
   visible: boolean;
@@ -56,12 +59,18 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const [colorValue, setColorValue] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
+  const [pickerMode, setPickerMode] = useState<'color' | 'seed'>('color');
+  const [seedSlot, setSeedSlot] = useState<SeedSlot | null>(null);
+  const [seedBackground, setSeedBackground] = useState('#121212');
+  const [seedAccent, setSeedAccent] = useState('#4CAF50');
+  const [seedText, setSeedText] = useState('');
   const initialMessageFormats = useMemo(
     () => messageFormats ?? getDefaultMessageFormats(),
     [messageFormats],
   );
 
   useEffect(() => {
+    const base = theme ? theme.colors : themeService.getColors();
     if (theme) {
       setThemeName(theme.name);
       setColors(theme.colors);
@@ -71,14 +80,52 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       setColors(themeService.getColors());
       setMessageFormats(undefined);
     }
+    setSeedBackground(base.background);
+    setSeedAccent(base.accent);
+    setSeedText('');
     setMessageFormatsDirty(false);
   }, [theme, visible]);
 
   const handleColorPress = (key: keyof ThemeColors) => {
+    setPickerMode('color');
+    setSeedSlot(null);
     setEditingColor(key);
     setColorValue(colors[key]);
     setHexInput(colors[key]);
     setShowColorPicker(true);
+  };
+
+  const seedValue = (slot: SeedSlot): string =>
+    slot === 'background'
+      ? seedBackground
+      : slot === 'accent'
+        ? seedAccent
+        : seedText;
+
+  const handleSeedPress = (slot: SeedSlot) => {
+    setPickerMode('seed');
+    setSeedSlot(slot);
+    setEditingColor(null);
+    const value = seedValue(slot);
+    setColorValue(value);
+    setHexInput(value);
+    setShowColorPicker(true);
+  };
+
+  const handleGenerate = () => {
+    if (!isValidColor(seedBackground) || !isValidColor(seedAccent)) {
+      Alert.alert(
+        t('Invalid Color'),
+        t('Please choose a valid background and accent colour'),
+      );
+      return;
+    }
+    const generated = deriveThemeColors({
+      background: seedBackground,
+      accent: seedAccent,
+      text: seedText && isValidColor(seedText) ? seedText : undefined,
+    });
+    setColors(generated);
   };
 
   const isValidColor = (value: string) => {
@@ -87,6 +134,17 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   };
 
   const applyColorValue = (value: string) => {
+    setColorValue(value);
+    if (pickerMode === 'seed') {
+      if (seedSlot === 'background') {
+        setSeedBackground(value);
+      } else if (seedSlot === 'accent') {
+        setSeedAccent(value);
+      } else if (seedSlot === 'text') {
+        setSeedText(value);
+      }
+      return;
+    }
     if (!editingColor) {
       return;
     }
@@ -94,7 +152,6 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       ...prev,
       [editingColor]: value,
     }));
-    setColorValue(value);
   };
 
   const handleSave = async () => {
@@ -384,6 +441,112 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
             </TouchableOpacity>
           </View>
 
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              {t('Live preview')}
+            </Text>
+            <View
+              style={[
+                styles.previewSurface,
+                {
+                  backgroundColor: colors.messageBackground,
+                  borderColor: currentColors.border,
+                },
+              ]}
+            >
+              <Text style={styles.previewLine}>
+                <Text style={{ color: colors.messageTimestamp }}>[12:34] </Text>
+                <Text style={{ color: colors.messageNick }}>{'<nick> '}</Text>
+                <Text style={{ color: colors.messageText }}>
+                  {t('Hey, welcome to the channel!')}
+                </Text>
+              </Text>
+              <Text style={[styles.previewLine, { color: colors.joinMessage }]}>
+                {t('→ nick has joined #general')}
+              </Text>
+              <Text
+                style={[styles.previewLine, { color: colors.actionMessage }]}
+              >
+                {t('* nick waves hello')}
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              {t('Generate from seed')}
+            </Text>
+            {[
+              { slot: 'background' as SeedSlot, label: t('Background') },
+              { slot: 'accent' as SeedSlot, label: t('Accent') },
+              { slot: 'text' as SeedSlot, label: t('Text (optional)') },
+            ].map(({ slot, label }) => {
+              const value = seedValue(slot);
+              return (
+                <View key={slot} style={styles.colorRow}>
+                  <Text
+                    style={[
+                      styles.colorLabel,
+                      { color: currentColors.textSecondary },
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.colorPreview,
+                      {
+                        backgroundColor: value || currentColors.surfaceVariant,
+                        borderColor: currentColors.border,
+                      },
+                    ]}
+                    onPress={() => handleSeedPress(slot)}
+                  >
+                    {!value && (
+                      <Text
+                        style={[
+                          styles.seedAutoText,
+                          { color: currentColors.textSecondary },
+                        ]}
+                      >
+                        {t('Auto')}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+            <TouchableOpacity
+              style={[
+                styles.formatButton,
+                {
+                  backgroundColor: currentColors.primary,
+                  borderColor: currentColors.primary,
+                },
+              ]}
+              onPress={handleGenerate}
+            >
+              <Text
+                style={[
+                  styles.formatButtonText,
+                  { color: currentColors.onPrimary },
+                ]}
+              >
+                {t('Generate theme')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {colorCategories.map(category => (
             <View
               key={category.title}
@@ -646,6 +809,21 @@ const styles = StyleSheet.create({
   colorLabel: {
     flex: 1,
     fontSize: 14,
+  },
+  previewSurface: {
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+    gap: 4,
+  },
+  previewLine: {
+    fontSize: 13,
+    fontFamily: 'monospace',
+  },
+  seedAutoText: {
+    fontSize: 9,
+    textAlign: 'center',
+    lineHeight: 40,
   },
   colorPreview: {
     width: 40,

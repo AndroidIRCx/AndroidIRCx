@@ -264,7 +264,9 @@ describe('ThemeEditorScreen', () => {
         />,
       );
 
-    await fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[3]);
+    // Index 7: header (2) + message-format button (1) + 3 seed swatches +
+    // 1 generate button precede the first colour-category preview (background).
+    await fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[7]);
     await fireEvent.changeText(
       await findByPlaceholderText('#FFFFFF'),
       '#123456',
@@ -295,7 +297,7 @@ describe('ThemeEditorScreen', () => {
         />,
       );
 
-    await fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[3]);
+    await fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[7]);
     await fireEvent.changeText(await findByPlaceholderText('#FFFFFF'), 'oops');
     await fireEvent.press(await findByText('Done'));
 
@@ -303,5 +305,50 @@ describe('ThemeEditorScreen', () => {
       'Invalid Color',
       'Please enter a valid hex color (e.g., #FF0000) or rgba value',
     );
+  });
+
+  it('renders the live preview transcript', async () => {
+    const { findByText } = await render(
+      <ThemeEditorScreen
+        visible
+        theme={mockTheme as any}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+
+    expect(await findByText('Hey, welcome to the channel!')).toBeTruthy();
+    expect(await findByText('→ nick has joined #general')).toBeTruthy();
+  });
+
+  it('generates a full theme from the seed and saves it', async () => {
+    const { UNSAFE_getAllByType, findByText, findByPlaceholderText } =
+      await render(
+        <ThemeEditorScreen
+          visible
+          theme={mockTheme as any}
+          onClose={jest.fn()}
+          onSave={jest.fn()}
+        />,
+      );
+
+    // Index 3 is the seed "Background" swatch.
+    await fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[3]);
+    await fireEvent.changeText(
+      await findByPlaceholderText('#FFFFFF'),
+      '#0B1E33',
+    );
+    await fireEvent.press(await findByText('Done'));
+    await fireEvent.press(await findByText('Generate theme'));
+    await fireEvent.press(await findByText('Save'));
+
+    await waitFor(async () => {
+      const call = themeService.updateCustomTheme.mock.calls[0];
+      const savedColors = call[1].colors;
+      expect(savedColors.background).toBe('#0B1E33');
+      // Derived: every key present and distinct from the original mock surface.
+      expect(savedColors.surface).not.toBe(mockTheme.colors.surface);
+      expect(typeof savedColors.messageText).toBe('string');
+    });
   });
 });
