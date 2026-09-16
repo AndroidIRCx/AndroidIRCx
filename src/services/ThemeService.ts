@@ -6,9 +6,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tx } from '../i18n/localization';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
-import { IRCAP_THEME } from '../themes/IRcapTheme';
-import { DARK_THEME } from '../themes/DarkTheme';
-import { LIGHT_THEME } from '../themes/LightTheme';
+import {
+  BUILT_IN_THEMES,
+  DEFAULT_THEME,
+  getBuiltInTheme,
+  DARK_THEME,
+  LIGHT_THEME,
+} from '../themes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -302,18 +306,9 @@ class ThemeService {
       // Load current theme
       const savedThemeId = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (savedThemeId) {
-        if (
-          savedThemeId === 'dark' ||
-          savedThemeId === 'light' ||
-          savedThemeId === 'ircap'
-        ) {
-          if (savedThemeId === 'dark') {
-            this.currentTheme = DARK_THEME;
-          } else if (savedThemeId === 'light') {
-            this.currentTheme = LIGHT_THEME;
-          } else {
-            this.currentTheme = IRCAP_THEME;
-          }
+        const builtIn = getBuiltInTheme(savedThemeId);
+        if (builtIn) {
+          this.currentTheme = builtIn;
         } else {
           // Try to load custom theme
           await this.loadCustomThemes();
@@ -396,12 +391,9 @@ class ThemeService {
   async setTheme(
     themeId: string,
   ): Promise<ThemeRecommendedSettings | undefined> {
-    if (themeId === 'dark') {
-      this.currentTheme = this.normalizeTheme(DARK_THEME);
-    } else if (themeId === 'light') {
-      this.currentTheme = this.normalizeTheme(LIGHT_THEME);
-    } else if (themeId === 'ircap') {
-      this.currentTheme = this.normalizeTheme(IRCAP_THEME);
+    const builtIn = getBuiltInTheme(themeId);
+    if (builtIn) {
+      this.currentTheme = this.normalizeTheme(builtIn);
     } else {
       const customTheme = this.customThemes.find(
         themeItem => themeItem.id === themeId,
@@ -409,8 +401,8 @@ class ThemeService {
       if (customTheme) {
         this.currentTheme = this.normalizeTheme(customTheme);
       } else {
-        console.warn(`Theme ${themeId} not found, using dark theme`);
-        this.currentTheme = this.normalizeTheme(DARK_THEME);
+        console.warn(`Theme ${themeId} not found, using default theme`);
+        this.currentTheme = this.normalizeTheme(DEFAULT_THEME);
       }
     }
 
@@ -427,11 +419,11 @@ class ThemeService {
   }
 
   getAvailableThemes(): Theme[] {
-    return [DARK_THEME, LIGHT_THEME, IRCAP_THEME, ...this.customThemes];
+    return [...BUILT_IN_THEMES, ...this.customThemes];
   }
 
   getBuiltInThemes(): Theme[] {
-    return [DARK_THEME, LIGHT_THEME, IRCAP_THEME];
+    return [...BUILT_IN_THEMES];
   }
 
   getCustomThemes(): Theme[] {
@@ -543,17 +535,9 @@ class ThemeService {
    * Export a theme to JSON string for sharing
    */
   exportTheme(themeId: string): string | null {
-    let theme: Theme | undefined;
-
-    if (themeId === 'dark') {
-      theme = DARK_THEME;
-    } else if (themeId === 'light') {
-      theme = LIGHT_THEME;
-    } else if (themeId === 'ircap') {
-      theme = IRCAP_THEME;
-    } else {
-      theme = this.customThemes.find(themeItem => themeItem.id === themeId);
-    }
+    const theme =
+      getBuiltInTheme(themeId) ??
+      this.customThemes.find(themeItem => themeItem.id === themeId);
 
     if (!theme) {
       return null;

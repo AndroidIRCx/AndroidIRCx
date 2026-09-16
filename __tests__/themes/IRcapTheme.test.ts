@@ -58,7 +58,7 @@ describe('Themes - IRcapTheme', () => {
     });
 
     it('should have info color', () => {
-      expect(IRCAP_THEME.colors.info).toBe('#1A1A1A');
+      expect(IRCAP_THEME.colors.info).toBe('#0063B5');
     });
   });
 

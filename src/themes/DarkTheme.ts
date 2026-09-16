@@ -9,6 +9,7 @@ import {
   getDefaultMessageFormats,
   RAW_RESPONSE_FORMAT_PRESETS,
 } from '../utils/MessageFormatDefaults';
+import { BLUE, ROLE_COLORS_DARK, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);
 
@@ -40,7 +41,7 @@ export const DARK_THEME: Theme = {
 
     success: '#4CAF50',
     error: '#B91C1C',
-    warning: '#DC2626',
+    warning: '#F59E0B', // amber — distinct from error/quit red
     info: '#2196F3',
 
     border: '#333333',
@@ -93,15 +94,15 @@ export const DARK_THEME: Theme = {
     userListBackground: '#1A1A1A',
     userListText: '#E0E0E0',
     userListBorder: '#2A2A2A',
-    userOwner: '#9C27B0', // ~ purple
-    userAdmin: '#F44336', // & red
-    userOp: '#FF9800', // @ orange
-    userHalfop: '#2196F3', // % blue
-    userVoice: '#4CAF50', // + green
+    userOwner: ROLE_COLORS_DARK.owner, // ~ owner (purple)
+    userAdmin: ROLE_COLORS_DARK.admin, // & admin (red)
+    userOp: ROLE_COLORS_DARK.op, // @ op (orange)
+    userHalfop: ROLE_COLORS_DARK.halfop, // % halfop (blue)
+    userVoice: ROLE_COLORS_DARK.voice, // + voice (green)
     userNormal: '#E0E0E0',
-    highlightBackground: 'rgba(33, 150, 243, 0.2)',
+    highlightBackground: withAlpha(BLUE.base, 0.2),
     highlightText: '#FFEB3B', // Yellow text for mentions
-    selectionBackground: 'rgba(33, 150, 243, 0.12)',
+    selectionBackground: SELECTION_TINT,
   },
   messageFormats: {
     ...getDefaultMessageFormats(),

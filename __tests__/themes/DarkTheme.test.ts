@@ -57,7 +57,7 @@ describe('Themes - DarkTheme', () => {
     });
 
     it('should have warning color', () => {
-      expect(DARK_THEME.colors.warning).toBe('#DC2626');
+      expect(DARK_THEME.colors.warning).toBe('#F59E0B');
     });
 
     it('should have info color', () => {

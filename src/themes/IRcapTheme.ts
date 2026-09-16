@@ -5,6 +5,7 @@
 
 import { tx } from '../i18n/localization';
 import { Theme } from '../services/ThemeService';
+import { BLUE, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);
 
@@ -32,7 +33,7 @@ export const IRCAP_THEME: Theme = {
     success: '#16A34A',
     error: '#B91C1C',
     warning: '#DC2626',
-    info: '#1A1A1A',
+    info: '#0063B5', // blue accent (matches the format bars) — was near-black
     border: '#E0E0E0',
     borderLight: '#F5F5F5',
     divider: '#E0E0E0',
@@ -82,9 +83,9 @@ export const IRCAP_THEME: Theme = {
     userHalfop: '#B91C1C',
     userVoice: '#212121',
     userNormal: '#212121',
-    highlightBackground: 'rgba(33, 150, 243, 0.1)',
+    highlightBackground: withAlpha(BLUE.base, 0.1),
     highlightText: '#000000',
-    selectionBackground: 'rgba(33, 150, 243, 0.12)',
+    selectionBackground: SELECTION_TINT,
   },
   messageFormats: {
     message: [

@@ -5,6 +5,7 @@
 
 import { tx } from '../i18n/localization';
 import { Theme } from '../services/ThemeService';
+import { BLUE, ROLE_COLORS_LIGHT, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);
 
@@ -89,14 +90,14 @@ export const LIGHT_THEME: Theme = {
     userListBackground: '#FAFAFA',
     userListText: '#212121',
     userListBorder: '#E0E0E0',
-    userOwner: '#7B1FA2', // ~ purple (darker for light theme)
-    userAdmin: '#D32F2F', // & red (darker for light theme)
-    userOp: '#F57C00', // @ orange (darker for light theme)
-    userHalfop: '#1976D2', // % blue (darker for light theme)
-    userVoice: '#388E3C', // + green (darker for light theme)
+    userOwner: ROLE_COLORS_LIGHT.owner, // ~ owner (darker for light theme)
+    userAdmin: ROLE_COLORS_LIGHT.admin, // & admin (darker for light theme)
+    userOp: ROLE_COLORS_LIGHT.op, // @ op (darker for light theme)
+    userHalfop: ROLE_COLORS_LIGHT.halfop, // % halfop (darker for light theme)
+    userVoice: ROLE_COLORS_LIGHT.voice, // + voice (darker for light theme)
     userNormal: '#212121',
-    highlightBackground: 'rgba(33, 150, 243, 0.1)',
+    highlightBackground: withAlpha(BLUE.base, 0.1),
     highlightText: '#FF6F00', // Orange text for mentions (darker for light theme)
-    selectionBackground: 'rgba(33, 150, 243, 0.12)',
+    selectionBackground: SELECTION_TINT,
   },
 };
