@@ -14,6 +14,9 @@ import {
   Modal,
   Alert,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
+import QRCode from 'react-native-qrcode-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
   themeService,
@@ -25,6 +28,10 @@ import { useT } from '../i18n/localization';
 import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
 import { deriveThemeColors } from '../themes/generateTheme';
+import { failingContrast } from '../themes/contrastAudit';
+import { hexToHsl, hslToHex, shades } from '../themes/hsl';
+import { parsePalette } from '../themes/importPalette';
+import { encodeThemeShare, decodeThemeShare } from '../themes/shareTheme';
 
 type SeedSlot = 'background' | 'accent' | 'text';
 
@@ -64,10 +71,24 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const [seedBackground, setSeedBackground] = useState('#121212');
   const [seedAccent, setSeedAccent] = useState('#4CAF50');
   const [seedText, setSeedText] = useState('');
+  const [showImportPalette, setShowImportPalette] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [showShare, setShowShare] = useState(false);
+  const [importCode, setImportCode] = useState('');
   const initialMessageFormats = useMemo(
     () => messageFormats ?? getDefaultMessageFormats(),
     [messageFormats],
   );
+  const failingPairs = useMemo(() => failingContrast(colors), [colors]);
+  const shareCode = useMemo(
+    () => encodeThemeShare({ name: themeName, colors, messageFormats }),
+    [themeName, colors, messageFormats],
+  );
+  const pickerHsl =
+    pickerMode === 'color'
+      ? (hexToHsl(colorValue) ?? { h: 0, s: 0, l: 0 })
+      : { h: 0, s: 0, l: 0 };
+  const pickerShades = pickerMode === 'color' ? shades(colorValue) : [];
 
   useEffect(() => {
     const base = theme ? theme.colors : themeService.getColors();
@@ -152,6 +173,55 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       ...prev,
       [editingColor]: value,
     }));
+  };
+
+  const applyHslChannel = (channel: 'h' | 's' | 'l', value: number) => {
+    const next = hslToHex({ ...pickerHsl, [channel]: value });
+    setHexInput(next);
+    applyColorValue(next);
+  };
+
+  const handleImportPalette = () => {
+    const parsed = parsePalette(importText);
+    if (parsed.matchedKeys > 0) {
+      setColors(prev => ({ ...prev, ...parsed.colors }));
+      Alert.alert(
+        t('Import palette'),
+        t('Applied {count} colours', { count: parsed.matchedKeys }),
+      );
+      setShowImportPalette(false);
+    } else if (parsed.seed) {
+      setColors(deriveThemeColors(parsed.seed));
+      Alert.alert(
+        t('Import palette'),
+        t('Generated a theme from {count} colours', {
+          count: parsed.hexes.length,
+        }),
+      );
+      setShowImportPalette(false);
+    } else {
+      Alert.alert(t('Import palette'), t('No colours found'));
+    }
+  };
+
+  const handleCopyShareCode = () => {
+    Clipboard.setString(shareCode);
+    Alert.alert(t('Share'), t('Copied to clipboard'));
+  };
+
+  const handleLoadShareCode = () => {
+    const payload = decodeThemeShare(importCode);
+    if (!payload) {
+      Alert.alert(t('Share'), t('Invalid code'));
+      return;
+    }
+    setThemeName(payload.name);
+    setColors(payload.colors);
+    if (payload.messageFormats) {
+      setMessageFormats(payload.messageFormats);
+      setMessageFormatsDirty(true);
+    }
+    setShowShare(false);
   };
 
   const handleSave = async () => {
@@ -420,6 +490,59 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
               { borderBottomColor: currentColors.divider },
             ]}
           >
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: currentColors.surface,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                onPress={() => {
+                  setImportText('');
+                  setShowImportPalette(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    { color: currentColors.text },
+                  ]}
+                >
+                  {t('Import palette')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: currentColors.surface,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                onPress={() => {
+                  setImportCode('');
+                  setShowShare(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    { color: currentColors.text },
+                  ]}
+                >
+                  {t('Share')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
               {t('Message format')}
             </Text>
@@ -475,6 +598,34 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                 {t('* nick waves hello')}
               </Text>
             </View>
+          </View>
+
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              {t('Accessibility')}
+            </Text>
+            {failingPairs.length === 0 ? (
+              <Text style={[styles.a11yPass, { color: currentColors.success }]}>
+                {t('All text meets WCAG AA')}
+              </Text>
+            ) : (
+              failingPairs.map(check => (
+                <Text
+                  key={`${check.fg}-${check.bg}`}
+                  style={[styles.a11yFail, { color: currentColors.warning }]}
+                >
+                  {t('{label} — {ratio}:1', {
+                    label: t(check.label),
+                    ratio: check.ratio,
+                  })}
+                </Text>
+              ))
+            )}
           </View>
 
           <View
@@ -654,6 +805,68 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                 autoCorrect={false}
               />
             </View>
+            {pickerMode === 'color' && (
+              <View style={styles.sliderBlock}>
+                <Text
+                  style={[styles.sliderLabel, { color: currentColors.text }]}
+                >
+                  {t('Hue')}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={360}
+                  value={pickerHsl.h}
+                  minimumTrackTintColor={currentColors.primary}
+                  maximumTrackTintColor={currentColors.border}
+                  onValueChange={value => applyHslChannel('h', value)}
+                />
+                <Text
+                  style={[styles.sliderLabel, { color: currentColors.text }]}
+                >
+                  {t('Saturation')}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={100}
+                  value={pickerHsl.s}
+                  minimumTrackTintColor={currentColors.primary}
+                  maximumTrackTintColor={currentColors.border}
+                  onValueChange={value => applyHslChannel('s', value)}
+                />
+                <Text
+                  style={[styles.sliderLabel, { color: currentColors.text }]}
+                >
+                  {t('Lightness')}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={100}
+                  value={pickerHsl.l}
+                  minimumTrackTintColor={currentColors.primary}
+                  maximumTrackTintColor={currentColors.border}
+                  onValueChange={value => applyHslChannel('l', value)}
+                />
+                <View style={styles.shadesRow}>
+                  {pickerShades.map(shade => (
+                    <TouchableOpacity
+                      key={shade}
+                      style={[
+                        styles.shadeSwatch,
+                        { backgroundColor: shade },
+                        shade === colorValue && selectedSwatchStyle,
+                      ]}
+                      onPress={() => {
+                        setHexInput(shade);
+                        applyColorValue(shade);
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
             <ScrollView style={styles.pickerGridScroll}>
               <View style={styles.pickerGrid}>
                 {predefinedColors.map(value => (
@@ -723,6 +936,204 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showImportPalette}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowImportPalette(false)}
+      >
+        <View
+          style={[
+            styles.pickerOverlay,
+            { backgroundColor: currentColors.modalOverlay },
+          ]}
+        >
+          <View
+            style={[
+              styles.pickerContainer,
+              { backgroundColor: currentColors.surface },
+            ]}
+          >
+            <Text style={[styles.pickerTitle, { color: currentColors.text }]}>
+              {t('Import palette')}
+            </Text>
+            <Text
+              style={[
+                styles.pickerSubtitle,
+                { color: currentColors.textSecondary },
+              ]}
+            >
+              {t('Paste colours, key: #hex lines, JSON, or a share list')}
+            </Text>
+            <TextInput
+              style={[
+                styles.importInput,
+                {
+                  backgroundColor: currentColors.surface,
+                  color: currentColors.text,
+                  borderColor: currentColors.border,
+                },
+              ]}
+              value={importText}
+              onChangeText={setImportText}
+              placeholder={t('Paste palette here')}
+              placeholderTextColor={currentColors.textSecondary}
+              multiline
+              textAlignVertical="top"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={styles.pickerActions}>
+              <TouchableOpacity
+                style={[
+                  styles.pickerButton,
+                  { backgroundColor: currentColors.surfaceVariant },
+                ]}
+                onPress={() => setShowImportPalette(false)}
+              >
+                <Text
+                  style={[
+                    styles.pickerButtonText,
+                    { color: currentColors.text },
+                  ]}
+                >
+                  {t('Cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.pickerButton,
+                  { backgroundColor: currentColors.primary },
+                ]}
+                onPress={handleImportPalette}
+              >
+                <Text
+                  style={[
+                    styles.pickerButtonText,
+                    { color: currentColors.onPrimary },
+                  ]}
+                >
+                  {t('Apply')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showShare}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowShare(false)}
+      >
+        <View
+          style={[
+            styles.pickerOverlay,
+            { backgroundColor: currentColors.modalOverlay },
+          ]}
+        >
+          <View
+            style={[
+              styles.pickerContainer,
+              { backgroundColor: currentColors.surface },
+            ]}
+          >
+            <ScrollView>
+              <Text style={[styles.pickerTitle, { color: currentColors.text }]}>
+                {t('Share')}
+              </Text>
+              <Text
+                selectable
+                style={[
+                  styles.shareCode,
+                  {
+                    color: currentColors.text,
+                    backgroundColor: currentColors.surfaceVariant,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+              >
+                {shareCode}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.formatButton,
+                  {
+                    backgroundColor: currentColors.surfaceVariant,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                onPress={handleCopyShareCode}
+              >
+                <Text
+                  style={[
+                    styles.formatButtonText,
+                    { color: currentColors.text },
+                  ]}
+                >
+                  {t('Copy')}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.qrRow}>
+                <QRCode value={shareCode} size={200} />
+              </View>
+              <Text style={[styles.pickerLabel, { color: currentColors.text }]}>
+                {t('Import from code')}
+              </Text>
+              <TextInput
+                style={[
+                  styles.pickerInput,
+                  {
+                    backgroundColor: currentColors.surface,
+                    color: currentColors.text,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                value={importCode}
+                onChangeText={setImportCode}
+                placeholder={t('Paste a share code')}
+                placeholderTextColor={currentColors.textSecondary}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={styles.pickerActions}>
+                <TouchableOpacity
+                  style={[
+                    styles.pickerButton,
+                    { backgroundColor: currentColors.surfaceVariant },
+                  ]}
+                  onPress={() => setShowShare(false)}
+                >
+                  <Text
+                    style={[
+                      styles.pickerButtonText,
+                      { color: currentColors.text },
+                    ]}
+                  >
+                    {t('Close')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.pickerButton,
+                    { backgroundColor: currentColors.primary },
+                  ]}
+                  onPress={handleLoadShareCode}
+                >
+                  <Text
+                    style={[
+                      styles.pickerButtonText,
+                      { color: currentColors.onPrimary },
+                    ]}
+                  >
+                    {t('Load')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -907,5 +1318,73 @@ const styles = StyleSheet.create({
   pickerButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  a11yPass: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  a11yFail: {
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  sliderBlock: {
+    marginBottom: 12,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  slider: {
+    width: '100%',
+    height: 32,
+  },
+  shadesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  shadeSwatch: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  importInput: {
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 13,
+    minHeight: 140,
+    marginBottom: 12,
+  },
+  shareCode: {
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 11,
+    fontFamily: 'monospace',
+    marginBottom: 12,
+  },
+  qrRow: {
+    alignItems: 'center',
+    marginVertical: 12,
   },
 });
