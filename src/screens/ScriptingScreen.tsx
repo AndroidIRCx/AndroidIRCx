@@ -38,6 +38,37 @@ import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
+// Teach Prism about the AndroidIRCX scripting vocabulary so the editor
+// highlights our own hooks and `api.*` calls, not just plain JavaScript.
+const IRCX_HOOKS =
+  'onConnect|onDisconnect|onMessage|onNotice|onJoin|onPart|onQuit|' +
+  'onNickChange|onKick|onMode|onTopic|onInvite|onCTCP|onAction|onHighlight|' +
+  'onRaw|onCommand|onTimer';
+let ircxGrammarReady = false;
+const ensureIrcxGrammar = () => {
+  if (ircxGrammarReady || !Prism.languages.javascript) return;
+  // Insert before `function-variable`, otherwise Prism tags a hook written as
+  // an object key (`onAction: () => ...`) as a function-variable first.
+  const target = Prism.languages.javascript['function-variable']
+    ? 'function-variable'
+    : 'function';
+  Prism.languages.insertBefore('javascript', target, {
+    'ircx-hook': { pattern: new RegExp('\\b(?:' + IRCX_HOOKS + ')\\b') },
+    // `api.<anything>` — colours `api`, the dot and the method name; any
+    // current or future api method is matched by the identifier pattern.
+    'ircx-api-call': {
+      pattern: /\bapi\s*\.\s*[A-Za-z_$][\w$]*/,
+      inside: {
+        'ircx-api': /\bapi\b/,
+        punctuation: /\./,
+        'ircx-method': /[A-Za-z_$][\w$]*/,
+      },
+    },
+    'ircx-api': /\bapi\b/,
+  });
+  ircxGrammarReady = true;
+};
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -339,6 +370,7 @@ export const ScriptingScreen: React.FC<Props> = ({
   const highlightParts = useCallback(
     (code: string) => {
       try {
+        ensureIrcxGrammar();
         const grammar = Prism.languages.javascript;
         if (!grammar) return highlightPartsFallback(code);
 
@@ -353,6 +385,12 @@ export const ScriptingScreen: React.FC<Props> = ({
               return styles.codeKeyword;
             case 'number':
               return styles.codeNumber;
+            case 'ircx-hook':
+              return styles.codeHook;
+            case 'ircx-api':
+              return styles.codeApi;
+            case 'ircx-method':
+              return styles.codeApiMethod;
             default:
               return styles.codeText;
           }
@@ -976,4 +1014,8 @@ const createStyles = (colors: any) =>
     codeString: { color: '#91b859', fontFamily: 'monospace', fontSize: 13 },
     codeComment: { color: '#9e9e9e', fontFamily: 'monospace', fontSize: 13 },
     codeNumber: { color: '#f78c6c', fontFamily: 'monospace', fontSize: 13 },
+    // AndroidIRCX scripting vocabulary
+    codeHook: { color: '#ffcb6b', fontFamily: 'monospace', fontSize: 13 },
+    codeApi: { color: '#82aaff', fontFamily: 'monospace', fontSize: 13 },
+    codeApiMethod: { color: '#89ddff', fontFamily: 'monospace', fontSize: 13 },
   });
