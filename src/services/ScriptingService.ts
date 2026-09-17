@@ -90,6 +90,13 @@ interface ScriptHooks {
     text: string,
     message: IRCMessage,
   ) => void;
+  onAction?: (
+    target: string,
+    nick: string,
+    text: string,
+    message: IRCMessage,
+  ) => void;
+  onHighlight?: (message: IRCMessage) => void;
   onRaw?: (
     line: string,
     direction: 'in' | 'out',
@@ -100,6 +107,22 @@ interface ScriptHooks {
     ctx: { channel?: string; networkId?: string },
   ) => HookResult;
   onTimer?: (name: string) => void;
+}
+
+/** Context passed to script-registered /commands and menu actions. */
+export interface ScriptCommandContext {
+  channel?: string;
+  networkId?: string;
+  nick?: string;
+}
+
+/** A context-menu item contributed by a script. */
+export interface ScriptMenuItem {
+  id: string;
+  scriptId: string;
+  menu: 'nick' | 'channel' | 'tab';
+  label: string;
+  onSelect: (target: string, ctx: ScriptCommandContext) => void;
 }
 
 const STORAGE_KEY = '@AndroidIRCX:scripts';
@@ -127,6 +150,16 @@ class ScriptingService {
   private settings: ScriptSettings = { loggingEnabled: false };
   private repository: ScriptConfig[] = [];
   private timers: Map<string, NodeJS.Timeout> = new Map();
+  // Script-registered /command aliases (keyed by command name) and menu items.
+  private scriptCommands: Map<
+    string,
+    {
+      scriptId: string;
+      handler: (args: string[], ctx: ScriptCommandContext) => HookResult;
+    }
+  > = new Map();
+  private scriptMenuItems: ScriptMenuItem[] = [];
+  private menuItemSeq = 0;
 
   async initialize() {
     if (this.initialized) return;
@@ -280,6 +313,7 @@ class ScriptingService {
         this.timers.delete(timerId);
       }
     });
+    this.clearScriptRegistrations(id);
     this.scripts = this.scripts.filter(s => s.id !== id);
     await this.save();
   }
@@ -301,7 +335,11 @@ class ScriptingService {
       const updated = { ...s, enabled };
       // Recompile the script when enabling to set up hooks
       // (hooks are not set when script is compiled while disabled)
-      return enabled ? this.compile(updated) : { ...updated, hooks: undefined };
+      if (!enabled) {
+        this.clearScriptRegistrations(id);
+        return { ...updated, hooks: undefined };
+      }
+      return this.compile(updated);
     });
     await this.save();
 
@@ -1131,11 +1169,142 @@ class ScriptingService {
           };
         `,
       },
+      {
+        id: 'builtin-opall',
+        name: t('Op Everyone (/opall)'),
+        enabled: false,
+        description: t(
+          'Adds /opall command that ops every non-op user in the channel.',
+        ),
+        builtIn: true,
+        code: `
+          // Registered at load time; type /opall in a channel to run it.
+          api.registerCommand('opall', (args, ctx) => {
+            if (!ctx.channel) return;
+            const users = api.getChannelUsers(ctx.channel, ctx.networkId);
+            users.forEach(u => {
+              if (u.startsWith('@')) return; // already an op
+              const nick = u.replace(/^[+%~&]/, '');
+              if (nick && nick !== api.userNick) {
+                api.op(ctx.channel, nick, ctx.networkId);
+              }
+            });
+          });
+          module.exports = {};
+        `,
+      },
+      {
+        id: 'builtin-notify-mention',
+        name: t('Mention Notifier'),
+        enabled: false,
+        description: t(
+          'Logs and notices you when your highlight words are mentioned.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onHighlight: (msg) => {
+              if (!msg || !msg.channel || !msg.from) return;
+              api.log('*** Mentioned in ' + msg.channel + ' by ' + msg.from);
+              if (api.userNick) {
+                api.sendNotice(
+                  api.userNick,
+                  'You were mentioned in ' + msg.channel + ' by ' + msg.from,
+                  msg.network,
+                );
+              }
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-slap',
+        name: t('Slap (menu item)'),
+        enabled: false,
+        description: t(
+          'Adds a "Slap" item to the nick context menu (a /me action).',
+        ),
+        builtIn: true,
+        code: `
+          // Registered at load time; appears in the nick popup menu.
+          api.addMenuItem({
+            menu: 'nick',
+            label: 'Slap',
+            onSelect: (nick, ctx) => {
+              if (ctx.channel) {
+                api.action(
+                  ctx.channel,
+                  'slaps ' + nick + ' around a bit with a large trout',
+                  ctx.networkId,
+                );
+              }
+            },
+          });
+          module.exports = {};
+        `,
+      },
+      {
+        id: 'builtin-random-greeter',
+        name: t('Random Greeter'),
+        enabled: false,
+        description: t(
+          'Greets joining users with a random line from a persistent list.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onConnect: async () => {
+              // Seed a few greetings the first time the script runs.
+              const greetings = api.list('greetings');
+              const existing = await greetings.all();
+              if (existing.length === 0) {
+                await greetings.add('Welcome aboard, $nick!');
+                await greetings.add('Hey $nick, good to see you!');
+                await greetings.add('Greetings $nick, make yourself at home.');
+              }
+            },
+            onJoin: async (channel, nick, msg) => {
+              if (!channel || !nick || nick === api.userNick) return;
+              const line = await api.list('greetings').random();
+              if (line) {
+                api.sendMessage(channel, line.replace('$nick', nick), msg?.network);
+              }
+            }
+          };
+        `,
+      },
     ];
+  }
+
+  private clearScriptRegistrations(scriptId: string) {
+    for (const [key, val] of this.scriptCommands) {
+      if (val.scriptId === scriptId) this.scriptCommands.delete(key);
+    }
+    this.scriptMenuItems = this.scriptMenuItems.filter(
+      m => m.scriptId !== scriptId,
+    );
+  }
+
+  private scriptSendCommand(command: string, networkId?: string) {
+    if (
+      typeof command !== 'string' ||
+      !command.trim() ||
+      command.length > 500
+    ) {
+      return;
+    }
+    const net = this.validateNetworkId(networkId);
+    if (!net) return;
+    connectionManager
+      .getConnection(net)
+      ?.ircService.sendCommand(command.trim().substring(0, 500));
   }
 
   private compile(script: ScriptConfig): CompiledScript {
     const safeScript: CompiledScript = { ...script };
+    // Drop any commands/menu items the previous version of this script added,
+    // so a recompile (or disable) never leaves stale registrations behind.
+    this.clearScriptRegistrations(script.id);
     if (!script.enabled) return safeScript;
     try {
       const api = this.makeApi(script);
@@ -1247,11 +1416,144 @@ class ScriptingService {
         conn?.ircService.sendMessage(chan, text.substring(0, 500));
       },
       sendCommand: (command: string, networkId?: string) => {
-        if (typeof command !== 'string' || command.length > 500) return;
+        this.scriptSendCommand(command, networkId);
+      },
+
+      // --- Custom /command aliases (mIRC-style) ---
+      registerCommand: (
+        name: string,
+        handler: (args: string[], ctx: ScriptCommandContext) => HookResult,
+      ) => {
+        if (typeof name !== 'string' || typeof handler !== 'function') return;
+        const key = name.trim().toLowerCase().replace(/^\//, '');
+        if (!key || /\s/.test(key)) return;
+        this.scriptCommands.set(key, { scriptId: script.id, handler });
+      },
+
+      // --- Context-menu items (mIRC-style popups) ---
+      addMenuItem: (item: {
+        menu?: 'nick' | 'channel' | 'tab';
+        label: string;
+        onSelect: (target: string, ctx: ScriptCommandContext) => void;
+      }) => {
+        if (!item || typeof item.onSelect !== 'function') return;
+        const label = String(item.label || '')
+          .substring(0, 60)
+          .trim();
+        if (!label) return;
+        const menu =
+          item.menu === 'channel' || item.menu === 'tab' ? item.menu : 'nick';
+        this.menuItemSeq += 1;
+        this.scriptMenuItems.push({
+          id: `${script.id}:${this.menuItemSeq}`,
+          scriptId: script.id,
+          menu,
+          label,
+          onSelect: item.onSelect,
+        });
+      },
+
+      // --- Action helpers (sugar over sendCommand) ---
+      join: (channel: string, networkId?: string) =>
+        this.scriptSendCommand(`/join ${channel}`, networkId),
+      part: (channel: string, reason?: string, networkId?: string) =>
+        this.scriptSendCommand(
+          `/part ${channel}${reason ? ' ' + reason : ''}`,
+          networkId,
+        ),
+      kick: (
+        channel: string,
+        nick: string,
+        reason?: string,
+        networkId?: string,
+      ) =>
+        this.scriptSendCommand(
+          `/kick ${channel} ${nick}${reason ? ' ' + reason : ''}`,
+          networkId,
+        ),
+      mode: (target: string, modes: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${target} ${modes}`, networkId),
+      op: (channel: string, nick: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} +o ${nick}`, networkId),
+      deop: (channel: string, nick: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} -o ${nick}`, networkId),
+      voice: (channel: string, nick: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} +v ${nick}`, networkId),
+      devoice: (channel: string, nick: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} -v ${nick}`, networkId),
+      ban: (channel: string, mask: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} +b ${mask}`, networkId),
+      unban: (channel: string, mask: string, networkId?: string) =>
+        this.scriptSendCommand(`/mode ${channel} -b ${mask}`, networkId),
+      setTopic: (channel: string, topic: string, networkId?: string) =>
+        this.scriptSendCommand(`/topic ${channel} ${topic}`, networkId),
+      changeNick: (newNick: string, networkId?: string) =>
+        this.scriptSendCommand(`/nick ${newNick}`, networkId),
+      setAway: (reason?: string, networkId?: string) =>
+        this.scriptSendCommand(`/away${reason ? ' ' + reason : ''}`, networkId),
+      back: (networkId?: string) => this.scriptSendCommand('/away', networkId),
+      whois: (nick: string, networkId?: string) =>
+        this.scriptSendCommand(`/whois ${nick}`, networkId),
+      action: (target: string, text: string, networkId?: string) => {
         const net = this.validateNetworkId(networkId);
-        if (!net) return;
-        const conn = connectionManager.getConnection(net);
-        conn?.ircService.sendCommand(command.substring(0, 500));
+        if (!net || typeof text !== 'string') return;
+        const tgt =
+          this.sanitizeChannel(target) || this.sanitizeNick(target) || '';
+        if (!tgt) return;
+        connectionManager
+          .getConnection(net)
+          ?.ircService.sendMessage(
+            tgt,
+            `\x01ACTION ${text}\x01`.substring(0, 500),
+          );
+      },
+
+      // --- Small helpers ---
+      rand: (min: number, max: number): number => {
+        if (typeof min !== 'number' || typeof max !== 'number') return 0;
+        const lo = Math.ceil(Math.min(min, max));
+        const hi = Math.floor(Math.max(min, max));
+        return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+      },
+      // Persistent named text list (per script) — a $read equivalent.
+      list: (name: string) => {
+        const key = `@AndroidIRCX:script:${script.id}:list:${String(
+          name,
+        ).substring(0, 100)}`;
+        const read = async (): Promise<string[]> => {
+          try {
+            const raw = await AsyncStorage.getItem(key);
+            const arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr : [];
+          } catch {
+            return [];
+          }
+        };
+        return {
+          add: async (line: string) => {
+            const arr = await read();
+            arr.push(String(line));
+            try {
+              await AsyncStorage.setItem(key, JSON.stringify(arr.slice(-1000)));
+            } catch {
+              // ignore storage errors
+            }
+          },
+          all: read,
+          random: async (): Promise<string | null> => {
+            const arr = await read();
+            return arr.length
+              ? arr[Math.floor(Math.random() * arr.length)]
+              : null;
+          },
+          clear: async () => {
+            try {
+              await AsyncStorage.removeItem(key);
+            } catch {
+              // ignore storage errors
+            }
+          },
+        };
       },
       sendNotice: (target: string, text: string, networkId?: string) => {
         const tgt = this.sanitizeChannel(target) || this.sanitizeNick(target);
@@ -1750,6 +2052,9 @@ class ScriptingService {
     // Handle regular messages
     if (message.type === 'message') {
       this.runHook('onMessage', h => h.onMessage?.(message));
+      if (message.text && highlightService.isHighlighted(message.text)) {
+        this.runHook('onHighlight', h => h.onHighlight?.(message));
+      }
     } else if (message.type === 'notice') {
       this.runHook('onNotice', h => h.onNotice?.(message));
     } else if (message.type === 'join' && message.channel && message.from) {
@@ -1789,6 +2094,16 @@ class ScriptingService {
       this.runHook('onInvite', h =>
         h.onInvite?.(message.channel!, message.from!, message),
       );
+    } else if (message.type === 'kick' && message.channel) {
+      this.runHook('onKick', h =>
+        h.onKick?.(
+          message.channel!,
+          message.target || '',
+          message.from || '',
+          message.reason || '',
+          message,
+        ),
+      );
     }
 
     // Handle CTCP in message text
@@ -1808,6 +2123,16 @@ class ScriptingService {
       this.runHook('onCTCP', h =>
         h.onCTCP?.(ctcpType, message.from || '', ctcpText, message),
       );
+      if (ctcpType === 'ACTION') {
+        this.runHook('onAction', h =>
+          h.onAction?.(
+            message.channel || message.from || '',
+            message.from || '',
+            ctcpText,
+            message,
+          ),
+        );
+      }
     }
   }
 
@@ -1843,10 +2168,59 @@ class ScriptingService {
     return current || null;
   }
 
+  /** Script-registered menu items for a given context menu. */
+  getScriptMenuItems(menu: 'nick' | 'channel' | 'tab'): ScriptMenuItem[] {
+    return this.scriptMenuItems.filter(m => m.menu === menu);
+  }
+
+  /** Invoke a script menu item (called by the UI when the user taps it). */
+  triggerScriptMenuItem(
+    id: string,
+    target: string,
+    ctx: ScriptCommandContext = {},
+  ) {
+    const item = this.scriptMenuItems.find(m => m.id === id);
+    if (!item || !adRewardService.hasAvailableTime()) return;
+    try {
+      item.onSelect(target, ctx);
+    } catch (error) {
+      this.addLog({
+        level: 'error',
+        message: `Menu item "${item.label}" failed: ${String(error)}`,
+        scriptId: item.scriptId,
+      });
+    }
+  }
+
   processOutgoingCommand(
     text: string,
     ctx: { channel?: string; networkId?: string },
   ): string | null {
+    // Script-registered /command aliases run first and consume the input.
+    const match = /^\/([^\s]+)(?:\s+([\s\S]*))?$/.exec(text.trim());
+    if (match && adRewardService.hasAvailableTime()) {
+      const cmd = this.scriptCommands.get(match[1].toLowerCase());
+      if (cmd) {
+        const args = match[2] ? match[2].trim().split(/\s+/) : [];
+        try {
+          const result = cmd.handler(args, ctx);
+          if (typeof result === 'string') return result || null;
+          if (result && typeof result === 'object') {
+            if (result.cancel) return null;
+            if (result.command) return result.command;
+          }
+          return null; // handled and consumed
+        } catch (error) {
+          this.addLog({
+            level: 'error',
+            message: `Command /${match[1]} failed: ${String(error)}`,
+            scriptId: cmd.scriptId,
+          });
+          return null;
+        }
+      }
+    }
+
     let current = text;
     this.runHook('onCommand', h => {
       const result = h.onCommand?.(current, ctx);

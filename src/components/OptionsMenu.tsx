@@ -9,7 +9,9 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
 import { useUIStore } from '../stores/uiStore';
+import { useTabStore } from '../stores/tabStore';
 import { connectionManager } from '../services/ConnectionManager';
+import { scriptingService } from '../services/ScriptingService';
 import { sortTabsGrouped } from '../utils/tabUtils';
 import { ChannelTab } from '../types';
 
@@ -91,6 +93,22 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
       }),
     [colors, destructiveColor, styles],
   );
+
+  // Script-contributed channel menu items (recomputed each time the menu opens).
+  const scriptMenuItems = useMemo(
+    () => (visible ? scriptingService.getScriptMenuItems('channel') : []),
+    [visible],
+  );
+
+  const handleScriptMenuItem = (id: string) => {
+    const activeTab = useTabStore.getState().getActiveTab();
+    const target = activeTab?.name || networkName || '';
+    scriptingService.triggerScriptMenuItem(id, target, {
+      channel: activeTab?.name,
+      networkId: focusedNetworkId ?? undefined,
+    });
+    onClose();
+  };
 
   const handleJoinChannel = () => {
     onClose();
@@ -392,6 +410,23 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
                 </Text>
               </View>
             </TouchableOpacity>
+            {scriptMenuItems.length > 0 && (
+              <>
+                <View style={localStyles.optionGroupDivider} />
+                {scriptMenuItems.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles?.optionItem}
+                    onPress={() => handleScriptMenuItem(item.id)}
+                  >
+                    <View style={localStyles.optionRow}>
+                      <Icon name="code" size={14} color={iconColor} />
+                      <Text style={localStyles.optionText}>{item.label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
             <TouchableOpacity
               style={styles?.optionItem}
               onPress={handleExitApp}

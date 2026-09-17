@@ -1034,4 +1034,206 @@ describe('ScriptingService', () => {
       expect.stringContaining('Test hook'),
     );
   });
+
+  it('fires onKick with channel, kicked nick, kicker nick, and reason', async () => {
+    await scriptingService.setLoggingEnabled(true);
+    await scriptingService.add({
+      id: 'kick-hook',
+      name: 'KickHook',
+      enabled: true,
+      code: `
+        module.exports = {
+          onKick: (channel, kicked, kicker, reason) =>
+            api.log('kick:' + channel + ':' + kicked + ':' + kicker + ':' + reason),
+        };
+      `,
+    });
+
+    scriptingService.handleMessage({
+      id: 'k1',
+      type: 'kick',
+      channel: '#x',
+      from: 'kicker',
+      target: 'victim',
+      reason: 'spam',
+      timestamp: Date.now(),
+    } as any);
+
+    expect(
+      scriptingService
+        .getLogs()
+        .some(l => l.message === 'kick:#x:victim:kicker:spam'),
+    ).toBe(true);
+  });
+
+  it('fires onAction for CTCP ACTION messages', async () => {
+    await scriptingService.setLoggingEnabled(true);
+    await scriptingService.add({
+      id: 'action-hook',
+      name: 'ActionHook',
+      enabled: true,
+      code: `
+        module.exports = {
+          onAction: (target, nick, text) =>
+            api.log('action:' + target + ':' + nick + ':' + text),
+        };
+      `,
+    });
+
+    scriptingService.handleMessage({
+      id: 'a1',
+      type: 'message',
+      channel: '#x',
+      from: 'alice',
+      text: '\x01ACTION hi\x01',
+      timestamp: Date.now(),
+    } as any);
+
+    expect(
+      scriptingService.getLogs().some(l => l.message === 'action:#x:alice:hi'),
+    ).toBe(true);
+  });
+
+  it('fires onHighlight when a message contains a highlight word', async () => {
+    await scriptingService.setLoggingEnabled(true);
+    await scriptingService.add({
+      id: 'hl-hook',
+      name: 'HlHook',
+      enabled: true,
+      code: `module.exports = { onHighlight: (msg) => api.log('hl:' + msg.text) };`,
+    });
+
+    // The mocked highlightService.isHighlighted() flags any text containing 'urgent'.
+    scriptingService.handleMessage({
+      id: 'h1',
+      type: 'message',
+      channel: '#x',
+      from: 'alice',
+      text: 'this is urgent',
+      timestamp: Date.now(),
+    } as any);
+    expect(mockHighlightService.isHighlighted).toHaveBeenCalledWith(
+      'this is urgent',
+    );
+    expect(
+      scriptingService.getLogs().some(l => l.message === 'hl:this is urgent'),
+    ).toBe(true);
+
+    // A non-highlighted message must not fire onHighlight.
+    scriptingService.handleMessage({
+      id: 'h2',
+      type: 'message',
+      channel: '#x',
+      from: 'alice',
+      text: 'just chatting',
+      timestamp: Date.now(),
+    } as any);
+    expect(
+      scriptingService.getLogs().some(l => l.message === 'hl:just chatting'),
+    ).toBe(false);
+  });
+
+  it('registerCommand consumes matching /commands and passes parsed args', async () => {
+    await scriptingService.setLoggingEnabled(true);
+    await scriptingService.add({
+      id: 'cmd-reg',
+      name: 'CmdReg',
+      enabled: true,
+      code: `
+        module.exports = {};
+        api.registerCommand('greet', (args, ctx) => {
+          api.log('greet:' + args.join(',') + ':' + ctx.channel);
+        });
+      `,
+    });
+
+    // A registered /command is consumed (returns null) and the handler observes args.
+    const out = scriptingService.processOutgoingCommand('/greet world', {
+      channel: '#x',
+      networkId: 'net1',
+    });
+    expect(out).toBeNull();
+    expect(
+      scriptingService.getLogs().some(l => l.message === 'greet:world:#x'),
+    ).toBe(true);
+
+    // An unregistered /command passes through unchanged.
+    expect(
+      scriptingService.processOutgoingCommand('/foo bar', { channel: '#x' }),
+    ).toBe('/foo bar');
+  });
+
+  it('addMenuItem registers a menu item exposed via getScriptMenuItems/triggerScriptMenuItem', async () => {
+    await scriptingService.setLoggingEnabled(true);
+    await scriptingService.add({
+      id: 'menu-reg',
+      name: 'MenuReg',
+      enabled: true,
+      code: `
+        module.exports = {};
+        api.addMenuItem({
+          menu: 'nick',
+          label: 'Greet',
+          onSelect: (target, ctx) => api.log('select:' + target),
+        });
+      `,
+    });
+
+    const items = scriptingService.getScriptMenuItems('nick');
+    expect(items).toHaveLength(1);
+    expect(items[0].label).toBe('Greet');
+    expect(items[0].scriptId).toBe('menu-reg');
+    // Other menus do not contain it.
+    expect(scriptingService.getScriptMenuItems('channel')).toHaveLength(0);
+
+    scriptingService.triggerScriptMenuItem(items[0].id, 'bob', {});
+    expect(
+      scriptingService.getLogs().some(l => l.message === 'select:bob'),
+    ).toBe(true);
+  });
+
+  it('clears registered commands and menu items when a script is disabled', async () => {
+    await scriptingService.add({
+      id: 'cleanup',
+      name: 'Cleanup',
+      enabled: true,
+      code: `
+        module.exports = {};
+        api.registerCommand('cleanupcmd', () => {});
+        api.addMenuItem({ menu: 'nick', label: 'X', onSelect: () => {} });
+      `,
+    });
+
+    expect((scriptingService as any).scriptCommands.has('cleanupcmd')).toBe(
+      true,
+    );
+    expect(
+      scriptingService
+        .getScriptMenuItems('nick')
+        .some(m => m.scriptId === 'cleanup'),
+    ).toBe(true);
+
+    await scriptingService.setEnabled('cleanup', false);
+
+    expect((scriptingService as any).scriptCommands.has('cleanupcmd')).toBe(
+      false,
+    );
+    expect(
+      scriptingService
+        .getScriptMenuItems('nick')
+        .some(m => m.scriptId === 'cleanup'),
+    ).toBe(false);
+  });
+
+  it('op() action helper sends a +o mode command via the connection', () => {
+    const api = (scriptingService as any).makeApi({
+      id: 'op-helper',
+      name: 'OpHelper',
+      code: '',
+      enabled: true,
+    });
+
+    api.op('#x', 'nick', 'net1');
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/mode #x +o nick');
+  });
 });

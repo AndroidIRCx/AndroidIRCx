@@ -57,6 +57,8 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
   onTopic: (channel, topic, setterNick, msg) => { /* ... */ },
   onInvite: (channel, inviterNick, msg) => { /* ... */ },
   onCTCP: (type, from, text, msg) => { /* ... */ },
+  onAction: (target, nick, text, msg) => { /* /me actions */ },
+  onHighlight: (msg) => { /* your nick/word was mentioned */ },
   onRaw: (line, direction, msg) => { /* return modified line or { cancel: true } */ },
   onCommand: (text, ctx) => { /* return newText or { cancel: true } */ },
   onTimer: (name) => { /* timer fired */ },
@@ -103,6 +105,62 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           {t('• api.getConfig() — script config JSON')}
         </Text>
 
+        <Text style={styles.sub}>{t('Custom commands & menus')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.registerCommand(name, (args, ctx) => {}) — user types /name; ctx = { channel?, networkId?, nick? }',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            "• api.addMenuItem({ menu: 'nick'|'channel'|'tab', label, onSelect: (target, ctx) => {} })",
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Action helpers')}</Text>
+        <Text style={styles.bullet}>
+          {t('• api.join(channel, networkId?)')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.part(channel, reason?, networkId?)')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.kick(channel, nick, reason?, networkId?)')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.mode(target, modes, networkId?)')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.op / api.deop / api.voice / api.devoice(channel, nick)')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.ban / api.unban(channel, mask)')}
+        </Text>
+        <Text style={styles.bullet}>{t('• api.setTopic(channel, topic)')}</Text>
+        <Text style={styles.bullet}>
+          {t('• api.changeNick(newNick) / api.setAway(reason?) / api.back()')}
+        </Text>
+        <Text style={styles.bullet}>{t('• api.whois(nick)')}</Text>
+        <Text style={styles.bullet}>
+          {t('• api.action(target, text, networkId?) — send a /me action')}
+        </Text>
+
+        <Text style={styles.sub}>{t('Storage & utilities')}</Text>
+        <Text style={styles.bullet}>
+          {t('• api.getStorage(key) / api.setStorage(key, value) — persistent')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.rand(min, max) — random integer in [min, max]')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.list(name) — persistent list: .add(line), .all(), .random(), .clear()',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.isHighlighted(text) — matches your highlight words')}
+        </Text>
+
         <Text style={styles.title}>{t('Hooks')}</Text>
         <Text style={styles.sub}>{t('Connection Events')}</Text>
         <Text style={styles.bullet}>
@@ -120,6 +178,12 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         </Text>
         <Text style={styles.bullet}>
           {t('• onCTCP(type, from, text, msg) — CTCP requests')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onAction(target, nick, text, msg) — /me actions')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onHighlight(msg) — a highlight word was matched')}
         </Text>
         <Text style={styles.sub}>{t('Channel Events')}</Text>
         <Text style={styles.bullet}>
@@ -222,6 +286,54 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
   },
 };`}
         </Text>
+        <Text style={styles.sub}>{t('Custom Command (/opall)')}</Text>
+        <Text style={styles.code}>
+          {`// Call registerCommand at load time (top level), not inside a hook.
+api.registerCommand('opall', (args, ctx) => {
+  if (!ctx.channel) return;
+  const users = api.getChannelUsers(ctx.channel, ctx.networkId);
+  users.forEach(u => {
+    if (u.startsWith('@')) return; // already op
+    const nick = u.replace(/^[+%~&]/, '');
+    if (nick && nick !== api.userNick) api.op(ctx.channel, nick, ctx.networkId);
+  });
+});
+module.exports = {};`}
+        </Text>
+        <Text style={styles.sub}>{t('Context-Menu Item (Slap)')}</Text>
+        <Text style={styles.code}>
+          {`api.addMenuItem({
+  menu: 'nick',
+  label: 'Slap',
+  onSelect: (nick, ctx) => {
+    if (ctx.channel) api.action(ctx.channel, 'slaps ' + nick + ' with a trout');
+  },
+});
+module.exports = {};`}
+        </Text>
+        <Text style={styles.sub}>{t('Mention Notifier')}</Text>
+        <Text style={styles.code}>
+          {`module.exports = {
+  onHighlight: (msg) => {
+    api.log('Mentioned in ' + msg.channel + ' by ' + msg.from);
+    api.sendNotice(api.userNick, 'Mentioned by ' + msg.from, msg.network);
+  },
+};`}
+        </Text>
+        <Text style={styles.sub}>{t('Random Greeter (list)')}</Text>
+        <Text style={styles.code}>
+          {`module.exports = {
+  onConnect: async () => {
+    const g = api.list('greetings');
+    if ((await g.all()).length === 0) await g.add('Welcome, $nick!');
+  },
+  onJoin: async (channel, nick, msg) => {
+    if (nick === api.userNick) return;
+    const line = await api.list('greetings').random();
+    if (line) api.sendMessage(channel, line.replace('$nick', nick), msg?.network);
+  },
+};`}
+        </Text>
 
         <Text style={styles.title}>{t('Tips')}</Text>
         <Text style={styles.bullet}>
@@ -246,6 +358,14 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         </Text>
         <Text style={styles.bullet}>
           {t('• Check api.isConnected() before sending commands.')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Call registerCommand / addMenuItem at load time (top level), then export hooks.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.list(...) methods are async — remember to await them.')}
         </Text>
 
         <View style={styles.footerSpace} />

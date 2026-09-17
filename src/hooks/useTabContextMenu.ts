@@ -34,6 +34,7 @@ import { certificateManager } from '../services/CertificateManagerService';
 import { FingerprintFormat } from '../types/certificate';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 import { debugLogger } from '../services/DebugLogger';
+import { scriptingService } from '../services/ScriptingService';
 
 interface TabOption {
   text: string;
@@ -1252,6 +1253,21 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
                 tab.name,
               );
               useUIStore.getState().setShowTabOptionsModal(true);
+            },
+          });
+        }
+
+        // Script-contributed 'tab' context-menu items.
+        for (const item of scriptingService.getScriptMenuItems('tab')) {
+          options.push({
+            text: item.label,
+            icon: 'code-tags',
+            onPress: () => {
+              scriptingService.triggerScriptMenuItem(item.id, tab.name, {
+                channel: tab.name,
+                networkId: tab.networkId,
+              });
+              useUIStore.getState().setShowTabOptionsModal(false);
             },
           });
         }

@@ -1,5 +1,4 @@
 What's new in v1.9.54:
-- Header now shows the active tab (Network @ #channel), a connection dot, colour-coded ping with a lag graph, and unread-tab count.
-- Every theme's colours retuned for readability: nicks, roles and message types stay clearly visible on all backgrounds.
-- Softer, less glaring backgrounds on light and terminal themes.
-- Edit or customize the current theme directly; new IRcap Dark theme.
+- Header shows the active tab (Network @ #channel), a connection dot, colour-coded ping with a lag graph, and unread-tab count.
+- Theme colours retuned for readability across all themes; softer, less glaring light/terminal backgrounds; edit any theme; new IRcap Dark.
+- Scripting: new events (kick, action, mention), custom /commands, context-menu items, action helpers, and new example scripts.
