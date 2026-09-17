@@ -68,7 +68,7 @@ describe('HeaderBar', () => {
     const { getByText } = await render(<HeaderBar {...baseProps} />);
 
     expect(getByText('Libera')).toBeTruthy();
-    expect(getByText('Ping: 25.4 ms')).toBeTruthy();
+    expect(getByText('25ms')).toBeTruthy();
   });
 
   it('shows connect hint and calls connect when disconnected', async () => {
@@ -78,7 +78,7 @@ describe('HeaderBar', () => {
 
     await fireEvent.press(getByText('Libera'));
 
-    expect(getByText('Tap to connect')).toBeTruthy();
+    expect(getByText('Tap to connect to Libera')).toBeTruthy();
     expect(baseProps.onConnectPress).toHaveBeenCalled();
   });
 

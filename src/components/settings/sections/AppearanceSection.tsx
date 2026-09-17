@@ -30,6 +30,7 @@ import {
 } from '../../../services/ThemeService';
 import { layoutService, FontSize } from '../../../services/LayoutService';
 import { settingsService } from '../../../services/SettingsService';
+import { relativeLuminance } from '../../../themes/palette';
 import { applyLocale } from '../../../i18n/localization';
 import { SUPPORTED_LOCALES } from '../../../i18n/config';
 import {
@@ -521,12 +522,39 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               ? t('Custom theme', { _tags: tags })
               : theme.id === 'dark'
                 ? t('Dark mode (default)', { _tags: tags })
-                : t('Light mode', { _tags: tags }),
+                : relativeLuminance(theme.colors?.background ?? '') > 0.5
+                  ? t('Light mode', { _tags: tags })
+                  : t('Dark mode', { _tags: tags }),
             type: 'button' as const,
             onPress: async () => {
               await handleThemeSelect(theme);
             },
           })),
+          {
+            id: 'theme-edit-current',
+            title: currentTheme.isCustom
+              ? t('Edit current theme ({name})', {
+                  name: currentTheme.name,
+                  _tags: tags,
+                })
+              : t('Customize current theme ({name})', {
+                  name: currentTheme.name,
+                  _tags: tags,
+                }),
+            description: currentTheme.isCustom
+              ? t('Edit this custom theme', { _tags: tags })
+              : t('Open the editor pre-filled with this theme to save a copy', {
+                  _tags: tags,
+                }),
+            type: 'button' as const,
+            onPress: () => {
+              // Custom themes edit in place; built-ins open the editor
+              // pre-filled with the current colours so Save creates a copy.
+              onShowThemeEditor(
+                currentTheme.isCustom ? currentTheme : undefined,
+              );
+            },
+          },
           {
             id: 'theme-new',
             title: t('+ Create New Theme', { _tags: tags }),

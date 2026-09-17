@@ -32,6 +32,7 @@ import { settingsService } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
 import { LayoutConfig } from '../services/LayoutService';
 import { useTheme } from '../hooks/useTheme';
+import { useT } from '../i18n/localization';
 
 interface AppLayoutProps {
   tabs: ChannelTab[];
@@ -180,6 +181,7 @@ export function AppLayout({
   onKillSwitchPress,
 }: AppLayoutProps) {
   const { colors } = useTheme();
+  const t = useT();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
@@ -588,6 +590,14 @@ export function AppLayout({
         networkName={
           isConnected ? networkName : selectedNetworkName || networkName
         }
+        activeTabName={
+          activeTab
+            ? activeTab.type === 'server'
+              ? t('Status')
+              : activeTab.name
+            : undefined
+        }
+        unreadTabsCount={tabs.filter(tab => tab.hasActivity).length}
         ping={ping}
         isConnected={isConnected}
         onDropdownPress={handleDropdownPress}

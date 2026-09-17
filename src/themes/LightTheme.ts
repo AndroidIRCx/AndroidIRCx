@@ -5,6 +5,7 @@
 
 import { tx } from '../i18n/localization';
 import { Theme } from '../services/ThemeService';
+import { BLUE, ROLE_COLORS_LIGHT, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);
 
@@ -13,11 +14,11 @@ export const LIGHT_THEME: Theme = {
   name: t('Light'),
   isCustom: false,
   colors: {
-    background: '#FFFFFF',
+    background: '#F7F8FA',
     surface: '#FAFAFA',
     surfaceVariant: '#F5F5F5',
-    surfaceAlt: '#FFFFFF',
-    cardBackground: '#FFFFFF',
+    surfaceAlt: '#F7F8FA',
+    cardBackground: '#F7F8FA',
 
     text: '#212121',
     textSecondary: '#757575',
@@ -26,13 +27,13 @@ export const LIGHT_THEME: Theme = {
     primary: '#2196F3',
     primaryDark: '#1976D2',
     primaryLight: '#64B5F6',
-    onPrimary: '#FFFFFF',
+    onPrimary: '#F7F8FA',
 
     secondary: '#FF9800',
-    onSecondary: '#FFFFFF',
+    onSecondary: '#F7F8FA',
 
     accent: '#4CAF50',
-    onAccent: '#FFFFFF',
+    onAccent: '#F7F8FA',
 
     success: '#4CAF50',
     error: '#F44336',
@@ -43,7 +44,7 @@ export const LIGHT_THEME: Theme = {
     borderLight: '#F5F5F5',
     divider: '#E0E0E0',
 
-    messageBackground: '#FFFFFF',
+    messageBackground: '#F7F8FA',
     messageText: '#212121',
     messageNick: '#1976D2',
     messageTimestamp: '#9E9E9E',
@@ -69,34 +70,34 @@ export const LIGHT_THEME: Theme = {
     inputPlaceholder: '#9E9E9E',
 
     buttonPrimary: '#2196F3',
-    buttonPrimaryText: '#FFFFFF',
+    buttonPrimaryText: '#F7F8FA',
     buttonSecondary: '#E0E0E0',
     buttonSecondaryText: '#212121',
     buttonDisabled: '#F5F5F5',
     buttonDisabledText: '#9E9E9E',
-    buttonText: '#FFFFFF',
+    buttonText: '#F7F8FA',
 
     tabActive: '#2196F3',
     tabInactive: '#F5F5F5',
-    tabActiveText: '#FFFFFF',
+    tabActiveText: '#F7F8FA',
     tabInactiveText: '#757575',
     tabBorder: '#E0E0E0',
 
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
-    modalBackground: '#FFFFFF',
+    modalBackground: '#F7F8FA',
     modalText: '#212121',
 
     userListBackground: '#FAFAFA',
     userListText: '#212121',
     userListBorder: '#E0E0E0',
-    userOwner: '#7B1FA2', // ~ purple (darker for light theme)
-    userAdmin: '#D32F2F', // & red (darker for light theme)
-    userOp: '#F57C00', // @ orange (darker for light theme)
-    userHalfop: '#1976D2', // % blue (darker for light theme)
-    userVoice: '#388E3C', // + green (darker for light theme)
+    userOwner: ROLE_COLORS_LIGHT.owner, // ~ owner (darker for light theme)
+    userAdmin: ROLE_COLORS_LIGHT.admin, // & admin (darker for light theme)
+    userOp: ROLE_COLORS_LIGHT.op, // @ op (darker for light theme)
+    userHalfop: ROLE_COLORS_LIGHT.halfop, // % halfop (darker for light theme)
+    userVoice: ROLE_COLORS_LIGHT.voice, // + voice (darker for light theme)
     userNormal: '#212121',
-    highlightBackground: 'rgba(33, 150, 243, 0.1)',
+    highlightBackground: withAlpha(BLUE.base, 0.1),
     highlightText: '#FF6F00', // Orange text for mentions (darker for light theme)
-    selectionBackground: 'rgba(33, 150, 243, 0.12)',
+    selectionBackground: SELECTION_TINT,
   },
 };

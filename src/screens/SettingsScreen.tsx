@@ -880,6 +880,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     [applyZncServerToDBase, persistZncConfig, tags, t, zncSubscriptionIdConst],
   );
 
+  const zncIapAttemptedRef = useRef(false);
+
   useEffect(() => {
     if (!visible) return;
 
@@ -888,11 +890,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     let cancelled = false;
 
     const setupIap = async () => {
+      // Attempt IAP init at most once per screen open. The effect re-runs on
+      // every render (unstable deps like `tags`), and without this guard a
+      // failing init (expected on emulator) would spam warnings and stutter.
+      if (zncIapAttemptedRef.current) return;
+      zncIapAttemptedRef.current = true;
       try {
         await initZncIap();
       } catch (error) {
         if (!cancelled) {
-          console.error('Error initializing ZNC IAP:', error);
+          // Expected when Play billing is unavailable (emulator / debug).
+          // Use warn, not error, so the debug red LogBox overlay doesn't
+          // repeatedly pop up and stutter the screen.
+          console.warn(
+            'ZNC IAP unavailable (expected without Play billing):',
+            error,
+          );
         }
       }
     };
@@ -966,6 +979,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   useEffect(() => {
     if (!visible) {
+      // Allow a fresh IAP attempt next time the section is opened.
+      zncIapAttemptedRef.current = false;
       releaseIapConnection();
       return;
     }

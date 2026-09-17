@@ -19,11 +19,11 @@ describe('Themes - LightTheme', () => {
 
   describe('Background colors', () => {
     it('should have light background colors', () => {
-      expect(LIGHT_THEME.colors.background).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.background).toBe('#F7F8FA');
       expect(LIGHT_THEME.colors.surface).toBe('#FAFAFA');
       expect(LIGHT_THEME.colors.surfaceVariant).toBe('#F5F5F5');
-      expect(LIGHT_THEME.colors.surfaceAlt).toBe('#FFFFFF');
-      expect(LIGHT_THEME.colors.cardBackground).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.surfaceAlt).toBe('#F7F8FA');
+      expect(LIGHT_THEME.colors.cardBackground).toBe('#F7F8FA');
     });
   });
 
@@ -40,7 +40,7 @@ describe('Themes - LightTheme', () => {
       expect(LIGHT_THEME.colors.primary).toBe('#2196F3');
       expect(LIGHT_THEME.colors.primaryDark).toBe('#1976D2');
       expect(LIGHT_THEME.colors.primaryLight).toBe('#64B5F6');
-      expect(LIGHT_THEME.colors.onPrimary).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.onPrimary).toBe('#F7F8FA');
     });
   });
 
@@ -64,7 +64,7 @@ describe('Themes - LightTheme', () => {
 
   describe('Message colors', () => {
     it('should have message background and text colors', () => {
-      expect(LIGHT_THEME.colors.messageBackground).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.messageBackground).toBe('#F7F8FA');
       expect(LIGHT_THEME.colors.messageText).toBe('#212121');
       expect(LIGHT_THEME.colors.messageNick).toBe('#1976D2');
       expect(LIGHT_THEME.colors.messageTimestamp).toBe('#9E9E9E');
@@ -111,12 +111,12 @@ describe('Themes - LightTheme', () => {
   describe('Button colors', () => {
     it('should have button colors', () => {
       expect(LIGHT_THEME.colors.buttonPrimary).toBe('#2196F3');
-      expect(LIGHT_THEME.colors.buttonPrimaryText).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.buttonPrimaryText).toBe('#F7F8FA');
       expect(LIGHT_THEME.colors.buttonSecondary).toBe('#E0E0E0');
       expect(LIGHT_THEME.colors.buttonSecondaryText).toBe('#212121');
       expect(LIGHT_THEME.colors.buttonDisabled).toBe('#F5F5F5');
       expect(LIGHT_THEME.colors.buttonDisabledText).toBe('#9E9E9E');
-      expect(LIGHT_THEME.colors.buttonText).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.buttonText).toBe('#F7F8FA');
     });
   });
 
@@ -124,7 +124,7 @@ describe('Themes - LightTheme', () => {
     it('should have tab colors', () => {
       expect(LIGHT_THEME.colors.tabActive).toBe('#2196F3');
       expect(LIGHT_THEME.colors.tabInactive).toBe('#F5F5F5');
-      expect(LIGHT_THEME.colors.tabActiveText).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.tabActiveText).toBe('#F7F8FA');
       expect(LIGHT_THEME.colors.tabInactiveText).toBe('#757575');
       expect(LIGHT_THEME.colors.tabBorder).toBe('#E0E0E0');
     });
@@ -133,7 +133,7 @@ describe('Themes - LightTheme', () => {
   describe('Modal colors', () => {
     it('should have modal colors', () => {
       expect(LIGHT_THEME.colors.modalOverlay).toBe('rgba(0, 0, 0, 0.5)');
-      expect(LIGHT_THEME.colors.modalBackground).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.modalBackground).toBe('#F7F8FA');
       expect(LIGHT_THEME.colors.modalText).toBe('#212121');
     });
   });
@@ -172,7 +172,7 @@ describe('Themes - LightTheme', () => {
       const { DARK_THEME } = require('../../src/themes/DarkTheme');
 
       // Light theme should have white-ish background, dark theme dark-ish
-      expect(LIGHT_THEME.colors.background).toBe('#FFFFFF');
+      expect(LIGHT_THEME.colors.background).toBe('#F7F8FA');
       expect(DARK_THEME.colors.background).toBe('#121212');
     });
 

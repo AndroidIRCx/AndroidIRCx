@@ -237,9 +237,16 @@ describe('ThemeService', () => {
     expect(themeService.getCurrentTheme().id).toBe('light');
   });
 
-  it('returns the three built-in themes', () => {
-    const builtIn = themeService.getBuiltInThemes();
-    expect(builtIn.map(t => t.id)).toEqual(['dark', 'light', 'ircap']);
+  it('returns the built-in themes including the originals', () => {
+    const ids = themeService.getBuiltInThemes().map(t => t.id);
+    // Originals stay first, in order.
+    expect(ids.slice(0, 3)).toEqual(['dark', 'light', 'ircap']);
+    // The expanded gallery is present and ids are unique.
+    expect(ids).toEqual(
+      expect.arrayContaining(['dracula', 'matrix', 'solarized-light']),
+    );
+    expect(ids.length).toBeGreaterThanOrEqual(20);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('returns false when updating a non-existent custom theme', async () => {
