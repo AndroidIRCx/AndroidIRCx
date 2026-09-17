@@ -32,6 +32,13 @@ export interface SoundEventConfig {
   volume?: number; // 0.0 - 1.0, multiplier on top of master volume
 }
 
+/** A user-defined, named custom sound linked to a file (usable from scripts) */
+export interface CustomSound {
+  id: string;
+  name: string;
+  uri: string; // persistent file path in the app's documents dir
+}
+
 /** Sound scheme/theme definition */
 export interface SoundScheme {
   id: string;
@@ -52,6 +59,7 @@ export interface SoundSettings {
   playInBackground: boolean; // Play sounds when app is in background
   activeSchemeId: string; // Current scheme ID
   events: Record<SoundEventType, SoundEventConfig>;
+  customSounds: CustomSound[]; // User-defined named sounds
 }
 
 /** Default sound mapping (filename in assets/sounds/) */
@@ -169,4 +177,5 @@ export const DEFAULT_SOUND_SETTINGS: SoundSettings = {
     },
     {} as Record<SoundEventType, SoundEventConfig>,
   ),
+  customSounds: [],
 };

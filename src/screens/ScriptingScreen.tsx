@@ -38,6 +38,167 @@ import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
+// Teach Prism about the AndroidIRCX scripting vocabulary so the editor
+// highlights our own hooks and `api.*` calls, not just plain JavaScript.
+const IRCX_HOOKS =
+  'onConnect|onDisconnect|onMessage|onNotice|onJoin|onPart|onQuit|' +
+  'onNickChange|onKick|onMode|onTopic|onInvite|onCTCP|onAction|onHighlight|' +
+  'onRaw|onCommand|onTimer';
+let ircxGrammarReady = false;
+const ensureIrcxGrammar = () => {
+  if (ircxGrammarReady || !Prism.languages.javascript) return;
+  // Insert before `function-variable`, otherwise Prism tags a hook written as
+  // an object key (`onAction: () => ...`) as a function-variable first.
+  const target = Prism.languages.javascript['function-variable']
+    ? 'function-variable'
+    : 'function';
+  Prism.languages.insertBefore('javascript', target, {
+    'ircx-hook': { pattern: new RegExp('\\b(?:' + IRCX_HOOKS + ')\\b') },
+    // `api.<anything>` — colours `api`, the dot and the method name; any
+    // current or future api method is matched by the identifier pattern.
+    'ircx-api-call': {
+      pattern: /\bapi\s*\.\s*[A-Za-z_$][\w$]*/,
+      inside: {
+        'ircx-api': /\bapi\b/,
+        punctuation: /\./,
+        'ircx-method': /[A-Za-z_$][\w$]*/,
+      },
+    },
+    'ircx-api': /\bapi\b/,
+  });
+  ircxGrammarReady = true;
+};
+
+// --- Editor autocomplete vocabulary ---
+const HOOK_LIST = IRCX_HOOKS.split('|');
+// `api.*` members (kept in sync with ScriptingService.makeApi).
+const API_MEMBERS = [
+  'log',
+  'warn',
+  'error',
+  'userNick',
+  'appVersion',
+  'getConfig',
+  'sendMessage',
+  'sendCommand',
+  'sendNotice',
+  'sendCTCP',
+  'registerCommand',
+  'addMenuItem',
+  'join',
+  'part',
+  'kick',
+  'mode',
+  'op',
+  'deop',
+  'voice',
+  'devoice',
+  'ban',
+  'unban',
+  'setTopic',
+  'changeNick',
+  'setAway',
+  'back',
+  'whois',
+  'action',
+  'rand',
+  'list',
+  'getChannelUsers',
+  'getChannels',
+  'getChannelInfo',
+  'getTabs',
+  'getActiveTab',
+  'switchToTab',
+  'getUserInfo',
+  'getUserNote',
+  'setUserNote',
+  'getUserAlias',
+  'setUserAlias',
+  'isIgnored',
+  'getChannelNote',
+  'setChannelNote',
+  'isChannelBookmarked',
+  'getHighlightWords',
+  'addHighlightWord',
+  'removeHighlightWord',
+  'isHighlighted',
+  'searchHistory',
+  'getHistoryStats',
+  'getSetting',
+  'getTheme',
+  'getConnectionStats',
+  'setTimer',
+  'clearTimer',
+  'getNetworkId',
+  'getAllNetworks',
+  'isConnected',
+  'getStorage',
+  'setStorage',
+  'removeStorage',
+  'playSound',
+  'openLink',
+  'now',
+  'sleep',
+];
+const JS_KEYWORDS = [
+  'const',
+  'let',
+  'var',
+  'function',
+  'return',
+  'if',
+  'else',
+  'for',
+  'while',
+  'switch',
+  'case',
+  'break',
+  'continue',
+  'new',
+  'try',
+  'catch',
+  'throw',
+  'async',
+  'await',
+  'true',
+  'false',
+  'null',
+  'typeof',
+  'module',
+  'exports',
+  'console',
+];
+const WORD_POOL = Array.from(new Set([...HOOK_LIST, 'api', ...JS_KEYWORDS]));
+
+interface Completion {
+  items: string[];
+  start: number; // index where the token being completed begins
+  end: number; // index where it ends (caret)
+}
+
+// Compute completions for the token immediately before `caret` in `code`.
+const completionsAt = (code: string, caret: number): Completion => {
+  const before = code.slice(0, caret);
+  // Member access: `api . <partial>`
+  const member = before.match(/\bapi\s*\.\s*([A-Za-z_$][\w$]*)?$/);
+  if (member) {
+    const prefix = member[1] || '';
+    const items = API_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret };
+  }
+  // Bare word: hook names, `api`, keywords (need >= 2 chars to reduce noise)
+  const word = before.match(/([A-Za-z_$][\w$]*)$/);
+  if (word) {
+    const prefix = word[1];
+    if (prefix.length < 2) return { items: [], start: caret, end: caret };
+    const items = WORD_POOL.filter(
+      w => w.startsWith(prefix) && w !== prefix,
+    ).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret };
+  }
+  return { items: [], start: caret, end: caret };
+};
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -94,6 +255,52 @@ export const ScriptingScreen: React.FC<Props> = ({
   const highlightScrollRef = useRef<React.ComponentRef<
     typeof ScrollView
   > | null>(null);
+  const codeInputRef = useRef<React.ComponentRef<typeof TextInput> | null>(
+    null,
+  );
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (blurTimer.current) clearTimeout(blurTimer.current);
+    },
+    [],
+  );
+  const [selection, setSelection] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: 0,
+  });
+  const [completion, setCompletion] = useState<Completion>({
+    items: [],
+    start: 0,
+    end: 0,
+  });
+  const [editorFocused, setEditorFocused] = useState(false);
+
+  // Recompute autocomplete suggestions as the code or caret changes.
+  useEffect(() => {
+    if (!editorFocused || !editing) {
+      setCompletion({ items: [], start: 0, end: 0 });
+      return;
+    }
+    setCompletion(completionsAt(editing.code || '', selection.start));
+  }, [editing, editorFocused, selection.start]);
+
+  // Insert the chosen suggestion, replacing the token being typed.
+  const acceptCompletion = useCallback(
+    (word: string) => {
+      if (!editing) return;
+      const code = editing.code || '';
+      const { start, end } = completionsAt(code, selection.start);
+      const next = code.slice(0, start) + word + code.slice(end);
+      const caret = start + word.length;
+      if (blurTimer.current) clearTimeout(blurTimer.current);
+      setEditing({ ...editing, code: next });
+      setSelection({ start: caret, end: caret });
+      setCompletion({ items: [], start: 0, end: 0 });
+      codeInputRef.current?.focus();
+    },
+    [editing, selection.start],
+  );
 
   const refresh = useCallback(async () => {
     await scriptingService.initialize();
@@ -339,6 +546,7 @@ export const ScriptingScreen: React.FC<Props> = ({
   const highlightParts = useCallback(
     (code: string) => {
       try {
+        ensureIrcxGrammar();
         const grammar = Prism.languages.javascript;
         if (!grammar) return highlightPartsFallback(code);
 
@@ -353,6 +561,12 @@ export const ScriptingScreen: React.FC<Props> = ({
               return styles.codeKeyword;
             case 'number':
               return styles.codeNumber;
+            case 'ircx-hook':
+              return styles.codeHook;
+            case 'ircx-api':
+              return styles.codeApi;
+            case 'ircx-method':
+              return styles.codeApiMethod;
             default:
               return styles.codeText;
           }
@@ -731,12 +945,36 @@ export const ScriptingScreen: React.FC<Props> = ({
                   </ScrollView>
                 )}
                 <TextInput
+                  ref={codeInputRef}
                   style={[
                     styles.codeInput,
                     showHighlight && styles.codeInputOverlay,
                   ]}
                   multiline
                   value={editing.code}
+                  selection={{
+                    start: Math.min(selection.start, editing.code.length),
+                    end: Math.min(selection.end, editing.code.length),
+                  }}
+                  onSelectionChange={e => setSelection(e.nativeEvent.selection)}
+                  onFocus={() => {
+                    if (blurTimer.current) clearTimeout(blurTimer.current);
+                    setEditorFocused(true);
+                  }}
+                  onBlur={() => {
+                    blurTimer.current = setTimeout(
+                      () => setEditorFocused(false),
+                      200,
+                    );
+                  }}
+                  onKeyPress={e => {
+                    if (
+                      e.nativeEvent.key === 'Tab' &&
+                      completion.items.length > 0
+                    ) {
+                      acceptCompletion(completion.items[0]);
+                    }
+                  }}
                   onChangeText={value =>
                     setEditing({ ...editing, code: value })
                   }
@@ -752,8 +990,38 @@ export const ScriptingScreen: React.FC<Props> = ({
                       : undefined
                   }
                   selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
               </View>
+              {editorFocused && completion.items.length > 0 && (
+                <View style={styles.autocompleteBox}>
+                  <ScrollView
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled
+                    style={styles.autocompleteList}
+                  >
+                    {completion.items.map((item, idx) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={[
+                          styles.autocompleteItem,
+                          idx === 0 && styles.autocompleteItemFirst,
+                        ]}
+                        onPress={() => acceptCompletion(item)}
+                      >
+                        <Text style={styles.autocompleteText}>{item}</Text>
+                        <Text style={styles.autocompleteTag}>
+                          {HOOK_LIST.includes(item)
+                            ? t('hook')
+                            : API_MEMBERS.includes(item)
+                              ? t('api')
+                              : t('keyword')}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
               <Text style={styles.label}>{t('Config (JSON)')}</Text>
               <TextInput
                 style={styles.codeInput}
@@ -931,6 +1199,8 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     codeEditorWrapper: { position: 'relative', height: 240 },
+    // Highlighted layer sits BEHIND the input; the transparent input is typed
+    // into and the colours show through, so highlighting is live and editable.
     codeHighlight: {
       position: 'absolute',
       top: 0,
@@ -942,8 +1212,7 @@ const createStyles = (colors: any) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
       pointerEvents: 'none',
-      zIndex: 2,
-      opacity: 0.95,
+      zIndex: 0,
     },
     codeHighlightContent: { padding: 8 },
     codeInput: {
@@ -954,15 +1223,60 @@ const createStyles = (colors: any) =>
       height: 240,
       textAlignVertical: 'top',
       fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
       zIndex: 1,
     },
-    codeInputOverlay: { backgroundColor: 'transparent' },
+    // When highlight is on, hide the input's own glyphs (keep caret/selection
+    // visible) so only the coloured layer behind is read.
+    codeInputOverlay: { backgroundColor: 'transparent', color: 'transparent' },
     syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
-    codeText: { color: colors.text, fontFamily: 'monospace' },
-    codeKeyword: { color: '#c792ea', fontFamily: 'monospace' },
-    codeString: { color: '#91b859', fontFamily: 'monospace' },
-    codeComment: { color: '#9e9e9e', fontFamily: 'monospace' },
-    codeNumber: { color: '#f78c6c', fontFamily: 'monospace' },
+    codeText: {
+      color: colors.text,
+      fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
+    },
+    codeKeyword: { color: '#c792ea', fontFamily: 'monospace', fontSize: 13 },
+    codeString: { color: '#91b859', fontFamily: 'monospace', fontSize: 13 },
+    codeComment: { color: '#9e9e9e', fontFamily: 'monospace', fontSize: 13 },
+    codeNumber: { color: '#f78c6c', fontFamily: 'monospace', fontSize: 13 },
+    // AndroidIRCX scripting vocabulary
+    codeHook: { color: '#ffcb6b', fontFamily: 'monospace', fontSize: 13 },
+    codeApi: { color: '#82aaff', fontFamily: 'monospace', fontSize: 13 },
+    codeApiMethod: { color: '#89ddff', fontFamily: 'monospace', fontSize: 13 },
+    autocompleteBox: {
+      marginTop: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: 6,
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    autocompleteList: { maxHeight: 168 },
+    autocompleteItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    autocompleteItemFirst: {
+      borderTopWidth: 0,
+      backgroundColor: colors.surfaceVariant,
+    },
+    autocompleteText: {
+      color: colors.text,
+      fontFamily: 'monospace',
+      fontSize: 14,
+    },
+    autocompleteTag: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      textTransform: 'uppercase',
+    },
   });

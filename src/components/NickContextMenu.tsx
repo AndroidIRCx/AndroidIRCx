@@ -30,6 +30,7 @@ import {
   NEW_FEATURE_DEFAULTS,
 } from '../services/SettingsService';
 import { mediaSettingsService } from '../services/MediaSettingsService';
+import { scriptingService } from '../services/ScriptingService';
 import { useUIStore } from '../stores/uiStore';
 import KickBanModal from './KickBanModal';
 
@@ -247,6 +248,12 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
     nick && resolvedUserHostInfo
       ? `${nick}!${resolvedUserHostInfo.user}@${resolvedUserHostInfo.host}`
       : (nick ?? '');
+
+  // Script-contributed context-menu items (recomputed each time the menu opens).
+  const scriptMenuItems = useMemo(
+    () => (visible ? scriptingService.getScriptMenuItems('nick') : []),
+    [visible],
+  );
 
   // Send silent WHO when menu opens to get user@host info.
   useEffect(() => {
@@ -1539,6 +1546,41 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                   </View>
                 </TouchableOpacity>
               </View>
+            )}
+
+            {scriptMenuItems.length > 0 && (
+              <>
+                <View style={styles.contextDivider} />
+                <Text style={styles.contextGroupTitle}>{t('Scripts')}</Text>
+                {scriptMenuItems.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.contextItem}
+                    onPress={() => {
+                      scriptingService.triggerScriptMenuItem(
+                        item.id,
+                        nick ?? '',
+                        {
+                          channel,
+                          networkId: network,
+                          nick: nick ?? undefined,
+                        },
+                      );
+                      onClose();
+                    }}
+                  >
+                    <View style={styles.contextItemWithIcon}>
+                      <Icon
+                        name="code"
+                        size={14}
+                        color={colors.text}
+                        style={styles.contextIcon}
+                      />
+                      <Text style={styles.contextText}>{item.label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </>
             )}
           </ScrollView>
           <View style={styles.contextFooter}>

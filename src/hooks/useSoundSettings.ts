@@ -12,6 +12,7 @@ import {
   SoundEventType,
   SoundScheme,
   SoundEventConfig,
+  CustomSound,
 } from '../types/sound';
 
 export interface UseSoundSettingsReturn {
@@ -40,6 +41,12 @@ export interface UseSoundSettingsReturn {
   setCustomSound: (eventType: SoundEventType, uri: string) => Promise<void>;
   resetEventToDefault: (eventType: SoundEventType) => Promise<void>;
   getEventConfig: (eventType: SoundEventType) => SoundEventConfig;
+
+  // Named custom sounds
+  customSounds: CustomSound[];
+  addCustomSound: (name: string, uri: string) => Promise<CustomSound>;
+  renameCustomSound: (id: string, name: string) => Promise<void>;
+  removeCustomSound: (id: string) => Promise<void>;
 
   // Playback
   previewSound: (eventType: SoundEventType) => Promise<void>;
@@ -146,6 +153,18 @@ export function useSoundSettings(): UseSoundSettingsReturn {
     [settings.events],
   );
 
+  const addCustomSound = useCallback(async (name: string, uri: string) => {
+    return await soundService.addCustomSound(name, uri);
+  }, []);
+
+  const renameCustomSound = useCallback(async (id: string, name: string) => {
+    await soundService.renameCustomSound(id, name);
+  }, []);
+
+  const removeCustomSound = useCallback(async (id: string) => {
+    await soundService.removeCustomSound(id);
+  }, []);
+
   const previewSound = useCallback(async (eventType: SoundEventType) => {
     await soundService.previewSound(eventType);
   }, []);
@@ -182,6 +201,11 @@ export function useSoundSettings(): UseSoundSettingsReturn {
     setCustomSound,
     resetEventToDefault,
     getEventConfig,
+
+    customSounds: settings.customSounds ?? [],
+    addCustomSound,
+    renameCustomSound,
+    removeCustomSound,
 
     previewSound,
     previewCustomSound,

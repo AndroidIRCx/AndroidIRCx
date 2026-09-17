@@ -18,6 +18,7 @@ import {
   SoundEventType,
   SoundSettings,
   SoundScheme,
+  CustomSound,
   DEFAULT_SOUNDS,
   DEFAULT_SOUND_SETTINGS,
   BUILT_IN_SCHEMES,
@@ -508,6 +509,139 @@ class SoundService {
     } catch (error) {
       console.error(`[SoundService] Failed to set custom sound:`, error);
       throw error;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // User-defined, named custom sounds (also playable from scripts by name)
+  // ---------------------------------------------------------------------------
+
+  getCustomSounds(): CustomSound[] {
+    return this.settings.customSounds ?? [];
+  }
+
+  /**
+   * Create a named custom sound from a picked file. Copies the file into the
+   * app's documents dir for persistence and returns the stored entry.
+   */
+  async addCustomSound(name: string, uri: string): Promise<CustomSound> {
+    const cleanName = String(name || '')
+      .trim()
+      .substring(0, 40);
+    if (!cleanName) throw new Error('Sound name is required');
+    if (!uri) throw new Error('Sound file is required');
+
+    const soundsDir = `${RNFS.DocumentDirectoryPath}/sounds`;
+    if (!(await RNFS.exists(soundsDir))) {
+      await RNFS.mkdir(soundsDir);
+    }
+
+    const id = `cs_${Date.now()}`;
+    const ext = (uri.split('.').pop() || 'wav').split('?')[0].substring(0, 5);
+    const destPath = `${soundsDir}/${id}.${ext}`;
+    await RNFS.copyFile(this.normalizeFilePath(uri), destPath);
+
+    const entry: CustomSound = { id, name: cleanName, uri: destPath };
+    await this.updateSettings({
+      customSounds: [...this.getCustomSounds(), entry],
+    });
+    return entry;
+  }
+
+  async renameCustomSound(id: string, name: string): Promise<void> {
+    const cleanName = String(name || '')
+      .trim()
+      .substring(0, 40);
+    if (!cleanName) return;
+    await this.updateSettings({
+      customSounds: this.getCustomSounds().map(s =>
+        s.id === id ? { ...s, name: cleanName } : s,
+      ),
+    });
+  }
+
+  async removeCustomSound(id: string): Promise<void> {
+    const target = this.getCustomSounds().find(s => s.id === id);
+    if (target?.uri) {
+      try {
+        if (await RNFS.exists(target.uri)) {
+          await RNFS.unlink(target.uri);
+        }
+      } catch (error) {
+        console.warn(
+          '[SoundService] Failed to delete custom sound file:',
+          error,
+        );
+      }
+    }
+    await this.updateSettings({
+      customSounds: this.getCustomSounds().filter(s => s.id !== id),
+    });
+  }
+
+  findCustomSoundByName(name: string): CustomSound | undefined {
+    const key = String(name || '')
+      .trim()
+      .toLowerCase();
+    if (!key) return undefined;
+    return this.getCustomSounds().find(s => s.name.toLowerCase() === key);
+  }
+
+  /**
+   * Play a named custom sound. Respects the same global gating as playSound
+   * (muted/away/foreground-background). Returns false if no such name exists.
+   */
+  async playCustomSoundByName(name: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+    const entry = this.findCustomSoundByName(name);
+    if (!entry) return false;
+
+    if (!this.settings.enabled) return true;
+    if (awayService.shouldMuteSounds()) return true;
+    const isBackground = this.appState !== 'active';
+    if (isBackground && !this.settings.playInBackground) return true;
+    if (!isBackground && !this.settings.playInForeground) return true;
+
+    await this.playUriInternal(entry.uri, this.settings.masterVolume);
+    return true;
+  }
+
+  private async playUriInternal(uri: string, volume: number): Promise<void> {
+    try {
+      this.stopCurrentSound();
+      const path = this.normalizeFilePath(uri);
+      if (!(await RNFS.exists(path))) {
+        console.warn(`[SoundService] Custom sound file missing: ${path}`);
+        return;
+      }
+      await audioFocusService.requestTransientFocus();
+      this.isPlaying = true;
+      this.currentSound = new Sound(path, '', error => {
+        if (error) {
+          console.error('[SoundService] Failed to load custom sound:', error);
+          this.isPlaying = false;
+          audioFocusService.releaseFocus();
+          return;
+        }
+        const durationMs = this.currentSound?.getDuration() ?? 0;
+        this.currentSound?.setVolume(volume);
+        this.currentSound?.play(() => {
+          this.releaseCurrentSound();
+          audioFocusService.releaseFocus();
+        });
+        if (durationMs > 0) {
+          setTimeout(
+            () => audioFocusService.releaseFocus(),
+            durationMs * 1000 + 100,
+          );
+        }
+      });
+    } catch (error) {
+      console.error('[SoundService] Failed to play custom sound:', error);
+      this.isPlaying = false;
+      audioFocusService.releaseFocus();
     }
   }
 

@@ -1045,4 +1045,134 @@ describe('SoundService', () => {
       ).toBe(false);
     });
   });
+
+  describe('custom named sounds', () => {
+    // Add a named custom sound, stubbing the RNFS filesystem calls the same
+    // way the setCustomSound tests do (dir already exists, copy succeeds).
+    const addSound = async (name = 'Tada', uri = '/tmp/x.wav') => {
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+      (RNFS as any).mkdir = jest.fn().mockResolvedValue(undefined);
+      (RNFS as any).copyFile = jest.fn().mockResolvedValue(undefined);
+      return soundService.addCustomSound(name, uri);
+    };
+
+    it('addCustomSound copies the file and stores a named entry', async () => {
+      await soundService.initialize();
+      jest.spyOn(Date, 'now').mockReturnValue(999);
+      (RNFS.exists as jest.Mock).mockResolvedValue(false); // sounds dir missing
+      (RNFS as any).mkdir = jest.fn().mockResolvedValue(undefined);
+      (RNFS as any).copyFile = jest.fn().mockResolvedValue(undefined);
+
+      const entry = await soundService.addCustomSound('Tada', '/tmp/x.wav');
+
+      expect((RNFS as any).mkdir).toHaveBeenCalled();
+      expect((RNFS as any).copyFile).toHaveBeenCalledWith(
+        '/tmp/x.wav',
+        expect.stringContaining('/sounds/cs_999.wav'),
+      );
+      expect(entry.name).toBe('Tada');
+      expect(entry.uri).toContain('/sounds/');
+
+      const stored = soundService.getCustomSounds();
+      expect(stored).toHaveLength(1);
+      expect(stored[0]).toEqual(entry);
+      expect(stored[0].name).toBe('Tada');
+      expect(stored[0].uri).toContain('/sounds/');
+    });
+
+    it('addCustomSound rejects when name or uri is empty', async () => {
+      await soundService.initialize();
+      (RNFS as any).copyFile = jest.fn().mockResolvedValue(undefined);
+
+      await expect(
+        soundService.addCustomSound('', '/tmp/x.wav'),
+      ).rejects.toThrow();
+      await expect(soundService.addCustomSound('name', '')).rejects.toThrow();
+      // Nothing should have been copied or stored on rejection.
+      expect((RNFS as any).copyFile).not.toHaveBeenCalled();
+      expect(soundService.getCustomSounds()).toHaveLength(0);
+    });
+
+    it('findCustomSoundByName matches case-insensitively', async () => {
+      await soundService.initialize();
+      await addSound('Tada', '/tmp/x.wav');
+
+      expect(soundService.findCustomSoundByName('tada')?.name).toBe('Tada');
+      expect(soundService.findCustomSoundByName('TADA')?.name).toBe('Tada');
+      expect(soundService.findCustomSoundByName('Tada')?.name).toBe('Tada');
+      expect(soundService.findCustomSoundByName('unknown')).toBeUndefined();
+    });
+
+    it('renameCustomSound changes the stored name', async () => {
+      await soundService.initialize();
+      const entry = await addSound('Tada', '/tmp/x.wav');
+
+      await soundService.renameCustomSound(entry.id, 'New');
+
+      const stored = soundService.getCustomSounds();
+      expect(stored).toHaveLength(1);
+      expect(stored[0].name).toBe('New');
+      expect(stored[0].id).toBe(entry.id);
+    });
+
+    it('removeCustomSound unlinks the file and removes it from the list', async () => {
+      await soundService.initialize();
+      const entry = await addSound('Tada', '/tmp/x.wav');
+      expect(soundService.getCustomSounds()).toHaveLength(1);
+
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+      await soundService.removeCustomSound(entry.id);
+
+      expect(RNFS.unlink).toHaveBeenCalledWith(entry.uri);
+      expect(soundService.getCustomSounds()).toHaveLength(0);
+    });
+
+    it('playCustomSoundByName resolves false for an unknown name', async () => {
+      await soundService.initialize();
+      await expect(soundService.playCustomSoundByName('nope')).resolves.toBe(
+        false,
+      );
+    });
+
+    it('playCustomSoundByName plays a matching sound and resolves true', async () => {
+      await soundService.initialize();
+      const entry = await addSound('Tada', '/tmp/x.wav');
+
+      await soundService.updateSettings({
+        enabled: true,
+        playInForeground: true,
+      });
+      // @ts-ignore
+      soundService.appState = 'active';
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+
+      let capturedCb: ((e: any) => void) | undefined;
+      const soundInstance = {
+        setVolume: jest.fn(),
+        play: jest.fn((cb?: (s: boolean) => void) => cb?.(true)),
+        stop: jest.fn(),
+        release: jest.fn(),
+        getDuration: jest.fn(() => 0),
+      };
+      (Sound as unknown as jest.Mock).mockImplementationOnce(
+        (_f: string, _b: string, cb?: (e: any) => void) => {
+          capturedCb = cb;
+          return soundInstance as any;
+        },
+      );
+
+      const result = await soundService.playCustomSoundByName('Tada');
+      // currentSound is now assigned; fire the deferred load callback so the
+      // instance's setVolume/play run (mirrors the playSoundInternal tests).
+      capturedCb?.(null);
+
+      expect(result).toBe(true);
+      expect(audioFocusService.requestTransientFocus).toHaveBeenCalled();
+      expect(Sound).toHaveBeenCalledWith(entry.uri, '', expect.any(Function));
+      expect(soundInstance.setVolume).toHaveBeenCalledWith(
+        DEFAULT_SOUND_SETTINGS.masterVolume,
+      );
+      expect(soundInstance.play).toHaveBeenCalled();
+    });
+  });
 });
