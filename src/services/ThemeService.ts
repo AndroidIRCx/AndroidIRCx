@@ -6,6 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tx } from '../i18n/localization';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
+import { ensureReadable } from '../themes/palette';
 import {
   BUILT_IN_THEMES,
   DEFAULT_THEME,
@@ -274,9 +275,24 @@ class ThemeService {
 
   private normalizeThemeColors(colors?: Partial<ThemeColors>): ThemeColors {
     const base = this.getBaseThemeForColors(colors);
-    return {
+    const merged: ThemeColors = {
       ...base.colors,
       ...(colors || {}),
+    };
+    // Keep per-role nick colours readable against the surfaces they render on
+    // (list background / message background). Only nudges colours that fall
+    // below WCAG AA; readable ones are returned unchanged.
+    const ul = merged.userListBackground;
+    const mb = merged.messageBackground;
+    return {
+      ...merged,
+      userOwner: ensureReadable(merged.userOwner, ul),
+      userAdmin: ensureReadable(merged.userAdmin, ul),
+      userOp: ensureReadable(merged.userOp, ul),
+      userHalfop: ensureReadable(merged.userHalfop, ul),
+      userVoice: ensureReadable(merged.userVoice, ul),
+      userNormal: ensureReadable(merged.userNormal, ul),
+      messageNick: ensureReadable(merged.messageNick, mb),
     };
   }
 

@@ -110,6 +110,34 @@ export const contrastRatio = (a: string, b: string): number => {
 export const meetsContrastAA = (fg: string, bg: string): boolean =>
   contrastRatio(fg, bg) >= 4.5;
 
+/**
+ * Nudge a foreground colour until it clears `min` contrast against `bg`,
+ * preserving hue by mixing toward white (on dark backgrounds) or black (on
+ * light ones). Returns the original colour if it already passes, or the best
+ * (fully white/black) attempt if even that can't reach `min`. Used to keep
+ * per-role nick colours readable on each theme's list/message background.
+ */
+export const ensureReadable = (fg: string, bg: string, min = 4.5): string => {
+  if (!hexToRgb(fg) || !hexToRgb(bg) || contrastRatio(fg, bg) >= min) {
+    return fg;
+  }
+  // Mix toward whichever extreme actually raises contrast with bg. Using
+  // luminance<0.5 alone picks the wrong direction on mid-tone backgrounds
+  // (e.g. #B0B0B0), so compare both extremes.
+  const target =
+    contrastRatio('#000000', bg) >= contrastRatio('#FFFFFF', bg)
+      ? '#000000'
+      : '#FFFFFF';
+  let result = fg;
+  for (let amount = 0.08; amount <= 1.0001; amount += 0.08) {
+    result = mix(fg, target, amount);
+    if (contrastRatio(result, bg) >= min) {
+      return result;
+    }
+  }
+  return result;
+};
+
 // ---------------------------------------------------------------------------
 // Shared literals reused by the built-in themes
 // ---------------------------------------------------------------------------

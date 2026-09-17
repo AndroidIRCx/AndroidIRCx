@@ -75,10 +75,10 @@ describe('groupThemes', () => {
     expect(groupThemes([])).toEqual([]);
   });
 
-  it('covers all 20 built-in ids across the families', () => {
+  it('covers all 21 built-in ids across the families', () => {
     const ids = THEME_FAMILIES.flatMap(f => f.themeIds);
-    expect(ids).toHaveLength(20);
-    expect(new Set(ids).size).toBe(20);
+    expect(ids).toHaveLength(21);
+    expect(new Set(ids).size).toBe(21);
   });
 });
 

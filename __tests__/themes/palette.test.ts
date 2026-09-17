@@ -13,6 +13,7 @@ import {
   relativeLuminance,
   contrastRatio,
   meetsContrastAA,
+  ensureReadable,
   BLUE,
   SELECTION_TINT,
   ROLE_COLORS_DARK,
@@ -102,6 +103,29 @@ describe('themes/palette', () => {
     it('meetsContrastAA flags readable vs unreadable pairs', () => {
       expect(meetsContrastAA('#000000', '#FFFFFF')).toBe(true);
       expect(meetsContrastAA('#777777', '#808080')).toBe(false);
+    });
+  });
+
+  describe('ensureReadable', () => {
+    it('leaves an already-readable colour unchanged', () => {
+      expect(ensureReadable('#FFFFFF', '#000000')).toBe('#FFFFFF');
+    });
+
+    it('nudges a low-contrast colour until it clears AA', () => {
+      const out = ensureReadable('#777777', '#808080');
+      expect(contrastRatio(out, '#808080')).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('darkens (not lightens) on a mid-tone background', () => {
+      // teal nick on IRcap grey msg bg: lightening toward white would lower
+      // contrast, so it must darken instead.
+      const out = ensureReadable('#0F766E', '#B0B0B0');
+      expect(contrastRatio(out, '#B0B0B0')).toBeGreaterThanOrEqual(4.5);
+      expect(relativeLuminance(out)).toBeLessThan(relativeLuminance('#0F766E'));
+    });
+
+    it('passes non-hex input through untouched', () => {
+      expect(ensureReadable('rgba(0,0,0,1)', '#000000')).toBe('rgba(0,0,0,1)');
     });
   });
 

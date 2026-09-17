@@ -21,7 +21,7 @@ export const SYNTHWAVE_84_THEME: Theme = {
     surfaceAlt: '#1E1A2B',
     cardBackground: '#2A2139',
 
-    text: '#F6F6F6',
+    text: '#E4E6F2',
     textSecondary: '#848BBD',
     textDisabled: '#495495',
 
@@ -46,7 +46,7 @@ export const SYNTHWAVE_84_THEME: Theme = {
     divider: darken('#34294F', 0.2),
 
     messageBackground: '#2A2139',
-    messageText: '#F6F6F6',
+    messageText: '#E4E6F2',
     messageNick: '#36F9F6',
     messageTimestamp: '#495495',
 
@@ -66,37 +66,37 @@ export const SYNTHWAVE_84_THEME: Theme = {
     ctcpMessage: '#36F9F6',
 
     inputBackground: '#34294F',
-    inputText: '#F6F6F6',
+    inputText: '#E4E6F2',
     inputBorder: darken('#34294F', 0.15),
     inputPlaceholder: '#495495',
 
     buttonPrimary: '#36F9F6',
     buttonPrimaryText: '#262335',
     buttonSecondary: '#34294F',
-    buttonSecondaryText: '#F6F6F6',
+    buttonSecondaryText: '#E4E6F2',
     buttonDisabled: darken('#34294F', 0.15),
     buttonDisabledText: '#495495',
-    buttonText: '#F6F6F6',
+    buttonText: '#E4E6F2',
 
     tabActive: '#36F9F6',
     tabInactive: '#2A2139',
-    tabActiveText: '#F6F6F6',
+    tabActiveText: '#E4E6F2',
     tabInactiveText: '#848BBD',
     tabBorder: darken('#34294F', 0.15),
 
     modalOverlay: 'rgba(0, 0, 0, 0.7)',
     modalBackground: '#2A2139',
-    modalText: '#F6F6F6',
+    modalText: '#E4E6F2',
 
     userListBackground: '#1E1A2B',
-    userListText: '#F6F6F6',
+    userListText: '#E4E6F2',
     userListBorder: darken('#34294F', 0.2),
     userOwner: '#B381C5', // ~ owner (purple)
     userAdmin: '#FE4450', // & admin (red)
     userOp: '#FF8B39', // @ op (orange)
     userHalfop: '#36F9F6', // % halfop (cyan)
     userVoice: '#72F1B8', // + voice (green)
-    userNormal: '#F6F6F6',
+    userNormal: '#E4E6F2',
     highlightBackground: withAlpha('#36F9F6', 0.2),
     highlightText: '#FEDE5D', // Yellow text for mentions
     selectionBackground: withAlpha('#36F9F6', 0.12),

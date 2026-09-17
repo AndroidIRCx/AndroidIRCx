@@ -36,7 +36,7 @@ export interface ThemeSection {
 export const THEME_FAMILIES: ReadonlyArray<ThemeFamily> = [
   {
     title: 'Originals',
-    themeIds: ['dark', 'light', 'ircap'],
+    themeIds: ['dark', 'light', 'ircap', 'ircap-dark'],
   },
   {
     title: 'Popular dark palettes',

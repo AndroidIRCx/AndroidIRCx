@@ -14,11 +14,11 @@ export const LIGHT_THEME: Theme = {
   name: t('Light'),
   isCustom: false,
   colors: {
-    background: '#FFFFFF',
+    background: '#F7F8FA',
     surface: '#FAFAFA',
     surfaceVariant: '#F5F5F5',
-    surfaceAlt: '#FFFFFF',
-    cardBackground: '#FFFFFF',
+    surfaceAlt: '#F7F8FA',
+    cardBackground: '#F7F8FA',
 
     text: '#212121',
     textSecondary: '#757575',
@@ -27,13 +27,13 @@ export const LIGHT_THEME: Theme = {
     primary: '#2196F3',
     primaryDark: '#1976D2',
     primaryLight: '#64B5F6',
-    onPrimary: '#FFFFFF',
+    onPrimary: '#F7F8FA',
 
     secondary: '#FF9800',
-    onSecondary: '#FFFFFF',
+    onSecondary: '#F7F8FA',
 
     accent: '#4CAF50',
-    onAccent: '#FFFFFF',
+    onAccent: '#F7F8FA',
 
     success: '#4CAF50',
     error: '#F44336',
@@ -44,7 +44,7 @@ export const LIGHT_THEME: Theme = {
     borderLight: '#F5F5F5',
     divider: '#E0E0E0',
 
-    messageBackground: '#FFFFFF',
+    messageBackground: '#F7F8FA',
     messageText: '#212121',
     messageNick: '#1976D2',
     messageTimestamp: '#9E9E9E',
@@ -70,21 +70,21 @@ export const LIGHT_THEME: Theme = {
     inputPlaceholder: '#9E9E9E',
 
     buttonPrimary: '#2196F3',
-    buttonPrimaryText: '#FFFFFF',
+    buttonPrimaryText: '#F7F8FA',
     buttonSecondary: '#E0E0E0',
     buttonSecondaryText: '#212121',
     buttonDisabled: '#F5F5F5',
     buttonDisabledText: '#9E9E9E',
-    buttonText: '#FFFFFF',
+    buttonText: '#F7F8FA',
 
     tabActive: '#2196F3',
     tabInactive: '#F5F5F5',
-    tabActiveText: '#FFFFFF',
+    tabActiveText: '#F7F8FA',
     tabInactiveText: '#757575',
     tabBorder: '#E0E0E0',
 
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
-    modalBackground: '#FFFFFF',
+    modalBackground: '#F7F8FA',
     modalText: '#212121',
 
     userListBackground: '#FAFAFA',

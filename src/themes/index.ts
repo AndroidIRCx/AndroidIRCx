@@ -16,6 +16,7 @@ import type { Theme } from '../services/ThemeService';
 import { DARK_THEME } from './DarkTheme';
 import { IRCAP_THEME } from './IRcapTheme';
 import { LIGHT_THEME } from './LightTheme';
+import { IRCAP_DARK_THEME } from './IRcapDark';
 
 // Popular dark developer palettes
 import { DRACULA_THEME } from './Dracula';
@@ -46,6 +47,7 @@ export const BUILT_IN_THEMES: Theme[] = [
   DARK_THEME,
   LIGHT_THEME,
   IRCAP_THEME,
+  IRCAP_DARK_THEME,
   // Popular dark developer palettes
   DRACULA_THEME,
   NORD_THEME,

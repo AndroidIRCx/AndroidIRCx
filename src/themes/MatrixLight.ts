@@ -7,7 +7,7 @@
  * "Matrix Light" — the Matrix green terminal look inverted onto white paper.
  * Green ink on a white page: every role and message type stays in the green
  * family, with distinct green shades so channel roles remain distinguishable.
- * Body text (#0A3D0A on #FFFFFF) clears WCAG AA with a very high margin.
+ * Body text (#0A3D0A on #ECF3EC) clears WCAG AA with a very high margin.
  */
 
 import { tx } from '../i18n/localization';
@@ -25,11 +25,11 @@ export const MATRIX_LIGHT_THEME: Theme = {
   name: t('Matrix Light'),
   isCustom: false,
   colors: {
-    background: '#FFFFFF',
+    background: '#ECF3EC',
     surface: '#F2FFF2',
     surfaceVariant: '#E6FFE6',
-    surfaceAlt: '#FFFFFF',
-    cardBackground: '#FFFFFF',
+    surfaceAlt: '#ECF3EC',
+    cardBackground: '#ECF3EC',
 
     text: '#0A3D0A',
     textSecondary: '#4E9A4E',
@@ -38,13 +38,13 @@ export const MATRIX_LIGHT_THEME: Theme = {
     primary: MATRIX_GREEN,
     primaryDark: darken(MATRIX_GREEN, 0.25),
     primaryLight: lighten(MATRIX_GREEN, 0.3),
-    onPrimary: '#FFFFFF',
+    onPrimary: '#ECF3EC',
 
     secondary: '#2E7D32',
-    onSecondary: '#FFFFFF',
+    onSecondary: '#ECF3EC',
 
     accent: MATRIX_GREEN,
-    onAccent: '#FFFFFF',
+    onAccent: '#ECF3EC',
 
     success: '#00701A',
     error: '#B71C1C', // a red is acceptable for errors even here
@@ -55,7 +55,7 @@ export const MATRIX_LIGHT_THEME: Theme = {
     borderLight: '#E6F2E6',
     divider: '#CDE6CD',
 
-    messageBackground: '#FFFFFF',
+    messageBackground: '#ECF3EC',
     messageText: '#0A3D0A',
     messageNick: MATRIX_GREEN,
     messageTimestamp: '#6AA06A',
@@ -81,21 +81,21 @@ export const MATRIX_LIGHT_THEME: Theme = {
     inputPlaceholder: '#9CC79C',
 
     buttonPrimary: MATRIX_GREEN,
-    buttonPrimaryText: '#FFFFFF',
+    buttonPrimaryText: '#ECF3EC',
     buttonSecondary: '#E6FFE6',
     buttonSecondaryText: '#0A3D0A',
     buttonDisabled: '#F2FFF2',
     buttonDisabledText: '#9CC79C',
-    buttonText: '#FFFFFF',
+    buttonText: '#ECF3EC',
 
     tabActive: MATRIX_GREEN,
     tabInactive: '#E6FFE6',
-    tabActiveText: '#FFFFFF',
+    tabActiveText: '#ECF3EC',
     tabInactiveText: '#4E9A4E',
     tabBorder: '#CDE6CD',
 
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
-    modalBackground: '#FFFFFF',
+    modalBackground: '#ECF3EC',
     modalText: '#0A3D0A',
 
     userListBackground: '#F2FFF2',

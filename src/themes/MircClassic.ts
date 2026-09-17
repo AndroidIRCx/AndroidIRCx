@@ -24,11 +24,11 @@ export const MIRC_CLASSIC_THEME: Theme = {
   name: t('mIRC Classic'),
   isCustom: false,
   colors: {
-    background: '#FFFFFF',
+    background: '#F5F5F5',
     surface: '#F4F4F4',
     surfaceVariant: '#ECECEC',
-    surfaceAlt: '#FFFFFF',
-    cardBackground: '#FFFFFF',
+    surfaceAlt: '#F5F5F5',
+    cardBackground: '#F5F5F5',
 
     text: '#000000',
     textSecondary: '#5C5C5C',
@@ -37,13 +37,13 @@ export const MIRC_CLASSIC_THEME: Theme = {
     primary: NAVY,
     primaryDark: '#000066',
     primaryLight: '#3F3FA5',
-    onPrimary: '#FFFFFF',
+    onPrimary: '#F5F5F5',
 
     secondary: '#FF7F00',
-    onSecondary: '#FFFFFF',
+    onSecondary: '#F5F5F5',
 
     accent: NAVY,
-    onAccent: '#FFFFFF',
+    onAccent: '#F5F5F5',
 
     success: '#009300',
     error: '#7F0000',
@@ -54,7 +54,7 @@ export const MIRC_CLASSIC_THEME: Theme = {
     borderLight: '#ECECEC',
     divider: '#D4D4D4',
 
-    messageBackground: '#FFFFFF',
+    messageBackground: '#F5F5F5',
     messageText: '#000000',
     messageNick: NAVY,
     messageTimestamp: '#7F7F7F',
@@ -80,21 +80,21 @@ export const MIRC_CLASSIC_THEME: Theme = {
     inputPlaceholder: '#9E9E9E',
 
     buttonPrimary: NAVY,
-    buttonPrimaryText: '#FFFFFF',
+    buttonPrimaryText: '#F5F5F5',
     buttonSecondary: '#ECECEC',
     buttonSecondaryText: '#000000',
     buttonDisabled: '#F4F4F4',
     buttonDisabledText: '#9E9E9E',
-    buttonText: '#FFFFFF',
+    buttonText: '#F5F5F5',
 
     tabActive: NAVY,
     tabInactive: '#ECECEC',
-    tabActiveText: '#FFFFFF',
+    tabActiveText: '#F5F5F5',
     tabInactiveText: '#5C5C5C',
     tabBorder: '#D4D4D4',
 
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
-    modalBackground: '#FFFFFF',
+    modalBackground: '#F5F5F5',
     modalText: '#000000',
 
     userListBackground: '#F4F4F4',

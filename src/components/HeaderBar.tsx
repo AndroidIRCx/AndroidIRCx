@@ -17,10 +17,28 @@ import { useT } from '../i18n/localization';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 
+// Compact latency sparkline: map a ping (ms) to a block glyph.
+const SPARK_BLOCKS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇'];
+const pingBlock = (ms: number): string => {
+  const thresholds = [50, 100, 175, 275, 425, 650];
+  for (let i = 0; i < thresholds.length; i++) {
+    if (ms <= thresholds[i]) return SPARK_BLOCKS[i];
+  }
+  return SPARK_BLOCKS[SPARK_BLOCKS.length - 1];
+};
+const pingSparkline = (history: number[]): string =>
+  history.map(pingBlock).join('');
+
 interface HeaderBarProps {
   networkName: string;
 
+  /** Display name of the active tab (e.g. "Status", "#AndroidIRCX", a nick). */
+  activeTabName?: string;
+
   ping?: number;
+
+  /** Number of background tabs with unread activity. */
+  unreadTabsCount?: number;
 
   isConnected: boolean;
 
@@ -62,7 +80,11 @@ interface HeaderBarProps {
 export const HeaderBar: React.FC<HeaderBarProps> = ({
   networkName,
 
+  activeTabName,
+
   ping,
+
+  unreadTabsCount = 0,
 
   isConnected,
 
@@ -107,6 +129,27 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
   const styles = createStyles(colors);
 
+  // Keep a short rolling history of pings for the latency sparkline.
+  const [pingHistory, setPingHistory] = useState<number[]>([]);
+  useEffect(() => {
+    if (!isConnected) {
+      setPingHistory([]);
+      return;
+    }
+    if (ping === undefined) return;
+    setPingHistory(prev => [...prev.slice(-9), ping]);
+  }, [ping, isConnected]);
+
+  // Colour the ping by latency, following the theme's status colours.
+  const pingLevelStyle =
+    ping === undefined
+      ? styles.pingNeutral
+      : ping < 120
+        ? styles.pingGood
+        : ping < 300
+          ? styles.pingWarn
+          : styles.pingBad;
+
   useEffect(() => {
     const updateSupporterStatus = () => {
       setIsSupporter(inAppPurchaseService.isSupporter());
@@ -141,19 +184,55 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 </Text>
               </TouchableOpacity>
             )}
+            <Text
+              style={
+                isConnected ? styles.statusDotOnline : styles.statusDotOffline
+              }
+            >
+              ●
+            </Text>
             <Text style={styles.networkName}>{networkName}</Text>
             {isSupporter && <Text style={styles.supporterBadge}>❤️</Text>}
+            {isConnected && !!activeTabName && (
+              <>
+                <Text style={styles.tabAt}>@</Text>
+                <Text
+                  style={styles.tabName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {activeTabName}
+                </Text>
+              </>
+            )}
           </View>
         </TouchableOpacity>
 
-        {ping !== undefined && (
-          <Text style={styles.ping}>
-            {t('Ping: {ping} ms').replace('{ping}', ping.toFixed(1))}
+        {isConnected && ping !== undefined && (
+          <Text style={styles.ping} numberOfLines={1}>
+            <Text style={pingLevelStyle}>{`${Math.round(ping)}ms`}</Text>
+            {pingHistory.length > 1 && (
+              <Text style={styles.sparkline}>
+                {` ${pingSparkline(pingHistory)}`}
+              </Text>
+            )}
+            {unreadTabsCount > 0 && (
+              <Text style={styles.activeCount}>
+                {`  ·  ${unreadTabsCount} ${t('active')}`}
+              </Text>
+            )}
           </Text>
         )}
 
         {!isConnected && onConnectPress && (
-          <Text style={styles.connectHint}>{t('Tap to connect')}</Text>
+          <Text style={styles.connectHint} numberOfLines={1}>
+            {networkName
+              ? t('Tap to connect to {network}').replace(
+                  '{network}',
+                  networkName,
+                )
+              : t('Tap to connect')}
+          </Text>
         )}
       </View>
 
@@ -284,10 +363,54 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       lineHeight: 16,
     },
+    tabAt: {
+      color: colors.accent,
+      fontSize: 16,
+      fontWeight: '700',
+      marginHorizontal: 5,
+    },
+    tabName: {
+      color: colors.onPrimary,
+      fontSize: 16,
+      fontWeight: '500',
+      opacity: 0.95,
+      maxWidth: 150,
+    },
     ping: {
       color: colors.onPrimary,
       fontSize: 12,
       opacity: 0.9,
+    },
+    pingNeutral: {
+      color: colors.onPrimary,
+    },
+    pingGood: {
+      color: colors.success,
+    },
+    pingWarn: {
+      color: colors.warning,
+    },
+    pingBad: {
+      color: colors.error,
+    },
+    sparkline: {
+      color: colors.onPrimary,
+      opacity: 0.7,
+    },
+    activeCount: {
+      color: colors.onPrimary,
+      opacity: 0.85,
+    },
+    statusDotOnline: {
+      color: colors.success,
+      fontSize: 10,
+      marginRight: 5,
+    },
+    statusDotOffline: {
+      color: colors.onPrimary,
+      opacity: 0.4,
+      fontSize: 10,
+      marginRight: 5,
     },
     connectHint: {
       color: colors.onPrimary,
