@@ -69,6 +69,134 @@ const ensureIrcxGrammar = () => {
   ircxGrammarReady = true;
 };
 
+// --- Editor autocomplete vocabulary ---
+const HOOK_LIST = IRCX_HOOKS.split('|');
+// `api.*` members (kept in sync with ScriptingService.makeApi).
+const API_MEMBERS = [
+  'log',
+  'warn',
+  'error',
+  'userNick',
+  'appVersion',
+  'getConfig',
+  'sendMessage',
+  'sendCommand',
+  'sendNotice',
+  'sendCTCP',
+  'registerCommand',
+  'addMenuItem',
+  'join',
+  'part',
+  'kick',
+  'mode',
+  'op',
+  'deop',
+  'voice',
+  'devoice',
+  'ban',
+  'unban',
+  'setTopic',
+  'changeNick',
+  'setAway',
+  'back',
+  'whois',
+  'action',
+  'rand',
+  'list',
+  'getChannelUsers',
+  'getChannels',
+  'getChannelInfo',
+  'getTabs',
+  'getActiveTab',
+  'switchToTab',
+  'getUserInfo',
+  'getUserNote',
+  'setUserNote',
+  'getUserAlias',
+  'setUserAlias',
+  'isIgnored',
+  'getChannelNote',
+  'setChannelNote',
+  'isChannelBookmarked',
+  'getHighlightWords',
+  'addHighlightWord',
+  'removeHighlightWord',
+  'isHighlighted',
+  'searchHistory',
+  'getHistoryStats',
+  'getSetting',
+  'getTheme',
+  'getConnectionStats',
+  'setTimer',
+  'clearTimer',
+  'getNetworkId',
+  'getAllNetworks',
+  'isConnected',
+  'getStorage',
+  'setStorage',
+  'removeStorage',
+  'now',
+  'sleep',
+];
+const JS_KEYWORDS = [
+  'const',
+  'let',
+  'var',
+  'function',
+  'return',
+  'if',
+  'else',
+  'for',
+  'while',
+  'switch',
+  'case',
+  'break',
+  'continue',
+  'new',
+  'try',
+  'catch',
+  'throw',
+  'async',
+  'await',
+  'true',
+  'false',
+  'null',
+  'typeof',
+  'module',
+  'exports',
+  'console',
+];
+const WORD_POOL = Array.from(new Set([...HOOK_LIST, 'api', ...JS_KEYWORDS]));
+
+interface Completion {
+  items: string[];
+  start: number; // index where the token being completed begins
+  end: number; // index where it ends (caret)
+}
+
+// Compute completions for the token immediately before `caret` in `code`.
+const completionsAt = (code: string, caret: number): Completion => {
+  const before = code.slice(0, caret);
+  // Member access: `api . <partial>`
+  const member = before.match(/\bapi\s*\.\s*([A-Za-z_$][\w$]*)?$/);
+  if (member) {
+    const prefix = member[1] || '';
+    const items = API_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret };
+  }
+  // Bare word: hook names, `api`, keywords (need >= 2 chars to reduce noise)
+  const word = before.match(/([A-Za-z_$][\w$]*)$/);
+  if (word) {
+    const prefix = word[1];
+    if (prefix.length < 2) return { items: [], start: caret, end: caret };
+    const items = WORD_POOL.filter(
+      w => w.startsWith(prefix) && w !== prefix,
+    ).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret };
+  }
+  return { items: [], start: caret, end: caret };
+};
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -125,6 +253,52 @@ export const ScriptingScreen: React.FC<Props> = ({
   const highlightScrollRef = useRef<React.ComponentRef<
     typeof ScrollView
   > | null>(null);
+  const codeInputRef = useRef<React.ComponentRef<typeof TextInput> | null>(
+    null,
+  );
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (blurTimer.current) clearTimeout(blurTimer.current);
+    },
+    [],
+  );
+  const [selection, setSelection] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: 0,
+  });
+  const [completion, setCompletion] = useState<Completion>({
+    items: [],
+    start: 0,
+    end: 0,
+  });
+  const [editorFocused, setEditorFocused] = useState(false);
+
+  // Recompute autocomplete suggestions as the code or caret changes.
+  useEffect(() => {
+    if (!editorFocused || !editing) {
+      setCompletion({ items: [], start: 0, end: 0 });
+      return;
+    }
+    setCompletion(completionsAt(editing.code || '', selection.start));
+  }, [editing, editorFocused, selection.start]);
+
+  // Insert the chosen suggestion, replacing the token being typed.
+  const acceptCompletion = useCallback(
+    (word: string) => {
+      if (!editing) return;
+      const code = editing.code || '';
+      const { start, end } = completionsAt(code, selection.start);
+      const next = code.slice(0, start) + word + code.slice(end);
+      const caret = start + word.length;
+      if (blurTimer.current) clearTimeout(blurTimer.current);
+      setEditing({ ...editing, code: next });
+      setSelection({ start: caret, end: caret });
+      setCompletion({ items: [], start: 0, end: 0 });
+      codeInputRef.current?.focus();
+    },
+    [editing, selection.start],
+  );
 
   const refresh = useCallback(async () => {
     await scriptingService.initialize();
@@ -769,12 +943,36 @@ export const ScriptingScreen: React.FC<Props> = ({
                   </ScrollView>
                 )}
                 <TextInput
+                  ref={codeInputRef}
                   style={[
                     styles.codeInput,
                     showHighlight && styles.codeInputOverlay,
                   ]}
                   multiline
                   value={editing.code}
+                  selection={{
+                    start: Math.min(selection.start, editing.code.length),
+                    end: Math.min(selection.end, editing.code.length),
+                  }}
+                  onSelectionChange={e => setSelection(e.nativeEvent.selection)}
+                  onFocus={() => {
+                    if (blurTimer.current) clearTimeout(blurTimer.current);
+                    setEditorFocused(true);
+                  }}
+                  onBlur={() => {
+                    blurTimer.current = setTimeout(
+                      () => setEditorFocused(false),
+                      200,
+                    );
+                  }}
+                  onKeyPress={e => {
+                    if (
+                      e.nativeEvent.key === 'Tab' &&
+                      completion.items.length > 0
+                    ) {
+                      acceptCompletion(completion.items[0]);
+                    }
+                  }}
                   onChangeText={value =>
                     setEditing({ ...editing, code: value })
                   }
@@ -793,6 +991,35 @@ export const ScriptingScreen: React.FC<Props> = ({
                   cursorColor={colors.primary}
                 />
               </View>
+              {editorFocused && completion.items.length > 0 && (
+                <View style={styles.autocompleteBox}>
+                  <ScrollView
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled
+                    style={styles.autocompleteList}
+                  >
+                    {completion.items.map((item, idx) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={[
+                          styles.autocompleteItem,
+                          idx === 0 && styles.autocompleteItemFirst,
+                        ]}
+                        onPress={() => acceptCompletion(item)}
+                      >
+                        <Text style={styles.autocompleteText}>{item}</Text>
+                        <Text style={styles.autocompleteTag}>
+                          {HOOK_LIST.includes(item)
+                            ? t('hook')
+                            : API_MEMBERS.includes(item)
+                              ? t('api')
+                              : t('keyword')}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
               <Text style={styles.label}>{t('Config (JSON)')}</Text>
               <TextInput
                 style={styles.codeInput}
@@ -1018,4 +1245,36 @@ const createStyles = (colors: any) =>
     codeHook: { color: '#ffcb6b', fontFamily: 'monospace', fontSize: 13 },
     codeApi: { color: '#82aaff', fontFamily: 'monospace', fontSize: 13 },
     codeApiMethod: { color: '#89ddff', fontFamily: 'monospace', fontSize: 13 },
+    autocompleteBox: {
+      marginTop: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: 6,
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    autocompleteList: { maxHeight: 168 },
+    autocompleteItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    autocompleteItemFirst: {
+      borderTopWidth: 0,
+      backgroundColor: colors.surfaceVariant,
+    },
+    autocompleteText: {
+      color: colors.text,
+      fontFamily: 'monospace',
+      fontSize: 14,
+    },
+    autocompleteTag: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      textTransform: 'uppercase',
+    },
   });
