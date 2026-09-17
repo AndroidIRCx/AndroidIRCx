@@ -158,7 +158,10 @@ jest.mock('../../src/services/SettingsService', () => ({
   settingsService: mockSettingsService,
 }));
 
-const mockSoundService = { playSound: jest.fn().mockResolvedValue(undefined) };
+const mockSoundService = {
+  playSound: jest.fn().mockResolvedValue(undefined),
+  playCustomSoundByName: jest.fn().mockResolvedValue(false),
+};
 jest.mock('../../src/services/SoundService', () => ({
   soundService: mockSoundService,
 }));
@@ -1243,26 +1246,30 @@ describe('ScriptingService', () => {
     expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/mode #x +o nick');
   });
 
-  it('playSound plays valid sounds, rejects unknown names, and rate-limits', () => {
+  it('playSound plays built-in events, falls back to custom names, and rate-limits', () => {
     const api = (scriptingService as any).makeApi({
       id: 'sound-script',
       name: 'SoundScript',
       code: '',
       enabled: true,
     });
-    (scriptingService as any).lastSoundAt = 0;
 
+    // Built-in event name plays via the event path.
+    (scriptingService as any).lastSoundAt = 0;
     api.playSound('mention');
     expect(mockSoundService.playSound).toHaveBeenCalledWith('mention');
 
-    // Unknown sound name is ignored (and logged), not played.
+    // A second call right away is rate-limited (nothing plays).
     mockSoundService.playSound.mockClear();
-    api.playSound('explode');
-    expect(mockSoundService.playSound).not.toHaveBeenCalled();
-
-    // A second valid call right away is rate-limited.
     api.playSound('join');
     expect(mockSoundService.playSound).not.toHaveBeenCalled();
+
+    // A non-event name falls back to a user-defined custom sound by name.
+    (scriptingService as any).lastSoundAt = 0;
+    api.playSound('mymusic');
+    expect(mockSoundService.playCustomSoundByName).toHaveBeenCalledWith(
+      'mymusic',
+    );
   });
 
   it('openLink confirms https links and blocks non-http schemes', () => {

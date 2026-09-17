@@ -12,6 +12,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Modal,
   Switch,
   Alert,
@@ -39,6 +40,7 @@ import {
   SOUND_EVENT_LABELS,
   SOUND_EVENT_CATEGORIES,
   DEFAULT_SOUNDS,
+  type CustomSound,
 } from '../types/sound';
 
 interface SoundSettingsScreenProps {
@@ -73,6 +75,10 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
     previewCustomSound,
     stopSound,
     resetAllToDefaults,
+    customSounds = [],
+    addCustomSound,
+    renameCustomSound,
+    removeCustomSound,
   } = useSoundSettings();
 
   const [expandedCategories, setExpandedCategories] = useState<
@@ -88,6 +94,17 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
   const [pickingForEvent, setPickingForEvent] = useState<SoundEventType | null>(
     null,
   );
+
+  // Naming modal state for custom sounds. `editingId` is set when renaming an
+  // existing entry; `pendingUri` holds the freshly picked file when adding.
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [pendingUri, setPendingUri] = useState<string | null>(null);
+  const [pendingCleanupUri, setPendingCleanupUri] = useState<string | null>(
+    null,
+  );
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState('');
+  const [isSavingCustomSound, setIsSavingCustomSound] = useState(false);
 
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => ({
@@ -230,6 +247,126 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
       ],
     );
   }, [t, resetAllToDefaults]);
+
+  const closeNameModal = useCallback(() => {
+    setNameModalVisible(false);
+    setPendingUri(null);
+    setPendingCleanupUri(null);
+    setEditingId(null);
+    setNameInput('');
+    setIsSavingCustomSound(false);
+  }, []);
+
+  const handleAddCustomSound = useCallback(async () => {
+    if (isPickingSound) return;
+    setIsPickingSound(true);
+
+    try {
+      const [result] = await pick({
+        type: ['audio/*'],
+        copyTo: 'documentDirectory',
+      });
+
+      const pickedResult = result as typeof result & { fileCopyUri?: string };
+      const fileUri = pickedResult?.fileCopyUri ?? pickedResult?.uri;
+      const cleanupUri = pickedResult?.fileCopyUri;
+
+      if (fileUri) {
+        setPendingUri(normalizeFileUri(fileUri));
+        setPendingCleanupUri(cleanupUri ?? null);
+        setEditingId(null);
+        setNameInput('');
+        setNameModalVisible(true);
+      }
+    } catch (error: any) {
+      if (!(
+        isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED
+      )) {
+        console.error(
+          '[SoundSettingsScreen] Error picking custom sound:',
+          error,
+        );
+        Alert.alert(t('Error'), t('Failed to select sound file.'));
+      }
+    } finally {
+      setIsPickingSound(false);
+    }
+  }, [isPickingSound, normalizeFileUri, t]);
+
+  const handleRenameCustomSound = useCallback((sound: CustomSound) => {
+    setEditingId(sound.id);
+    setNameInput(sound.name);
+    setPendingUri(null);
+    setPendingCleanupUri(null);
+    setNameModalVisible(true);
+  }, []);
+
+  const handleSaveCustomSoundName = useCallback(async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) return;
+
+    setIsSavingCustomSound(true);
+    try {
+      if (editingId) {
+        await renameCustomSound(editingId, trimmed);
+      } else if (pendingUri) {
+        await addCustomSound(trimmed, pendingUri);
+        if (pendingCleanupUri) {
+          await cleanupPickedCopy(pendingCleanupUri);
+        }
+      }
+      closeNameModal();
+    } catch (error: any) {
+      setIsSavingCustomSound(false);
+      const message =
+        error && typeof error.message === 'string'
+          ? error.message
+          : t('Failed to save custom sound.');
+      Alert.alert(t('Error'), message);
+    }
+  }, [
+    nameInput,
+    editingId,
+    pendingUri,
+    pendingCleanupUri,
+    renameCustomSound,
+    addCustomSound,
+    cleanupPickedCopy,
+    closeNameModal,
+    t,
+  ]);
+
+  const handleCancelNameModal = useCallback(() => {
+    if (pendingCleanupUri) {
+      cleanupPickedCopy(pendingCleanupUri).catch(() => null);
+    }
+    closeNameModal();
+  }, [pendingCleanupUri, cleanupPickedCopy, closeNameModal]);
+
+  const handleDeleteCustomSound = useCallback(
+    (sound: CustomSound) => {
+      Alert.alert(
+        t('Delete Sound'),
+        t('Delete "{name}"?').replace('{name}', sound.name),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          {
+            text: t('Delete'),
+            style: 'destructive',
+            onPress: () => {
+              removeCustomSound(sound.id).catch(error => {
+                console.error(
+                  '[SoundSettingsScreen] Error removing custom sound:',
+                  error,
+                );
+              });
+            },
+          },
+        ],
+      );
+    },
+    [t, removeCustomSound],
+  );
 
   const renderEventRow = useCallback(
     (eventType: SoundEventType) => {
@@ -550,6 +687,70 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                 )}
               </View>
 
+              {/* Custom Sounds */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>{t('Custom Sounds')}</Text>
+                <Text style={styles.customSoundsHelp}>
+                  {t(
+                    "Add your own sounds, name them, and play them from scripts with api.playSound('name').",
+                  )}
+                </Text>
+
+                {customSounds.length > 0 && (
+                  <View style={styles.customSoundList}>
+                    {customSounds.map(sound => (
+                      <View key={sound.id} style={styles.customSoundRow}>
+                        <TouchableOpacity
+                          style={styles.customSoundInfo}
+                          onPress={() => handleRenameCustomSound(sound)}
+                        >
+                          <Text
+                            style={styles.customSoundName}
+                            numberOfLines={1}
+                          >
+                            {sound.name}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.customSoundActions}>
+                          <TouchableOpacity
+                            style={styles.iconButton}
+                            onPress={() => previewCustomSound(sound.uri)}
+                          >
+                            <Icon
+                              name="play"
+                              size={14}
+                              color={colors.primary}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.iconButton}
+                            onPress={() => handleDeleteCustomSound(sound)}
+                          >
+                            <Icon
+                              name="trash"
+                              size={14}
+                              color={colors.error || '#f44336'}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.addCustomSoundButton}
+                  onPress={handleAddCustomSound}
+                  disabled={isPickingSound}
+                >
+                  <Icon name="plus" size={14} color={colors.primary} />
+                  <Text style={styles.addCustomSoundButtonText}>
+                    {t('Add custom sound')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Reset Button */}
               <View style={styles.section}>
                 <TouchableOpacity
@@ -572,6 +773,52 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
           {/* Footer spacing */}
           <View style={footerSpacerStyle} />
         </ScrollView>
+
+        {/* Custom sound naming modal */}
+        <Modal
+          visible={nameModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={handleCancelNameModal}
+          statusBarTranslucent
+        >
+          <View style={styles.nameModalOverlay}>
+            <View style={styles.nameModalCard}>
+              <Text style={styles.nameModalTitle}>
+                {editingId ? t('Rename Sound') : t('Name This Sound')}
+              </Text>
+              <TextInput
+                style={styles.nameModalInput}
+                value={nameInput}
+                onChangeText={setNameInput}
+                placeholder={t('Sound name')}
+                placeholderTextColor={colors.textSecondary}
+                autoFocus
+                maxLength={64}
+              />
+              <View style={styles.nameModalActions}>
+                <TouchableOpacity
+                  style={styles.nameModalCancelButton}
+                  onPress={handleCancelNameModal}
+                  disabled={isSavingCustomSound}
+                >
+                  <Text style={styles.nameModalCancelText}>{t('Cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.nameModalSaveButton}
+                  onPress={handleSaveCustomSoundName}
+                  disabled={isSavingCustomSound || !nameInput.trim()}
+                >
+                  {isSavingCustomSound ? (
+                    <ActivityIndicator size="small" color={colors.background} />
+                  ) : (
+                    <Text style={styles.nameModalSaveText}>{t('Save')}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ModalSafeArea>
     </Modal>
   );
@@ -765,5 +1012,115 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.error || '#f44336',
       fontWeight: '500',
+    },
+    customSoundsHelp: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginBottom: 12,
+      lineHeight: 18,
+    },
+    customSoundList: {
+      gap: 8,
+      marginBottom: 12,
+    },
+    customSoundRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderRadius: 8,
+      backgroundColor: colors.surface || colors.cardBackground,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    customSoundInfo: {
+      flex: 1,
+      marginRight: 12,
+    },
+    customSoundName: {
+      fontSize: 15,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    customSoundActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    addCustomSoundButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      gap: 8,
+    },
+    addCustomSoundButtonText: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: '500',
+    },
+    nameModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    nameModalCard: {
+      width: '100%',
+      maxWidth: 400,
+      borderRadius: 12,
+      padding: 20,
+      backgroundColor: colors.surface || colors.cardBackground,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    nameModalTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 16,
+    },
+    nameModalInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.background,
+      marginBottom: 20,
+    },
+    nameModalActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 12,
+    },
+    nameModalCancelButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+    },
+    nameModalCancelText: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    nameModalSaveButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      minWidth: 80,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    nameModalSaveText: {
+      fontSize: 15,
+      color: colors.background,
+      fontWeight: '600',
     },
   });

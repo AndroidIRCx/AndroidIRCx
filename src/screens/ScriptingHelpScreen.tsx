@@ -148,7 +148,7 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         <Text style={styles.sub}>{t('Sound & links')}</Text>
         <Text style={styles.bullet}>
           {t(
-            '• api.playSound(name) — play a built-in sound. name is one of: mention, private_message, join, kick, notice, notify, ctcp, disconnect, login, send, fail, ring, flood, op, deop. Respects your sound settings; max 1/second.',
+            '• api.playSound(name) — play a sound. name is either a built-in event (mention, private_message, join, kick, notice, notify, ctcp, disconnect, login, send, fail, ring, flood, op, deop) OR the name of a custom sound you added in Settings > Sounds. Respects your sound settings; max 1/second.',
           )}
         </Text>
         <Text style={styles.bullet}>
@@ -158,7 +158,12 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         </Text>
         <Text style={styles.bullet}>
           {t(
-            '• Use YOUR OWN sound from your phone: open Settings > Sounds, pick an event (e.g. Mention), and choose a sound file from your device. Then call api.playSound with that event name (e.g. api.playSound("mention")) in the hook you programmed — it will play your custom file.',
+            '• Use YOUR OWN sound from your phone (preferred): open Settings > Sounds > Custom Sounds, add a sound, give it a name (e.g. "tada") and pick a file from your phone. Then call api.playSound("tada") in your script.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Or use an event slot: in Settings > Sounds assign a custom file to an event (e.g. Mention), then call api.playSound("mention") — it plays your custom file.',
           )}
         </Text>
 

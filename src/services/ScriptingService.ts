@@ -1519,23 +1519,32 @@ class ScriptingService {
       // user's sound settings (muted stays muted) and is rate-limited so a
       // script cannot spam audio on every incoming line.
       playSound: (name: string) => {
-        const type = String(name || '').toLowerCase();
-        const valid = Object.values(SoundEventType) as string[];
-        if (!valid.includes(type)) {
-          this.addLog({
-            level: 'warn',
-            message: t('playSound: unknown sound "{name}". Valid: {list}', {
-              name: String(name),
-              list: valid.join(', '),
-            }),
-            scriptId: script.id,
-          });
-          return;
-        }
         const nowMs = Date.now();
         if (nowMs - this.lastSoundAt < 1000) return; // max 1/sec
+        const raw = String(name || '');
+        const type = raw.toLowerCase();
+        const valid = Object.values(SoundEventType) as string[];
         this.lastSoundAt = nowMs;
-        soundService.playSound(type as SoundEventType).catch(() => {});
+        if (valid.includes(type)) {
+          soundService.playSound(type as SoundEventType).catch(() => {});
+          return;
+        }
+        // Otherwise try a user-defined named custom sound (Settings > Sounds).
+        soundService
+          .playCustomSoundByName(raw)
+          .then(found => {
+            if (!found) {
+              this.addLog({
+                level: 'warn',
+                message: t(
+                  'playSound: unknown sound "{name}". Use a built-in event ({list}) or a custom sound name from Settings > Sounds.',
+                  { name: raw, list: valid.join(', ') },
+                ),
+                scriptId: script.id,
+              });
+            }
+          })
+          .catch(() => {});
       },
       // Open an external link. http/https only, rate-limited, and ALWAYS
       // asks the user to confirm first (with the script name + URL), so a
