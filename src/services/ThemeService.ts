@@ -279,20 +279,44 @@ class ThemeService {
       ...base.colors,
       ...(colors || {}),
     };
-    // Keep per-role nick colours readable against the surfaces they render on
-    // (list background / message background). Only nudges colours that fall
-    // below WCAG AA; readable ones are returned unchanged.
+    // Keep nick, role and message-type colours readable against the surfaces
+    // they render on (user-list / message background). Only nudges colours that
+    // fall below the target contrast; readable ones are returned unchanged, and
+    // the hue is preserved so the palette stays coherent.
     const ul = merged.userListBackground;
     const mb = merged.messageBackground;
     return {
       ...merged,
+      // Per-role nick colours on the user-list background.
       userOwner: ensureReadable(merged.userOwner, ul),
       userAdmin: ensureReadable(merged.userAdmin, ul),
       userOp: ensureReadable(merged.userOp, ul),
       userHalfop: ensureReadable(merged.userHalfop, ul),
       userVoice: ensureReadable(merged.userVoice, ul),
       userNormal: ensureReadable(merged.userNormal, ul),
+      // Semantic message-area colours: keep clearly visible (WCAG AA).
       messageNick: ensureReadable(merged.messageNick, mb),
+      noticeMessage: ensureReadable(merged.noticeMessage, mb),
+      joinMessage: ensureReadable(merged.joinMessage, mb),
+      partMessage: ensureReadable(merged.partMessage, mb),
+      quitMessage: ensureReadable(merged.quitMessage, mb),
+      kickMessage: ensureReadable(merged.kickMessage, mb),
+      nickMessage: ensureReadable(merged.nickMessage, mb),
+      inviteMessage: ensureReadable(merged.inviteMessage, mb),
+      monitorMessage: ensureReadable(merged.monitorMessage, mb),
+      topicMessage: ensureReadable(merged.topicMessage, mb),
+      modeMessage: ensureReadable(merged.modeMessage, mb),
+      actionMessage: ensureReadable(merged.actionMessage, mb),
+      ctcpMessage: ensureReadable(merged.ctcpMessage, mb),
+      // Intentionally dim/secondary: only lift if truly invisible (floor 3.0).
+      messageTimestamp: ensureReadable(merged.messageTimestamp, mb, 3.0),
+      systemMessage: ensureReadable(merged.systemMessage, mb, 3.0),
+      rawMessage: ensureReadable(merged.rawMessage, mb, 3.0),
+      // Status accents used as text/icons on the main surface stay legible.
+      success: ensureReadable(merged.success, merged.background),
+      error: ensureReadable(merged.error, merged.background),
+      warning: ensureReadable(merged.warning, merged.background),
+      info: ensureReadable(merged.info, merged.background),
     };
   }
 

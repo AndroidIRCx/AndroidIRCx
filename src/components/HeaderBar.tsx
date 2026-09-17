@@ -26,8 +26,6 @@ const pingBlock = (ms: number): string => {
   }
   return SPARK_BLOCKS[SPARK_BLOCKS.length - 1];
 };
-const pingSparkline = (history: number[]): string =>
-  history.map(pingBlock).join('');
 
 interface HeaderBarProps {
   networkName: string;
@@ -210,10 +208,26 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
         {isConnected && ping !== undefined && (
           <Text style={styles.ping} numberOfLines={1}>
-            <Text style={pingLevelStyle}>{`${Math.round(ping)}ms`}</Text>
+            <Text style={[styles.pingChip, pingLevelStyle]}>
+              {` ${Math.round(ping)}ms `}
+            </Text>
             {pingHistory.length > 1 && (
-              <Text style={styles.sparkline}>
-                {` ${pingSparkline(pingHistory)}`}
+              <Text>
+                {'  '}
+                {pingHistory.map((p, index) => (
+                  <Text
+                    key={index}
+                    style={
+                      p < 120
+                        ? styles.pingGood
+                        : p < 300
+                          ? styles.pingWarn
+                          : styles.pingBad
+                    }
+                  >
+                    {pingBlock(p)}
+                  </Text>
+                ))}
               </Text>
             )}
             {unreadTabsCount > 0 && (
@@ -393,9 +407,10 @@ const createStyles = (colors: any) =>
     pingBad: {
       color: colors.error,
     },
-    sparkline: {
-      color: colors.onPrimary,
-      opacity: 0.7,
+    pingChip: {
+      backgroundColor: '#000000',
+      borderRadius: 3,
+      overflow: 'hidden',
     },
     activeCount: {
       color: colors.onPrimary,
