@@ -752,6 +752,7 @@ export const ScriptingScreen: React.FC<Props> = ({
                       : undefined
                   }
                   selectionColor={colors.primary}
+                  cursorColor={colors.primary}
                 />
               </View>
               <Text style={styles.label}>{t('Config (JSON)')}</Text>
@@ -931,6 +932,8 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     codeEditorWrapper: { position: 'relative', height: 240 },
+    // Highlighted layer sits BEHIND the input; the transparent input is typed
+    // into and the colours show through, so highlighting is live and editable.
     codeHighlight: {
       position: 'absolute',
       top: 0,
@@ -942,8 +945,7 @@ const createStyles = (colors: any) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
       pointerEvents: 'none',
-      zIndex: 2,
-      opacity: 0.95,
+      zIndex: 0,
     },
     codeHighlightContent: { padding: 8 },
     codeInput: {
@@ -954,15 +956,24 @@ const createStyles = (colors: any) =>
       height: 240,
       textAlignVertical: 'top',
       fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
       zIndex: 1,
     },
-    codeInputOverlay: { backgroundColor: 'transparent' },
+    // When highlight is on, hide the input's own glyphs (keep caret/selection
+    // visible) so only the coloured layer behind is read.
+    codeInputOverlay: { backgroundColor: 'transparent', color: 'transparent' },
     syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
-    codeText: { color: colors.text, fontFamily: 'monospace' },
-    codeKeyword: { color: '#c792ea', fontFamily: 'monospace' },
-    codeString: { color: '#91b859', fontFamily: 'monospace' },
-    codeComment: { color: '#9e9e9e', fontFamily: 'monospace' },
-    codeNumber: { color: '#f78c6c', fontFamily: 'monospace' },
+    codeText: {
+      color: colors.text,
+      fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
+    },
+    codeKeyword: { color: '#c792ea', fontFamily: 'monospace', fontSize: 13 },
+    codeString: { color: '#91b859', fontFamily: 'monospace', fontSize: 13 },
+    codeComment: { color: '#9e9e9e', fontFamily: 'monospace', fontSize: 13 },
+    codeNumber: { color: '#f78c6c', fontFamily: 'monospace', fontSize: 13 },
   });
