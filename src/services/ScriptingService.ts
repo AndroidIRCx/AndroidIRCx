@@ -19,6 +19,9 @@ import {
 import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
+import { soundService } from './SoundService';
+import { SoundEventType } from '../types/sound';
+import { Alert, Linking } from 'react-native';
 
 import { APP_VERSION } from '../config/appVersion';
 
@@ -160,6 +163,9 @@ class ScriptingService {
   > = new Map();
   private scriptMenuItems: ScriptMenuItem[] = [];
   private menuItemSeq = 0;
+  // Abuse limits for the media/link helpers (shared across all scripts).
+  private lastSoundAt = 0;
+  private lastLinkAt = 0;
 
   async initialize() {
     if (this.initialized) return;
@@ -1506,6 +1512,73 @@ class ScriptingService {
             tgt,
             `\x01ACTION ${text}\x01`.substring(0, 500),
           );
+      },
+
+      // --- Media / system (guarded) ---
+      // Play one of the app's built-in sounds by event name. Respects the
+      // user's sound settings (muted stays muted) and is rate-limited so a
+      // script cannot spam audio on every incoming line.
+      playSound: (name: string) => {
+        const type = String(name || '').toLowerCase();
+        const valid = Object.values(SoundEventType) as string[];
+        if (!valid.includes(type)) {
+          this.addLog({
+            level: 'warn',
+            message: t('playSound: unknown sound "{name}". Valid: {list}', {
+              name: String(name),
+              list: valid.join(', '),
+            }),
+            scriptId: script.id,
+          });
+          return;
+        }
+        const nowMs = Date.now();
+        if (nowMs - this.lastSoundAt < 1000) return; // max 1/sec
+        this.lastSoundAt = nowMs;
+        soundService.playSound(type as SoundEventType).catch(() => {});
+      },
+      // Open an external link. http/https only, rate-limited, and ALWAYS
+      // asks the user to confirm first (with the script name + URL), so a
+      // script can never silently navigate the device anywhere.
+      openLink: (url: string) => {
+        const raw = String(url || '').trim();
+        if (!/^https?:\/\//i.test(raw)) {
+          this.addLog({
+            level: 'warn',
+            message: t('openLink blocked (only http/https allowed): {url}', {
+              url: raw.substring(0, 100),
+            }),
+            scriptId: script.id,
+          });
+          return;
+        }
+        const nowMs = Date.now();
+        if (nowMs - this.lastLinkAt < 3000) {
+          this.addLog({
+            level: 'warn',
+            message: t('openLink rate-limited (max 1 every 3s)'),
+            scriptId: script.id,
+          });
+          return;
+        }
+        this.lastLinkAt = nowMs;
+        const shown = raw.length > 300 ? raw.substring(0, 300) + '…' : raw;
+        Alert.alert(
+          t('Open link?'),
+          t('Script "{name}" wants to open:\n\n{url}', {
+            name: script.name,
+            url: shown,
+          }),
+          [
+            { text: t('Cancel'), style: 'cancel' },
+            {
+              text: t('Open'),
+              onPress: () => {
+                Linking.openURL(raw).catch(() => {});
+              },
+            },
+          ],
+        );
       },
 
       // --- Small helpers ---

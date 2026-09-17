@@ -158,7 +158,13 @@ jest.mock('../../src/services/SettingsService', () => ({
   settingsService: mockSettingsService,
 }));
 
+const mockSoundService = { playSound: jest.fn().mockResolvedValue(undefined) };
+jest.mock('../../src/services/SoundService', () => ({
+  soundService: mockSoundService,
+}));
+
 const { scriptingService } = require('../../src/services/ScriptingService');
+const { Alert, Linking } = require('react-native');
 
 describe('ScriptingService', () => {
   const resetServiceState = () => {
@@ -1235,5 +1241,56 @@ describe('ScriptingService', () => {
 
     api.op('#x', 'nick', 'net1');
     expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/mode #x +o nick');
+  });
+
+  it('playSound plays valid sounds, rejects unknown names, and rate-limits', () => {
+    const api = (scriptingService as any).makeApi({
+      id: 'sound-script',
+      name: 'SoundScript',
+      code: '',
+      enabled: true,
+    });
+    (scriptingService as any).lastSoundAt = 0;
+
+    api.playSound('mention');
+    expect(mockSoundService.playSound).toHaveBeenCalledWith('mention');
+
+    // Unknown sound name is ignored (and logged), not played.
+    mockSoundService.playSound.mockClear();
+    api.playSound('explode');
+    expect(mockSoundService.playSound).not.toHaveBeenCalled();
+
+    // A second valid call right away is rate-limited.
+    api.playSound('join');
+    expect(mockSoundService.playSound).not.toHaveBeenCalled();
+  });
+
+  it('openLink confirms https links and blocks non-http schemes', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as any);
+    const api = (scriptingService as any).makeApi({
+      id: 'link-script',
+      name: 'LinkScript',
+      code: '',
+      enabled: true,
+    });
+    (scriptingService as any).lastLinkAt = 0;
+
+    // Non-http(s) scheme is blocked outright — no confirm dialog.
+    api.openLink('file:///etc/passwd');
+    expect(alertSpy).not.toHaveBeenCalled();
+
+    // https link shows a confirmation dialog; opening happens on confirm.
+    api.openLink('https://example.com/');
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    const buttons = alertSpy.mock.calls[0][2] as any[];
+    const openBtn = buttons.find(b => b.text && b.text !== 'Cancel');
+    openBtn.onPress();
+    expect(openSpy).toHaveBeenCalledWith('https://example.com/');
+
+    alertSpy.mockRestore();
+    openSpy.mockRestore();
   });
 });

@@ -145,6 +145,23 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           {t('• api.action(target, text, networkId?) — send a /me action')}
         </Text>
 
+        <Text style={styles.sub}>{t('Sound & links')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.playSound(name) — play a built-in sound. name is one of: mention, private_message, join, kick, notice, notify, ctcp, disconnect, login, send, fail, ring, flood, op, deop. Respects your sound settings; max 1/second.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.openLink(url) — open an http/https link. Always asks you to confirm first; max 1 every 3s.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Use YOUR OWN sound from your phone: open Settings > Sounds, pick an event (e.g. Mention), and choose a sound file from your device. Then call api.playSound with that event name (e.g. api.playSound("mention")) in the hook you programmed — it will play your custom file.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('Storage & utilities')}</Text>
         <Text style={styles.bullet}>
           {t('• api.getStorage(key) / api.setStorage(key, value) — persistent')}

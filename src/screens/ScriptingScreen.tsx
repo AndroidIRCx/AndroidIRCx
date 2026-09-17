@@ -135,6 +135,8 @@ const API_MEMBERS = [
   'getStorage',
   'setStorage',
   'removeStorage',
+  'playSound',
+  'openLink',
   'now',
   'sleep',
 ];
