@@ -187,7 +187,9 @@ reply, react, channel-context, rename
 ### Built-in Scripting Engine
 
 - Write scripts to automate IRC tasks
-- JavaScript hook exports for connection, message, channel, CTCP, raw, command, and timer events
+- JavaScript hook exports for connection, message, channel, CTCP, action, highlight, raw, command, and timer events
+- Register user-defined `/commands` and add nick/channel/tab context-menu items
+- Action helpers (`api.op`, `api.kick`, `api.action`, …) plus `api.rand()` and persistent text lists
 - Time-based access (rewarded ads) or unlimited with Pro purchase
 - Inspired by the mIRC scripting tradition
 - Quick example:
