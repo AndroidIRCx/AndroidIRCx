@@ -35,7 +35,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DARK_THEME } from '../../src/themes/DarkTheme';
 import { LIGHT_THEME } from '../../src/themes/LightTheme';
 import { IRCAP_THEME } from '../../src/themes/IRcapTheme';
+import { BUILT_IN_THEMES } from '../../src/themes';
 import { themeService } from '../../src/services/ThemeService';
+import { contrastRatio } from '../../src/themes/palette';
 
 describe('ThemeService', () => {
   beforeEach(() => {
@@ -61,6 +63,39 @@ describe('ThemeService', () => {
 
     unsubscribe();
   });
+
+  it.each(BUILT_IN_THEMES.map(theme => [theme.name, theme.id]))(
+    'normalizes readable UI text for %s',
+    async (_name, themeId) => {
+      await themeService.setTheme(themeId);
+      const colors = themeService.getColors();
+      const normalPairs = [
+        ['text', 'background'],
+        ['inputText', 'inputBackground'],
+        ['buttonPrimaryText', 'buttonPrimary'],
+        ['buttonSecondaryText', 'buttonSecondary'],
+        ['tabActiveText', 'tabActive'],
+        ['modalText', 'modalBackground'],
+        ['userListText', 'userListBackground'],
+      ] as const;
+      const mutedPairs = [
+        ['textSecondary', 'background'],
+        ['textDisabled', 'background'],
+        ['inputPlaceholder', 'inputBackground'],
+        ['buttonDisabledText', 'buttonDisabled'],
+        ['tabInactiveText', 'tabInactive'],
+      ] as const;
+
+      for (const [fg, bg] of normalPairs) {
+        expect(contrastRatio(colors[fg], colors[bg])).toBeGreaterThanOrEqual(
+          4.5,
+        );
+      }
+      for (const [fg, bg] of mutedPairs) {
+        expect(contrastRatio(colors[fg], colors[bg])).toBeGreaterThanOrEqual(3);
+      }
+    },
+  );
 
   it('creates, updates and deletes custom theme', async () => {
     const custom = await themeService.createCustomTheme('My Theme', 'light');

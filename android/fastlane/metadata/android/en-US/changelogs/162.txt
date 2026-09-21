@@ -1,0 +1,5 @@
+What's new in v1.9.55:
+- Script syntax highlighting stays readable on every light, dark, built-in, and custom theme.
+- Theme text and controls have improved contrast without losing each palette's character.
+- User context menus remain open while scrolling or dragging to an action.
+- Updated splash-screen, in-app purchase, and language-detection components.

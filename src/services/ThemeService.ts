@@ -287,6 +287,42 @@ class ThemeService {
     const mb = merged.messageBackground;
     return {
       ...merged,
+      // Core copy and controls. Secondary/placeholder/disabled copy is allowed
+      // to stay visually quieter, but never below the 3:1 UI-text floor.
+      text: ensureReadable(merged.text, merged.background),
+      textSecondary: ensureReadable(
+        merged.textSecondary,
+        merged.background,
+        3.0,
+      ),
+      textDisabled: ensureReadable(merged.textDisabled, merged.background, 3.0),
+      inputText: ensureReadable(merged.inputText, merged.inputBackground),
+      inputPlaceholder: ensureReadable(
+        merged.inputPlaceholder,
+        merged.inputBackground,
+        3.0,
+      ),
+      buttonPrimaryText: ensureReadable(
+        merged.buttonPrimaryText,
+        merged.buttonPrimary,
+      ),
+      buttonSecondaryText: ensureReadable(
+        merged.buttonSecondaryText,
+        merged.buttonSecondary,
+      ),
+      buttonDisabledText: ensureReadable(
+        merged.buttonDisabledText,
+        merged.buttonDisabled,
+        3.0,
+      ),
+      tabActiveText: ensureReadable(merged.tabActiveText, merged.tabActive),
+      tabInactiveText: ensureReadable(
+        merged.tabInactiveText,
+        merged.tabInactive,
+        3.0,
+      ),
+      modalText: ensureReadable(merged.modalText, merged.modalBackground),
+      userListText: ensureReadable(merged.userListText, ul),
       // Per-role nick colours on the user-list background.
       userOwner: ensureReadable(merged.userOwner, ul),
       userAdmin: ensureReadable(merged.userAdmin, ul),
