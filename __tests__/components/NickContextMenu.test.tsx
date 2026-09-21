@@ -1366,16 +1366,26 @@ describe('NickContextMenu', () => {
 
   // ==================== Close on Overlay Press ====================
   describe('overlay press', () => {
-    it('calls onClose when overlay is pressed', async () => {
+    it('calls onClose only when the backdrop is pressed', async () => {
       const onClose = jest.fn();
-      const { getByText } = await render(
+      const { getByTestId } = await render(
         <NickContextMenu {...baseProps} onClose={onClose} />,
       );
 
-      // The TouchableOpacity with style contextOverlay handles the close
-      // We can trigger it via the Close button which is easier to find
-      await fireEvent.press(getByText('Close'));
+      await fireEvent.press(getByTestId('nick-context-backdrop'));
       expect(onClose).toHaveBeenCalled();
+    });
+
+    it('does not close while the user scrolls the menu', async () => {
+      const onClose = jest.fn();
+      const { getByTestId } = await render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
+
+      await fireEvent.scroll(getByTestId('nick-context-scroll'), {
+        nativeEvent: { contentOffset: { y: 180 } },
+      });
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 

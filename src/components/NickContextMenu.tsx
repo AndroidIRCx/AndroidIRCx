@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -337,6 +338,13 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           alignItems: 'center',
           padding: 16,
         },
+        contextBackdrop: {
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        },
         contextBox: {
           width: '100%',
           maxWidth: 420,
@@ -473,11 +481,12 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.contextOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
+      <View style={styles.contextOverlay}>
+        <Pressable
+          testID="nick-context-backdrop"
+          style={styles.contextBackdrop}
+          onPress={onClose}
+        />
         <View style={styles.contextBox}>
           <View style={styles.contextHeaderRow}>
             <View style={styles.contextHeaderText}>
@@ -509,6 +518,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
             </View>
           )}
           <ScrollView
+            testID="nick-context-scroll"
             style={styles.contextScroll}
             contentContainerStyle={styles.contextScrollContent}
           >
@@ -1592,7 +1602,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
 
       <KickBanModal
         visible={showKickBanModal}

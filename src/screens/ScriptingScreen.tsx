@@ -37,6 +37,7 @@ import Prism from 'prismjs';
 import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
+import { deriveSyntaxColors } from '../themes/syntaxColors';
 
 // Teach Prism about the AndroidIRCX scripting vocabulary so the editor
 // highlights our own hooks and `api.*` calls, not just plain JavaScript.
@@ -1053,8 +1054,9 @@ export const ScriptingScreen: React.FC<Props> = ({
   );
 };
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+const createStyles = (colors: any) => {
+  const syntaxColors = deriveSyntaxColors(colors.surfaceVariant, colors.text);
+  return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: 'row',
@@ -1239,14 +1241,42 @@ const createStyles = (colors: any) =>
       fontSize: 13,
       lineHeight: 20,
     },
-    codeKeyword: { color: '#c792ea', fontFamily: 'monospace', fontSize: 13 },
-    codeString: { color: '#91b859', fontFamily: 'monospace', fontSize: 13 },
-    codeComment: { color: '#9e9e9e', fontFamily: 'monospace', fontSize: 13 },
-    codeNumber: { color: '#f78c6c', fontFamily: 'monospace', fontSize: 13 },
+    codeKeyword: {
+      color: syntaxColors.keyword,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
+    codeString: {
+      color: syntaxColors.string,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
+    codeComment: {
+      color: syntaxColors.comment,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
+    codeNumber: {
+      color: syntaxColors.number,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
     // AndroidIRCX scripting vocabulary
-    codeHook: { color: '#ffcb6b', fontFamily: 'monospace', fontSize: 13 },
-    codeApi: { color: '#82aaff', fontFamily: 'monospace', fontSize: 13 },
-    codeApiMethod: { color: '#89ddff', fontFamily: 'monospace', fontSize: 13 },
+    codeHook: {
+      color: syntaxColors.hook,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
+    codeApi: {
+      color: syntaxColors.api,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
+    codeApiMethod: {
+      color: syntaxColors.apiMethod,
+      fontFamily: 'monospace',
+      fontSize: 13,
+    },
     autocompleteBox: {
       marginTop: 4,
       borderWidth: StyleSheet.hairlineWidth,
@@ -1280,3 +1310,4 @@ const createStyles = (colors: any) =>
       textTransform: 'uppercase',
     },
   });
+};

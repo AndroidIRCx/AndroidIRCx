@@ -7542,10 +7542,10 @@ react-native-battery-optimization-check@^1.0.8:
   resolved "https://registry.yarnpkg.com/react-native-battery-optimization-check/-/react-native-battery-optimization-check-1.0.8.tgz#1592e8662be02ac6dbff06e25523bf1835958a77"
   integrity sha512-OXACVlMho/rmTg3YS2GQ0juGb7YKJTrvUnD7BMDNGpAUm6ykcgkU0i3vML76ZHRYTO1rB5Pdh4re+LeKSvVWsQ==
 
-react-native-bootsplash@7.3.2:
-  version "7.3.2"
-  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-7.3.2.tgz#d235f8de54a3f6f38b9cf7cde0d2199433815416"
-  integrity sha512-tPOmyufxKUin+1cDjsJqz1dLBDBV1O7kO+5uZgATih73eDkYgyDerXwjtorwrE0U6ILvTvOJ7rA4PiW1t7PTxQ==
+react-native-bootsplash@7.3.3:
+  version "7.3.3"
+  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-7.3.3.tgz#eccd18f0440598ea1623675ff743fed7f425d6c2"
+  integrity sha512-Olyxf2kTHUZtlXTOPl2QhQhOYZ7oS1PGMyicPlNKWtl8HYTbyywzuYfMKA9+2QZHhFXsaT4C7H5UP3Te0QuZcQ==
   dependencies:
     "@expo/config-plugins" "*"
     commander "^14.0.3"
@@ -7555,7 +7555,7 @@ react-native-bootsplash@7.3.2:
     picocolors "^1.1.1"
     prettier "^3.8.1"
     react-native-is-edge-to-edge "^1.3.1"
-    sharp "^0.35.2"
+    sharp "^0.35.4"
     ts-dedent "^2.2.0"
     xml-formatter "^3.7.0"
 
@@ -7575,10 +7575,10 @@ react-native-google-mobile-ads@^16.5.0:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@16.6.0:
-  version "16.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-16.6.0.tgz#ed4a969fb98d174345b851a07c86688e0d556d9e"
-  integrity sha512-CwUmwGMEg2VQf96Y58UQdTckd9XGf/ZEA1MmTiAWyyHy6e8WPNO73kPjltnbvrK++sc0/PUtGtDYrkma3Yk+BQ==
+react-native-iap@16.6.1:
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-16.6.1.tgz#c174232579ccbd1d824b181b18e50c482cb6da2c"
+  integrity sha512-AVZdQDzEjvi6VxpozTJrIwq6sY+DY0Deg98JnXWl7T/oJB15wDPLyi9L7IIN7ClwYvXpEV+uNbooFMTnot4GoA==
 
 react-native-is-edge-to-edge@^1.2.1, react-native-is-edge-to-edge@^1.3.1:
   version "1.3.1"
@@ -7606,10 +7606,10 @@ react-native-libsodium@^1.7.0:
     libsodium-wrappers "^0.8.2"
     libsodium-wrappers-sumo "^0.8.2"
 
-react-native-localize@^3.7.0:
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/react-native-localize/-/react-native-localize-3.7.0.tgz#4ad7347bf7a1756627f491f48cf7507e7356cf13"
-  integrity sha512-6Ohx+zZzycC6zhNVBGM/u1U+O6Ww29YIFseeyXqsKcO/pTfjLcdE40IUJF4SVVwrdh00IMJwy90HjLGUaeqK7Q==
+react-native-localize@^3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/react-native-localize/-/react-native-localize-3.7.2.tgz#2439f66ca8396a7abfa56385ed8f72d3bb5bcce0"
+  integrity sha512-TAd1IbE+ida/ZqGEL1tZ2nPhOd3tLq3pSL/rgFDEVIA3hUzEhA/Eb3CXgWdqHTQn3UCiOYvRK7BtxapGgg8ySg==
 
 react-native-make@^1.0.1:
   version "1.0.1"
@@ -8089,7 +8089,7 @@ setprototypeof@~1.2.0:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
-sharp@0.35.4, sharp@^0.35.2:
+sharp@0.35.4, sharp@^0.35.4:
   version "0.35.4"
   resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.35.4.tgz#361df3b2959daeb380541289960456c6be0f92de"
   integrity sha512-n++8XWcj+jCOr2IOl7h8LbKnGBDY4aPbmprMONBNFdn0ImXqpGVv5zliDs0V9HbmbCQLpbuo2ej9rAoOQTvMDA==
