@@ -3008,10 +3008,10 @@
   dependencies:
     undici-types "~8.3.0"
 
-"@types/node@26.5.1":
-  version "26.5.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.5.1.tgz#b19c390e15813f402a94b86e3af9042f792138be"
-  integrity sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==
+"@types/node@26.6.1":
+  version "26.6.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.6.1.tgz#059fb87569c8b47a495c75ed8a884832c73eab1d"
+  integrity sha512-VqGJBMCtdhqkBUCcBLvywI0NJ+KLuVzgNnlBUNFOQjqVxzo2lxLUNg1DSey8+u2u6ktswSAxg+s68QLzWHNOuA==
   dependencies:
     undici-types "~8.9.0"
 
@@ -7353,10 +7353,10 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
-prettier@3.9.6:
-  version "3.9.6"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.9.6.tgz#b3ea5146515d40fc53f18aa63f74dfab1e10dbf6"
-  integrity sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==
+prettier@3.9.8:
+  version "3.9.8"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.9.8.tgz#54e81128584538c81d85fce9d5fd77a410c385c5"
+  integrity sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==
 
 prettier@^3.8.1:
   version "3.9.4"
@@ -7655,10 +7655,10 @@ react-native-reanimated@4.6.0:
     react-native-is-edge-to-edge "^1.3.1"
     semver "^7.7.3"
 
-react-native-safe-area-context@^5.9.1:
-  version "5.9.1"
-  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-5.9.1.tgz#ee5b2730f0816a22a332352076395c3f48aaa442"
-  integrity sha512-Zpx9Iwg6VhgNarWFpcIM61xK2lUbSfSXemQUmcvOVRpux49lJsUompY1S3E5jKUJbLq233qEpj28DgmXVsgZMQ==
+react-native-safe-area-context@^5.10.0:
+  version "5.10.0"
+  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-5.10.0.tgz#3576391a6dcbf51a73f184438e6542ef56a86cc1"
+  integrity sha512-U655+G0KItefqpTKZenr0aBNulY/49TUKSZkWGVtESlFK5qmML7BejQjPDCRU+GzC24g2KeWFJguWP5LR52dqA==
 
 react-native-share@^12.3.1:
   version "12.3.1"
@@ -7773,12 +7773,12 @@ react-native@0.87.1:
     ws "^7.5.10"
     yargs "^17.6.2"
 
-react-reconciler@~0.33.0:
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/react-reconciler/-/react-reconciler-0.33.0.tgz#9dd20208d45baa5b0b4701781f858236657f15e1"
-  integrity sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==
+react-reconciler@~0.34.0:
+  version "0.34.0"
+  resolved "https://registry.yarnpkg.com/react-reconciler/-/react-reconciler-0.34.0.tgz#07b160468e2605747ee09af1624d28c3b8419f25"
+  integrity sha512-eVibvB1fc9j5Qf1KRkiM3GzRPBdjg2P6G6QV2f3P6Eb3OGMxRBhdg2rrUwjbV5JrQaJj8nOa8uajmmJA5tJWjQ==
   dependencies:
-    scheduler "^0.27.0"
+    scheduler "^0.28.0"
 
 react-refresh@^0.14.0:
   version "0.14.2"
@@ -7994,7 +7994,7 @@ sax@>=0.6.0:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.6.0.tgz#da59637629307b97e7c4cb28e080a7bc38560d5b"
   integrity sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA==
 
-scheduler@0.27.0, scheduler@^0.27.0:
+scheduler@0.27.0:
   version "0.27.0"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.27.0.tgz#0c4ef82d67d1e5c1e359e8fc76d3a87f045fe5bd"
   integrity sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==
@@ -8541,13 +8541,13 @@ test-exclude@^7.0.1:
     glob "^10.4.1"
     minimatch "^10.2.2"
 
-test-renderer@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/test-renderer/-/test-renderer-1.2.0.tgz#b106039bd4df8a40ea3de3718a6f346df184957b"
-  integrity sha512-JYiEGbgBGtmHAWX8Kf99gGRL1HtjcRVHLrmJNTZL4vFs9XrnWcuL45Iszw/pO4094+JR7havSrN+ds6YTOpSQA==
+test-renderer@1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/test-renderer/-/test-renderer-1.3.0.tgz#42b411caa113c03dbaf2ddde8d025ef71c68651d"
+  integrity sha512-DXyHv7JrVmDc5dKpfVHFhJ0Evo/EFY3TqlNt8CR65ua3SCsI09K/mQDJmYUOnZz36GANYqjp0ApeRER/mOxktQ==
   dependencies:
     "@types/react-reconciler" "~0.33.0"
-    react-reconciler "~0.33.0"
+    react-reconciler "~0.34.0"
 
 text-encoding@^0.7.0:
   version "0.7.0"

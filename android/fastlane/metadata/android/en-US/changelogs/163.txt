@@ -1,0 +1,4 @@
+What's new in v1.9.55:
+- Fix script editor text rendering when Android high-contrast text is enabled.
+- Keep syntax highlighting readable across supported themes.
+- Update safe-area handling and development/test tooling.

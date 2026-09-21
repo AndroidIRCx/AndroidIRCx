@@ -931,6 +931,8 @@ export const ScriptingScreen: React.FC<Props> = ({
                 {showHighlight && (
                   <ScrollView
                     ref={highlightScrollRef}
+                    testID="script-highlight-layer"
+                    pointerEvents="none"
                     style={styles.codeHighlight}
                     contentContainerStyle={styles.codeHighlightContent}
                     showsVerticalScrollIndicator={false}
@@ -1200,35 +1202,38 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       flex: 1,
     },
-    codeEditorWrapper: { position: 'relative', height: 240 },
-    // Highlighted layer sits BEHIND the input; the transparent input is typed
-    // into and the colours show through, so highlighting is live and editable.
+    codeEditorWrapper: {
+      position: 'relative',
+      height: 240,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    // Keep the coloured glyphs above the native input. Android high-contrast
+    // text outlines transparent TextInput glyphs; placing this layer last in
+    // the visual stack prevents the outlined copy from obscuring the syntax.
     codeHighlight: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: colors.surfaceVariant,
-      borderRadius: 6,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      pointerEvents: 'none',
-      zIndex: 0,
+      backgroundColor: 'transparent',
+      zIndex: 2,
     },
     codeHighlightContent: { padding: 8 },
     codeInput: {
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: 'transparent',
       color: colors.text,
       padding: 8,
-      borderRadius: 6,
       height: 240,
       textAlignVertical: 'top',
+      includeFontPadding: false,
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
       zIndex: 1,
     },
     // When highlight is on, hide the input's own glyphs (keep caret/selection
@@ -1240,6 +1245,7 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
+      includeFontPadding: false,
     },
     codeKeyword: {
       color: syntaxColors.keyword,
