@@ -644,9 +644,12 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                   </View>
                   <View style={styles.masterRow}>
                     <View style={styles.masterText}>
+                      <Text style={styles.masterTitle}>
+                        {t('Trust this server')}
+                      </Text>
                       <Text style={styles.subtle}>
                         {t(
-                          'Trust this server when it says a tool only reads. Off means every one of its tools asks you first.',
+                          'Honour this server when it says a tool only reads. Off means every one of its tools asks you first.',
                         )}
                       </Text>
                     </View>
