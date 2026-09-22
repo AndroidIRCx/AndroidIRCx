@@ -42,7 +42,20 @@ if ($Clean)
 }
 
 Write-Host "Applying package patches..." -ForegroundColor Cyan
-yarn postinstall
+
+# `yarn postinstall` only runs patch-package, and yarn is not necessarily on
+# PATH. Worse, when a command does not exist PowerShell raises its own error
+# WITHOUT setting $LASTEXITCODE, so the old guard read a stale value from the
+# previous command: it let the failure through on one run and aborted a
+# perfectly healthy build on the next. Invoking the binary by path keeps
+# $LASTEXITCODE meaningful.
+$patchPackage = Join-Path $projectRoot "node_modules\.bin\patch-package.cmd"
+if (-not (Test-Path $patchPackage))
+{
+    throw "patch-package not found at $patchPackage - install dependencies first (npm install or yarn install)"
+}
+
+& $patchPackage
 if ($LASTEXITCODE -ne 0) { throw "patch-package failed (exit $LASTEXITCODE)" }
 
 # -----------------------------
