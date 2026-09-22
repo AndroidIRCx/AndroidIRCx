@@ -8,6 +8,23 @@ import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ScriptingScreen } from '../../src/screens/ScriptingScreen';
 
+jest.mock('../../src/services/ai/AIService', () => ({
+  aiService: {
+    diagnose: jest.fn().mockResolvedValue({
+      code: 'no_provider',
+      ready: false,
+      reason: 'No AI provider is set up.',
+      where: 'Settings > AI > AI Providers > Add',
+    }),
+  },
+}));
+
+jest.mock('../../src/services/ai/ScriptGenerator', () => ({
+  scriptGenerator: { generate: jest.fn(), isAvailable: jest.fn() },
+}));
+
+const { aiService } = require('../../src/services/ai/AIService');
+
 const mockScripts = [
   {
     id: 'script-1',
@@ -1066,5 +1083,63 @@ describe('ScriptingScreen', () => {
     // Since the button text changes to a loading indicator, we can't press it again
     // So we verify showRewardedAd was called only once
     expect(adRewardService.showRewardedAd).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Generate with AI button', () => {
+    const openEditor = async () => {
+      const utils = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+      await fireEvent.press(await utils.findByText('New Script'));
+      await utils.findByText('Edit Script');
+      return utils;
+    };
+
+    it('stays hidden for someone who never set up AI', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'no_provider',
+        ready: false,
+        reason: 'No AI provider is set up.',
+        where: 'Settings > AI > AI Providers > Add',
+      });
+
+      const { queryByText, findByText } = await openEditor();
+
+      await findByText('Lint');
+      // The one place AI would otherwise appear uninvited.
+      expect(queryByText('Generate with AI')).toBeNull();
+    });
+
+    it('appears once a provider exists', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'ok',
+        ready: true,
+        reason: '',
+        where: '',
+      });
+
+      const { findByText } = await openEditor();
+
+      await findByText('Generate with AI');
+    });
+
+    it('stays visible when AI is set up but something else is off', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'consent_required',
+        ready: false,
+        reason: 'Not agreed yet.',
+        where: 'Settings > AI > Privacy',
+      });
+
+      const { findByText } = await openEditor();
+
+      // Hiding a button the user configured would be a disappearing act;
+      // the modal's banner explains what is missing instead.
+      await findByText('Generate with AI');
+    });
   });
 });

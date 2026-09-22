@@ -30,6 +30,9 @@ import {
   ScriptLogEntry,
 } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
+import { scriptGenerator } from '../services/ai/ScriptGenerator';
+import { aiService } from '../services/ai/AIService';
+import { AIReadiness } from '../services/ai/types';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
@@ -38,13 +41,16 @@ import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import { deriveSyntaxColors } from '../themes/syntaxColors';
+import {
+  AI_MEMBERS,
+  API_MEMBERS,
+  HOOK_LIST,
+  IRCX_HOOKS,
+  JS_KEYWORDS,
+} from '../config/scriptVocabulary';
 
 // Teach Prism about the AndroidIRCX scripting vocabulary so the editor
 // highlights our own hooks and `api.*` calls, not just plain JavaScript.
-const IRCX_HOOKS =
-  'onConnect|onDisconnect|onMessage|onNotice|onJoin|onPart|onQuit|' +
-  'onNickChange|onKick|onMode|onTopic|onInvite|onCTCP|onAction|onHighlight|' +
-  'onRaw|onCommand|onTimer';
 let ircxGrammarReady = false;
 const ensureIrcxGrammar = () => {
   if (ircxGrammarReady || !Prism.languages.javascript) return;
@@ -71,104 +77,6 @@ const ensureIrcxGrammar = () => {
 };
 
 // --- Editor autocomplete vocabulary ---
-const HOOK_LIST = IRCX_HOOKS.split('|');
-// `api.*` members (kept in sync with ScriptingService.makeApi).
-const API_MEMBERS = [
-  'log',
-  'warn',
-  'error',
-  'userNick',
-  'appVersion',
-  'getConfig',
-  'sendMessage',
-  'sendCommand',
-  'sendNotice',
-  'sendCTCP',
-  'registerCommand',
-  'addMenuItem',
-  'join',
-  'part',
-  'kick',
-  'mode',
-  'op',
-  'deop',
-  'voice',
-  'devoice',
-  'ban',
-  'unban',
-  'setTopic',
-  'changeNick',
-  'setAway',
-  'back',
-  'whois',
-  'action',
-  'rand',
-  'list',
-  'getChannelUsers',
-  'getChannels',
-  'getChannelInfo',
-  'getTabs',
-  'getActiveTab',
-  'switchToTab',
-  'getUserInfo',
-  'getUserNote',
-  'setUserNote',
-  'getUserAlias',
-  'setUserAlias',
-  'isIgnored',
-  'getChannelNote',
-  'setChannelNote',
-  'isChannelBookmarked',
-  'getHighlightWords',
-  'addHighlightWord',
-  'removeHighlightWord',
-  'isHighlighted',
-  'searchHistory',
-  'getHistoryStats',
-  'getSetting',
-  'getTheme',
-  'getConnectionStats',
-  'setTimer',
-  'clearTimer',
-  'getNetworkId',
-  'getAllNetworks',
-  'isConnected',
-  'getStorage',
-  'setStorage',
-  'removeStorage',
-  'playSound',
-  'openLink',
-  'now',
-  'sleep',
-];
-const JS_KEYWORDS = [
-  'const',
-  'let',
-  'var',
-  'function',
-  'return',
-  'if',
-  'else',
-  'for',
-  'while',
-  'switch',
-  'case',
-  'break',
-  'continue',
-  'new',
-  'try',
-  'catch',
-  'throw',
-  'async',
-  'await',
-  'true',
-  'false',
-  'null',
-  'typeof',
-  'module',
-  'exports',
-  'console',
-];
 const WORD_POOL = Array.from(new Set([...HOOK_LIST, 'api', ...JS_KEYWORDS]));
 
 interface Completion {
@@ -180,6 +88,15 @@ interface Completion {
 // Compute completions for the token immediately before `caret` in `code`.
 const completionsAt = (code: string, caret: number): Completion => {
   const before = code.slice(0, caret);
+  // Nested namespace first: `api . ai . <partial>` — checked before the
+  // plain member pattern, which would otherwise match `api.ai` and offer
+  // the wrong set.
+  const aiMember = before.match(/\bapi\s*\.\s*ai\s*\.\s*([A-Za-z_$][\w$]*)?$/);
+  if (aiMember) {
+    const prefix = aiMember[1] || '';
+    const items = AI_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret };
+  }
   // Member access: `api . <partial>`
   const member = before.match(/\bapi\s*\.\s*([A-Za-z_$][\w$]*)?$/);
   if (member) {
@@ -238,6 +155,15 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [logs, setLogs] = useState<ScriptLogEntry[]>([]);
   const [repo, setRepo] = useState<ScriptConfig[]>([]);
   const [showEditor, setShowEditor] = useState(false);
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [generatorPrompt, setGeneratorPrompt] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [generatedLint, setGeneratedLint] = useState<string | null>(null);
+  const [aiBlocker, setAiBlocker] = useState<AIReadiness | null>(null);
+  // Whether ANY provider exists. Someone who never asked for AI has none,
+  // and should not be offered the button at all.
+  const [aiConfigured, setAiConfigured] = useState(false);
   const [editing, setEditing] = useState<ScriptConfig | null>(null);
   const [logFilter, setLogFilter] = useState<string | null>(null);
   const [showHighlight, setShowHighlight] = useState(false);
@@ -495,6 +421,51 @@ export const ScriptingScreen: React.FC<Props> = ({
   ) => {
     scriptingService.testHook(scriptId, hook);
     setLogs(scriptingService.getLogs());
+  };
+
+  useEffect(() => {
+    if (!showEditor) return;
+    // Hide the button only when there is no provider at all. Hiding it
+    // because consent or a key is missing would make a button the user set
+    // up disappear with no explanation; the modal's banner covers those.
+    aiService
+      .diagnose()
+      .then(readiness => setAiConfigured(readiness.code !== 'no_provider'));
+  }, [showEditor]);
+
+  useEffect(() => {
+    if (!showGenerator) return;
+    aiService
+      .diagnose()
+      .then(readiness => setAiBlocker(readiness.ready ? null : readiness));
+  }, [showGenerator]);
+
+  const handleGenerate = async () => {
+    if (!generatorPrompt.trim()) return;
+    setGenerating(true);
+    setGeneratedCode(null);
+    setGeneratedLint(null);
+    try {
+      const result = await scriptGenerator.generate(generatorPrompt);
+      setGeneratedCode(result.code);
+      // Show the lint verdict rather than silently trusting the model: a
+      // script that cannot compile is worth knowing about before it is kept.
+      setGeneratedLint(result.lint.ok ? null : result.lint.message);
+    } catch (error: any) {
+      Alert.alert(t('Could not generate'), String(error?.message ?? error));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  /** Put the generated code in the editor. It is never saved or enabled here. */
+  const handleUseGenerated = () => {
+    if (!editing || !generatedCode) return;
+    setEditing({ ...editing, code: generatedCode });
+    setShowGenerator(false);
+    setGeneratedCode(null);
+    setGeneratedLint(null);
+    setGeneratorPrompt('');
   };
 
   const handleLint = () => {
@@ -1048,9 +1019,103 @@ export const ScriptingScreen: React.FC<Props> = ({
               <TouchableOpacity style={styles.button} onPress={handleLint}>
                 <Text style={styles.buttonText}>{t('Lint')}</Text>
               </TouchableOpacity>
+              {aiConfigured && (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setShowGenerator(true)}
+                >
+                  <Text style={styles.buttonText}>{t('Generate with AI')}</Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
         </ModalSafeArea>
+
+        <Modal
+          visible={showGenerator}
+          animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
+          onRequestClose={() => setShowGenerator(false)}
+        >
+          <ModalSafeArea style={styles.container}>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>{t('Generate with AI')}</Text>
+              <TouchableOpacity onPress={() => setShowGenerator(false)}>
+                <Text style={styles.close}>{t('Close')}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.generatorBody}>
+              <Text style={styles.subtitle}>
+                {t(
+                  'Describe what the script should do. The generated code is shown for you to review — it is never saved or enabled on its own.',
+                )}
+              </Text>
+              {aiBlocker && (
+                <View style={styles.generatorBlocker}>
+                  <Text style={styles.generatorBlockerReason}>
+                    {aiBlocker.reason}
+                  </Text>
+                  <Text style={styles.generatorBlockerWhere}>
+                    {aiBlocker.where}
+                  </Text>
+                </View>
+              )}
+
+              <Text style={styles.label}>{t('Description')}</Text>
+              <TextInput
+                style={styles.generatorInput}
+                value={generatorPrompt}
+                onChangeText={setGeneratorPrompt}
+                multiline
+                placeholder={t(
+                  'e.g. greet people who join #chat, but only once per nick per day',
+                )}
+                placeholderTextColor={colors.textSecondary}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleGenerate}
+                disabled={generating || !generatorPrompt.trim()}
+              >
+                {generating ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Text style={styles.buttonText}>{t('Generate')}</Text>
+                )}
+              </TouchableOpacity>
+
+              {generatedLint && (
+                <Text style={styles.generatorWarning}>
+                  {t('This code does not compile: {message}', {
+                    message: generatedLint,
+                  })}
+                </Text>
+              )}
+
+              {generatedCode && (
+                <>
+                  <Text style={styles.label}>{t('Generated code')}</Text>
+                  <ScrollView
+                    horizontal
+                    style={styles.generatedCodeBox}
+                    contentContainerStyle={styles.generatedCodeContent}
+                  >
+                    <Text style={styles.codeText}>{generatedCode}</Text>
+                  </ScrollView>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleUseGenerated}
+                  >
+                    <Text style={styles.buttonText}>
+                      {t('Put it in the editor')}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </ScrollView>
+          </ModalSafeArea>
+        </Modal>
       </Modal>
     </Modal>
   );
@@ -1108,6 +1173,51 @@ const createStyles = (colors: any) => {
       alignItems: 'center',
       marginBottom: 8,
     },
+    generatorBody: { padding: 12, paddingBottom: 40 },
+    generatorBlocker: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.warning,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 10,
+    },
+    generatorBlockerReason: {
+      color: colors.text,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    generatorBlockerWhere: {
+      color: colors.warning,
+      fontSize: 12.5,
+      fontWeight: '600',
+      lineHeight: 18,
+      marginTop: 4,
+    },
+    generatorInput: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      borderRadius: 6,
+      padding: 10,
+      minHeight: 90,
+      textAlignVertical: 'top',
+      marginBottom: 10,
+    },
+    generatorWarning: {
+      color: colors.warning,
+      fontSize: 12.5,
+      marginTop: 10,
+      lineHeight: 18,
+    },
+    generatedCodeBox: {
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      maxHeight: 280,
+      marginBottom: 10,
+    },
+    generatedCodeContent: { padding: 10 },
     watchAdButtonDisabled: { backgroundColor: colors.border, opacity: 0.6 },
     watchAdButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     upgradeButton: {

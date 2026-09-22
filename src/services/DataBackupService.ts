@@ -9,6 +9,7 @@ import { identityProfilesService } from './IdentityProfilesService';
 import { settingsService } from './SettingsService';
 import { storageCache } from './StorageCache';
 import { secureStorageService } from './SecureStorageService';
+import { AI_SECRET_PREFIXES } from './ai/AIProviderStore';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -172,10 +173,28 @@ class DataBackupService {
     }
   }
 
+  /**
+   * Keychain keys that may be exported.
+   *
+   * AI provider API keys are deliberately excluded: a backup file is copied
+   * to cloud storage, e-mailed to oneself and restored onto other devices,
+   * and a leaked provider key is a bill the user pays. They are cheap to
+   * re-enter and can be revoked at the provider, unlike an IRC identity.
+   */
+  private async getExportableSecretKeys(): Promise<string[]> {
+    const keys = await secureStorageService.getAllSecretKeys();
+    return keys.filter(key => !this.isSecretExcludedFromBackup(key));
+  }
+
+  /** True when this Keychain key is excluded from every backup. */
+  isSecretExcludedFromBackup(secretKey: string): boolean {
+    return AI_SECRET_PREFIXES.some(prefix => secretKey.startsWith(prefix));
+  }
+
   private async getSecureExportEntries(
     keys?: string[],
   ): Promise<Array<[string, string | null]>> {
-    const allSecretKeys = await secureStorageService.getAllSecretKeys();
+    const allSecretKeys = await this.getExportableSecretKeys();
     const explicitSecureSelections = keys
       ? keys.filter(isSecureExportKey).map(fromSecureExportKey)
       : allSecretKeys;
@@ -184,7 +203,9 @@ class DataBackupService {
       : [];
     const selectedSecretKeys = Array.from(
       new Set([...explicitSecureSelections, ...networkDerivedSelections]),
-    );
+      // Filter AFTER the union: an explicitly selected key must be dropped
+      // too, otherwise a caller passing key names would bypass the exclusion.
+    ).filter(key => !this.isSecretExcludedFromBackup(key));
 
     if (selectedSecretKeys.length === 0) {
       return [];
@@ -354,7 +375,7 @@ class DataBackupService {
    */
   async getAllKeys(): Promise<string[]> {
     const keys = await AsyncStorage.getAllKeys();
-    const secureKeys = (await secureStorageService.getAllSecretKeys()).map(
+    const secureKeys = (await this.getExportableSecretKeys()).map(
       toSecureExportKey,
     );
     return [...keys, ...secureKeys];

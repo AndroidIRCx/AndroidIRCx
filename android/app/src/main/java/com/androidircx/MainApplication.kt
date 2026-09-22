@@ -133,6 +133,24 @@ class MainApplication : Application(), ReactApplication {
               // Don't fail completely if custom package fails
           }
 
+          // Add our custom package for the MCP server (phase 11)
+          try {
+              packages.add(McpServerPackage())
+              Log.d(TAG, "Added McpServerPackage")
+          } catch (e: Throwable) {
+              Log.e(TAG, "Failed to add McpServerPackage: ${e.message}", e)
+              // Don't fail completely if custom package fails
+          }
+
+          // Add our custom package for the MCP client (phase 11)
+          try {
+              packages.add(McpClientPackage())
+              Log.d(TAG, "Added McpClientPackage")
+          } catch (e: Throwable) {
+              Log.e(TAG, "Failed to add McpClientPackage: ${e.message}", e)
+              // Don't fail completely if custom package fails
+          }
+
           // Add our custom package for phone-to-phone NFC key sharing (HCE)
           try {
               packages.add(NfcHcePackage())

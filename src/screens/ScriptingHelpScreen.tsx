@@ -183,6 +183,48 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           {t('• api.isHighlighted(text) — matches your highlight words')}
         </Text>
 
+        <Text style={styles.sub}>{t('AI (your own API key)')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Set this up first in Settings > AI > AI Providers. You need your OWN API key (console.anthropic.com or platform.openai.com), or a model server on your network such as Ollama. A Claude Pro or ChatGPT Plus subscription does NOT work here — those plans include no API access.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.ai.ask(prompt, options?) — returns the answer text, or null if the call could not be made (the reason lands in the script log). options: { provider, maxTokens, system }.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.ai.chat(messages, options?) — same, for a multi-turn conversation. messages is [{ role: "user" | "assistant" | "system", content }].',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.ai.isAvailable() / api.ai.listProviders() — check before asking. listProviders() returns { id, name, model } only; a script can never read an API key.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Limits per script: one call every 5 seconds, 100 per day, 2 at a time, 8000 characters per prompt. These stop a runaway script from flooding a channel and from spending your provider credit.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• IMPORTANT — onRaw and onCommand must return immediately, so you cannot await an AI answer inside them. Return first, then send the answer with api.sendMessage when it arrives.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• IMPORTANT — never feed an AI answer straight into api.sendCommand. Channel text goes into the prompt, so anyone present can try to steer the reply; an injected "/kick someone" would become a real kick. Send AI text as a message or notice.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• IMPORTANT — if a script answers inside onMessage, make it ignore its own output (for example by tagging the text it sends), or two bots in one channel will answer each other forever.',
+          )}
+        </Text>
+
         <Text style={styles.title}>{t('Hooks')}</Text>
         <Text style={styles.sub}>{t('Connection Events')}</Text>
         <Text style={styles.bullet}>

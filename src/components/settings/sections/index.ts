@@ -5,6 +5,7 @@
 
 export { PremiumSection } from './PremiumSection';
 export { ScriptingAdsSection } from './ScriptingAdsSection';
+export { AISection } from './AISection';
 export { SecurityQuickConnectSection } from './SecurityQuickConnectSection';
 export { PrivacyLegalSection } from './PrivacyLegalSection';
 export { AboutSection } from './AboutSection';

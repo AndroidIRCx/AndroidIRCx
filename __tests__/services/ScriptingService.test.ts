@@ -166,6 +166,16 @@ jest.mock('../../src/services/SoundService', () => ({
   soundService: mockSoundService,
 }));
 
+const mockAiService = {
+  ask: jest.fn(),
+  chat: jest.fn(),
+  listProviders: jest.fn(),
+  isAvailable: jest.fn(),
+};
+jest.mock('../../src/services/ai/AIService', () => ({
+  aiService: mockAiService,
+}));
+
 const { scriptingService } = require('../../src/services/ScriptingService');
 const { Alert, Linking } = require('react-native');
 
@@ -1299,5 +1309,272 @@ describe('ScriptingService', () => {
 
     alertSpy.mockRestore();
     openSpy.mockRestore();
+  });
+
+  describe('built-in AI scripts', () => {
+    const aiScripts = () =>
+      scriptingService
+        .listRepository()
+        .filter(script => script.id.startsWith('builtin-ai-'));
+
+    beforeEach(async () => {
+      await scriptingService.initialize();
+      await scriptingService.setLoggingEnabled(true);
+      mockAiService.ask.mockResolvedValue({
+        text: 'answer',
+        model: 'm',
+        providerId: 'p1',
+      });
+      mockAiService.isAvailable.mockResolvedValue(true);
+    });
+
+    it('ships the five documented examples, all disabled by default', () => {
+      const ids = aiScripts().map(script => script.id);
+
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'builtin-ai-ask',
+          'builtin-ai-summarize',
+          'builtin-ai-translate',
+          'builtin-ai-smartreply',
+          'builtin-ai-moderation',
+        ]),
+      );
+      // They spend the user's own provider credit, so none may start itself.
+      expect(aiScripts().every(script => script.enabled === false)).toBe(true);
+    });
+
+    it('compiles every one of them without a syntax error', () => {
+      for (const script of aiScripts()) {
+        (scriptingService as any).compile({ ...script, enabled: true });
+      }
+
+      // compile() swallows failures into the log rather than throwing, so a
+      // broken template literal would only show up here.
+      const failures = scriptingService
+        .getLogs()
+        .filter(entry => entry.level === 'error');
+      expect(failures).toEqual([]);
+    });
+
+    it('exposes at least one hook per script', () => {
+      for (const script of aiScripts()) {
+        const compiled = (scriptingService as any).compile({
+          ...script,
+          enabled: true,
+        });
+        expect(Object.keys(compiled.hooks || {}).length).toBeGreaterThan(0);
+      }
+    });
+
+    it('registers /ai and answers into the channel', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      const compiled = (scriptingService as any).compile({
+        ...script,
+        enabled: true,
+      });
+
+      await compiled.hooks.onConnect('net1');
+      const command = (scriptingService as any).scriptCommands.get('ai');
+      expect(command).toBeDefined();
+
+      await command.handler(['what', 'is', 'irc'], {
+        channel: '#chat',
+        networkId: 'net1',
+      });
+
+      expect(mockAiService.ask).toHaveBeenCalledWith(
+        'what is irc',
+        expect.objectContaining({ maxTokens: 300 }),
+        'builtin-ai-ask',
+      );
+      expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+        '#chat',
+        'answer',
+      );
+    });
+
+    it('keeps the moderation assistant from running any command', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-moderation');
+      const compiled = (scriptingService as any).compile({
+        ...script,
+        enabled: true,
+      });
+      mockAiService.ask.mockResolvedValue({
+        text: 'ABUSIVE',
+        model: 'm',
+        providerId: 'p1',
+      });
+
+      await compiled.hooks.onMessage({
+        channel: '#chat',
+        from: 'troll',
+        network: 'net1',
+        text: 'x'.repeat(60),
+      });
+
+      // api.sendNotice legitimately goes out as a NOTICE command, so the
+      // check is that no MODERATION command was issued: a model answer must
+      // never become IRC state.
+      const issued = mockIrcService.sendCommand.mock.calls.map(call => call[0]);
+      expect(issued.some(command => /^NOTICE /.test(command))).toBe(true);
+      expect(
+        issued.some(command => /^(KICK|MODE|BAN|REMOVE)\b/i.test(command)),
+      ).toBe(false);
+    });
+
+    it('does not let the translator react to its own output', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-translate');
+      const compiled = (scriptingService as any).compile({
+        ...script,
+        enabled: true,
+      });
+
+      await compiled.hooks.onMessage({
+        channel: '#chat',
+        from: 'myNick',
+        network: 'net1',
+        text: 'hola',
+      });
+
+      expect(mockAiService.ask).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('api.ai', () => {
+    const apiFor = (id = 's-ai') =>
+      (scriptingService as any).makeApi({
+        id,
+        name: 'AI script',
+        code: '',
+        enabled: true,
+      }).ai;
+
+    const { AIError } = require('../../src/services/ai/types');
+
+    beforeEach(() => {
+      mockAiService.ask.mockResolvedValue({
+        text: 'the answer',
+        model: 'm',
+        providerId: 'p1',
+      });
+      mockAiService.chat.mockResolvedValue({
+        text: 'chat answer',
+        model: 'm',
+        providerId: 'p1',
+      });
+      mockAiService.listProviders.mockResolvedValue([
+        { id: 'p1', name: 'OpenAI', model: 'm' },
+      ]);
+      mockAiService.isAvailable.mockResolvedValue(true);
+    });
+
+    it('returns the answer text and meters the call against the script id', async () => {
+      const result = await apiFor('script-42').ask('summarize this', {
+        maxTokens: 120,
+      });
+
+      expect(result).toBe('the answer');
+      expect(mockAiService.ask).toHaveBeenCalledWith(
+        'summarize this',
+        expect.objectContaining({ maxTokens: 120 }),
+        'script-42',
+      );
+    });
+
+    it('refuses an empty prompt without reaching the service', async () => {
+      expect(await apiFor().ask('   ')).toBeNull();
+      expect(await apiFor().ask(undefined as any)).toBeNull();
+      expect(mockAiService.ask).not.toHaveBeenCalled();
+    });
+
+    it('returns null instead of throwing into a hook', async () => {
+      mockAiService.ask.mockRejectedValue(
+        new AIError('provider_error', 'upstream exploded'),
+      );
+
+      await expect(apiFor().ask('hi')).resolves.toBeNull();
+    });
+
+    it('logs an expected failure as a warning, not an error', async () => {
+      mockAiService.ask.mockRejectedValue(
+        new AIError('rate_limited', 'AI cooldown active, retry in 4s'),
+      );
+
+      await scriptingService.setLoggingEnabled(true);
+      await apiFor('s-rate').ask('hi');
+
+      const entry = scriptingService
+        .getLogs()
+        .find(log => log.scriptId === 's-rate');
+      expect(entry.level).toBe('warn');
+      expect(entry.message).toContain('rate_limited');
+    });
+
+    it('logs an unexpected failure as an error', async () => {
+      mockAiService.ask.mockRejectedValue(
+        new AIError('provider_error', 'upstream exploded'),
+      );
+
+      await scriptingService.setLoggingEnabled(true);
+      await apiFor('s-boom').ask('hi');
+
+      const entry = scriptingService
+        .getLogs()
+        .find(log => log.scriptId === 's-boom');
+      expect(entry.level).toBe('error');
+    });
+
+    it('reaches the app logger even when script logging is off', async () => {
+      mockAiService.ask.mockRejectedValue(
+        new AIError('provider_error', 'upstream exploded'),
+      );
+
+      await apiFor('s-silent').ask('hi');
+
+      // Script logging is opt-in, so the in-app script log stays empty...
+      expect(scriptingService.getLogs()).toHaveLength(0);
+      // ...but the failure must still be traceable somewhere.
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'script',
+        expect.stringContaining('provider_error'),
+      );
+    });
+
+    it('drops messages with a role the API does not accept', async () => {
+      const result = await apiFor().chat([
+        { role: 'user', content: 'keep me' },
+        { role: 'root', content: 'drop me' } as any,
+        { role: 'assistant', content: 'keep me too' },
+      ]);
+
+      expect(result).toBe('chat answer');
+      expect(mockAiService.chat.mock.calls[0][0]).toEqual([
+        { role: 'user', content: 'keep me' },
+        { role: 'assistant', content: 'keep me too' },
+      ]);
+    });
+
+    it('returns null when every message was dropped', async () => {
+      expect(
+        await apiFor().chat([{ role: 'root', content: 'nope' } as any]),
+      ).toBeNull();
+      expect(await apiFor().chat([])).toBeNull();
+      expect(mockAiService.chat).not.toHaveBeenCalled();
+    });
+
+    it('exposes providers without keys or internals', async () => {
+      const providers = await apiFor().listProviders();
+
+      expect(providers).toEqual([{ id: 'p1', name: 'OpenAI', model: 'm' }]);
+    });
+
+    it('degrades to empty/false rather than throwing', async () => {
+      mockAiService.listProviders.mockRejectedValue(new Error('nope'));
+      mockAiService.isAvailable.mockRejectedValue(new Error('nope'));
+
+      expect(await apiFor().listProviders()).toEqual([]);
+      expect(await apiFor().isAvailable()).toBe(false);
+    });
   });
 });

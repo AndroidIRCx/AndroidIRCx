@@ -20,6 +20,8 @@ import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
 import { soundService } from './SoundService';
+import { aiService } from './ai/AIService';
+import { AIError } from './ai/types';
 import { SoundEventType } from '../types/sound';
 import { Alert, Linking } from 'react-native';
 
@@ -1279,6 +1281,203 @@ class ScriptingService {
           };
         `,
       },
+      // --- AI examples ---------------------------------------------------
+      // All of these need a provider configured in Settings > AI first.
+      // Only /ai speaks in the channel; the rest answer you privately by
+      // notice, which also means they cannot hear their own output and loop.
+      {
+        id: 'builtin-ai-ask',
+        name: t('AI: /ai command'),
+        enabled: false,
+        description: t(
+          'Adds /ai <question> — asks your configured AI provider and answers in the channel. Set a provider up in Settings > AI first.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onConnect: () => {
+              api.registerCommand('ai', async (args, ctx) => {
+                const question = (args || []).join(' ').trim();
+                if (!question) {
+                  api.log('Usage: /ai <question>');
+                  return;
+                }
+                if (!(await api.ai.isAvailable())) {
+                  api.warn('No AI provider is ready. Settings > AI > AI Providers.');
+                  return;
+                }
+                const answer = await api.ai.ask(question, {
+                  system: 'You are in an IRC channel. Answer in at most 2 short lines, plain text, no markdown.',
+                  maxTokens: 300,
+                });
+                // ask() resolves null on failure and logs the reason itself.
+                if (!answer) return;
+                const target = ctx?.channel || ctx?.nick;
+                if (!target) return;
+                // One IRC line is ~512 bytes including protocol overhead, so
+                // send at most a few short lines rather than a wall of text.
+                const lines = answer.split('\\n').filter(Boolean).slice(0, 3);
+                for (const line of lines) {
+                  api.sendMessage(target, line.substring(0, 400), ctx?.networkId);
+                }
+              });
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-ai-summarize',
+        name: t('AI: /summarize catch-up'),
+        enabled: false,
+        description: t(
+          'Adds /summarize [count] — summarizes the last messages of the channel and sends the result to you as a notice, so the channel stays quiet.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onConnect: () => {
+              api.registerCommand('summarize', async (args, ctx) => {
+                if (!ctx?.channel) {
+                  api.log('Use /summarize inside a channel.');
+                  return;
+                }
+                const count = Math.min(Math.max(parseInt(args[0], 10) || 50, 5), 150);
+                const messages = await api.getRecentMessages(ctx.channel, count, ctx.networkId);
+                if (!messages.length) {
+                  api.log('No stored history for ' + ctx.channel + ' yet.');
+                  return;
+                }
+                const transcript = messages
+                  .map(m => (m.from || '?') + ': ' + (m.text || ''))
+                  .join('\\n')
+                  .substring(0, 6000);
+                const summary = await api.ai.ask(transcript, {
+                  system: 'Summarize this IRC conversation in at most 4 short bullet points. Plain text only.',
+                  maxTokens: 400,
+                  // Other people's words: only leaves the device if you
+                  // enabled AI for this channel in Settings > AI.
+                  channel: ctx.channel,
+                  network: ctx.networkId,
+                });
+                if (!summary) return;
+                // Notice to yourself: a catch-up is for you, not the channel.
+                for (const line of summary.split('\\n').filter(Boolean).slice(0, 6)) {
+                  api.sendNotice(api.userNick, line.substring(0, 400), ctx.networkId);
+                }
+              });
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-ai-translate',
+        name: t('AI: translate a channel'),
+        enabled: false,
+        description: t(
+          'Adds /tr on|off — while on for a channel, incoming messages are translated and shown to you as a notice. Off by default in every channel.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onConnect: () => {
+              api.registerCommand('tr', async (args, ctx) => {
+                if (!ctx?.channel) return;
+                const on = (args[0] || '').toLowerCase() === 'on';
+                const channels = (await api.getStorage('channels')) || {};
+                channels[ctx.channel] = on;
+                await api.setStorage('channels', channels);
+                api.log('Translation ' + (on ? 'ON' : 'OFF') + ' for ' + ctx.channel);
+              });
+            },
+            onMessage: async (msg) => {
+              if (!msg || !msg.channel || !msg.text) return;
+              // Never react to your own output — this is what stops two bots
+              // in one channel from answering each other forever.
+              if (msg.from === api.userNick) return;
+              const channels = (await api.getStorage('channels')) || {};
+              if (!channels[msg.channel]) return;
+              const translated = await api.ai.ask(msg.text, {
+                system: 'Translate to English. Reply with the translation only. If it is already English, reply with exactly SKIP.',
+                maxTokens: 200,
+                channel: msg.channel,
+                network: msg.network,
+              });
+              if (!translated || translated.trim() === 'SKIP') return;
+              api.sendNotice(
+                api.userNick,
+                '[' + msg.channel + '] <' + msg.from + '> ' + translated.substring(0, 350),
+                msg.network,
+              );
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-ai-smartreply',
+        name: t('AI: suggest a reply on highlight'),
+        enabled: false,
+        description: t(
+          'When someone highlights you, drafts a reply and shows it to you as a notice. It never sends anything itself.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onHighlight: async (msg) => {
+              if (!msg || !msg.text || msg.from === api.userNick) return;
+              const draft = await api.ai.ask(
+                '<' + (msg.from || '?') + '> ' + msg.text,
+                {
+                  system: 'Draft a short, friendly IRC reply in one line. Plain text only.',
+                  maxTokens: 150,
+                },
+              );
+              if (!draft) return;
+              // Suggestion only. Sending it is your call — an AI that answers
+              // mentions on its own gets you banned on most networks.
+              api.sendNotice(
+                api.userNick,
+                'Suggested reply: ' + draft.split('\\n')[0].substring(0, 350),
+                msg.network,
+              );
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-ai-moderation',
+        name: t('AI: moderation assist'),
+        enabled: false,
+        description: t(
+          'Flags possibly abusive messages to you privately. It only reports — it never kicks, bans or runs any command.',
+        ),
+        builtIn: true,
+        code: `
+          module.exports = {
+            onMessage: async (msg) => {
+              if (!msg || !msg.channel || !msg.text) return;
+              if (msg.from === api.userNick) return;
+              // Skip short chatter: most of it is fine, and every call costs
+              // you money and one slot of the per-script rate limit.
+              if (msg.text.length < 40) return;
+              const verdict = await api.ai.ask(msg.text, {
+                system: 'Classify this IRC message. Reply with exactly one word: ABUSIVE or FINE.',
+                maxTokens: 10,
+                channel: msg.channel,
+                network: msg.network,
+              });
+              if (!verdict || verdict.trim().toUpperCase() !== 'ABUSIVE') return;
+              // Report only. NEVER feed a model answer into api.sendCommand:
+              // the message being judged is in the prompt, so anyone in the
+              // channel could try to talk the model into emitting a /kick.
+              api.sendNotice(
+                api.userNick,
+                'Possible abuse in ' + msg.channel + ' from ' + msg.from,
+                msg.network,
+              );
+            }
+          };
+        `,
+      },
     ];
   }
 
@@ -1362,6 +1561,41 @@ class ScriptingService {
     if (!net) return null;
     const conn = connectionManager.getConnection(net);
     return conn ? net : null;
+  }
+
+  /**
+   * Turn an AI failure into one script-log line. Rate limits and a missing
+   * key are ordinary operating conditions for a script, so they log at warn;
+   * anything else is an error the script author probably needs to see.
+   */
+  private logAiFailure(script: ScriptConfig, error: unknown) {
+    const isAiError = error instanceof AIError;
+    const code = isAiError ? error.code : 'unknown';
+    const expected =
+      isAiError &&
+      (error.code === 'rate_limited' ||
+        error.code === 'quota_exceeded' ||
+        error.code === 'disabled' ||
+        error.code === 'no_provider' ||
+        error.code === 'missing_key' ||
+        error.code === 'consent_required' ||
+        error.code === 'channel_not_allowed');
+    const message = t('AI call failed ({code}): {error}', {
+      code,
+      error: isAiError ? error.message : String(error),
+    });
+    // Mirror api.log/warn/error: always reach the app logger, so a failure is
+    // still traceable when the user has script logging switched off.
+    if (expected) {
+      logger.warn('script', message);
+    } else {
+      logger.error('script', message);
+    }
+    this.addLog({
+      level: expected ? 'warn' : 'error',
+      message,
+      scriptId: script.id,
+    });
   }
 
   private makeApi(script: ScriptConfig) {
@@ -1896,6 +2130,29 @@ class ScriptingService {
       },
 
       // Message history
+      /**
+       * The last `limit` messages of a channel, oldest first. searchHistory
+       * exists for finding something specific; summarizing needs "what was
+       * just said", which is a different question.
+       */
+      getRecentMessages: async (
+        channel: string,
+        limit?: number,
+        networkId?: string,
+      ) => {
+        const chan = this.sanitizeChannel(channel);
+        if (!chan) return [];
+        const net = this.validateNetworkId(networkId);
+        if (!net) return [];
+        const count = Math.min(Math.max(1, limit || 50), 200);
+        try {
+          const all = await messageHistoryService.loadMessages(net, chan);
+          return all.slice(-count);
+        } catch {
+          return [];
+        }
+      },
+
       searchHistory: async (filter: {
         network?: string;
         channel?: string;
@@ -2114,6 +2371,113 @@ class ScriptingService {
             scriptId: script.id,
           });
         }
+      },
+
+      // AI (bring-your-own-key). The script sees text, never a credential:
+      // provider aliases go out, API keys never do. Every call is metered per
+      // script id by AIService, so one chatty script cannot flood a channel or
+      // drain the user's provider credit on everyone else's behalf.
+      ai: {
+        /**
+         * Ask the default (or a named) provider one question.
+         * Resolves to the answer text, or null when the call could not be
+         * made — the reason is written to the script log rather than thrown,
+         * so a script without a try/catch cannot raise an unhandled rejection
+         * inside a hook.
+         */
+        ask: async (
+          prompt: string,
+          options?: {
+            provider?: string;
+            maxTokens?: number;
+            system?: string;
+            channel?: string;
+            network?: string;
+          },
+        ): Promise<string | null> => {
+          if (typeof prompt !== 'string' || !prompt.trim()) return null;
+          try {
+            const result = await aiService.ask(
+              prompt,
+              {
+                provider: options?.provider,
+                maxTokens: options?.maxTokens,
+                system: options?.system,
+                // Naming the channel makes AIService enforce its opt-in.
+                channel: options?.channel,
+                network: options?.network,
+              },
+              script.id,
+            );
+            return result.text;
+          } catch (error) {
+            this.logAiFailure(script, error);
+            return null;
+          }
+        },
+
+        /** Multi-turn variant; same null-on-failure contract as ask(). */
+        chat: async (
+          messages: Array<{ role: string; content: string }>,
+          options?: {
+            provider?: string;
+            maxTokens?: number;
+            system?: string;
+            channel?: string;
+            network?: string;
+          },
+        ): Promise<string | null> => {
+          if (!Array.isArray(messages) || messages.length === 0) return null;
+          const safeMessages = messages
+            .filter(
+              message =>
+                message &&
+                typeof message.content === 'string' &&
+                (message.role === 'user' ||
+                  message.role === 'assistant' ||
+                  message.role === 'system'),
+            )
+            .map(message => ({
+              role: message.role as 'user' | 'assistant' | 'system',
+              content: message.content,
+            }));
+          if (safeMessages.length === 0) return null;
+          try {
+            const result = await aiService.chat(
+              safeMessages,
+              {
+                provider: options?.provider,
+                maxTokens: options?.maxTokens,
+                system: options?.system,
+                channel: options?.channel,
+                network: options?.network,
+              },
+              script.id,
+            );
+            return result.text;
+          } catch (error) {
+            this.logAiFailure(script, error);
+            return null;
+          }
+        },
+
+        /** Configured providers, redacted: id, name and model only. */
+        listProviders: async () => {
+          try {
+            return await aiService.listProviders();
+          } catch {
+            return [];
+          }
+        },
+
+        /** True when a provider is configured, enabled and holds a key. */
+        isAvailable: async (): Promise<boolean> => {
+          try {
+            return await aiService.isAvailable();
+          } catch {
+            return false;
+          }
+        },
       },
 
       // Utility functions

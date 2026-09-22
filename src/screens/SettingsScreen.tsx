@@ -53,6 +53,8 @@ import { secureStorageService } from '../services/SecureStorageService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { connectionManager } from '../services/ConnectionManager';
 import { ScriptingScreen } from './ScriptingScreen';
+import { AISettingsScreen } from './AISettingsScreen';
+import { AIAgentScreen } from './AIAgentScreen';
 import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
 import { MessageHistoryViewerScreen } from './MessageHistoryViewerScreen';
@@ -79,6 +81,7 @@ import { SettingItem as SettingItemComponent } from '../components/settings/Sett
 import { SettingsSectionHeader } from '../components/settings/SettingsSectionHeader';
 import {
   ScriptingAdsSection,
+  AISection,
   SecurityQuickConnectSection,
   PrivacyLegalSection,
   AboutSection,
@@ -185,6 +188,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const aboutTitle = t('About', { _tags: tags });
   const helpTitle = t('📖 Help & Documentation', { _tags: tags });
   const scriptingAdsTitle = t('Scripting & Ads', { _tags: tags });
+  const aiTitle = t('AI', { _tags: tags });
   const premiumTitle = t('💎 Premium', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
   const debugLogCategories =
@@ -270,6 +274,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }>({ keyCount: 0, totalBytes: 0 });
   const [, setIdentityProfiles] = useState<any[]>([]);
   const [showScripting, setShowScripting] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [showAIAgent, setShowAIAgent] = useState(false);
   const [showScriptingHelp, setShowScriptingHelp] = useState(false);
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
   const [channelNotifList, setChannelNotifList] = useState<
@@ -2592,6 +2598,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'ai',
+      title: aiTitle,
+      data: [
+        {
+          id: 'ai-section',
+          title: 'ai-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'ai',
+            'llm',
+            'api key',
+            'claude',
+            'anthropic',
+            'openai',
+            'chatgpt',
+            'codex',
+            'gemini',
+            'ollama',
+            'local model',
+            'provider',
+            'assistant',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
+    },
+    {
       id: 'scripting-ads',
       title: t('Scripting & Ads', { _tags: tags }),
       data: [
@@ -2791,6 +2823,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
     // Handle section components
     if (item.type === 'custom') {
+      if (item.id === 'ai-section' && sectionTitle === aiTitle) {
+        return (
+          <AISection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+            onShowAISettings={() => setShowAISettings(true)}
+            onShowAIAgent={() => setShowAIAgent(true)}
+          />
+        );
+      }
       if (
         item.id === 'scripting-ads-section' &&
         sectionTitle === scriptingAdsTitle
@@ -3733,6 +3777,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <ConnectionProfilesScreen
           visible={showConnectionProfiles}
           onClose={() => setShowConnectionProfiles(false)}
+        />
+      )}
+      {showAISettings && (
+        <AISettingsScreen
+          visible={showAISettings}
+          onClose={() => setShowAISettings(false)}
+        />
+      )}
+      {showAIAgent && (
+        <AIAgentScreen
+          visible={showAIAgent}
+          onClose={() => setShowAIAgent(false)}
         />
       )}
       {showScripting && (

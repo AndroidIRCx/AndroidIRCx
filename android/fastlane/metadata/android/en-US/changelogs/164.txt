@@ -1,0 +1,9 @@
+What's new in v1.9.56:
+- AI in scripting: bring your own API key or point at a model server on your own network.
+- Presets for Gemini, Ollama, LM Studio, Groq, OpenRouter, DeepSeek, Claude, ChatGPT, xAI and Mistral.
+- Scripts can call AI through api.ai, with per-script limits and a global off switch.
+- Generate a script from a plain description in the script editor.
+- New assistant that can answer questions about your session and asks before it acts.
+- Connect to remote MCP servers, or let another agent use this app over MCP.
+- Privacy: consent is required before anything is sent, AI is off per channel by default, and nicknames, IPs and hostmasks are removed first.
+- API keys are kept in the device keychain and never included in backups.
