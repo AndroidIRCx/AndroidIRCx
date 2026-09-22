@@ -397,3 +397,48 @@
 -keep class com.facebook.jni.DestructorThread { *; }
 -keep class com.facebook.jni.HybridData { *; }
 -dontwarn com.facebook.jni.**
+
+# ---------------------------------------------------------------------------
+# MCP (Ktor + kotlinx-serialization + the MCP Kotlin SDK)
+# ---------------------------------------------------------------------------
+
+# Ktor asks java.lang.management whether an IntelliJ debugger is attached.
+# Android has no java.lang.management, and the code path never runs here, but
+# R8 fails the build on the dangling reference rather than warning.
+-dontwarn java.lang.management.**
+-dontwarn io.ktor.util.debug.**
+
+# Other JVM-only corners Ktor and its dependencies reference but never reach
+# on Android.
+-dontwarn io.ktor.**
+-dontwarn org.slf4j.**
+-dontwarn reactor.blockhound.**
+
+# kotlinx-serialization generates a companion $$serializer for every
+# @Serializable type and looks it up by name at runtime. Shrinking those away
+# builds fine and then fails at the first MCP message with a
+# SerializationException, so keep them.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class io.modelcontextprotocol.kotlin.sdk.**$$serializer { *; }
+-keepclassmembers class io.modelcontextprotocol.kotlin.sdk.** {
+    *** Companion;
+    *** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclasseswithmembers class io.modelcontextprotocol.kotlin.sdk.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# The two MCP native modules are reached through MainApplication like the
+# other custom packages listed above.
+-keep class com.androidircx.McpServerPackage { *; }
+-keep class com.androidircx.McpServerModule { *; }
+-keep class com.androidircx.McpClientPackage { *; }
+-keep class com.androidircx.McpClientModule { *; }
