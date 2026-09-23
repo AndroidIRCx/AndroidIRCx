@@ -6,95 +6,594 @@
 /**
  * The AndroidIRCX scripting vocabulary, in one place.
  *
- * Three consumers read these lists: the editor's syntax highlighting, its
- * autocomplete, and the AI script generator's system prompt. Keeping them
- * here is what makes the generator self-maintaining — adding an `api.*`
- * method to ScriptingService and listing it below teaches the generator about
- * it, with no prompt to rewrite.
+ * Four consumers read these lists: the editor's syntax highlighting, its
+ * autocomplete, the in-app help, and the AI script generator's system prompt.
+ * Keeping them here is what makes the generator self-maintaining — adding an
+ * `api.*` method to ScriptingService and listing it below teaches the
+ * generator about it, with no prompt to rewrite.
  *
- * Keep API_MEMBERS in sync with ScriptingService.makeApi().
+ * Every entry carries its **signature and a one-line summary**, not just a
+ * name. A completion list of bare names cannot say whether `userNick` is a
+ * value or a call, or what `setTimer` wants, so the editor could offer a name
+ * and leave the user no better off. The same text improves the generator's
+ * prompt for free, because both read this file.
+ *
+ * Keep API_ENTRIES in sync with ScriptingService.makeApi().
  */
 
-export const IRCX_HOOKS =
-  'onConnect|onDisconnect|onMessage|onNotice|onJoin|onPart|onQuit|' +
-  'onNickChange|onKick|onMode|onTopic|onInvite|onCTCP|onAction|onHighlight|' +
-  'onRaw|onCommand|onTimer';
+export interface VocabularyEntry {
+  /** The identifier as typed. */
+  name: string;
+  /**
+   * How it is used: `sendMessage(channel, text, networkId?)` for a function,
+   * the bare name for a value. A trailing `?` marks an optional argument.
+   */
+  signature: string;
+  /** One line, in plain words, about what it does. */
+  summary: string;
+  /** True when it returns a promise and must be awaited. */
+  isAsync?: boolean;
+}
 
-export const HOOK_LIST = IRCX_HOOKS.split('|');
-// `api.*` members (kept in sync with ScriptingService.makeApi).
-export const API_MEMBERS = [
-  'log',
-  'warn',
-  'error',
-  'userNick',
-  'appVersion',
-  'getConfig',
-  'sendMessage',
-  'sendCommand',
-  'sendNotice',
-  'sendCTCP',
-  'registerCommand',
-  'addMenuItem',
-  'join',
-  'part',
-  'kick',
-  'mode',
-  'op',
-  'deop',
-  'voice',
-  'devoice',
-  'ban',
-  'unban',
-  'setTopic',
-  'changeNick',
-  'setAway',
-  'back',
-  'whois',
-  'action',
-  'rand',
-  'list',
-  'getChannelUsers',
-  'getChannels',
-  'getChannelInfo',
-  'getTabs',
-  'getActiveTab',
-  'switchToTab',
-  'getUserInfo',
-  'getUserNote',
-  'setUserNote',
-  'getUserAlias',
-  'setUserAlias',
-  'isIgnored',
-  'getChannelNote',
-  'setChannelNote',
-  'isChannelBookmarked',
-  'getHighlightWords',
-  'addHighlightWord',
-  'removeHighlightWord',
-  'isHighlighted',
-  'searchHistory',
-  'getRecentMessages',
-  'getHistoryStats',
-  'getSetting',
-  'getTheme',
-  'getConnectionStats',
-  'setTimer',
-  'clearTimer',
-  'getNetworkId',
-  'getAllNetworks',
-  'isConnected',
-  'getStorage',
-  'setStorage',
-  'removeStorage',
-  'playSound',
-  'openLink',
-  'now',
-  'sleep',
-  // AI namespace: completed as `api.ai`, then its own members below.
-  'ai',
+// --- Hooks ---------------------------------------------------------------
+
+export const HOOK_ENTRIES: VocabularyEntry[] = [
+  {
+    name: 'onConnect',
+    signature: 'onConnect(networkId)',
+    summary: 'A network finished connecting.',
+  },
+  {
+    name: 'onDisconnect',
+    signature: 'onDisconnect(networkId, reason?)',
+    summary: 'A network dropped or was disconnected.',
+  },
+  {
+    name: 'onMessage',
+    signature: 'onMessage(msg)',
+    summary:
+      'A channel message or private message arrived. msg has from, text, channel, network.',
+  },
+  {
+    name: 'onNotice',
+    signature: 'onNotice(msg)',
+    summary: 'A NOTICE arrived. Never reply to one, or two bots will loop.',
+  },
+  {
+    name: 'onJoin',
+    signature: 'onJoin(channel, nick, msg)',
+    summary: 'Someone joined a channel — including you.',
+  },
+  {
+    name: 'onPart',
+    signature: 'onPart(channel, nick, reason, msg)',
+    summary: 'Someone left a channel.',
+  },
+  {
+    name: 'onQuit',
+    signature: 'onQuit(nick, reason, msg)',
+    summary: 'Someone quit the network entirely.',
+  },
+  {
+    name: 'onNickChange',
+    signature: 'onNickChange(oldNick, newNick, msg)',
+    summary: 'Someone changed their nick.',
+  },
+  {
+    name: 'onKick',
+    signature: 'onKick(channel, kickedNick, kickerNick, reason, msg)',
+    summary: 'Someone was kicked from a channel.',
+  },
+  {
+    name: 'onMode',
+    signature: 'onMode(channel, setterNick, mode, target, msg)',
+    summary: 'A mode changed. target is undefined for a channel-wide mode.',
+  },
+  {
+    name: 'onTopic',
+    signature: 'onTopic(channel, topic, setterNick, msg)',
+    summary: 'A channel topic was changed.',
+  },
+  {
+    name: 'onInvite',
+    signature: 'onInvite(channel, inviterNick, msg)',
+    summary: 'You were invited to a channel.',
+  },
+  {
+    name: 'onCTCP',
+    signature: 'onCTCP(type, from, text, msg)',
+    summary: 'A CTCP request arrived, such as VERSION or PING.',
+  },
+  {
+    name: 'onAction',
+    signature: 'onAction(target, nick, text, msg)',
+    summary: 'Someone used /me.',
+  },
+  {
+    name: 'onHighlight',
+    signature: 'onHighlight(msg)',
+    summary: 'A message matched one of your highlight words.',
+  },
+  {
+    name: 'onRaw',
+    signature: 'onRaw(line, direction, msg?)',
+    summary:
+      'Every raw IRC line, in or out. Must return synchronously; return false to swallow it.',
+  },
+  {
+    name: 'onCommand',
+    signature: 'onCommand(text, ctx)',
+    summary:
+      'Text you typed, before it is sent. Must return synchronously; return false to swallow it.',
+  },
+  {
+    name: 'onTimer',
+    signature: 'onTimer(name)',
+    summary: 'A timer you set with api.setTimer fired.',
+  },
 ];
-// Members of the `api.ai` namespace, offered after `api.ai.`.
-export const AI_MEMBERS = ['ask', 'chat', 'listProviders', 'isAvailable'];
+
+export const HOOK_LIST = HOOK_ENTRIES.map(entry => entry.name);
+export const IRCX_HOOKS = HOOK_LIST.join('|');
+
+// --- api.* ---------------------------------------------------------------
+
+export const API_ENTRIES: VocabularyEntry[] = [
+  // Logging
+  {
+    name: 'log',
+    signature: 'log(text)',
+    summary: 'Write a line to the script log.',
+  },
+  {
+    name: 'warn',
+    signature: 'warn(text)',
+    summary: 'Write a warning to the script log.',
+  },
+  {
+    name: 'error',
+    signature: 'error(text)',
+    summary: 'Write an error to the script log.',
+  },
+
+  // Identity and config
+  {
+    name: 'userNick',
+    signature: 'userNick',
+    summary:
+      'Your current nick, as a value not a call. Compare msg.from against it so a script does not answer itself.',
+  },
+  {
+    name: 'appVersion',
+    signature: 'appVersion',
+    summary: 'The app version, as a value.',
+  },
+  {
+    name: 'getConfig',
+    signature: 'getConfig()',
+    summary: "This script's own config object.",
+  },
+
+  // Sending
+  {
+    name: 'sendMessage',
+    signature: 'sendMessage(channel, text, networkId?)',
+    summary: 'Send a message to a channel or a nick.',
+  },
+  {
+    name: 'sendCommand',
+    signature: 'sendCommand(command, networkId?)',
+    summary:
+      'Run a slash command. Never pass an AI answer or channel text to this.',
+  },
+  {
+    name: 'sendNotice',
+    signature: 'sendNotice(target, text, networkId?)',
+    summary: 'Send a NOTICE. Good for talking to yourself without flooding.',
+  },
+  {
+    name: 'sendCTCP',
+    signature: 'sendCTCP(target, type, params?, networkId?)',
+    summary: 'Send a CTCP request.',
+  },
+  {
+    name: 'action',
+    signature: 'action(target, text, networkId?)',
+    summary: 'Send a /me action.',
+  },
+
+  // Extending the app
+  {
+    name: 'registerCommand',
+    signature: 'registerCommand(name, handler)',
+    summary:
+      'Add your own slash command. handler(args, ctx) must return synchronously.',
+  },
+  {
+    name: 'addMenuItem',
+    signature: 'addMenuItem({ menu, label, onSelect })',
+    summary:
+      "Add an item to a long-press menu. menu is 'nick', 'channel' or 'tab'.",
+  },
+
+  // Channel operations
+  {
+    name: 'join',
+    signature: 'join(channel, networkId?)',
+    summary: 'Join a channel.',
+  },
+  {
+    name: 'part',
+    signature: 'part(channel, reason?, networkId?)',
+    summary: 'Leave a channel.',
+  },
+  {
+    name: 'kick',
+    signature: 'kick(channel, nick, reason?, networkId?)',
+    summary: 'Kick someone. Needs ops.',
+  },
+  {
+    name: 'mode',
+    signature: 'mode(target, modes, networkId?)',
+    summary: 'Set modes on a channel or a nick.',
+  },
+  {
+    name: 'op',
+    signature: 'op(channel, nick, networkId?)',
+    summary: 'Give ops.',
+  },
+  {
+    name: 'deop',
+    signature: 'deop(channel, nick, networkId?)',
+    summary: 'Take ops away.',
+  },
+  {
+    name: 'voice',
+    signature: 'voice(channel, nick, networkId?)',
+    summary: 'Give voice.',
+  },
+  {
+    name: 'devoice',
+    signature: 'devoice(channel, nick, networkId?)',
+    summary: 'Take voice away.',
+  },
+  {
+    name: 'ban',
+    signature: 'ban(channel, mask, networkId?)',
+    summary: 'Ban a mask.',
+  },
+  {
+    name: 'unban',
+    signature: 'unban(channel, mask, networkId?)',
+    summary: 'Remove a ban.',
+  },
+  {
+    name: 'setTopic',
+    signature: 'setTopic(channel, topic, networkId?)',
+    summary: 'Change the channel topic.',
+  },
+
+  // You
+  {
+    name: 'changeNick',
+    signature: 'changeNick(newNick, networkId?)',
+    summary: 'Change your nick.',
+  },
+  {
+    name: 'setAway',
+    signature: 'setAway(reason?, networkId?)',
+    summary: 'Mark yourself away.',
+  },
+  {
+    name: 'back',
+    signature: 'back(networkId?)',
+    summary: 'Mark yourself back.',
+  },
+  {
+    name: 'whois',
+    signature: 'whois(nick, networkId?)',
+    summary: 'Send a WHOIS.',
+  },
+
+  // Reading state
+  {
+    name: 'getChannelUsers',
+    signature: 'getChannelUsers(channel, networkId?)',
+    summary: 'Nicks in a channel, as an array of strings.',
+  },
+  {
+    name: 'getChannels',
+    signature: 'getChannels(networkId?)',
+    summary: 'Channels you are in, as an array of strings.',
+  },
+  {
+    name: 'getChannelInfo',
+    signature: 'getChannelInfo(channel, networkId?)',
+    summary: 'Topic, modes and user count for one channel.',
+  },
+  {
+    name: 'getTabs',
+    signature: 'getTabs()',
+    summary: 'Every open tab.',
+  },
+  {
+    name: 'getActiveTab',
+    signature: 'getActiveTab()',
+    summary: 'The tab the user is looking at.',
+  },
+  {
+    name: 'switchToTab',
+    signature: 'switchToTab(tabId)',
+    summary: 'Bring a tab to the front.',
+  },
+  {
+    name: 'getUserInfo',
+    signature: 'getUserInfo(nick, networkId?)',
+    summary: 'What is known about a nick.',
+    isAsync: true,
+  },
+  {
+    name: 'isIgnored',
+    signature: 'isIgnored(nick, networkId?)',
+    summary: 'True when you have that nick on ignore.',
+  },
+  {
+    name: 'getConnectionStats',
+    signature: 'getConnectionStats(networkId?)',
+    summary: 'Uptime, lag and traffic counters.',
+  },
+  {
+    name: 'getNetworkId',
+    signature: 'getNetworkId()',
+    summary: 'The network the user is currently on.',
+  },
+  {
+    name: 'getAllNetworks',
+    signature: 'getAllNetworks()',
+    summary: 'Every configured network.',
+  },
+  {
+    name: 'isConnected',
+    signature: 'isConnected(networkId?)',
+    summary: 'True when that network is connected.',
+  },
+
+  // Notes and aliases
+  {
+    name: 'getUserNote',
+    signature: 'getUserNote(nick, networkId?)',
+    summary: 'Your note about a nick.',
+    isAsync: true,
+  },
+  {
+    name: 'setUserNote',
+    signature: 'setUserNote(nick, note, networkId?)',
+    summary: 'Write a note about a nick.',
+    isAsync: true,
+  },
+  {
+    name: 'getUserAlias',
+    signature: 'getUserAlias(nick, networkId?)',
+    summary: 'The display name you gave a nick.',
+    isAsync: true,
+  },
+  {
+    name: 'setUserAlias',
+    signature: 'setUserAlias(nick, alias, networkId?)',
+    summary: 'Give a nick a display name.',
+    isAsync: true,
+  },
+  {
+    name: 'getChannelNote',
+    signature: 'getChannelNote(channel, networkId?)',
+    summary: 'Your note about a channel.',
+    isAsync: true,
+  },
+  {
+    name: 'setChannelNote',
+    signature: 'setChannelNote(channel, note, networkId?)',
+    summary: 'Write a note about a channel.',
+    isAsync: true,
+  },
+  {
+    name: 'isChannelBookmarked',
+    signature: 'isChannelBookmarked(channel, networkId?)',
+    summary: 'True when the channel is bookmarked.',
+    isAsync: true,
+  },
+
+  // Highlights
+  {
+    name: 'getHighlightWords',
+    signature: 'getHighlightWords()',
+    summary: 'Your highlight words.',
+  },
+  {
+    name: 'addHighlightWord',
+    signature: 'addHighlightWord(word)',
+    summary: 'Add a highlight word.',
+    isAsync: true,
+  },
+  {
+    name: 'removeHighlightWord',
+    signature: 'removeHighlightWord(word)',
+    summary: 'Remove a highlight word.',
+    isAsync: true,
+  },
+  {
+    name: 'isHighlighted',
+    signature: 'isHighlighted(text)',
+    summary: 'True when the text would highlight you.',
+  },
+
+  // History
+  {
+    name: 'getRecentMessages',
+    signature: 'getRecentMessages(channel, limit?, networkId?)',
+    summary:
+      'The last messages in a channel, newest last. limit is capped at 200, default 50.',
+    isAsync: true,
+  },
+  {
+    name: 'searchHistory',
+    signature:
+      'searchHistory({ network?, channel?, from?, text?, startDate?, endDate?, limit? })',
+    summary: 'Search stored history. limit is capped at 1000.',
+    isAsync: true,
+  },
+  {
+    name: 'getHistoryStats',
+    signature: 'getHistoryStats(networkId?)',
+    summary: 'How much history is stored, and for which channels.',
+    isAsync: true,
+  },
+
+  // Settings and theme
+  {
+    name: 'getSetting',
+    signature: 'getSetting(key)',
+    summary: 'Read one app setting.',
+    isAsync: true,
+  },
+  {
+    name: 'getTheme',
+    signature: 'getTheme()',
+    summary: 'The current theme colours.',
+  },
+
+  // Timers
+  {
+    name: 'setTimer',
+    signature: 'setTimer(name, delayMs, repeat?)',
+    summary: 'Fire onTimer(name) after a delay, once or repeatedly.',
+  },
+  {
+    name: 'clearTimer',
+    signature: 'clearTimer(name)',
+    summary: 'Stop a timer.',
+  },
+
+  // Storage
+  {
+    name: 'getStorage',
+    signature: 'getStorage(key)',
+    summary: "Read from this script's own storage.",
+    isAsync: true,
+  },
+  {
+    name: 'setStorage',
+    signature: 'setStorage(key, value)',
+    summary: "Write to this script's own storage.",
+    isAsync: true,
+  },
+  {
+    name: 'removeStorage',
+    signature: 'removeStorage(key)',
+    summary: 'Delete one stored key.',
+    isAsync: true,
+  },
+
+  // Odds and ends
+  {
+    name: 'rand',
+    signature: 'rand(min, max)',
+    summary: 'A random whole number between min and max.',
+  },
+  {
+    name: 'list',
+    signature: 'list(name)',
+    summary: 'One of the built-in word lists, by name.',
+  },
+  {
+    name: 'playSound',
+    signature: 'playSound(name)',
+    summary: 'Play one of the app sounds.',
+  },
+  {
+    name: 'openLink',
+    signature: 'openLink(url)',
+    summary: 'Open a URL outside the app.',
+  },
+  {
+    name: 'now',
+    signature: 'now()',
+    summary: 'The current time in milliseconds.',
+  },
+  {
+    name: 'sleep',
+    signature: 'sleep(ms)',
+    summary: 'Wait. Capped at 10 seconds, and cannot be used in onRaw.',
+    isAsync: true,
+  },
+
+  // AI namespace: completed as `api.ai`, then its own members below.
+  {
+    name: 'ai',
+    signature: 'ai',
+    summary: 'The AI namespace — api.ai.ask and friends.',
+  },
+];
+
+export const API_MEMBERS = API_ENTRIES.map(entry => entry.name);
+
+// --- api.ai.* ------------------------------------------------------------
+
+export const AI_ENTRIES: VocabularyEntry[] = [
+  {
+    name: 'ask',
+    signature:
+      'ask(prompt, { provider?, maxTokens?, system?, channel?, network? })',
+    summary:
+      'One question, one answer. Resolves null on any failure. Name channel when the prompt carries what other people said.',
+    isAsync: true,
+  },
+  {
+    name: 'chat',
+    signature:
+      'chat(messages, { provider?, maxTokens?, system?, channel?, network? })',
+    summary:
+      'Multi-turn version of ask. messages is [{ role, content }]. Resolves null on failure.',
+    isAsync: true,
+  },
+  {
+    name: 'listProviders',
+    signature: 'listProviders()',
+    summary: 'Configured providers — id, name and model only.',
+    isAsync: true,
+  },
+  {
+    name: 'isAvailable',
+    signature: 'isAvailable()',
+    summary: 'True when a provider is set up and ready.',
+    isAsync: true,
+  },
+];
+
+export const AI_MEMBERS = AI_ENTRIES.map(entry => entry.name);
+
+// --- Lookup --------------------------------------------------------------
+
+const BY_NAME = new Map<string, VocabularyEntry>();
+for (const entry of [...HOOK_ENTRIES, ...API_ENTRIES]) {
+  BY_NAME.set(entry.name, entry);
+}
+// `api.ai.*` members are keyed separately: `chat` and `list` would otherwise
+// collide with entries that mean something else.
+const AI_BY_NAME = new Map(AI_ENTRIES.map(entry => [entry.name, entry]));
+
+/**
+ * The entry for a name, for the editor's completion list.
+ *
+ * `scope` matters because the same word can exist in both namespaces: `chat`
+ * is `api.ai.chat`, and looking it up without saying so would find nothing.
+ */
+export function describeMember(
+  name: string,
+  scope: 'api' | 'ai' | 'hook' = 'api',
+): VocabularyEntry | undefined {
+  return scope === 'ai' ? AI_BY_NAME.get(name) : BY_NAME.get(name);
+}
+
 export const JS_KEYWORDS = [
   'const',
   'let',

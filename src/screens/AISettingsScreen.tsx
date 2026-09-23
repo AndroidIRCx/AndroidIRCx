@@ -35,17 +35,29 @@ import {
 } from '../services/ai/types';
 import {
   mcpServerService,
+  McpBindMode,
   McpServerStatus,
 } from '../services/ai/McpServerService';
 import {
   mcpClientService,
   McpClientServer,
 } from '../services/ai/McpClientService';
+import { useTabStore } from '../stores/tabStore';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
 }
+
+/**
+ * The bind choices, widest last. The descriptions come from the service so the
+ * screen and the wiki cannot drift apart.
+ */
+const BIND_MODES: Array<{ value: McpBindMode; title: string }> = [
+  { value: 'loopback', title: 'Only this phone' },
+  { value: 'lan', title: 'My network' },
+  { value: 'any', title: 'Every connection' },
+];
 
 interface Draft {
   id: string | null;
@@ -96,6 +108,7 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [providers, setProviders] = useState<AIProvider[]>([]);
   const [defaultId, setDefaultId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const tabs = useTabStore(state => state.tabs);
   const [blocker, setBlocker] = useState<AIReadiness | null>(null);
 
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -110,13 +123,15 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     null,
   );
   const [serverWrites, setServerWrites] = useState(false);
-  const [serverLan, setServerLan] = useState(false);
+  const [serverBind, setServerBind] = useState<McpBindMode>('loopback');
   const [serverBusy, setServerBusy] = useState(false);
   const [clientServers, setClientServers] = useState<McpClientServer[]>([]);
   const [clientName, setClientName] = useState('');
   const [clientUrl, setClientUrl] = useState('');
   const [clientToken, setClientToken] = useState('');
+  const [showClientEditor, setShowClientEditor] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [modelFilter, setModelFilter] = useState('');
   const [preset, setPreset] = useState<AIProviderPreset | null>(null);
 
   const refresh = useCallback(async () => {
@@ -137,9 +152,16 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
       setClientServers(await mcpClientService.list());
     }
     if (mcpServerService.isSupported()) {
-      const status = await mcpServerService.getStatus();
+      // Read the saved settings, not the running server's: both switches are
+      // decisions about exposure, and a screen that forgets them makes the
+      // user re-decide blind every time.
+      const [status, saved] = await Promise.all([
+        mcpServerService.getStatus(),
+        mcpServerService.loadConfig(),
+      ]);
       setServerStatus(status);
-      setServerLan(status.bindLan);
+      setServerWrites(saved.allowWrites);
+      setServerBind(status.running ? status.bindMode : saved.bindMode);
     }
     setLoading(false);
   }, []);
@@ -237,6 +259,71 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     setAllowedChannels(aiService.listAllowedChannels());
   }, []);
 
+  const setChannel = useCallback(
+    async (channel: string, network: string, allowed: boolean) => {
+      await aiService.setChannelAllowed(channel, allowed, network);
+      setAllowedChannels(aiService.listAllowedChannels());
+    },
+    [],
+  );
+
+  /**
+   * The channels the user is actually in, grouped by network.
+   *
+   * This list is the only way to opt a channel in. Before it existed the
+   * screen could revoke a channel but never add one, so the per-channel gate
+   * refused everything and nothing that reads a channel could ever run.
+   */
+  const joinedByNetwork = useMemo(() => {
+    const groups = new Map<string, string[]>();
+    for (const tab of tabs) {
+      if (tab.type !== 'channel') continue;
+      const list = groups.get(tab.networkId) ?? [];
+      list.push(tab.name);
+      groups.set(tab.networkId, list);
+    }
+    return Array.from(groups.entries())
+      .map(([network, channels]) => ({
+        network,
+        channels: channels.sort((a, b) => a.localeCompare(b)),
+      }))
+      .sort((a, b) => a.network.localeCompare(b.network));
+  }, [tabs]);
+
+  const allowedSet = useMemo(() => new Set(allowedChannels), [allowedChannels]);
+
+  /**
+   * Channels that are allowed but not currently joined. They stay listed so a
+   * permission cannot outlive the user's memory of granting it.
+   */
+  const allowedElsewhere = useMemo(() => {
+    const joined = new Set(
+      joinedByNetwork.flatMap(group =>
+        group.channels.map(
+          channel => `${group.network}::${channel.toLowerCase()}`,
+        ),
+      ),
+    );
+    return allowedChannels.filter(entry => !joined.has(entry));
+  }, [allowedChannels, joinedByNetwork]);
+
+  /**
+   * Some providers list dozens of models, most of them irrelevant. Typing a
+   * couple of characters beats scrolling for the one you came for.
+   */
+  const visibleModels = useMemo(() => {
+    const term = modelFilter.trim().toLowerCase();
+    if (!term || !models) return models ?? [];
+    return models.filter(model => model.toLowerCase().includes(term));
+  }, [models, modelFilter]);
+
+  const openClientEditor = useCallback(() => {
+    setClientName('');
+    setClientUrl('');
+    setClientToken('');
+    setShowClientEditor(true);
+  }, []);
+
   const addClientServer = useCallback(async () => {
     try {
       await mcpClientService.add({
@@ -247,6 +334,7 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
       setClientName('');
       setClientUrl('');
       setClientToken('');
+      setShowClientEditor(false);
       await refresh();
     } catch (error: any) {
       Alert.alert(t('Could not add'), String(error?.message ?? error));
@@ -276,7 +364,7 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
         const status = on
           ? await mcpServerService.start({
               allowWrites: serverWrites,
-              bindLan: serverLan,
+              bindMode: serverBind,
             })
           : await mcpServerService.stop();
         setServerStatus(status);
@@ -289,8 +377,19 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
         setServerBusy(false);
       }
     },
-    [serverWrites, serverLan, t],
+    [serverWrites, serverBind, t],
   );
+
+  /** Remember a switch the moment it moves, not only when the server starts. */
+  const changeServerWrites = useCallback((on: boolean) => {
+    setServerWrites(on);
+    mcpServerService.saveConfig({ allowWrites: on });
+  }, []);
+
+  const changeServerBind = useCallback((mode: McpBindMode) => {
+    setServerBind(mode);
+    mcpServerService.saveConfig({ bindMode: mode });
+  }, []);
 
   const addMcpServer = useCallback(async () => {
     if (!draft?.id) return;
@@ -371,6 +470,7 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
 
   const openEditor = useCallback((provider?: AIProvider) => {
     setModels(null);
+    setModelFilter('');
     setPreset(null);
     if (!provider) {
       setDraft(
@@ -598,19 +698,56 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
             <Switch value={redaction} onValueChange={toggleRedaction} />
           </View>
 
+          <Text style={styles.masterTitle}>{t('Channels AI may read')}</Text>
           <Text style={styles.subtle}>
-            {t('Channels AI may read: {count}', {
-              count: allowedChannels.length,
-            })}
+            {t(
+              'Off for every channel until you say otherwise. The other people in a channel never agreed to have their words sent to a provider, so this is asked per channel rather than once.',
+            )}
           </Text>
-          {allowedChannels.map(entry => (
-            <View key={entry} style={styles.channelRow}>
-              <Text style={styles.channelText}>{entry}</Text>
-              <TouchableOpacity onPress={() => revokeChannel(entry)}>
-                <Text style={styles.actionDanger}>{t('Revoke')}</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+
+          {joinedByNetwork.length === 0 ? (
+            <Text style={styles.empty}>
+              {t(
+                'You are not in any channel right now. Join one and it appears here.',
+              )}
+            </Text>
+          ) : (
+            joinedByNetwork.map(group => (
+              <View key={group.network}>
+                <Text style={styles.channelNetwork}>{group.network}</Text>
+                {group.channels.map(channel => {
+                  const key = `${group.network}::${channel.toLowerCase()}`;
+                  return (
+                    <View key={key} style={styles.channelRow}>
+                      <Text style={styles.channelText}>{channel}</Text>
+                      <Switch
+                        value={allowedSet.has(key)}
+                        onValueChange={value =>
+                          setChannel(channel, group.network, value)
+                        }
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            ))
+          )}
+
+          {allowedElsewhere.length > 0 && (
+            <>
+              <Text style={styles.channelNetwork}>
+                {t('Allowed, but not joined right now')}
+              </Text>
+              {allowedElsewhere.map(entry => (
+                <View key={entry} style={styles.channelRow}>
+                  <Text style={styles.channelText}>{entry}</Text>
+                  <TouchableOpacity onPress={() => revokeChannel(entry)}>
+                    <Text style={styles.actionDanger}>{t('Revoke')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
 
           {mcpClientService.isSupported() && (
             <>
@@ -670,36 +807,15 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                 </View>
               ))}
 
-              <TextInput
-                style={styles.input}
-                value={clientName}
-                autoCapitalize="none"
-                placeholder={t('Server name')}
-                placeholderTextColor={colors.textSecondary}
-                onChangeText={setClientName}
-              />
-              <TextInput
-                style={styles.input}
-                value={clientUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                placeholder="https://mcp.example.com/mcp"
-                placeholderTextColor={colors.textSecondary}
-                onChangeText={setClientUrl}
-              />
-              <TextInput
-                style={styles.input}
-                value={clientToken}
-                autoCapitalize="none"
-                secureTextEntry
-                placeholder={t('Token (optional)')}
-                placeholderTextColor={colors.textSecondary}
-                onChangeText={setClientToken}
-              />
+              {clientServers.length === 0 && (
+                <Text style={styles.empty}>
+                  {t('No MCP servers yet. Tap Add to connect one.')}
+                </Text>
+              )}
+
               <TouchableOpacity
                 style={styles.secondaryButton}
-                onPress={addClientServer}
+                onPress={openClientEditor}
               >
                 <Text style={styles.secondaryButtonText}>
                   {t('Add MCP server')}
@@ -738,13 +854,41 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                 )}
               </View>
 
-              {serverStatus?.running && !!serverStatus.token && (
-                <>
-                  <Text style={styles.subtle}>{t('Access token')}</Text>
-                  <Text style={styles.channelText} selectable>
-                    {serverStatus.token}
+              {serverStatus?.running ? (
+                <View style={styles.mcpEndpoint}>
+                  <Text style={styles.mcpEndpointLabel}>
+                    {t('Add this to your MCP client')}
                   </Text>
-                </>
+                  <Text style={styles.mcpEndpointHint}>
+                    {t('Type: Streamable HTTP')}
+                  </Text>
+                  <Text style={styles.mcpEndpointValue} selectable>
+                    {mcpServerService.describeEndpoint(serverStatus)}
+                  </Text>
+                  {!!serverStatus.token && (
+                    <>
+                      <Text style={styles.mcpEndpointHint}>
+                        {t('Bearer token — treat it like a password')}
+                      </Text>
+                      <Text style={styles.mcpEndpointValue} selectable>
+                        {serverStatus.token}
+                      </Text>
+                    </>
+                  )}
+                  {!serverStatus.host && serverBind !== 'loopback' && (
+                    <Text style={styles.mcpEndpointWarning}>
+                      {t(
+                        'This phone has no network address right now, so nothing can reach it.',
+                      )}
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <Text style={styles.subtle}>
+                  {t(
+                    'Turn it on and the address and token to paste into your MCP client appear here.',
+                  )}
+                </Text>
               )}
 
               <View style={styles.masterRow}>
@@ -758,28 +902,47 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                 </View>
                 <Switch
                   value={serverWrites}
-                  onValueChange={setServerWrites}
+                  onValueChange={changeServerWrites}
                   disabled={!!serverStatus?.running}
                 />
               </View>
 
-              <View style={styles.masterRow}>
-                <View style={styles.masterText}>
-                  <Text style={styles.masterTitle}>
-                    {t('Reachable from the network')}
-                  </Text>
-                  <Text style={styles.subtle}>
-                    {t(
-                      'Off by default the server listens only to this phone. Turning it on exposes your IRC session to every network you join.',
-                    )}
-                  </Text>
-                </View>
-                <Switch
-                  value={serverLan}
-                  onValueChange={setServerLan}
-                  disabled={!!serverStatus?.running}
-                />
-              </View>
+              <Text style={styles.masterTitle}>{t('Who can reach it')}</Text>
+              {BIND_MODES.map(mode => {
+                const active = serverBind === mode.value;
+                return (
+                  <TouchableOpacity
+                    key={mode.value}
+                    style={[styles.bindRow, active && styles.bindRowActive]}
+                    disabled={!!serverStatus?.running}
+                    onPress={() => changeServerBind(mode.value)}
+                  >
+                    <View style={styles.bindRadio}>
+                      {active && <View style={styles.bindRadioDot} />}
+                    </View>
+                    <View style={styles.masterText}>
+                      <Text style={styles.bindTitle}>{t(mode.title)}</Text>
+                      <Text style={styles.subtle}>
+                        {mcpServerService.describeBindMode(mode.value)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              {serverBind === 'any' && (
+                <Text style={styles.bindWarning}>
+                  {t(
+                    'This puts your IRC session on every network you join, including cafe and airport Wi-Fi. Turn it off when you are done.',
+                  )}
+                </Text>
+              )}
+              {!!serverStatus?.running && (
+                <Text style={styles.subtle}>
+                  {t(
+                    'These are locked while the server is running, so what is listening is always what you agreed to.',
+                  )}
+                </Text>
+              )}
             </>
           )}
 
@@ -865,6 +1028,78 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
           )}
         </ScrollView>
       </ModalSafeArea>
+
+      <Modal
+        visible={showClientEditor}
+        animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={() => setShowClientEditor(false)}
+      >
+        <ModalSafeArea style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setShowClientEditor(false)}>
+              <Text style={styles.headerAction}>{t('Cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('Add MCP server')}</Text>
+            <TouchableOpacity
+              onPress={addClientServer}
+              disabled={!clientName.trim() || !clientUrl.trim()}
+            >
+              <Text style={styles.headerAction}>{t('Add')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <Text style={styles.subtle}>
+              {t(
+                'The app connects to this server and offers its tools to the assistant. Every one of them asks you before it runs.',
+              )}
+            </Text>
+
+            <Text style={styles.label}>{t('Name')}</Text>
+            <TextInput
+              style={styles.input}
+              value={clientName}
+              autoCapitalize="none"
+              placeholder={t('My notes')}
+              placeholderTextColor={colors.textSecondary}
+              onChangeText={setClientName}
+            />
+
+            <Text style={styles.label}>{t('Address')}</Text>
+            <TextInput
+              style={styles.input}
+              value={clientUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              placeholder="https://mcp.example.com/mcp"
+              placeholderTextColor={colors.textSecondary}
+              onChangeText={setClientUrl}
+            />
+            <Text style={styles.subtle}>
+              {t(
+                'A Streamable HTTP endpoint. A server running on this phone in Termux counts too — use http://127.0.0.1:<port>.',
+              )}
+            </Text>
+
+            <Text style={styles.label}>{t('Token (optional)')}</Text>
+            <TextInput
+              style={styles.input}
+              value={clientToken}
+              autoCapitalize="none"
+              secureTextEntry
+              placeholder={t('Only if the server asks for one')}
+              placeholderTextColor={colors.textSecondary}
+              onChangeText={setClientToken}
+            />
+            <Text style={styles.subtle}>
+              {t('Stored in this phone’s keychain, like an API key.')}
+            </Text>
+          </ScrollView>
+        </ModalSafeArea>
+      </Modal>
 
       <Modal
         visible={!!draft}
@@ -1041,7 +1276,25 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
 
               {models && models.length > 0 && (
                 <View style={styles.modelList}>
-                  {models.map(model => (
+                  {models.length > 8 && (
+                    <TextInput
+                      style={styles.modelFilter}
+                      value={modelFilter}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      placeholder={t('Filter {count} models', {
+                        count: models.length,
+                      })}
+                      placeholderTextColor={colors.textSecondary}
+                      onChangeText={setModelFilter}
+                    />
+                  )}
+                  {visibleModels.length === 0 && (
+                    <Text style={styles.subtle}>
+                      {t('Nothing matches that.')}
+                    </Text>
+                  )}
+                  {visibleModels.map(model => (
                     <TouchableOpacity
                       key={model}
                       style={[
@@ -1208,6 +1461,78 @@ const createStyles = (colors: any) =>
       marginRight: 12,
     },
     masterTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
+    channelNetwork: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 14,
+      marginBottom: 2,
+    },
+    mcpEndpoint: {
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 8,
+      marginBottom: 4,
+    },
+    mcpEndpointLabel: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
+    mcpEndpointHint: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 6,
+    },
+    mcpEndpointValue: {
+      color: colors.primary,
+      fontSize: 13.5,
+      fontFamily: 'monospace',
+      marginTop: 2,
+    },
+    mcpEndpointWarning: {
+      color: colors.warning,
+      fontSize: 12.5,
+      marginTop: 8,
+      lineHeight: 18,
+    },
+    bindRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingVertical: 10,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      marginTop: 6,
+    },
+    bindRowActive: { backgroundColor: colors.surfaceVariant },
+    bindRadio: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+      marginTop: 2,
+    },
+    bindRadioDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
+    },
+    bindTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+    bindWarning: {
+      color: colors.warning,
+      fontSize: 12.5,
+      lineHeight: 18,
+      marginTop: 8,
+    },
     notice: {
       backgroundColor: colors.surfaceVariant,
       borderRadius: 8,
@@ -1353,6 +1678,13 @@ const createStyles = (colors: any) =>
       color: colors.primary,
       fontSize: 13.5,
       fontWeight: '600',
+    },
+    modelFilter: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      fontSize: 14,
     },
     modelList: {
       marginTop: 10,

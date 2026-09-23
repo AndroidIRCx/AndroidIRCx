@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import { logger } from '../Logger';
 import { agentToolSchemas, executeTool } from './AgentTools';
@@ -26,7 +27,7 @@ const { McpServer } = NativeModules as {
   McpServer?: {
     start(config: {
       port: number;
-      bindLan: boolean;
+      bindMode: McpBindMode;
       allowWrites: boolean;
       tools: Array<{
         name: string;
@@ -41,30 +42,111 @@ const { McpServer } = NativeModules as {
   };
 };
 
+/**
+ * Which interfaces the server listens on.
+ *
+ * - `loopback` — only this phone. Reachable from Termux, and nothing else.
+ * - `lan` — this phone's address on the network it is attached to. One
+ *   interface, so mobile data, USB tethering and a VPN are left out.
+ * - `any` — every interface, `0.0.0.0`. Needed when the address changes or
+ *   the connection arrives over something other than Wi-Fi, and the only
+ *   option that can expose the session on a network the user did not expect.
+ */
+export type McpBindMode = 'loopback' | 'lan' | 'any';
+
 export interface McpServerStatus {
   running: boolean;
   port: number;
   token: string;
-  bindLan: boolean;
+  bindMode: McpBindMode;
+  /** The address a client should be pointed at; '' when there is no network. */
+  host: string;
 }
 
 export interface McpServerConfig {
   port?: number;
-  bindLan?: boolean;
+  bindMode?: McpBindMode;
   allowWrites?: boolean;
 }
 
 export const DEFAULT_MCP_PORT = 8765;
 
+const STORAGE_CONFIG_KEY = '@AndroidIRCX:mcpServerConfig';
+
+const DEFAULT_CONFIG: Required<McpServerConfig> = {
+  port: DEFAULT_MCP_PORT,
+  bindMode: 'loopback',
+  allowWrites: false,
+};
+
 const STOPPED: McpServerStatus = {
   running: false,
   port: DEFAULT_MCP_PORT,
   token: '',
-  bindLan: false,
+  bindMode: 'loopback',
+  host: '127.0.0.1',
 };
 
 class McpServerService {
   private subscription: { remove: () => void } | null = null;
+  private config: Required<McpServerConfig> = { ...DEFAULT_CONFIG };
+  private configLoaded = false;
+
+  /**
+   * The saved settings. Both of these are choices about exposure, so losing
+   * them on a screen close meant the user had to re-make a security decision
+   * every time — and had no way to see what it currently was.
+   */
+  async loadConfig(): Promise<Required<McpServerConfig>> {
+    if (this.configLoaded) return { ...this.config };
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_CONFIG_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && typeof saved === 'object') {
+          this.config = {
+            port:
+              typeof saved.port === 'number' ? saved.port : DEFAULT_MCP_PORT,
+            bindMode: this.normalizeBindMode(saved.bindMode),
+            allowWrites: saved.allowWrites === true,
+          };
+        }
+      }
+    } catch (error) {
+      logger.warn('ai', `Failed to load MCP server config: ${String(error)}`);
+    } finally {
+      this.configLoaded = true;
+    }
+    return { ...this.config };
+  }
+
+  /**
+   * Anything unrecognised falls back to loopback rather than throwing: a
+   * corrupted value must not end up exposing the session, and must not stop
+   * the screen from loading either.
+   */
+  private normalizeBindMode(value: unknown): McpBindMode {
+    return value === 'lan' || value === 'any' ? value : 'loopback';
+  }
+
+  async saveConfig(patch: Partial<McpServerConfig>): Promise<void> {
+    await this.loadConfig();
+    this.config = {
+      ...this.config,
+      ...patch,
+      bindMode: patch.bindMode
+        ? this.normalizeBindMode(patch.bindMode)
+        : this.config.bindMode,
+    };
+    try {
+      await AsyncStorage.setItem(
+        STORAGE_CONFIG_KEY,
+        JSON.stringify(this.config),
+      );
+    } catch (error) {
+      logger.warn('ai', `Failed to save MCP server config: ${String(error)}`);
+    }
+  }
 
   /** False on a build without the native module (or on iOS). */
   isSupported(): boolean {
@@ -113,6 +195,12 @@ class McpServerService {
     if (!McpServer) {
       throw new Error('The MCP server is not available in this build');
     }
+    const saved = await this.loadConfig();
+    const effective = { ...saved, ...config };
+    // Persist before starting: what runs and what the screen shows next time
+    // are then the same thing even if the start itself fails.
+    await this.saveConfig(effective);
+
     this.ensureListening();
     const tools = agentToolSchemas().map(tool => ({
       name: tool.name,
@@ -125,16 +213,14 @@ class McpServerService {
 
     try {
       const status = await McpServer.start({
-        port: config.port ?? DEFAULT_MCP_PORT,
-        bindLan: config.bindLan === true,
-        allowWrites: config.allowWrites === true,
+        port: effective.port,
+        bindMode: effective.bindMode,
+        allowWrites: effective.allowWrites,
         tools,
       });
       logger.info(
         'ai',
-        `MCP server started on port ${status.port}${
-          status.bindLan ? ' (LAN)' : ' (loopback)'
-        }`,
+        `MCP server started on port ${status.port} (${status.bindMode})`,
       );
       return status;
     } catch (error) {
@@ -156,10 +242,26 @@ class McpServerService {
     return McpServer.getStatus();
   }
 
-  /** The URL a client connects to, with the token it must present. */
+  /**
+   * The URL a client connects to. Filled in with the phone's real address
+   * rather than a placeholder — the point of this string is that it can be
+   * pasted into an MCP client without anyone having to go and find their IP.
+   */
   describeEndpoint(status: McpServerStatus): string {
-    const host = status.bindLan ? '<phone-ip>' : '127.0.0.1';
+    const host = status.host || '<this phone’s IP>';
     return `http://${host}:${status.port}/mcp`;
+  }
+
+  /** What each bind mode means, for the settings screen. */
+  describeBindMode(mode: McpBindMode): string {
+    switch (mode) {
+      case 'lan':
+        return 'Reachable from your network, on this phone’s current address only.';
+      case 'any':
+        return 'Reachable on every connection this phone has, including mobile data and tethering.';
+      default:
+        return 'Reachable only from this phone, for example from Termux.';
+    }
   }
 }
 

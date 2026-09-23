@@ -151,8 +151,28 @@ describe('AnthropicProvider', () => {
     const models = await anthropicProvider.listModels(provider, 'k', signal());
 
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://api.anthropic.com/v1/models',
+      'https://api.anthropic.com/v1/models?limit=1000',
     );
+    expect(models).toEqual(['claude-opus-5', 'claude-sonnet-5']);
+  });
+
+  it('follows the pages instead of stopping at the first one', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [{ id: 'claude-opus-5' }],
+          has_more: true,
+          last_id: 'claude-opus-5',
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ data: [{ id: 'claude-sonnet-5' }], has_more: false }),
+      );
+
+    const models = await anthropicProvider.listModels(provider, 'k', signal());
+
+    // Reading only the first page is why the list arrived short.
+    expect(fetchMock.mock.calls[1][0]).toContain('after_id=claude-opus-5');
     expect(models).toEqual(['claude-opus-5', 'claude-sonnet-5']);
   });
 });
@@ -283,5 +303,24 @@ describe('GeminiProvider', () => {
     // An embedding model would fail at request time with an error the user
     // could not diagnose, so it must never be offered.
     expect(models).toEqual(['gemini-pro']);
+  });
+
+  it('follows the pages instead of stopping at the first one', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          models: [{ name: 'models/gemini-1.5-pro' }],
+          nextPageToken: 'page-2',
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ models: [{ name: 'models/gemini-2.5-pro' }] }),
+      );
+
+    const models = await geminiProvider.listModels(provider, 'k', signal());
+
+    expect(fetchMock.mock.calls[1][0]).toContain('pageToken=page-2');
+    // And the newer one is offered first, rather than alphabetically.
+    expect(models).toEqual(['gemini-2.5-pro', 'gemini-1.5-pro']);
   });
 });

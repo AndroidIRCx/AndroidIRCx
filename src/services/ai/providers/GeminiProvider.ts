@@ -14,8 +14,12 @@ import {
   AIToolCall,
 } from '../types';
 import { getJson, postJson } from './httpJson';
+import { sortModelIds } from './modelSort';
 
 const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const MODEL_PAGE_SIZE = 200;
+/** A stop, so a provider that always returns a token cannot loop forever. */
+const MAX_MODEL_PAGES = 10;
 
 interface GenerateContentResponse {
   candidates?: Array<{
@@ -34,6 +38,8 @@ interface GenerateContentResponse {
 
 interface ModelsResponse {
   models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+  /** Present while there are more models than one page holds. */
+  nextPageToken?: string;
 }
 
 /**
@@ -199,24 +205,39 @@ class GeminiProvider implements AIProviderAdapter {
     signal: AbortSignal,
   ): Promise<string[]> {
     const key = this.requireKey(apiKey);
-    const response = await getJson<ModelsResponse>(
-      `${this.base(provider)}/models?key=${encodeURIComponent(key)}`,
-      { 'content-type': 'application/json' },
-      signal,
-    );
+    const ids: string[] = [];
+    let pageToken: string | undefined;
 
-    return (response.models ?? [])
-      .filter(
-        entry =>
-          // Embedding-only models cannot answer a chat request; offering them
-          // would produce a provider error the user cannot diagnose.
+    // This endpoint pages, and the default page is smaller than the catalogue.
+    // Reading only the first one is why the list sometimes arrived short.
+    for (let page = 0; page < MAX_MODEL_PAGES; page += 1) {
+      const url =
+        `${this.base(provider)}/models?pageSize=${MODEL_PAGE_SIZE}` +
+        `&key=${encodeURIComponent(key)}` +
+        (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
+      const response = await getJson<ModelsResponse>(
+        url,
+        { 'content-type': 'application/json' },
+        signal,
+      );
+
+      for (const entry of response.models ?? []) {
+        // Embedding-only models cannot answer a chat request; offering them
+        // would produce a provider error the user cannot diagnose.
+        const usable =
           !entry?.supportedGenerationMethods ||
-          entry.supportedGenerationMethods.includes('generateContent'),
-      )
-      .map(entry => entry?.name)
-      .filter((name): name is string => typeof name === 'string' && !!name)
-      .map(name => name.replace(/^models\//, ''))
-      .sort();
+          entry.supportedGenerationMethods.includes('generateContent');
+        const name = entry?.name;
+        if (usable && typeof name === 'string' && name) {
+          ids.push(name.replace(/^models\//, ''));
+        }
+      }
+
+      pageToken = response.nextPageToken;
+      if (!pageToken) break;
+    }
+
+    return sortModelIds(ids);
   }
 }
 

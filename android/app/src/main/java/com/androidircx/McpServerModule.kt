@@ -56,6 +56,13 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
         /** How long a JS tool call may take before the caller gets an error. */
         private const val TOOL_TIMEOUT_MS = 30_000L
         private const val DEFAULT_PORT = 8765
+
+        /** Only this phone. */
+        const val BIND_LOOPBACK = "loopback"
+        /** This phone's address on the network it is on — one interface. */
+        const val BIND_LAN = "lan"
+        /** Every interface, including mobile data, tethering and any VPN. */
+        const val BIND_ANY = "any"
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -63,7 +70,7 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
     private var engine: EmbeddedServer<*, *>? = null
     private var token: String = ""
     private var port: Int = DEFAULT_PORT
-    private var bindLan: Boolean = false
+    private var bindMode: String = BIND_LOOPBACK
 
     private data class ToolReply(val content: String, val isError: Boolean)
 
@@ -154,7 +161,14 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
                 return
             }
             port = if (config.hasKey("port")) config.getInt("port") else DEFAULT_PORT
-            bindLan = config.hasKey("bindLan") && config.getBoolean("bindLan")
+            bindMode = when (config.getString("bindMode")) {
+                BIND_LAN -> BIND_LAN
+                BIND_ANY -> BIND_ANY
+                // Anything unrecognised, including absent, stays on loopback.
+                // Getting this wrong exposes the user's IRC session, so the
+                // safe answer is the one an unknown value falls back to.
+                else -> BIND_LOOPBACK
+            }
             val allowWrites = config.hasKey("allowWrites") && config.getBoolean("allowWrites")
             val tools = config.getArray("tools")
                 ?: run {
@@ -163,9 +177,21 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
                 }
             token = newToken()
 
-            // Loopback unless the user explicitly asked for the LAN: binding to
+            // Loopback unless the user explicitly asked otherwise: binding to
             // 0.0.0.0 puts the user's IRC session on every network they join.
-            val host = if (bindLan) "0.0.0.0" else "127.0.0.1"
+            // "lan" binds the one interface they are actually on, which leaves
+            // mobile data, tethering and a VPN out of it.
+            val host = when (bindMode) {
+                BIND_ANY -> "0.0.0.0"
+                BIND_LAN -> lanAddress() ?: run {
+                    promise.reject(
+                        "no_lan",
+                        "This phone has no network address right now. Connect to Wi-Fi, or bind to every interface instead.",
+                    )
+                    return
+                }
+                else -> "127.0.0.1"
+            }
 
             val started = embeddedServer(CIO, port = port, host = host) {
                 install(SSE)
@@ -210,11 +236,43 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
         promise.resolve(status())
     }
 
+    /**
+     * This phone's own IPv4 address on the network it is attached to.
+     *
+     * IPv6 is skipped on purpose: the address a person has to type into an MCP
+     * client is the one they can read off this screen, and a link-local IPv6
+     * address with a scope id is not that. Null when there is no network.
+     */
+    private fun lanAddress(): String? =
+        try {
+            java.net.NetworkInterface.getNetworkInterfaces()
+                .toList()
+                .asSequence()
+                .filter { it.isUp && !it.isLoopback }
+                .flatMap { it.inetAddresses.toList().asSequence() }
+                .filterIsInstance<java.net.Inet4Address>()
+                .firstOrNull { !it.isLoopbackAddress }
+                ?.hostAddress
+        } catch (e: Throwable) {
+            Log.w(TAG, "Could not read this phone's address: ${e.message}")
+            null
+        }
+
     private fun status() = Arguments.createMap().apply {
         putBoolean("running", engine != null)
         putInt("port", port)
         putString("token", token)
-        putBoolean("bindLan", bindLan)
+        putString("bindMode", bindMode)
+        // The address a client should actually be pointed at. For 0.0.0.0 that
+        // is not "0.0.0.0" — nobody can connect to that — it is this phone's
+        // address on the network, which is what the settings screen shows.
+        putString(
+            "host",
+            when (bindMode) {
+                BIND_LOOPBACK -> "127.0.0.1"
+                else -> lanAddress() ?: ""
+            },
+        )
     }
 
     override fun invalidate() {

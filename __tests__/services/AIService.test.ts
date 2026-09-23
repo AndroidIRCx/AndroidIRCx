@@ -464,6 +464,32 @@ describe('AIService', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
+    it('lets a caller finish a turn it already started', async () => {
+      await addProvider();
+      aiService.setLimits({ cooldownMs: 60000 });
+
+      // The agent's first round opens the turn and serves the gap; the tool
+      // rounds that follow are the same turn answering the same question.
+      await aiService.ask('round 1', {}, 'agent');
+      await aiService.ask('round 2', { continuesTurn: true }, 'agent');
+      await aiService.ask('round 3', { continuesTurn: true }, 'agent');
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('still counts a continuation against the daily quota', async () => {
+      await addProvider();
+      aiService.setLimits({ cooldownMs: 60000, maxCallsPerDay: 2 });
+
+      await aiService.ask('round 1', {}, 'agent');
+      await aiService.ask('round 2', { continuesTurn: true }, 'agent');
+
+      // Skipping the gap is not a licence to spend the user's credit freely.
+      await expect(
+        aiService.ask('round 3', { continuesTurn: true }, 'agent'),
+      ).rejects.toMatchObject({ code: 'quota_exceeded' });
+    });
+
     it('limits each caller independently', async () => {
       await addProvider();
       aiService.setLimits({ cooldownMs: 60000 });

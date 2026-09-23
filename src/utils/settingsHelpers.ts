@@ -39,6 +39,7 @@ export const getSectionIcon = (sectionId: string): SectionIcon | null => {
     performance: { name: 'tachometer-alt', solid: false },
     'background-battery': { name: 'battery-full', solid: false },
     'scripting-ads': { name: 'code', solid: false },
+    ai: { name: 'robot', solid: false },
     'privacy-legal': { name: 'lock', solid: false },
     development: { name: 'tools', solid: false },
     about: { name: 'info-circle', solid: true },

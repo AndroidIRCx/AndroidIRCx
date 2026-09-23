@@ -14,6 +14,7 @@ import {
   AIToolCall,
 } from '../types';
 import { getJson, postJson } from './httpJson';
+import { sortModelIds } from './modelSort';
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -206,12 +207,14 @@ class OpenAICompatProvider implements AIProviderAdapter {
     const ids = (response.data ?? [])
       .map(entry => entry?.id)
       .filter((id): id is string => typeof id === 'string' && id.length > 0);
-    if (ids.length > 0) return ids.sort();
+    if (ids.length > 0) return sortModelIds(ids);
 
+    // Ollama and a few other local servers answer with `models`/`name`
+    // instead of the OpenAI shape.
     const names = (response.models ?? [])
       .map(entry => entry?.name)
       .filter((name): name is string => typeof name === 'string' && !!name);
-    return names.sort();
+    return sortModelIds(names);
   }
 }
 

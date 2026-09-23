@@ -38,6 +38,9 @@ describe('settingsHelpers', () => {
         name: 'info-circle',
         solid: true,
       });
+      // The AI section shipped without one, so it was the only header in the
+      // list with a bare title.
+      expect(getSectionIcon('ai')).toEqual({ name: 'robot', solid: false });
     });
 
     it('should return null for unknown sections', () => {

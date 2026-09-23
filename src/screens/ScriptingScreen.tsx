@@ -40,10 +40,12 @@ import Prism from 'prismjs';
 import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { deriveSyntaxColors } from '../themes/syntaxColors';
 import {
   AI_MEMBERS,
   API_MEMBERS,
+  describeMember,
   HOOK_LIST,
   IRCX_HOOKS,
   JS_KEYWORDS,
@@ -83,6 +85,12 @@ interface Completion {
   items: string[];
   start: number; // index where the token being completed begins
   end: number; // index where it ends (caret)
+  /**
+   * Which namespace the suggestions came from, so the signature shown under
+   * each one is looked up in the right place: `chat` means `api.ai.chat` after
+   * `api.ai.`, and something else entirely on its own.
+   */
+  scope: 'api' | 'ai' | 'word';
 }
 
 // Compute completions for the token immediately before `caret` in `code`.
@@ -95,26 +103,28 @@ const completionsAt = (code: string, caret: number): Completion => {
   if (aiMember) {
     const prefix = aiMember[1] || '';
     const items = AI_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
-    return { items, start: caret - prefix.length, end: caret };
+    return { items, start: caret - prefix.length, end: caret, scope: 'ai' };
   }
   // Member access: `api . <partial>`
   const member = before.match(/\bapi\s*\.\s*([A-Za-z_$][\w$]*)?$/);
   if (member) {
     const prefix = member[1] || '';
     const items = API_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
-    return { items, start: caret - prefix.length, end: caret };
+    return { items, start: caret - prefix.length, end: caret, scope: 'api' };
   }
   // Bare word: hook names, `api`, keywords (need >= 2 chars to reduce noise)
   const word = before.match(/([A-Za-z_$][\w$]*)$/);
   if (word) {
     const prefix = word[1];
-    if (prefix.length < 2) return { items: [], start: caret, end: caret };
+    if (prefix.length < 2) {
+      return { items: [], start: caret, end: caret, scope: 'word' };
+    }
     const items = WORD_POOL.filter(
       w => w.startsWith(prefix) && w !== prefix,
     ).slice(0, 8);
-    return { items, start: caret - prefix.length, end: caret };
+    return { items, start: caret - prefix.length, end: caret, scope: 'word' };
   }
-  return { items: [], start: caret, end: caret };
+  return { items: [], start: caret, end: caret, scope: 'word' };
 };
 
 interface Props {
@@ -160,6 +170,12 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [generating, setGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [generatedLint, setGeneratedLint] = useState<string | null>(null);
+  /**
+   * Whether the generator changes the script in the editor or writes a fresh
+   * one. It only means anything when the editor already holds code; opening
+   * the generator on an empty script forces it off.
+   */
+  const [generatorEdits, setGeneratorEdits] = useState(true);
   const [aiBlocker, setAiBlocker] = useState<AIReadiness | null>(null);
   // Whether ANY provider exists. Someone who never asked for AI has none,
   // and should not be offered the button at all.
@@ -196,17 +212,32 @@ export const ScriptingScreen: React.FC<Props> = ({
     start: 0,
     end: 0,
   });
+  /**
+   * Set only while the caret is being moved deliberately — after accepting a
+   * completion, for instance — and released as soon as the field reports it
+   * landed there.
+   *
+   * Feeding `selection` back into the input on every render instead is what
+   * broke typing: each keystroke re-rendered the highlight layer, and the
+   * caret was pushed back to where it had been before the character arrived.
+   * It only showed up with highlight on because that render is the slow one.
+   */
+  const [caretTarget, setCaretTarget] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
   const [completion, setCompletion] = useState<Completion>({
     items: [],
     start: 0,
     end: 0,
+    scope: 'word',
   });
   const [editorFocused, setEditorFocused] = useState(false);
 
   // Recompute autocomplete suggestions as the code or caret changes.
   useEffect(() => {
     if (!editorFocused || !editing) {
-      setCompletion({ items: [], start: 0, end: 0 });
+      setCompletion({ items: [], start: 0, end: 0, scope: 'word' });
       return;
     }
     setCompletion(completionsAt(editing.code || '', selection.start));
@@ -223,7 +254,8 @@ export const ScriptingScreen: React.FC<Props> = ({
       if (blurTimer.current) clearTimeout(blurTimer.current);
       setEditing({ ...editing, code: next });
       setSelection({ start: caret, end: caret });
-      setCompletion({ items: [], start: 0, end: 0 });
+      setCaretTarget({ start: caret, end: caret });
+      setCompletion({ items: [], start: 0, end: 0, scope: 'word' });
       codeInputRef.current?.focus();
     },
     [editing, selection.start],
@@ -440,13 +472,30 @@ export const ScriptingScreen: React.FC<Props> = ({
       .then(readiness => setAiBlocker(readiness.ready ? null : readiness));
   }, [showGenerator]);
 
+  /** Code the generator would be editing, or '' when there is nothing to edit. */
+  const editableCode = editing?.code?.trim() ? editing.code : '';
+  const willEdit = generatorEdits && editableCode !== '';
+
+  const openGenerator = () => {
+    // Default to editing whenever there is something to edit — someone who
+    // opens this from a script they wrote almost always means "change this",
+    // and the old behaviour of always starting fresh threw that work away.
+    setGeneratorEdits(editableCode !== '');
+    setGeneratedCode(null);
+    setGeneratedLint(null);
+    setShowGenerator(true);
+  };
+
   const handleGenerate = async () => {
     if (!generatorPrompt.trim()) return;
     setGenerating(true);
     setGeneratedCode(null);
     setGeneratedLint(null);
     try {
-      const result = await scriptGenerator.generate(generatorPrompt);
+      const result = await scriptGenerator.generate(
+        generatorPrompt,
+        willEdit ? editableCode : undefined,
+      );
       setGeneratedCode(result.code);
       // Show the lint verdict rather than silently trusting the model: a
       // script that cannot compile is worth knowing about before it is kept.
@@ -461,11 +510,33 @@ export const ScriptingScreen: React.FC<Props> = ({
   /** Put the generated code in the editor. It is never saved or enabled here. */
   const handleUseGenerated = () => {
     if (!editing || !generatedCode) return;
-    setEditing({ ...editing, code: generatedCode });
-    setShowGenerator(false);
-    setGeneratedCode(null);
-    setGeneratedLint(null);
-    setGeneratorPrompt('');
+    const apply = () => {
+      setEditing(current =>
+        current ? { ...current, code: generatedCode } : current,
+      );
+      setShowGenerator(false);
+      setGeneratedCode(null);
+      setGeneratedLint(null);
+      setGeneratorPrompt('');
+    };
+
+    // Writing a new script on top of one the user already has is the one case
+    // where this button destroys work. Editing does not need the prompt: the
+    // model was given the original and asked to keep it.
+    if (!willEdit && editableCode !== '') {
+      Alert.alert(
+        t('Replace this script?'),
+        t(
+          'This will overwrite the code in the editor. It is not saved until you tap Save.',
+        ),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          { text: t('Replace'), style: 'destructive', onPress: apply },
+        ],
+      );
+      return;
+    }
+    apply();
   };
 
   const handleLint = () => {
@@ -872,161 +943,242 @@ export const ScriptingScreen: React.FC<Props> = ({
           </View>
           {editing && (
             <>
-              <Text style={styles.label}>{t('Name')}</Text>
-              <TextInput
-                style={styles.input}
-                value={editing.name}
-                onChangeText={value => setEditing({ ...editing, name: value })}
-              />
-              <View style={styles.switchRow}>
-                <Text style={styles.subtitle}>{t('Enabled')}</Text>
-                <Switch
-                  value={editing.enabled}
-                  onValueChange={v => setEditing({ ...editing, enabled: v })}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                  thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
-                  style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
-                />
-                <View style={spacerStyle} />
-                <Text style={styles.subtitle}>{t('Highlight')}</Text>
-                <Switch
-                  value={showHighlight}
-                  onValueChange={setShowHighlight}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                  thumbColor={showHighlight ? '#fff' : colors.textSecondary}
-                  style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
-                />
-              </View>
-              <Text style={styles.label}>{t('Code')}</Text>
-              <View style={styles.codeEditorWrapper}>
-                {showHighlight && (
-                  <ScrollView
-                    ref={highlightScrollRef}
-                    testID="script-highlight-layer"
-                    pointerEvents="none"
-                    style={styles.codeHighlight}
-                    contentContainerStyle={styles.codeHighlightContent}
-                    showsVerticalScrollIndicator={false}
-                    scrollEnabled={false}
-                  >
-                    <Text style={styles.codeText}>
-                      {highlightedCode.map((part, idx) => (
-                        <Text key={idx} style={part.style}>
-                          {part.text}
-                        </Text>
-                      ))}
-                    </Text>
-                  </ScrollView>
-                )}
+              {/*
+                Scrollable, because the editor used to be a fixed column: in
+                landscape the buttons sat below the fold with no way to reach
+                them. `keyboardShouldPersistTaps` keeps the autocomplete list
+                tappable while the keyboard is up.
+              */}
+              <ScrollView
+                style={styles.editorBody}
+                contentContainerStyle={styles.editorBodyContent}
+                keyboardShouldPersistTaps="handled"
+              >
                 <TextInput
-                  ref={codeInputRef}
-                  style={[
-                    styles.codeInput,
-                    showHighlight && styles.codeInputOverlay,
-                  ]}
+                  style={styles.nameInput}
+                  value={editing.name}
+                  placeholder={t('Script name')}
+                  placeholderTextColor={colors.textSecondary}
+                  onChangeText={value =>
+                    setEditing({ ...editing, name: value })
+                  }
+                />
+                <View style={styles.switchRow}>
+                  <Text style={styles.subtitle}>{t('Enabled')}</Text>
+                  <Switch
+                    value={editing.enabled}
+                    onValueChange={v => setEditing({ ...editing, enabled: v })}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
+                    style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
+                  />
+                  <View style={spacerStyle} />
+                  <Text style={styles.subtitle}>{t('Highlight')}</Text>
+                  <Switch
+                    value={showHighlight}
+                    onValueChange={setShowHighlight}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor={showHighlight ? '#fff' : colors.textSecondary}
+                    style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
+                  />
+                </View>
+                <Text style={styles.label}>{t('Code')}</Text>
+                <View style={styles.codeEditorWrapper}>
+                  {showHighlight && (
+                    <ScrollView
+                      ref={highlightScrollRef}
+                      testID="script-highlight-layer"
+                      pointerEvents="none"
+                      style={styles.codeHighlight}
+                      contentContainerStyle={styles.codeHighlightContent}
+                      showsVerticalScrollIndicator={false}
+                      scrollEnabled={false}
+                    >
+                      <Text style={styles.codeText}>
+                        {highlightedCode.map((part, idx) => (
+                          <Text key={idx} style={part.style}>
+                            {part.text}
+                          </Text>
+                        ))}
+                      </Text>
+                    </ScrollView>
+                  )}
+                  <TextInput
+                    ref={codeInputRef}
+                    style={[
+                      styles.codeInput,
+                      showHighlight && styles.codeInputOverlay,
+                    ]}
+                    multiline
+                    value={editing.code}
+                    selection={
+                      caretTarget
+                        ? {
+                            start: Math.min(
+                              caretTarget.start,
+                              editing.code.length,
+                            ),
+                            end: Math.min(caretTarget.end, editing.code.length),
+                          }
+                        : undefined
+                    }
+                    onSelectionChange={e => {
+                      const next = e.nativeEvent.selection;
+                      setSelection(next);
+                      // The caret arrived where it was sent, so hand control of
+                      // it back to the field.
+                      if (
+                        caretTarget &&
+                        next.start === caretTarget.start &&
+                        next.end === caretTarget.end
+                      ) {
+                        setCaretTarget(null);
+                      }
+                    }}
+                    onFocus={() => {
+                      if (blurTimer.current) clearTimeout(blurTimer.current);
+                      setEditorFocused(true);
+                    }}
+                    onBlur={() => {
+                      blurTimer.current = setTimeout(
+                        () => setEditorFocused(false),
+                        200,
+                      );
+                    }}
+                    onKeyPress={e => {
+                      if (
+                        e.nativeEvent.key === 'Tab' &&
+                        completion.items.length > 0
+                      ) {
+                        acceptCompletion(completion.items[0]);
+                      }
+                    }}
+                    onChangeText={value => {
+                      // Typing releases the caret unconditionally: if a forced
+                      // position were ever left set, every keystroke after it
+                      // would be dragged back to the same spot.
+                      setCaretTarget(null);
+                      setEditing({ ...editing, code: value });
+                    }}
+                    onScroll={
+                      showHighlight
+                        ? e => {
+                            const y = e.nativeEvent.contentOffset?.y || 0;
+                            highlightScrollRef.current?.scrollTo({
+                              y,
+                              animated: false,
+                            });
+                          }
+                        : undefined
+                    }
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
+                  />
+                </View>
+                {editorFocused && completion.items.length > 0 && (
+                  <View style={styles.autocompleteBox}>
+                    <ScrollView
+                      keyboardShouldPersistTaps="always"
+                      nestedScrollEnabled
+                      style={styles.autocompleteList}
+                    >
+                      {completion.items.map((item, idx) => {
+                        // The signature and summary are the point: a list of
+                        // bare names cannot say whether `userNick` is a value
+                        // or a call, or what `setTimer` wants.
+                        const entry = describeMember(
+                          item,
+                          completion.scope === 'ai' ? 'ai' : 'api',
+                        );
+                        return (
+                          <TouchableOpacity
+                            key={item}
+                            style={[
+                              styles.autocompleteItem,
+                              idx === 0 && styles.autocompleteItemFirst,
+                            ]}
+                            onPress={() => acceptCompletion(item)}
+                          >
+                            <View style={styles.autocompleteHead}>
+                              <Text style={styles.autocompleteText}>
+                                {entry?.signature ?? item}
+                              </Text>
+                              <Text style={styles.autocompleteTag}>
+                                {entry?.isAsync
+                                  ? t('async')
+                                  : HOOK_LIST.includes(item)
+                                    ? t('hook')
+                                    : completion.scope === 'ai'
+                                      ? t('api.ai')
+                                      : API_MEMBERS.includes(item)
+                                        ? t('api')
+                                        : t('keyword')}
+                              </Text>
+                            </View>
+                            {!!entry?.summary && (
+                              <Text
+                                style={styles.autocompleteDoc}
+                                numberOfLines={2}
+                              >
+                                {entry.summary}
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
+                <Text style={styles.label}>{t('Config (JSON)')}</Text>
+                <TextInput
+                  style={styles.codeInput}
                   multiline
-                  value={editing.code}
-                  selection={{
-                    start: Math.min(selection.start, editing.code.length),
-                    end: Math.min(selection.end, editing.code.length),
-                  }}
-                  onSelectionChange={e => setSelection(e.nativeEvent.selection)}
-                  onFocus={() => {
-                    if (blurTimer.current) clearTimeout(blurTimer.current);
-                    setEditorFocused(true);
-                  }}
-                  onBlur={() => {
-                    blurTimer.current = setTimeout(
-                      () => setEditorFocused(false),
-                      200,
-                    );
-                  }}
-                  onKeyPress={e => {
-                    if (
-                      e.nativeEvent.key === 'Tab' &&
-                      completion.items.length > 0
-                    ) {
-                      acceptCompletion(completion.items[0]);
+                  value={JSON.stringify(editing.config || {}, null, 2)}
+                  onChangeText={jsonText => {
+                    try {
+                      const parsed = JSON.parse(jsonText || '{}');
+                      setEditing({ ...editing, config: parsed });
+                    } catch (err) {
+                      Alert.alert(t('Invalid JSON'), String(err));
                     }
                   }}
-                  onChangeText={value =>
-                    setEditing({ ...editing, code: value })
-                  }
-                  onScroll={
-                    showHighlight
-                      ? e => {
-                          const y = e.nativeEvent.contentOffset?.y || 0;
-                          highlightScrollRef.current?.scrollTo({
-                            y,
-                            animated: false,
-                          });
-                        }
-                      : undefined
-                  }
-                  selectionColor={colors.primary}
-                  cursorColor={colors.primary}
                 />
-              </View>
-              {editorFocused && completion.items.length > 0 && (
-                <View style={styles.autocompleteBox}>
-                  <ScrollView
-                    keyboardShouldPersistTaps="always"
-                    nestedScrollEnabled
-                    style={styles.autocompleteList}
-                  >
-                    {completion.items.map((item, idx) => (
-                      <TouchableOpacity
-                        key={item}
-                        style={[
-                          styles.autocompleteItem,
-                          idx === 0 && styles.autocompleteItemFirst,
-                        ]}
-                        onPress={() => acceptCompletion(item)}
-                      >
-                        <Text style={styles.autocompleteText}>{item}</Text>
-                        <Text style={styles.autocompleteTag}>
-                          {HOOK_LIST.includes(item)
-                            ? t('hook')
-                            : API_MEMBERS.includes(item)
-                              ? t('api')
-                              : t('keyword')}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-              <Text style={styles.label}>{t('Config (JSON)')}</Text>
-              <TextInput
-                style={styles.codeInput}
-                multiline
-                value={JSON.stringify(editing.config || {}, null, 2)}
-                onChangeText={jsonText => {
-                  try {
-                    const parsed = JSON.parse(jsonText || '{}');
-                    setEditing({ ...editing, config: parsed });
-                  } catch (err) {
-                    Alert.alert(t('Invalid JSON'), String(err));
-                  }
-                }}
-              />
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleSaveScript}
-              >
-                <Text style={styles.buttonText}>{t('Save')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={handleLint}>
-                <Text style={styles.buttonText}>{t('Lint')}</Text>
-              </TouchableOpacity>
-              {aiConfigured && (
+              </ScrollView>
+
+              {/*
+                Pinned below the scroll area so Save is always one tap away,
+                whichever way the phone is held.
+              */}
+              <View style={styles.editorActions}>
                 <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => setShowGenerator(true)}
+                  style={[styles.editorAction, styles.editorActionPrimary]}
+                  onPress={handleSaveScript}
                 >
-                  <Text style={styles.buttonText}>{t('Generate with AI')}</Text>
+                  <Icon name="save" size={15} color={colors.onPrimary} solid />
+                  <Text style={styles.editorActionPrimaryText}>
+                    {t('Save')}
+                  </Text>
                 </TouchableOpacity>
-              )}
+                <TouchableOpacity
+                  style={styles.editorAction}
+                  onPress={handleLint}
+                >
+                  <Icon name="check-circle" size={15} color={colors.primary} />
+                  <Text style={styles.editorActionText}>{t('Lint')}</Text>
+                </TouchableOpacity>
+                {aiConfigured && (
+                  <TouchableOpacity
+                    style={styles.editorAction}
+                    onPress={openGenerator}
+                    // The visible label is short so three buttons fit a phone
+                    // in portrait; the full one is still announced.
+                    accessibilityLabel={t('Generate with AI')}
+                  >
+                    <Icon name="robot" size={15} color={colors.primary} />
+                    <Text style={styles.editorActionText}>{t('AI')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </>
           )}
         </ModalSafeArea>
@@ -1047,10 +1199,51 @@ export const ScriptingScreen: React.FC<Props> = ({
             </View>
             <ScrollView contentContainerStyle={styles.generatorBody}>
               <Text style={styles.subtitle}>
-                {t(
-                  'Describe what the script should do. The generated code is shown for you to review — it is never saved or enabled on its own.',
-                )}
+                {willEdit
+                  ? t(
+                      'Describe the change you want. Your script is sent along so the rest of it is kept. The result is shown for you to review — it is never saved or enabled on its own.',
+                    )
+                  : t(
+                      'Describe what the script should do. The generated code is shown for you to review — it is never saved or enabled on its own.',
+                    )}
               </Text>
+
+              {editableCode !== '' && (
+                <View style={styles.generatorModes}>
+                  <TouchableOpacity
+                    style={[
+                      styles.generatorMode,
+                      generatorEdits && styles.generatorModeActive,
+                    ]}
+                    onPress={() => setGeneratorEdits(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.generatorModeText,
+                        generatorEdits && styles.generatorModeTextActive,
+                      ]}
+                    >
+                      {t('Change this script')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.generatorMode,
+                      !generatorEdits && styles.generatorModeActive,
+                    ]}
+                    onPress={() => setGeneratorEdits(false)}
+                  >
+                    <Text
+                      style={[
+                        styles.generatorModeText,
+                        !generatorEdits && styles.generatorModeTextActive,
+                      ]}
+                    >
+                      {t('Write a new one')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               {aiBlocker && (
                 <View style={styles.generatorBlocker}>
                   <Text style={styles.generatorBlockerReason}>
@@ -1062,15 +1255,21 @@ export const ScriptingScreen: React.FC<Props> = ({
                 </View>
               )}
 
-              <Text style={styles.label}>{t('Description')}</Text>
+              <Text style={styles.label}>
+                {willEdit ? t('Change to make') : t('Description')}
+              </Text>
               <TextInput
                 style={styles.generatorInput}
                 value={generatorPrompt}
                 onChangeText={setGeneratorPrompt}
                 multiline
-                placeholder={t(
-                  'e.g. greet people who join #chat, but only once per nick per day',
-                )}
+                placeholder={
+                  willEdit
+                    ? t('e.g. only greet people once per day, not every join')
+                    : t(
+                        'e.g. greet people who join #chat, but only once per nick per day',
+                      )
+                }
                 placeholderTextColor={colors.textSecondary}
               />
               <TouchableOpacity
@@ -1081,7 +1280,9 @@ export const ScriptingScreen: React.FC<Props> = ({
                 {generating ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
-                  <Text style={styles.buttonText}>{t('Generate')}</Text>
+                  <Text style={styles.buttonText}>
+                    {willEdit ? t('Apply the change') : t('Generate')}
+                  </Text>
                 )}
               </TouchableOpacity>
 
@@ -1095,7 +1296,9 @@ export const ScriptingScreen: React.FC<Props> = ({
 
               {generatedCode && (
                 <>
-                  <Text style={styles.label}>{t('Generated code')}</Text>
+                  <Text style={styles.label}>
+                    {willEdit ? t('Updated script') : t('Generated code')}
+                  </Text>
                   <ScrollView
                     horizontal
                     style={styles.generatedCodeBox}
@@ -1108,7 +1311,9 @@ export const ScriptingScreen: React.FC<Props> = ({
                     onPress={handleUseGenerated}
                   >
                     <Text style={styles.buttonText}>
-                      {t('Put it in the editor')}
+                      {willEdit
+                        ? t('Use the updated script')
+                        : t('Put it in the editor')}
                     </Text>
                   </TouchableOpacity>
                 </>
@@ -1193,6 +1398,31 @@ const createStyles = (colors: any) => {
       fontWeight: '600',
       lineHeight: 18,
       marginTop: 4,
+    },
+    generatorModes: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      padding: 3,
+      marginTop: 12,
+    },
+    generatorMode: {
+      flex: 1,
+      paddingVertical: 8,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+    generatorModeActive: {
+      backgroundColor: colors.surface,
+    },
+    generatorModeText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    generatorModeTextActive: {
+      color: colors.primary,
+      fontWeight: '700',
     },
     generatorInput: {
       backgroundColor: colors.surfaceVariant,
@@ -1331,7 +1561,11 @@ const createStyles = (colors: any) => {
       right: 0,
       bottom: 0,
       backgroundColor: 'transparent',
-      zIndex: 2,
+      // Behind the input, not in front of it. The input's glyphs are
+      // transparent when highlight is on, so the colours show through anyway,
+      // and nothing can then sit between a tap and the text field — which is
+      // what made the editor feel dead with highlight switched on.
+      zIndex: 1,
     },
     codeHighlightContent: { padding: 8 },
     codeInput: {
@@ -1344,7 +1578,7 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
-      zIndex: 1,
+      zIndex: 2,
     },
     // When highlight is on, hide the input's own glyphs (keep caret/selection
     // visible) so only the coloured layer behind is read.
@@ -1401,15 +1635,62 @@ const createStyles = (colors: any) => {
       backgroundColor: colors.surface,
       overflow: 'hidden',
     },
-    autocompleteList: { maxHeight: 168 },
-    autocompleteItem: {
+    editorBody: { flex: 1 },
+    editorBodyContent: { paddingBottom: 16 },
+    nameInput: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      fontSize: 15,
+      marginBottom: 4,
+    },
+    editorActions: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      gap: 10,
       paddingHorizontal: 12,
       paddingVertical: 10,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    editorAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    editorActionPrimary: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    editorActionText: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    editorActionPrimaryText: {
+      color: colors.onPrimary,
+      fontWeight: '700',
+      fontSize: 14,
+    },
+    autocompleteList: { maxHeight: 220 },
+    autocompleteItem: {
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    autocompleteHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     autocompleteItemFirst: {
       borderTopWidth: 0,
@@ -1424,6 +1705,13 @@ const createStyles = (colors: any) => {
       color: colors.textSecondary,
       fontSize: 11,
       textTransform: 'uppercase',
+      marginLeft: 8,
+    },
+    autocompleteDoc: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: 3,
     },
   });
 };

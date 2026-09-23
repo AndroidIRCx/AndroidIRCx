@@ -60,7 +60,8 @@ const running = {
   running: true,
   port: 8765,
   token: 'abc123',
-  bindLan: false,
+  bindMode: 'loopback',
+  host: '127.0.0.1',
 };
 
 describe('McpServerService', () => {
@@ -87,24 +88,47 @@ describe('McpServerService', () => {
     await mcpServerService.start();
 
     const config = mockNative.start.mock.calls[0][0];
-    // Nobody watches a remote caller, so neither writing nor LAN exposure
-    // may happen by default.
-    expect(config.bindLan).toBe(false);
+    // Nobody watches a remote caller, so neither writing nor network
+    // exposure may happen by default.
+    expect(config.bindMode).toBe('loopback');
     expect(config.allowWrites).toBe(false);
   });
 
-  it('passes both flags through when the user opts in', async () => {
+  it('passes both choices through when the user opts in', async () => {
     await mcpServerService.start({
-      bindLan: true,
+      bindMode: 'any',
       allowWrites: true,
       port: 9000,
     });
 
     expect(mockNative.start.mock.calls[0][0]).toMatchObject({
-      bindLan: true,
+      bindMode: 'any',
       allowWrites: true,
       port: 9000,
     });
+  });
+
+  it('remembers both choices across a restart of the screen', async () => {
+    await mcpServerService.saveConfig({ allowWrites: true, bindMode: 'lan' });
+
+    // Both are decisions about exposure. Forgetting them made the user
+    // re-decide blind every time they opened the screen.
+    expect(await mcpServerService.loadConfig()).toMatchObject({
+      allowWrites: true,
+      bindMode: 'lan',
+    });
+
+    await mcpServerService.start();
+    expect(mockNative.start.mock.calls[0][0]).toMatchObject({
+      allowWrites: true,
+      bindMode: 'lan',
+    });
+  });
+
+  it('falls back to loopback when the saved mode is not one it knows', async () => {
+    await mcpServerService.saveConfig({ bindMode: 'everywhere' as never });
+
+    expect((await mcpServerService.loadConfig()).bindMode).toBe('loopback');
   });
 
   it('serializes each tool schema for the native side', async () => {
@@ -208,8 +232,14 @@ describe('McpServerService', () => {
     expect(mcpServerService.describeEndpoint(running)).toBe(
       'http://127.0.0.1:8765/mcp',
     );
+    // The point of this string is that it can be pasted into an MCP client,
+    // so the phone's real address goes in it rather than a placeholder.
     expect(
-      mcpServerService.describeEndpoint({ ...running, bindLan: true }),
-    ).toBe('http://<phone-ip>:8765/mcp');
+      mcpServerService.describeEndpoint({
+        ...running,
+        bindMode: 'lan',
+        host: '192.168.1.14',
+      }),
+    ).toBe('http://192.168.1.14:8765/mcp');
   });
 });

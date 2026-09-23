@@ -14,8 +14,12 @@ import {
   AIToolCall,
 } from '../types';
 import { getJson, postJson } from './httpJson';
+import { sortModelIds } from './modelSort';
 
 const DEFAULT_BASE_URL = 'https://api.anthropic.com';
+const MODEL_PAGE_SIZE = 1000;
+/** A stop, so a provider that always says there is more cannot loop forever. */
+const MAX_MODEL_PAGES = 10;
 /** Pinned per Anthropic's versioning scheme; the header is required. */
 const API_VERSION = '2023-06-01';
 /** Opt-in for provider-side MCP; sent only when MCP servers are configured. */
@@ -35,6 +39,9 @@ interface MessagesResponse {
 
 interface ModelsResponse {
   data?: Array<{ id?: string }>;
+  /** This endpoint pages; both fields drive the next request. */
+  has_more?: boolean;
+  last_id?: string;
 }
 
 /**
@@ -225,15 +232,29 @@ class AnthropicProvider implements AIProviderAdapter {
     apiKey: string | null,
     signal: AbortSignal,
   ): Promise<string[]> {
-    const response = await getJson<ModelsResponse>(
-      this.endpoint(provider, '/v1/models'),
-      this.headers(apiKey),
-      signal,
-    );
-    return (response.data ?? [])
-      .map(entry => entry?.id)
-      .filter((id): id is string => typeof id === 'string' && id.length > 0)
-      .sort();
+    const ids: string[] = [];
+    let after: string | undefined;
+
+    // Paginated, so reading only the first page can come back short.
+    for (let page = 0; page < MAX_MODEL_PAGES; page += 1) {
+      const query =
+        `?limit=${MODEL_PAGE_SIZE}` +
+        (after ? `&after_id=${encodeURIComponent(after)}` : '');
+      const response = await getJson<ModelsResponse>(
+        this.endpoint(provider, `/v1/models${query}`),
+        this.headers(apiKey),
+        signal,
+      );
+
+      for (const entry of response.data ?? []) {
+        if (typeof entry?.id === 'string' && entry.id) ids.push(entry.id);
+      }
+
+      after = response.last_id;
+      if (!response.has_more || !after) break;
+    }
+
+    return sortModelIds(ids);
   }
 }
 

@@ -148,6 +148,17 @@ export interface AIRequestOptions {
    */
   channel?: string;
   network?: string;
+  /**
+   * This request continues a turn the caller already booked, rather than
+   * starting a new one. The cooldown is skipped for it; the daily cap and the
+   * concurrency limit still apply.
+   *
+   * The cooldown exists to put a gap between *turns* — a script reacting to
+   * channel traffic must not fire on every line. An agent working through
+   * several tool rounds to answer one question is one turn, and throttling its
+   * middle rounds only strands the user mid-answer.
+   */
+  continuesTurn?: boolean;
 }
 
 /** Machine-readable failure reasons, so callers can branch without parsing text. */

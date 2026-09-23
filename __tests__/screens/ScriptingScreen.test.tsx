@@ -951,6 +951,38 @@ describe('ScriptingScreen', () => {
     expect(await findByText('Edit Script')).toBeTruthy();
   });
 
+  it('keeps the code editable with highlight on', async () => {
+    scriptingService.list.mockReturnValue([]);
+
+    const { findByText, getAllByDisplayValue, getAllByRole } = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('New Script'));
+
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+    const start = '// module.exports = { onMessage: (msg) => { /* ... */ } };';
+    let input = getAllByDisplayValue(start)[0];
+
+    // The editor must not pin the caret while the user types: doing that is
+    // what dragged every keystroke back to the same spot once the highlight
+    // layer made each render slow enough to lose the race.
+    expect(input.props.selection).toBeUndefined();
+
+    await fireEvent.changeText(input, 'const a = 1;');
+    input = getAllByDisplayValue('const a = 1;')[0];
+    expect(input.props.selection).toBeUndefined();
+
+    await fireEvent.changeText(input, 'const a = 1;\nconst b = 2;');
+    expect(getAllByDisplayValue('const a = 1;\nconst b = 2;')[0]).toBeTruthy();
+  });
+
   it('falls back to manual highlighting when Prism grammar is unavailable', async () => {
     scriptingService.list.mockReturnValue([]);
     const Prism = require('prismjs');
@@ -1107,11 +1139,11 @@ describe('ScriptingScreen', () => {
         where: 'Settings > AI > AI Providers > Add',
       });
 
-      const { queryByText, findByText } = await openEditor();
+      const { queryByLabelText, findByText } = await openEditor();
 
       await findByText('Lint');
       // The one place AI would otherwise appear uninvited.
-      expect(queryByText('Generate with AI')).toBeNull();
+      expect(queryByLabelText('Generate with AI')).toBeNull();
     });
 
     it('appears once a provider exists', async () => {
@@ -1122,9 +1154,9 @@ describe('ScriptingScreen', () => {
         where: '',
       });
 
-      const { findByText } = await openEditor();
+      const { findByLabelText } = await openEditor();
 
-      await findByText('Generate with AI');
+      await findByLabelText('Generate with AI');
     });
 
     it('stays visible when AI is set up but something else is off', async () => {
@@ -1135,11 +1167,11 @@ describe('ScriptingScreen', () => {
         where: 'Settings > AI > Privacy',
       });
 
-      const { findByText } = await openEditor();
+      const { findByLabelText } = await openEditor();
 
       // Hiding a button the user configured would be a disappearing act;
       // the modal's banner explains what is missing instead.
-      await findByText('Generate with AI');
+      await findByLabelText('Generate with AI');
     });
   });
 });

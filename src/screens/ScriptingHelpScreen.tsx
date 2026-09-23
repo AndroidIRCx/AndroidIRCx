@@ -183,6 +183,108 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           {t('• api.isHighlighted(text) — matches your highlight words')}
         </Text>
 
+        <Text style={styles.title}>{t('AI')}</Text>
+        <Text style={styles.text}>
+          {t(
+            'Everything here is off until you turn it on, and the app never provides a model of its own. You bring your own API key, or point it at a model server on your own network.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Setting it up')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > AI Providers > Add. Pick your provider, paste your key, then Load models and choose one.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > Privacy > Allow sending messages to a provider. Nothing leaves the phone until you agree to this. A local provider on your own network never asks.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > Privacy > Channels AI may read. Every channel is off until you switch it on, one at a time. The other people in a channel never agreed to have their words sent anywhere, which is why this is not a single yes.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• You can also allow or stop a channel from its own tab: long-press the tab and use the AI item.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Remove identifying data, on by default, replaces nicknames with user1, user2… and strips IP addresses, hostmasks and e-mail addresses before anything is sent.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('The assistant')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > Assistant. Ask about your own session — which channels you are in, what you missed, who said what.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Reading happens straight away; anything that sends, joins or leaves stops and asks you first, one clear action at a time.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Long-press any message to copy it. If a turn fails, Try again resends the same question.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Writing scripts with AI')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• In the editor, the AI button writes a script from a description, or changes the one you already have. Change this script sends your code along and keeps the rest of it; Write a new one starts fresh and asks before replacing your work.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• The result is always shown for you to review, with its lint verdict. Nothing is saved or enabled on your behalf.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('MCP — tools from elsewhere')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > Connect to MCP servers. The assistant gains that server’s tools, whichever provider you use, so one question can reach both your IRC history and your own notes.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Streamable HTTP only. A server running on this phone in Termux counts — point it at http://127.0.0.1:<port>.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Every remote tool asks before it runs. Trust this server honours a server’s own claim that a tool only reads, and is off by default because that claim is the server talking about itself.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('MCP — this app as a server')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > Let other agents use this app. An assistant on your computer can then read and act on this IRC session.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Turn it on and the address and token to paste into your MCP client appear on screen. Add it as a Streamable HTTP server with the token as a bearer token.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Allow actions is off by default: a remote agent can look, but cannot send, join or leave. Those tools are not merely refused, they are never offered.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Who can reach it: Only this phone, My network, or Every connection. The last one includes mobile data and tethering, so use it deliberately and turn it off after. Both settings are locked while the server runs, and a fresh token is generated each time it starts.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('AI (your own API key)')}</Text>
         <Text style={styles.bullet}>
           {t(

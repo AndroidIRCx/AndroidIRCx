@@ -35,6 +35,8 @@ import { FingerprintFormat } from '../types/certificate';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 import { debugLogger } from '../services/DebugLogger';
 import { scriptingService } from '../services/ScriptingService';
+import { aiService } from '../services/ai/AIService';
+import { aiProviderStore } from '../services/ai/AIProviderStore';
 
 interface TabOption {
   text: string;
@@ -557,6 +559,36 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
               useUIStore.getState().setShowTabOptionsModal(false);
             },
           });
+
+          // Only for someone who actually set AI up. Everyone else gets a
+          // menu with nothing about AI in it, which is the point.
+          try {
+            await aiService.loadSettings();
+            const providers = await aiProviderStore.list();
+            if (providers.length > 0) {
+              const allowed = aiService.isChannelAllowed(
+                tab.name,
+                tab.networkId,
+              );
+              options.push({
+                text: allowed
+                  ? t('Stop AI reading {channel}', { channel: tab.name })
+                  : t('Let AI read {channel}', { channel: tab.name }),
+                icon: allowed ? 'robot-off' : 'robot',
+                onPress: async () => {
+                  await aiService.setChannelAllowed(
+                    tab.name,
+                    !allowed,
+                    tab.networkId,
+                  );
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              });
+            }
+          } catch {
+            // A settings read that fails is not worth losing the whole menu
+            // over; the same switch lives in Settings > AI > Privacy.
+          }
         } else if (tab.type === 'query') {
           // Encryption options for DMs
           const alwaysEncryptEnabled =

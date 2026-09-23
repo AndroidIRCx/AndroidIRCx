@@ -123,6 +123,29 @@ class AgentService {
   }
 
   /**
+   * Run the last question again, without asking the user to retype it.
+   *
+   * A failed turn leaves its question in the history, so this must not push
+   * it a second time. Any assistant turn at the end is dropped first: those
+   * are tool calls that were never answered, and replaying a conversation
+   * that stops on an unanswered call confuses every provider.
+   */
+  async retry(): Promise<AgentTurn> {
+    while (
+      this.messages.length &&
+      this.messages[this.messages.length - 1].role === 'assistant'
+    ) {
+      this.messages.pop();
+    }
+    if (!this.messages.length) {
+      return { status: 'error', error: 'There is nothing to retry' };
+    }
+    this.pending = [];
+    this.rounds = 0;
+    return this.run();
+  }
+
+  /**
    * Apply the user's decisions to the calls that were waiting. A declined call
    * still gets a result — the model is told it was refused, rather than left
    * waiting for an answer that never comes.
@@ -167,7 +190,15 @@ class AgentService {
       try {
         result = await aiService.chat(
           this.messages,
-          { system: SYSTEM_PROMPT, tools, maxTokens: 1500 },
+          {
+            system: SYSTEM_PROMPT,
+            tools,
+            maxTokens: 1500,
+            // Only the first round opens a turn. The rest are this turn
+            // finishing its own work, and throttling them would strand the
+            // user halfway through an answer they already asked for.
+            continuesTurn: this.rounds > 1,
+          },
           CALLER_ID,
         );
       } catch (error: any) {

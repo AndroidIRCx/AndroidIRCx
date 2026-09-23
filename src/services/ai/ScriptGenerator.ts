@@ -6,9 +6,10 @@
 import { aiService } from './AIService';
 import { scriptingService } from '../ScriptingService';
 import {
-  AI_MEMBERS,
-  API_MEMBERS,
-  HOOK_LIST,
+  AI_ENTRIES,
+  API_ENTRIES,
+  HOOK_ENTRIES,
+  VocabularyEntry,
 } from '../../config/scriptVocabulary';
 import { AIError } from './types';
 
@@ -31,16 +32,44 @@ import { AIError } from './types';
 const CALLER_ID = 'script-generator';
 
 const MAX_DESCRIPTION_CHARS = 1000;
+/**
+ * How much existing code may be sent for an edit. Well under the service's
+ * own prompt ceiling, so the system prompt and the description always fit
+ * alongside it and the user gets this message rather than a generic one.
+ */
+const MAX_CODE_CHARS = 6000;
 
 export interface GeneratedScript {
   code: string;
   /** Result of running the generated code through the normal lint check. */
   lint: { ok: boolean; message: string };
+  /** True when this rewrote an existing script rather than writing a new one. */
+  edited: boolean;
 }
 
-export function buildSystemPrompt(): string {
+/**
+ * One vocabulary line for the prompt. Signatures rather than bare names: a
+ * model given only `setTimer` guesses its arguments, and the guess compiles.
+ */
+function describe(entry: VocabularyEntry): string {
+  const awaited = entry.isAsync ? ' [async — await it]' : '';
+  return `- ${entry.signature} — ${entry.summary}${awaited}`;
+}
+
+export function buildSystemPrompt(editing = false): string {
+  const editingRules = editing
+    ? [
+        '',
+        'You are EDITING a script the user already has, not writing a new one.',
+        '- Apply only the change they asked for.',
+        '- Keep everything else exactly as it is: their logic, their names,',
+        '  their comments, their formatting. Do not tidy, rename or refactor.',
+        '- Reply with the complete updated script, not a diff and not a fragment.',
+      ]
+    : [];
   return [
     'You write scripts for AndroidIRCX, an Android IRC client.',
+    ...editingRules,
     '',
     'Output rules:',
     '- Reply with JavaScript only. No prose, no explanation, no markdown fences.',
@@ -54,13 +83,14 @@ export function buildSystemPrompt(): string {
     '  onMessage: (msg) => { /* msg: { from, text, channel, network } */ },',
     '};',
     '',
-    `Hooks: ${HOOK_LIST.join(', ')}`,
+    'Hooks:',
+    ...HOOK_ENTRIES.map(describe),
     '',
-    `api methods: ${API_MEMBERS.join(', ')}`,
+    'api methods (prefix each with `api.`):',
+    ...API_ENTRIES.map(describe),
     '',
-    `api.ai methods (all async, resolve null on failure): ${AI_MEMBERS.join(
-      ', ',
-    )}`,
+    'api.ai methods (prefix with `api.ai.`; all resolve null on failure):',
+    ...AI_ENTRIES.map(describe),
     '',
     'Notes that matter:',
     '- onRaw and onCommand must return synchronously; they cannot await.',
@@ -95,8 +125,16 @@ class ScriptGenerator {
    * Generate a script from `description`. Resolves with the code and its lint
    * result; the caller shows both and decides whether to keep it. Nothing is
    * saved or enabled here.
+   *
+   * When `existingCode` is given, this becomes an **edit**: the current script
+   * is sent along and the model is told to return it with the requested change
+   * applied. Without it the model can only invent a new script, which is how
+   * "add a cooldown to this" used to silently replace the user's work.
    */
-  async generate(description: string): Promise<GeneratedScript> {
+  async generate(
+    description: string,
+    existingCode?: string,
+  ): Promise<GeneratedScript> {
     const prompt = (description || '').trim();
     if (!prompt) {
       throw new AIError(
@@ -105,13 +143,34 @@ class ScriptGenerator {
       );
     }
 
+    const current = (existingCode || '').trim();
+    const editing = current.length > 0;
+    if (editing && current.length > MAX_CODE_CHARS) {
+      throw new AIError(
+        'prompt_too_long',
+        `This script is too long to edit with AI (${current.length} characters, limit is ${MAX_CODE_CHARS}). Edit it by hand, or ask for a new script instead.`,
+      );
+    }
+
+    const request = editing
+      ? [
+          'Here is the current script:',
+          '',
+          current,
+          '',
+          'Change to make:',
+          prompt.substring(0, MAX_DESCRIPTION_CHARS),
+        ].join('\n')
+      : prompt.substring(0, MAX_DESCRIPTION_CHARS);
+
     const result = await aiService.ask(
-      prompt.substring(0, MAX_DESCRIPTION_CHARS),
+      request,
       {
-        system: buildSystemPrompt(),
+        system: buildSystemPrompt(editing),
         maxTokens: 2000,
-        // No channel is named: this is the user's own description, so it
-        // carries nobody else's words and the per-channel gate does not apply.
+        // No channel is named: this is the user's own description and their
+        // own code, so it carries nobody else's words and the per-channel
+        // gate does not apply.
       },
       CALLER_ID,
     );
@@ -121,7 +180,7 @@ class ScriptGenerator {
       throw new AIError('provider_error', 'The provider returned no code');
     }
 
-    return { code, lint: scriptingService.lint(code) };
+    return { code, lint: scriptingService.lint(code), edited: editing };
   }
 }
 

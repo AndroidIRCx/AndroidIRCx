@@ -314,7 +314,7 @@ class AIService {
    * Booking here (rather than after the request) is what makes the cooldown
    * hold under concurrent hook invocations.
    */
-  private reserveSlot(callerId: string): CallerState {
+  private reserveSlot(callerId: string, continuesTurn = false): CallerState {
     const state = this.stateFor(callerId);
     const now = Date.now();
 
@@ -330,8 +330,15 @@ class AIService {
       );
     }
 
+    // A continuation is part of a turn the caller already waited for, so the
+    // gap has been served. Skipping it here rather than at the call site keeps
+    // the daily cap and the concurrency limit applying to every request.
     const sinceLast = now - state.lastCallAt;
-    if (state.lastCallAt > 0 && sinceLast < this.limits.cooldownMs) {
+    if (
+      !continuesTurn &&
+      state.lastCallAt > 0 &&
+      sinceLast < this.limits.cooldownMs
+    ) {
       const waitSeconds = Math.ceil(
         (this.limits.cooldownMs - sinceLast) / 1000,
       );
@@ -566,7 +573,7 @@ class AIService {
       ),
     };
 
-    const state = this.reserveSlot(callerId);
+    const state = this.reserveSlot(callerId, options.continuesTurn === true);
     const { signal, clear } = this.withTimeout(
       options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     );

@@ -407,6 +407,66 @@ describe('AgentService', () => {
     });
   });
 
+  describe('rate limiting and retry', () => {
+    it('marks its tool rounds as continuing the same turn', async () => {
+      aiService.chat
+        .mockResolvedValueOnce(
+          reply('', [{ id: 'c1', name: 'list_channels', input: {} }]),
+        )
+        .mockResolvedValueOnce(reply('You are in #chat and #dev.'));
+
+      await agentService.send('which channels am I in?');
+
+      // The first round opens the turn and serves the cooldown; throttling
+      // the rounds after it would strand the user mid-answer.
+      expect(aiService.chat.mock.calls[0][1].continuesTurn).toBe(false);
+      expect(aiService.chat.mock.calls[1][1].continuesTurn).toBe(true);
+    });
+
+    it('retries the last question without asking for it again', async () => {
+      aiService.chat.mockRejectedValueOnce(new Error('network down'));
+      const failed = await agentService.send('what did I miss?');
+      expect(failed.status).toBe('error');
+
+      aiService.chat.mockResolvedValue(reply('Nothing much.'));
+      const turn = await agentService.retry();
+
+      expect(turn).toEqual({ status: 'done', text: 'Nothing much.' });
+      // The question is still there once, not twice.
+      const asked = agentService
+        .history()
+        .filter(m => m.content === 'what did I miss?');
+      expect(asked).toHaveLength(1);
+    });
+
+    it('drops a half-finished tool turn before retrying', async () => {
+      aiService.chat
+        .mockResolvedValueOnce(
+          reply('thinking', [{ id: 'c1', name: 'send_message', input: {} }]),
+        )
+        .mockResolvedValueOnce(reply('Done.'));
+
+      // Stops for approval, leaving an assistant turn whose tool calls were
+      // never answered. Replaying that confuses every provider.
+      const waiting = await agentService.send('tell #dev hi');
+      expect(waiting.status).toBe('needs_confirmation');
+
+      await agentService.retry();
+
+      const last = agentService.history().slice(-1)[0];
+      expect(last.role).toBe('assistant');
+      expect(last.content).toBe('Done.');
+      expect(
+        agentService.history().filter(m => m.toolCalls?.length),
+      ).toHaveLength(0);
+    });
+
+    it('refuses to retry an empty conversation', async () => {
+      expect(await agentService.retry()).toMatchObject({ status: 'error' });
+      expect(aiService.chat).not.toHaveBeenCalled();
+    });
+  });
+
   it('forgets the conversation on reset', async () => {
     aiService.chat.mockResolvedValue(reply('ok'));
     await agentService.send('hi');

@@ -129,6 +129,51 @@ describe('ScriptGenerator', () => {
     expect(aiService.ask.mock.calls[0][0].length).toBe(1000);
   });
 
+  describe('editing an existing script', () => {
+    const existing = 'module.exports = { onJoin: (e) => api.say(e.channel) };';
+
+    it('sends the current code and asks for it to be kept', async () => {
+      aiService.ask.mockResolvedValue(answer('module.exports = {};'));
+
+      const result = await scriptGenerator.generate('add a cooldown', existing);
+
+      const [prompt, options] = aiService.ask.mock.calls[0];
+      // Without the code in the prompt the model can only invent a new
+      // script, which is how this used to destroy the user's work.
+      expect(prompt).toContain(existing);
+      expect(prompt).toContain('add a cooldown');
+      expect(options.system).toContain('EDITING');
+      expect(options.system).toMatch(/Keep everything else exactly as it is/);
+      expect(result.edited).toBe(true);
+    });
+
+    it('writes a new script when there is nothing to edit', async () => {
+      aiService.ask.mockResolvedValue(answer('module.exports = {};'));
+
+      const result = await scriptGenerator.generate('greet joiners', '   ');
+
+      expect(aiService.ask.mock.calls[0][1].system).not.toContain('EDITING');
+      expect(result.edited).toBe(false);
+    });
+
+    it('refuses a script too long to send, before spending a call', async () => {
+      await expect(
+        scriptGenerator.generate('tidy this up', 'x'.repeat(6001)),
+      ).rejects.toMatchObject({ code: 'prompt_too_long' });
+      expect(aiService.ask).not.toHaveBeenCalled();
+    });
+
+    it('still caps the description when editing', async () => {
+      aiService.ask.mockResolvedValue(answer('module.exports = {};'));
+
+      await scriptGenerator.generate('y'.repeat(5000), existing);
+
+      const prompt = aiService.ask.mock.calls[0][0];
+      expect(prompt).toContain('y'.repeat(1000));
+      expect(prompt).not.toContain('y'.repeat(1001));
+    });
+  });
+
   it('errors when the provider returns nothing usable', async () => {
     aiService.ask.mockResolvedValue(answer('   '));
 

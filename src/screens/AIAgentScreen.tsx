@@ -13,13 +13,17 @@ import React, {
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
@@ -51,6 +55,8 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [busy, setBusy] = useState(false);
   const [blocker, setBlocker] = useState<AIReadiness | null>(null);
   const [pending, setPending] = useState<AgentTurn['pending']>(undefined);
+  /** Set when the last turn failed, so the question can be sent again. */
+  const [canRetry, setCanRetry] = useState(false);
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView> | null>(null);
 
   const [mcpTools, setMcpTools] = useState(0);
@@ -75,8 +81,10 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
       if (turn.status === 'error') {
         append('system', turn.error || t('Something went wrong.'));
         setPending(undefined);
+        setCanRetry(true);
         return;
       }
+      setCanRetry(false);
       if (turn.text) append('assistant', turn.text);
       setPending(
         turn.status === 'needs_confirmation' ? turn.pending : undefined,
@@ -85,11 +93,33 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     [append, t],
   );
 
+  const copy = useCallback(
+    (text: string) => {
+      Clipboard.setString(text);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(t('Copied'), ToastAndroid.SHORT);
+      }
+    },
+    [t],
+  );
+
+  const handleRetry = useCallback(async () => {
+    if (busy) return;
+    setCanRetry(false);
+    setBusy(true);
+    try {
+      applyTurn(await agentService.retry());
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, applyTurn]);
+
   const handleSend = useCallback(async () => {
     const text = input.trim();
     if (!text || busy) return;
     setInput('');
     append('user', text);
+    setCanRetry(false);
     setBusy(true);
     try {
       applyTurn(await agentService.send(text));
@@ -125,6 +155,7 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     agentService.reset();
     setBubbles([]);
     setPending(undefined);
+    setCanRetry(false);
   }, []);
 
   if (!visible) return null;
@@ -138,115 +169,138 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
       onRequestClose={onClose}
     >
       <ModalSafeArea style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.headerAction}>{t('Close')}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('Assistant')}</Text>
-          <TouchableOpacity onPress={handleReset}>
-            <Text style={styles.headerAction}>{t('New')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {mcpTools > 0 && (
-          <Text style={styles.subtleNote}>
-            {t('{count} tools from MCP servers are available.', {
-              count: mcpTools,
-            })}
-          </Text>
-        )}
-
-        {blocker && (
-          <View style={styles.blocker}>
-            <Text style={styles.blockerReason}>{blocker.reason}</Text>
-            <Text style={styles.blockerWhere}>{blocker.where}</Text>
-          </View>
-        )}
-
-        <ScrollView
-          ref={scrollRef}
-          style={styles.thread}
-          contentContainerStyle={styles.threadContent}
-          onContentSizeChange={() =>
-            scrollRef.current?.scrollToEnd({ animated: true })
-          }
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {bubbles.length === 0 && (
-            <Text style={styles.empty}>
-              {t(
-                'Ask about your session — which channels you are in, what you missed, who said what. It can also send messages, but it will ask you first.',
-              )}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.headerAction}>{t('Close')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('Assistant')}</Text>
+            <TouchableOpacity onPress={handleReset}>
+              <Text style={styles.headerAction}>{t('New')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {mcpTools > 0 && (
+            <Text style={styles.subtleNote}>
+              {t('{count} tools from MCP servers are available.', {
+                count: mcpTools,
+              })}
             </Text>
           )}
-          {bubbles.map(bubble => (
-            <View
-              key={bubble.id}
-              style={[
-                styles.bubble,
-                bubble.role === 'user' && styles.bubbleUser,
-                bubble.role === 'system' && styles.bubbleSystem,
-              ]}
-            >
-              <Text
+
+          {blocker && (
+            <View style={styles.blocker}>
+              <Text style={styles.blockerReason}>{blocker.reason}</Text>
+              <Text style={styles.blockerWhere}>{blocker.where}</Text>
+            </View>
+          )}
+
+          <ScrollView
+            ref={scrollRef}
+            style={styles.thread}
+            contentContainerStyle={styles.threadContent}
+            onContentSizeChange={() =>
+              scrollRef.current?.scrollToEnd({ animated: true })
+            }
+          >
+            {bubbles.length === 0 && (
+              <Text style={styles.empty}>
+                {t(
+                  'Ask about your session — which channels you are in, what you missed, who said what. It can also send messages, but it will ask you first.',
+                )}
+              </Text>
+            )}
+            {bubbles.map(bubble => (
+              <TouchableOpacity
+                key={bubble.id}
+                activeOpacity={0.7}
+                // Long-press copies, so an answer can be taken somewhere else
+                // without selecting it by hand on a phone.
+                onLongPress={() => copy(bubble.text)}
                 style={[
-                  styles.bubbleText,
-                  bubble.role === 'system' && styles.bubbleSystemText,
+                  styles.bubble,
+                  bubble.role === 'user' && styles.bubbleUser,
+                  bubble.role === 'system' && styles.bubbleSystem,
                 ]}
               >
-                {bubble.text}
-              </Text>
-            </View>
-          ))}
-          {busy && (
-            <ActivityIndicator style={styles.busy} color={colors.primary} />
-          )}
-        </ScrollView>
-
-        {pending && pending.length > 0 && (
-          <View style={styles.confirm}>
-            <Text style={styles.confirmTitle}>
-              {t('The assistant wants to do this:')}
-            </Text>
-            {pending.map(entry => (
-              <Text key={entry.call.id} style={styles.confirmItem}>
-                {entry.summary}
-              </Text>
+                <Text
+                  style={[
+                    styles.bubbleText,
+                    bubble.role === 'system' && styles.bubbleSystemText,
+                  ]}
+                  selectable
+                >
+                  {bubble.text}
+                </Text>
+                {bubble.role !== 'system' && (
+                  <TouchableOpacity
+                    style={styles.bubbleCopy}
+                    onPress={() => copy(bubble.text)}
+                  >
+                    <Text style={styles.bubbleCopyText}>{t('Copy')}</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
             ))}
-            <View style={styles.confirmActions}>
-              <TouchableOpacity
-                style={styles.confirmDeny}
-                onPress={() => resolveAll(false)}
-              >
-                <Text style={styles.confirmDenyText}>{t('No')}</Text>
+            {canRetry && !busy && (
+              <TouchableOpacity style={styles.retry} onPress={handleRetry}>
+                <Text style={styles.retryText}>{t('Try again')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmApprove}
-                onPress={() => resolveAll(true)}
-              >
-                <Text style={styles.confirmApproveText}>{t('Do it')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+            )}
+            {busy && (
+              <ActivityIndicator style={styles.busy} color={colors.primary} />
+            )}
+          </ScrollView>
 
-        <View style={styles.composer}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder={t('Ask something…')}
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            editable={!busy}
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={handleSend}
-            disabled={busy || !input.trim()}
-          >
-            <Text style={styles.sendText}>{t('Send')}</Text>
-          </TouchableOpacity>
-        </View>
+          {pending && pending.length > 0 && (
+            <View style={styles.confirm}>
+              <Text style={styles.confirmTitle}>
+                {t('The assistant wants to do this:')}
+              </Text>
+              {pending.map(entry => (
+                <Text key={entry.call.id} style={styles.confirmItem}>
+                  {entry.summary}
+                </Text>
+              ))}
+              <View style={styles.confirmActions}>
+                <TouchableOpacity
+                  style={styles.confirmDeny}
+                  onPress={() => resolveAll(false)}
+                >
+                  <Text style={styles.confirmDenyText}>{t('No')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmApprove}
+                  onPress={() => resolveAll(true)}
+                >
+                  <Text style={styles.confirmApproveText}>{t('Do it')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.composer}>
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder={t('Ask something…')}
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              editable={!busy}
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={handleSend}
+              disabled={busy || !input.trim()}
+            >
+              <Text style={styles.sendText}>{t('Send')}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </ModalSafeArea>
     </Modal>
   );
@@ -319,6 +373,22 @@ const createStyles = (colors: any) =>
       fontSize: 12.5,
       fontStyle: 'italic',
     },
+    bubbleCopy: { alignSelf: 'flex-end', marginTop: 6, paddingVertical: 2 },
+    bubbleCopyText: {
+      color: colors.textSecondary,
+      fontSize: 11.5,
+      fontWeight: '600',
+    },
+    retry: {
+      alignSelf: 'flex-start',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.primary,
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginBottom: 10,
+    },
+    retryText: { color: colors.primary, fontWeight: '700', fontSize: 13.5 },
     busy: { marginTop: 8, alignSelf: 'flex-start' },
     confirm: {
       margin: 12,
