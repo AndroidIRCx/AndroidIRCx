@@ -323,8 +323,8 @@ describe('ScriptingService', () => {
       '\x01PING 123\x01',
     );
 
-    expect(scriptingService.handleRaw('BLOCK THIS', 'in')).toBeNull();
-    expect(scriptingService.handleRaw('PING', 'in')).toBe('PING!');
+    // onRaw observes; it does not rewrite the wire. See the raw describe.
+    scriptingService.handleRaw('PING', 'in');
     expect(
       scriptingService.processOutgoingCommand('/x', {
         channel: '#chat',
@@ -483,7 +483,10 @@ describe('ScriptingService', () => {
     );
     expect(await api.getSetting('nick')).toBe('value:nick');
     expect(await api.getSetting('unsafeKey')).toBeNull();
-    expect(api.getTheme()).toEqual({ name: 'IRcap', isDark: true });
+    // The colours come back too: a script that only knows "dark" has to
+    // hardcode a palette, which then clashes with every built-in theme.
+    expect(api.getTheme()).toMatchObject({ name: 'IRcap', isDark: true });
+    expect(api.getTheme().colors).toBeTruthy();
     expect(api.getConnectionStats('net1')).toEqual({ latency: 42 });
     expect(api.getNetworkId()).toBe('net1');
     expect(api.getAllNetworks()).toEqual([
@@ -834,7 +837,7 @@ describe('ScriptingService', () => {
       name: 'Light',
       colors: { background: '#fff' },
     });
-    expect(api.getTheme()).toEqual({ name: 'Light', isDark: false });
+    expect(api.getTheme()).toMatchObject({ name: 'Light', isDark: false });
 
     mockThemeService.getCurrentTheme.mockImplementationOnce(() => {
       throw new Error('x');
@@ -945,14 +948,35 @@ describe('ScriptingService', () => {
     expect(svc.timers.has('net1:something')).toBe(false);
   });
 
-  it('applies onRaw command rewrites', async () => {
+  it('hands every raw line to onRaw, in both directions', async () => {
+    (global as any).__seen = [];
     await scriptingService.add({
       id: 'raw',
       name: 'Raw',
       enabled: true,
-      code: 'module.exports = { onRaw: (line) => line === "REWRITE" ? { command: "NEW" } : line };',
+      code: 'module.exports = { onRaw: (line, dir) => global.__seen.push(dir + " " + line) };',
     });
-    expect(scriptingService.handleRaw('REWRITE', 'out')).toBe('NEW');
+
+    scriptingService.handleRaw('PING :x', 'in');
+    scriptingService.handleRaw('PONG :x', 'out');
+
+    expect((global as any).__seen).toEqual(['in PING :x', 'out PONG :x']);
+    delete (global as any).__seen;
+  });
+
+  it('ignores whatever onRaw returns', async () => {
+    await scriptingService.add({
+      id: 'raw2',
+      name: 'Raw2',
+      enabled: true,
+      code: 'module.exports = { onRaw: () => ({ cancel: true }) };',
+    });
+
+    // Raw traffic is observed, not intercepted: a script able to swallow it
+    // would only have to drop a PONG or a CAP END to hang its own connection,
+    // with no sign of why. onCommand is the supported way to stop something
+    // going out.
+    expect(scriptingService.handleRaw('PING :x', 'in')).toBeUndefined();
   });
 
   it('applies onCommand cancel and command rewrites', async () => {

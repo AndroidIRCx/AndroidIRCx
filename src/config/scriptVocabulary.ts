@@ -556,7 +556,8 @@ export const API_ENTRIES: VocabularyEntry[] = [
   {
     name: 'getTheme',
     signature: 'getTheme()',
-    summary: 'The current theme colours.',
+    summary:
+      'The current theme: { name, isDark, colors }. Read it before choosing your own colours, so output stays readable on light and dark.',
   },
 
   // Timers

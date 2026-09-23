@@ -117,6 +117,23 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           )}
         </Text>
 
+        <Text style={styles.sub}>{t('The wire, and the theme')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onRaw(line, direction, msg) sees every raw line in and out, after it has been written or read. Anything it returns is ignored.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• That is deliberate: a script able to swallow raw protocol would only have to drop a PONG or a CAP END to hang its own connection with nothing to show why. Use onCommand to stop something going out.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.getTheme() returns { name, isDark, colors }. Read it before choosing your own colours — a hardcoded palette clashes with whichever theme the user is actually on.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('Storage you can iterate')}</Text>
         <Text style={styles.bullet}>
           {t(

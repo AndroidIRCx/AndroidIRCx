@@ -112,11 +112,12 @@ interface ScriptHooks {
     message: IRCMessage,
   ) => void;
   onHighlight?: (message: IRCMessage) => void;
-  onRaw?: (
-    line: string,
-    direction: 'in' | 'out',
-    message?: IRCMessage,
-  ) => HookResult;
+  /**
+   * Every raw line, in and out, after it has been written or read. Anything
+   * returned is ignored - see handleRaw for why raw traffic is observed
+   * rather than intercepted.
+   */
+  onRaw?: (line: string, direction: 'in' | 'out', message?: IRCMessage) => void;
   onCommand?: (
     text: string,
     ctx: { channel?: string; networkId?: string },
@@ -2870,6 +2871,12 @@ class ScriptingService {
           return {
             name: theme.name,
             isDark: luminance < 0.5,
+            // The colours themselves, not just light-or-dark. They were being
+            // computed from and then thrown away, so a script could tell it
+            // was on a dark theme but not which dark theme - and had to
+            // hardcode its own palette, which then clashed with every one of
+            // the built-in themes.
+            colors: { ...theme.colors },
           };
         } catch {
           return null;
@@ -3301,25 +3308,24 @@ class ScriptingService {
     });
   }
 
-  handleRaw(
-    line: string,
-    direction: 'in' | 'out',
-    message?: IRCMessage,
-  ): string | null {
-    let current = line;
+  /**
+   * Every raw IRC line, in and out, handed to `onRaw`.
+   *
+   * **Observation only.** This used to accept a replacement or a cancel from
+   * the hook, and nothing ever called it, so no script ever found out. It is
+   * now wired to the wire-message event, which fires *after* the line has been
+   * written or read - and that is the right place for it to be. A script able
+   * to swallow raw protocol would only have to drop a PONG or a CAP END to
+   * hang its own connection, with no sign of why.
+   *
+   * To stop something going out, use `onCommand`, which runs before the line
+   * is built and is the supported way to intercept.
+   */
+  handleRaw(line: string, direction: 'in' | 'out', message?: IRCMessage): void {
+    if (!line) return;
     this.runHook('onRaw', h => {
-      const result = h.onRaw?.(current, direction, message);
-      if (typeof result === 'string') {
-        current = result;
-      } else if (result && typeof result === 'object') {
-        if (result.cancel) {
-          current = '';
-        } else if (result.command) {
-          current = result.command;
-        }
-      }
+      h.onRaw?.(line, direction, message);
     });
-    return current || null;
   }
 
   /** Script-registered menu items for a given context menu. */
