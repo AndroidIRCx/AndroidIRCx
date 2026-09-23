@@ -4,6 +4,7 @@
  */
 
 import { anthropicProvider } from '../../src/services/ai/providers/AnthropicProvider';
+import { openAICompatProvider } from '../../src/services/ai/providers/OpenAICompatProvider';
 import { geminiProvider } from '../../src/services/ai/providers/GeminiProvider';
 import { AIProvider } from '../../src/services/ai/types';
 
@@ -174,6 +175,70 @@ describe('AnthropicProvider', () => {
     // Reading only the first page is why the list arrived short.
     expect(fetchMock.mock.calls[1][0]).toContain('after_id=claude-opus-5');
     expect(models).toEqual(['claude-opus-5', 'claude-sonnet-5']);
+  });
+});
+
+describe('OpenAICompatProvider — replaying a turn', () => {
+  const provider = {
+    id: 'p1',
+    name: 'DeepSeek',
+    kind: 'openai-compatible' as const,
+    baseUrl: 'https://api.deepseek.com/v1',
+    model: 'deepseek-reasoner',
+    hasKey: true,
+    maxTokens: 1024,
+    enabled: true,
+  };
+
+  let fetchMock: jest.Mock;
+
+  beforeEach(() => {
+    fetchMock = jest.fn();
+    (global as any).fetch = fetchMock;
+  });
+
+  it('sends nothing back but role, content and tool calls', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'ok' } }] }),
+    );
+
+    await openAICompatProvider.chat(
+      provider,
+      'k',
+      [
+        { role: 'user', content: 'which channels?' },
+        {
+          role: 'assistant',
+          content: 'let me look',
+          toolCalls: [{ id: 'c1', name: 'list_channels', input: {} }],
+        },
+        {
+          role: 'user',
+          content: '',
+          toolResults: [
+            { toolCallId: 'c1', name: 'list_channels', content: '#chat' },
+          ],
+        },
+      ],
+      {},
+      signal(),
+    );
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const assistantTurn = body.messages.find(
+      (m: any) => m.role === 'assistant',
+    );
+
+    // DeepSeek's reasoning models return `reasoning_content` alongside the
+    // answer and REJECT a request that sends it back — the mirror image of
+    // Gemini's thought signature, which must be echoed. Keeping the replayed
+    // turn to exactly these keys is what makes both correct at once, so pin
+    // the shape rather than trusting it to stay that way.
+    expect(Object.keys(assistantTurn).sort()).toEqual([
+      'content',
+      'role',
+      'tool_calls',
+    ]);
   });
 });
 
