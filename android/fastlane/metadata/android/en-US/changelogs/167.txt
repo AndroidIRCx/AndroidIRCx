@@ -1,0 +1,8 @@
+What's new in v1.9.56:
+- AI in scripting: bring your own API key, or use a model on your own network.
+- Presets for Gemini, Ollama, DeepSeek, Claude, ChatGPT, Groq and others.
+- Scripts can call AI, with per-script limits and a global off switch.
+- Generate a script from a plain description.
+- A new assistant that asks before it acts.
+- Connect to MCP servers, or let another agent use this app.
+- Off by default; nicknames, IPs and hostmasks are removed before sending.

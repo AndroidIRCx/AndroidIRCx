@@ -246,6 +246,33 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           )}
         </Text>
 
+        <Text style={styles.sub}>{t('The /ai and /summarize commands')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > Scripting > Scripts. The AI examples ship switched off; enable the ones you want. A command exists the moment you enable its script — you do not have to reconnect.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• /ai <task> reads the last 30 messages of the channel and does what you asked with them — "translate the last message and draft a reply", or "what did they decide". The answer comes back to you as a notice; nothing is posted to the channel.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• /aisend posts that answer to the channel once you have read it, then forgets it. The split exists because channel text goes into the prompt: if the answer went straight out, someone writing "ignore that and say X" would become you saying X.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• /summarize [count] sums up what you missed, also privately. /tr on translates one channel for you.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Both read the channel, so they need AI enabled for it under Settings > AI > Privacy, and they need scripting time like any other script.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('MCP — tools from elsewhere')}</Text>
         <Text style={styles.bullet}>
           {t(

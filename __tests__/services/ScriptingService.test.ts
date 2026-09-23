@@ -93,6 +93,9 @@ const mockChannelNotesService = {
 const mockMessageHistoryService = {
   searchMessages: jest.fn(async () => [{ id: '1' }, { id: '2' }, { id: '3' }]),
   getStatistics: jest.fn(async () => ({ totalMessages: 12 })),
+  loadMessages: jest.fn(async () => [
+    { from: 'pierre', text: 'bonjour tout le monde' },
+  ]),
 };
 
 const mockThemeService = {
@@ -1357,41 +1360,90 @@ describe('ScriptingService', () => {
       expect(failures).toEqual([]);
     });
 
-    it('exposes at least one hook per script', () => {
+    it('registers its commands as soon as the script is compiled', () => {
       for (const script of aiScripts()) {
-        const compiled = (scriptingService as any).compile({
-          ...script,
-          enabled: true,
-        });
-        expect(Object.keys(compiled.hooks || {}).length).toBeGreaterThan(0);
+        (scriptingService as any).compile({ ...script, enabled: true });
+      }
+
+      const registered = Array.from(
+        (scriptingService as any).scriptCommands.keys(),
+      );
+      // These used to call registerCommand inside onConnect. compile() runs
+      // the script body and stores hooks but never fires onConnect, so
+      // enabling one of these while already connected registered nothing and
+      // the command simply did not exist. The older test hid it by calling
+      // onConnect by hand, which the app never does.
+      expect(registered).toEqual(
+        expect.arrayContaining(['ai', 'aisend', 'summarize', 'tr']),
+      );
+    });
+
+    it('does nothing at all until a script is enabled', () => {
+      for (const script of aiScripts()) {
+        (scriptingService as any).compile({ ...script, enabled: false });
+      }
+
+      const registered = Array.from(
+        (scriptingService as any).scriptCommands.keys(),
+      );
+      // Registering at load time must not mean registering regardless: these
+      // spend the user's own provider credit.
+      for (const command of ['ai', 'aisend', 'summarize', 'tr']) {
+        expect(registered).not.toContain(command);
       }
     });
 
-    it('registers /ai and answers into the channel', async () => {
+    it('answers /ai privately, with the channel as context', async () => {
       const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
-      const compiled = (scriptingService as any).compile({
-        ...script,
-        enabled: true,
-      });
+      (scriptingService as any).compile({ ...script, enabled: true });
 
-      await compiled.hooks.onConnect('net1');
-      const command = (scriptingService as any).scriptCommands.get('ai');
-      expect(command).toBeDefined();
-
-      await command.handler(['what', 'is', 'irc'], {
+      const ai = (scriptingService as any).scriptCommands.get('ai');
+      await ai.handler(['translate', 'that'], {
         channel: '#chat',
         networkId: 'net1',
       });
 
-      expect(mockAiService.ask).toHaveBeenCalledWith(
-        'what is irc',
-        expect.objectContaining({ maxTokens: 300 }),
-        'builtin-ai-ask',
-      );
+      const [prompt, options, caller] = mockAiService.ask.mock.calls[0];
+      // Without the recent conversation, "translate that" refers to nothing.
+      expect(prompt).toContain('bonjour tout le monde');
+      expect(prompt).toContain('Task: translate that');
+      // Naming the channel is what makes AIService enforce the opt-in on
+      // other people's words.
+      expect(options).toMatchObject({ channel: '#chat', network: 'net1' });
+      expect(caller).toBe('builtin-ai-ask');
+
+      // The channel must not hear it. The answer is drafted from what other
+      // people wrote, so they could have steered it.
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+      const issued = mockIrcService.sendCommand.mock.calls.map(call => call[0]);
+      expect(issued.some(command => /^NOTICE /.test(command))).toBe(true);
+    });
+
+    it('only posts to the channel when /aisend asks for it', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      (scriptingService as any).compile({ ...script, enabled: true });
+      const ctx = { channel: '#chat', networkId: 'net1' };
+
+      const send = (scriptingService as any).scriptCommands.get('aisend');
+      await send.handler([], ctx);
+      // Nothing drafted yet, so nothing to post.
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+
+      await (scriptingService as any).scriptCommands
+        .get('ai')
+        .handler(['draft', 'a', 'reply'], ctx);
+      await send.handler([], ctx);
+
       expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
         '#chat',
         'answer',
       );
+
+      // The draft is spent: sending the same text twice by accident is worse
+      // than having to run /ai again.
+      mockIrcService.sendMessage.mockClear();
+      await send.handler([], ctx);
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
     });
 
     it('keeps the moderation assistant from running any command', async () => {
