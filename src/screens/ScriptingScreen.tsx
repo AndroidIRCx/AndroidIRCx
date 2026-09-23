@@ -11,6 +11,7 @@ import React, {
   useRef,
 } from 'react';
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
@@ -195,9 +196,16 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
   const [scriptingTimeActive, setScriptingTimeActive] =
     useState<boolean>(false);
-  const highlightScrollRef = useRef<React.ComponentRef<
-    typeof ScrollView
-  > | null>(null);
+  /**
+   * How far the code input is scrolled. The highlight layer is translated by
+   * the negative of it, which is the only way the two stay aligned: a
+   * ScrollView with scrolling disabled ignores scrollTo on Android.
+   */
+  const highlightOffset = useRef(new Animated.Value(0)).current;
+  const highlightShift = useMemo(
+    () => Animated.multiply(highlightOffset, -1),
+    [highlightOffset],
+  );
   const codeInputRef = useRef<React.ComponentRef<typeof TextInput> | null>(
     null,
   );
@@ -475,6 +483,11 @@ export const ScriptingScreen: React.FC<Props> = ({
   /** Code the generator would be editing, or '' when there is nothing to edit. */
   const editableCode = editing?.code?.trim() ? editing.code : '';
   const willEdit = generatorEdits && editableCode !== '';
+
+  // A freshly opened script starts at the top, and so must the layer.
+  useEffect(() => {
+    highlightOffset.setValue(0);
+  }, [editing?.id, showHighlight, highlightOffset]);
 
   const openGenerator = () => {
     // Default to editing whenever there is something to edit — someone who
@@ -985,14 +998,13 @@ export const ScriptingScreen: React.FC<Props> = ({
                 <Text style={styles.label}>{t('Code')}</Text>
                 <View style={styles.codeEditorWrapper}>
                   {showHighlight && (
-                    <ScrollView
-                      ref={highlightScrollRef}
+                    <Animated.View
                       testID="script-highlight-layer"
                       pointerEvents="none"
-                      style={styles.codeHighlight}
-                      contentContainerStyle={styles.codeHighlightContent}
-                      showsVerticalScrollIndicator={false}
-                      scrollEnabled={false}
+                      style={[
+                        styles.codeHighlight,
+                        { transform: [{ translateY: highlightShift }] },
+                      ]}
                     >
                       <Text style={styles.codeText}>
                         {highlightedCode.map((part, idx) => (
@@ -1001,7 +1013,7 @@ export const ScriptingScreen: React.FC<Props> = ({
                           </Text>
                         ))}
                       </Text>
-                    </ScrollView>
+                    </Animated.View>
                   )}
                   <TextInput
                     ref={codeInputRef}
@@ -1063,11 +1075,14 @@ export const ScriptingScreen: React.FC<Props> = ({
                     onScroll={
                       showHighlight
                         ? e => {
-                            const y = e.nativeEvent.contentOffset?.y || 0;
-                            highlightScrollRef.current?.scrollTo({
-                              y,
-                              animated: false,
-                            });
+                            // Shift the layer rather than scrolling it. The
+                            // old code called scrollTo on a ScrollView with
+                            // scrollEnabled={false}, which Android ignores, so
+                            // the two layers drifted apart and the editor
+                            // showed two different parts of the script at once.
+                            highlightOffset.setValue(
+                              e.nativeEvent.contentOffset?.y || 0,
+                            );
                           }
                         : undefined
                     }
@@ -1569,24 +1584,28 @@ const createStyles = (colors: any) => {
       borderColor: colors.border,
       overflow: 'hidden',
     },
-    // Keep the coloured glyphs above the native input. Android high-contrast
-    // text outlines transparent TextInput glyphs; placing this layer last in
-    // the visual stack prevents the outlined copy from obscuring the syntax.
+    // BEHIND the input, and it has to stay there.
+    //
+    // In front, `pointerEvents="none"` is not enough on Android: taps never
+    // reach the field, so there is no caret and the editor reads as a preview
+    // you cannot type into. Behind, every tap lands on the input.
+    //
+    // The doubled, offset copy of the script that this layer was once blamed
+    // for had nothing to do with z-order - it showed up in both arrangements,
+    // because the two layers were scrolled independently. That is fixed by
+    // translating this one with the input's scroll offset instead.
     codeHighlight: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
-      bottom: 0,
+      // No `bottom`: the layer is as tall as the script and is shifted up as
+      // the input scrolls, with the wrapper's overflow clipping the rest.
+      padding: 8,
       backgroundColor: 'transparent',
-      // ON TOP of the input, per the note above. Moving it behind seemed
-      // safer for touch handling, but the caret was what blocked typing, not
-      // this layer — and behind, Android's high-contrast outlines around the
-      // input's transparent glyphs show through as a second, offset copy of
-      // the whole script. pointerEvents="none" keeps taps reaching the field.
-      zIndex: 2,
+      zIndex: 1,
     },
-    codeHighlightContent: { padding: 8 },
+
     codeInput: {
       backgroundColor: 'transparent',
       color: colors.text,
@@ -1597,7 +1616,9 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
-      zIndex: 1,
+      // Above the highlight layer, so it receives every tap and draws the
+      // caret and the selection. Its own glyphs are transparent.
+      zIndex: 2,
     },
     // When highlight is on, hide the input's own glyphs (keep caret/selection
     // visible) so only the coloured layer behind is read.

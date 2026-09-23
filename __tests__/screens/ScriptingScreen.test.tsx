@@ -922,13 +922,14 @@ describe('ScriptingScreen', () => {
   it('renders Prism syntax highlighting and syncs scroll offset', async () => {
     scriptingService.list.mockReturnValue([]);
 
-    const { findByText, getAllByDisplayValue, getAllByRole } = await render(
-      <ScriptingScreen
-        visible
-        onClose={jest.fn()}
-        onShowPurchaseScreen={jest.fn()}
-      />,
-    );
+    const { findByText, getAllByDisplayValue, getAllByRole, getByTestId } =
+      await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
 
     await fireEvent.press(await findByText('New Script'));
 
@@ -942,13 +943,56 @@ describe('ScriptingScreen', () => {
     const switches = getAllByRole('switch');
     await fireEvent(switches[switches.length - 1], 'valueChange', true);
 
-    // Scrolling the code input should mirror to the highlight overlay.
+    // Scrolling the code input must move the highlight layer with it.
     const overlayInput = getAllByDisplayValue(code)[0];
     await fireEvent.scroll(overlayInput, {
       nativeEvent: { contentOffset: { y: 25 } },
     });
 
+    // The layer is translated, not scrolled. It used to be a ScrollView with
+    // scrolling disabled, and Android ignores scrollTo on one of those - so
+    // the two layers drifted apart and the editor showed two different parts
+    // of the script at the same time.
+    const layer = getByTestId('script-highlight-layer');
+    const flattened = Object.assign(
+      {},
+      ...[].concat(layer.props.style).filter(Boolean),
+    );
+    expect(flattened.transform).toBeTruthy();
+    expect(flattened.position).toBe('absolute');
+
     expect(await findByText('Edit Script')).toBeTruthy();
+  });
+
+  it('keeps the highlight layer behind the input', async () => {
+    scriptingService.list.mockReturnValue([]);
+
+    const { findByText, getAllByDisplayValue, getAllByRole, getByTestId } =
+      await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+
+    await fireEvent.press(await findByText('New Script'));
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+    const flat = (style: unknown) =>
+      Object.assign({}, ...([] as any[]).concat(style).filter(Boolean));
+    const layer = flat(getByTestId('script-highlight-layer').props.style);
+    const input = flat(
+      getAllByDisplayValue(
+        '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+      )[0].props.style,
+    );
+
+    // In front, pointerEvents="none" is not enough on Android: taps never
+    // reach the field, so there is no caret and the editor reads as a preview
+    // you cannot type into. This has been got wrong twice.
+    expect(layer.zIndex).toBeLessThan(input.zIndex);
   });
 
   it('keeps the code editable with highlight on', async () => {
