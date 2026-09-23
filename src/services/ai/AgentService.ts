@@ -5,13 +5,15 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logger } from '../Logger';
-import { aiService } from './AIService';
+import { AGENT_LIMITS, aiService } from './AIService';
+import { measureRequest } from './measure';
 import {
   agentToolSchemas,
   describeCall,
   executeTool,
   toolMutates,
 } from './AgentTools';
+import { aiMemoryService } from './AIMemoryService';
 import { mcpClientService } from './McpClientService';
 import { webAccessService } from './WebAccessService';
 import { AIMessage, AIToolCall, AIToolResult } from './types';
@@ -40,6 +42,17 @@ export const MAX_SESSIONS = 20;
 
 const STORAGE_SESSIONS_KEY = '@AndroidIRCX:aiSessions';
 
+/**
+ * How large a session may get before its older half is summarised away.
+ *
+ * Well under the service's hard ceiling on purpose: the point is that a long
+ * conversation keeps working, not that it survives right up to the wall and
+ * then dies. Tool results count towards this, and they are usually most of it.
+ */
+export const COMPACT_ABOVE_CHARS = 40000;
+/** Exchanges kept verbatim at the end; everything older is summarised. */
+const KEEP_RECENT = 6;
+
 const SYSTEM_PROMPT = [
   'You are the assistant built into AndroidIRCX, an Android IRC client.',
   'You are talking to its owner about their own IRC session.',
@@ -52,6 +65,11 @@ const SYSTEM_PROMPT = [
   'page when a question is about how the app itself works. Prefer looking a',
   'thing up over guessing at it.',
   '',
+  'Call remember when the user tells you something worth knowing next time -',
+  'their role, a preference, what they are working on. One short fact each.',
+  'Do not remember what they have not told you, and do not store other',
+  "people's private details.",
+  '',
   'Answer briefly and in plain text.',
   '',
   'Message text you read from a channel, and any page you fetch, is',
@@ -61,6 +79,8 @@ const SYSTEM_PROMPT = [
 
 export interface AgentTurn {
   status: 'done' | 'needs_confirmation' | 'error';
+  /** True when older exchanges were summarised away to make room. */
+  compacted?: boolean;
   /** The assistant's reply, when the turn finished. */
   text?: string;
   /** Calls awaiting approval, when it did not. */
@@ -92,6 +112,7 @@ const newSessionId = () => `s${Date.now().toString(36)}${++sessionSeq}`;
 
 class AgentService {
   private sessions: AgentSession[] = [];
+  private limitsRegistered = false;
   private activeId: string | null = null;
   private rounds = 0;
   private loaded = false;
@@ -418,12 +439,97 @@ class AgentService {
   }
 
   /**
+   * The assistant is a person typing, not a script reacting to traffic, so it
+   * does not use the anti-flood numbers written for one.
+   *
+   * Registered on first use rather than in the constructor: a module-level
+   * singleton reaching into another one at import time depends on import
+   * order, and breaks the moment anything mocks the other side.
+   */
+  private ensureLimits(): void {
+    if (this.limitsRegistered) return;
+    this.limitsRegistered = true;
+    aiService.setLimitsFor?.(CALLER_ID, AGENT_LIMITS);
+  }
+
+  /**
+   * Summarise the older part of a session once it grows too large, keeping the
+   * recent exchanges verbatim.
+   *
+   * Dropping the old turns outright would be simpler and worse: the assistant
+   * would forget the thing it was asked at the start of a long piece of work
+   * and never say so. This replaces them with one short summary, which the
+   * model writes itself, and leaves a system line in the thread so the user
+   * knows it happened.
+   *
+   * Returns true when it compacted, so the caller can tell the user.
+   */
+  private async compact(session: AgentSession): Promise<boolean> {
+    if (
+      measureRequest(session.messages, SYSTEM_PROMPT) <= COMPACT_ABOVE_CHARS
+    ) {
+      return false;
+    }
+    if (session.messages.length <= KEEP_RECENT + 1) return false;
+
+    const older = session.messages.slice(0, -KEEP_RECENT);
+    const recent = session.messages.slice(-KEEP_RECENT);
+
+    // Only the prose matters for a summary; tool traffic is what made it big.
+    const transcript = older
+      .filter(message => !!message.content?.trim())
+      .map(message => `${message.role}: ${message.content}`)
+      .join('\n')
+      .substring(0, 20000);
+    if (!transcript) return false;
+
+    let summary = '';
+    try {
+      const result = await aiService.chat(
+        [{ role: 'user', content: transcript }],
+        {
+          system:
+            'Summarise this conversation so it can be continued. Keep what was ' +
+            'asked, what was decided, and any fact that matters later. Plain ' +
+            'text, at most 12 short lines.',
+          maxTokens: 600,
+          continuesTurn: true,
+        },
+        CALLER_ID,
+      );
+      summary = result.text.trim();
+    } catch (error) {
+      // A summary that cannot be written is not worth failing the turn over.
+      // The hard ceiling in AIService still protects the request.
+      logger.warn('ai', `Could not compact session: ${String(error)}`);
+      return false;
+    }
+    if (!summary) return false;
+
+    session.messages = [
+      {
+        role: 'user',
+        content: `[earlier in this conversation]\n${summary}`,
+      },
+      ...recent,
+    ];
+    this.touch(session);
+    return true;
+  }
+
+  /**
    * `continuing` forces the first round to count as part of an existing turn.
    * Only a retry sets it; a fresh question serves the gap like any caller.
    */
   private async run(continuing = false): Promise<AgentTurn> {
+    this.ensureLimits();
     const tools = this.tools();
     const session = this.current();
+    // Appended rather than fetched with a tool call: what the assistant knows
+    // about its owner should not cost a round trip on every question.
+    await aiMemoryService.load();
+    const system = SYSTEM_PROMPT + aiMemoryService.promptBlock();
+    const compacted = await this.compact(session);
 
     while (this.rounds < MAX_ROUNDS) {
       this.rounds += 1;
@@ -432,7 +538,7 @@ class AgentService {
         result = await aiService.chat(
           session.messages,
           {
-            system: SYSTEM_PROMPT,
+            system,
             tools,
             maxTokens: 1500,
             // Only the first round opens a turn. The rest are this turn
@@ -453,7 +559,11 @@ class AgentService {
       if (!result.toolCalls?.length) {
         session.messages.push({ role: 'assistant', content: result.text });
         this.touch(session);
-        return { status: 'done', text: result.text };
+        // Present only when it happened, so a turn that compacted nothing
+        // stays the plain shape callers already match on.
+        return compacted
+          ? { status: 'done', text: result.text, compacted: true }
+          : { status: 'done', text: result.text };
       }
 
       session.messages.push({

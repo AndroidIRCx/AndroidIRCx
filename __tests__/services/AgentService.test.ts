@@ -39,6 +39,7 @@ jest.mock('../../src/services/ai/AIService', () => ({
     chat: jest.fn(),
     isAvailable: jest.fn(async () => true),
     isChannelAllowed: jest.fn(() => true),
+    setLimitsFor: jest.fn(),
   },
 }));
 
@@ -65,6 +66,7 @@ jest.mock('../../src/services/ai/McpClientService', () => ({
   },
 }));
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { agentService, MAX_SESSIONS } from '../../src/services/ai/AgentService';
 import {
   agentToolSchemas,
@@ -180,6 +182,7 @@ describe('AgentTools', () => {
 describe('AgentService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    (AsyncStorage as any).__reset?.();
     await agentService.clearAllSessions();
     webAccessService.resetForTests();
     await webAccessService.load();
@@ -570,6 +573,67 @@ describe('AgentService', () => {
     });
   });
 
+  describe('a long conversation', () => {
+    /** Push a session past the compaction threshold, one exchange at a time. */
+    const fill = async () => {
+      aiService.chat.mockResolvedValue(reply('x'.repeat(5000)));
+      const compactedAt: number[] = [];
+      for (let i = 0; i < 14; i += 1) {
+        const turn = await agentService.send(
+          `question ${i} ${'y'.repeat(2000)}`,
+        );
+        if (turn.compacted) compactedAt.push(i);
+      }
+      return compactedAt;
+    };
+
+    it('summarises the older half rather than failing', async () => {
+      const compactedAt = await fill();
+
+      // It compacts as the conversation grows, not once at the end.
+      expect(compactedAt.length).toBeGreaterThan(0);
+
+      const history = agentService.history();
+      // Fourteen exchanges would be 28 messages without compaction.
+      expect(history.length).toBeLessThan(28);
+      expect(history[0].content).toContain('earlier in this conversation');
+    });
+
+    it('leaves a short conversation alone', async () => {
+      aiService.chat.mockResolvedValue(reply('short answer'));
+
+      const turn = await agentService.send('hello');
+
+      // Absent rather than false, so a turn that compacted nothing keeps the
+      // plain shape callers already match on.
+      expect(turn.compacted).toBeUndefined();
+    });
+
+    it('carries on when the summary itself fails', async () => {
+      // Enough exchanges to have something to summarise, all small, so
+      // nothing compacts while they are being built.
+      aiService.chat.mockResolvedValue(reply('ok'));
+      for (let i = 0; i < 8; i += 1) {
+        await agentService.send(`question ${i}`);
+      }
+
+      aiService.chat.mockClear();
+      aiService.chat
+        .mockRejectedValueOnce(new Error('provider down'))
+        .mockResolvedValue(reply('answered anyway'));
+
+      // One message that crosses the threshold on its own, so compaction is
+      // attempted on exactly this turn rather than somewhere in the loop.
+      const turn = await agentService.send('z'.repeat(45000));
+
+      // A summary that cannot be written is not worth failing the turn over:
+      // the hard ceiling in AIService still protects the request.
+      expect(turn.status).toBe('done');
+      expect(turn.text).toBe('answered anyway');
+      expect(turn.compacted).toBeUndefined();
+    });
+  });
+
   describe('script tools', () => {
     it('refuses to save code that does not compile', async () => {
       scriptingService.lint.mockReturnValue({
@@ -603,6 +667,45 @@ describe('AgentService', () => {
       expect(scriptingService.add).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Greeter', enabled: false }),
       );
+    });
+
+    it('updates the script of the same name instead of forking it', async () => {
+      scriptingService.lint.mockReturnValue({ ok: true, message: 'ok' });
+      scriptingService.list.mockReturnValue([
+        { id: 'ai-abc', name: 'Greeter', code: 'old', config: { a: 1 } },
+      ]);
+
+      const outcome = await executeTool({
+        id: 'c1',
+        name: 'save_script',
+        input: { name: 'Greeter', code: 'module.exports = {};' },
+      });
+
+      // Minting a new id every time is what left a hundred near-identical
+      // copies behind when the user asked for one change.
+      expect(scriptingService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'ai-abc', name: 'Greeter' }),
+      );
+      // And it says which it did, so the model can tell.
+      expect(outcome.content).toMatch(/updated/i);
+    });
+
+    it('creates a new one when the name is new', async () => {
+      scriptingService.lint.mockReturnValue({ ok: true, message: 'ok' });
+      scriptingService.list.mockReturnValue([
+        { id: 'ai-abc', name: 'Greeter', code: 'old' },
+      ]);
+
+      const outcome = await executeTool({
+        id: 'c1',
+        name: 'save_script',
+        input: { name: 'Something Else', code: 'module.exports = {};' },
+      });
+
+      expect(scriptingService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Something Else' }),
+      );
+      expect(outcome.content).toMatch(/created/i);
     });
 
     it('will not overwrite a built-in', async () => {

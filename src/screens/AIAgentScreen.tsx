@@ -114,6 +114,11 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
         return;
       }
       setCanRetry(false);
+      // Say when the older half of a long conversation was summarised away,
+      // rather than letting it quietly stop remembering things.
+      if (turn.compacted) {
+        append('system', t('Earlier messages were summarised to make room.'));
+      }
       if (turn.text) append('assistant', turn.text);
       setPending(
         turn.status === 'needs_confirmation' ? turn.pending : undefined,

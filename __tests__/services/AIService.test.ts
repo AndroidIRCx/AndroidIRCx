@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Keychain from 'react-native-keychain';
+import { measureRequest } from '../../src/services/ai/measure';
 import { aiService, MAX_PROMPT_CHARS } from '../../src/services/ai/AIService';
 import { aiProviderStore } from '../../src/services/ai/AIProviderStore';
 
@@ -448,6 +449,70 @@ describe('AIService', () => {
       const content = JSON.parse(fetchMock.mock.calls[0][1].body).messages[0]
         .content;
       expect(content).toBe('[hostmask] said hi');
+    });
+  });
+
+  describe('measuring a request', () => {
+    it('counts tool results, not just the conversation', () => {
+      const small = measureRequest([{ role: 'user', content: 'hi' }], 'system');
+      const withTool = measureRequest(
+        [
+          { role: 'user', content: 'hi' },
+          {
+            role: 'user',
+            content: '',
+            toolResults: [
+              {
+                toolCallId: 'c1',
+                name: 'fetch_page',
+                content: 'x'.repeat(500),
+              },
+            ],
+          },
+        ],
+        'system',
+      );
+
+      // A fetched page dwarfs the conversation around it. Leaving tool
+      // results out of the count was why the old limit refused short
+      // conversations while letting the genuinely enormous ones through.
+      expect(withTool - small).toBe(500);
+    });
+  });
+
+  describe('per-caller limits', () => {
+    it('lets one caller have its own numbers', async () => {
+      await addProvider();
+      aiService.setLimits({ cooldownMs: 60000 });
+      // The assistant is a person typing, which is its own rate limit; a
+      // script reacting to channel traffic is not.
+      aiService.setLimitsFor('agent', { cooldownMs: 0 });
+
+      await aiService.ask('first', {}, 'agent');
+      await aiService.ask('second', {}, 'agent');
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('leaves every other caller on the defaults', async () => {
+      await addProvider();
+      aiService.setLimits({ cooldownMs: 60000 });
+      aiService.setLimitsFor('agent', { cooldownMs: 0 });
+
+      await aiService.ask('first', {}, 'script-a');
+
+      await expect(
+        aiService.ask('second', {}, 'script-a'),
+      ).rejects.toMatchObject({ code: 'rate_limited' });
+    });
+
+    it('shows a later global change through an override that is silent on it', () => {
+      aiService.setLimitsFor('agent', { cooldownMs: 0 });
+      aiService.setLimits({ maxCallsPerDay: 7 });
+
+      const limits = aiService.getLimitsFor('agent');
+      expect(limits.cooldownMs).toBe(0);
+      expect(limits.maxCallsPerDay).toBe(7);
     });
   });
 

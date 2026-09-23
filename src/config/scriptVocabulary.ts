@@ -131,6 +131,12 @@ export const HOOK_ENTRIES: VocabularyEntry[] = [
     signature: 'onTimer(name)',
     summary: 'A timer you set with api.setTimer fired.',
   },
+  {
+    name: 'onUnload',
+    signature: 'onUnload()',
+    summary:
+      'The script is being switched off or replaced. Must return synchronously; commands, menus and timers are cleared for you either way.',
+  },
 ];
 
 export const HOOK_LIST = HOOK_ENTRIES.map(entry => entry.name);
@@ -185,6 +191,12 @@ export const API_ENTRIES: VocabularyEntry[] = [
     signature: 'sendCommand(command, networkId?)',
     summary:
       'Run a slash command. Never pass an AI answer or channel text to this.',
+  },
+  {
+    name: 'echo',
+    signature: 'echo(target, text, networkId?)',
+    summary:
+      "Print a line into a tab, locally. Nothing is sent to IRC \u2014 mIRC's /echo. Prefer this over sendNotice for talking to your own user.",
   },
   {
     name: 'sendNotice',
@@ -268,6 +280,62 @@ export const API_ENTRIES: VocabularyEntry[] = [
     summary: 'Remove a ban.',
   },
   {
+    name: 'banMask',
+    signature: 'banMask(nick, banType?, networkId?)',
+    summary:
+      "The ban mask for a nick, the way the app builds it \u2014 mIRC's $mask(). Null when no host is known yet.",
+    isAsync: true,
+  },
+  {
+    name: 'getBanTypes',
+    signature: 'getBanTypes()',
+    summary: 'The mask types the app offers, with their numbers.',
+  },
+  {
+    name: 'getReactions',
+    signature: 'getReactions(messageId)',
+    summary: 'Reactions on a message. The id comes from msg.msgid in a hook.',
+  },
+  {
+    name: 'react',
+    signature: 'react(messageId, emoji)',
+    summary: 'Add or remove your reaction on a message. Toggles.',
+    isAsync: true,
+  },
+  {
+    name: 'getFavorites',
+    signature: 'getFavorites(networkId?)',
+    summary: 'Saved channels for a network.',
+  },
+  {
+    name: 'isFavorite',
+    signature: 'isFavorite(channel, networkId?)',
+    summary: 'True when the channel is saved.',
+  },
+  {
+    name: 'addFavorite',
+    signature: 'addFavorite(channel, networkId?)',
+    summary: 'Save a channel.',
+    isAsync: true,
+  },
+  {
+    name: 'removeFavorite',
+    signature: 'removeFavorite(channel, networkId?)',
+    summary: 'Unsave a channel.',
+    isAsync: true,
+  },
+  {
+    name: 'getAutoJoinChannels',
+    signature: 'getAutoJoinChannels(networkId?)',
+    summary: 'Saved channels marked to join on connect.',
+  },
+  {
+    name: 'setAutoJoin',
+    signature: 'setAutoJoin(channel, autoJoin, networkId?)',
+    summary: 'Turn autojoin on or off for a saved channel.',
+    isAsync: true,
+  },
+  {
     name: 'setTopic',
     signature: 'setTopic(channel, topic, networkId?)',
     summary: 'Change the channel topic.',
@@ -307,6 +375,18 @@ export const API_ENTRIES: VocabularyEntry[] = [
     summary: 'Channels you are in, as an array of strings.',
   },
   {
+    name: 'getChannelList',
+    signature: 'getChannelList(query?, networkId?)',
+    summary:
+      'The channel list already fetched, optionally filtered by name or topic. Reads the cache only \u2014 it never runs /LIST, which is expensive and some servers throttle it.',
+    isAsync: true,
+  },
+  {
+    name: 'getSharedChannels',
+    signature: 'getSharedChannels(nick, networkId?)',
+    summary: "Channels you are both in \u2014 mIRC's $comchan.",
+  },
+  {
     name: 'getChannelInfo',
     signature: 'getChannelInfo(channel, networkId?)',
     summary: 'Topic, modes and user count for one channel.',
@@ -336,6 +416,24 @@ export const API_ENTRIES: VocabularyEntry[] = [
     name: 'isIgnored',
     signature: 'isIgnored(nick, networkId?)',
     summary: 'True when you have that nick on ignore.',
+  },
+  {
+    name: 'isAnyAway',
+    signature: 'isAnyAway()',
+    summary: 'True when you are marked away on any network.',
+  },
+  {
+    name: 'getUserActivity',
+    signature: 'getUserActivity(nick, networkId?)',
+    summary:
+      'When a nick was last seen doing something, or undefined if nothing has been recorded.',
+  },
+  {
+    name: 'getSpamLog',
+    signature: 'getSpamLog(limit?)',
+    summary:
+      'What the flood protection caught, newest last. Default 50 lines, capped at 500.',
+    isAsync: true,
   },
   {
     name: 'getConnectionStats',
@@ -487,6 +585,20 @@ export const API_ENTRIES: VocabularyEntry[] = [
     isAsync: true,
   },
   {
+    name: 'listStorage',
+    signature: 'listStorage(prefix?)',
+    summary:
+      "The keys this script stored, sorted. Without it you cannot iterate what you saved \u2014 mIRC's $hget(table, N).item.",
+    isAsync: true,
+  },
+  {
+    name: 'clearStorage',
+    signature: 'clearStorage(prefix?)',
+    summary:
+      'Delete everything this script stored, or everything under a prefix. Returns how many went.',
+    isAsync: true,
+  },
+  {
     name: 'removeStorage',
     signature: 'removeStorage(key)',
     summary: 'Delete one stored key.',
@@ -494,6 +606,32 @@ export const API_ENTRIES: VocabularyEntry[] = [
   },
 
   // Odds and ends
+  {
+    name: 'bold',
+    signature: 'bold(text)',
+    summary: 'Wrap text in the bold control code.',
+  },
+  {
+    name: 'italic',
+    signature: 'italic(text)',
+    summary: 'Wrap text in the italic control code.',
+  },
+  {
+    name: 'underline',
+    signature: 'underline(text)',
+    summary: 'Wrap text in the underline control code.',
+  },
+  {
+    name: 'colour',
+    signature: 'colour(text, fg, bg?)',
+    summary: 'Wrap text in IRC colour codes. 0-99.',
+  },
+  {
+    name: 'strip',
+    signature: 'strip(text)',
+    summary:
+      'Text with every colour and formatting code removed. Use before matching on what someone said.',
+  },
   {
     name: 'rand',
     signature: 'rand(min, max)',
@@ -503,6 +641,51 @@ export const API_ENTRIES: VocabularyEntry[] = [
     name: 'list',
     signature: 'list(name)',
     summary: 'One of the built-in word lists, by name.',
+  },
+  {
+    name: 'notify',
+    signature: 'notify(title, text)',
+    summary:
+      'Put up a system notification. At most one a second, so a hook on every line cannot bury the shade.',
+  },
+  {
+    name: 'setInput',
+    signature: 'setInput(text)',
+    summary:
+      'Put text in the composer for the user to edit. It does NOT send it.',
+  },
+  {
+    name: 'aiStatus',
+    signature:
+      "aiStatus(target, 'working'|'failed'|'done', { text?, kind?, retry?, networkId? })",
+    summary:
+      'Show what AI is doing in the strip above the composer. A failure can carry a retry command, which becomes a Retry button.',
+  },
+  {
+    name: 'confirm',
+    signature: 'confirm(question)',
+    summary:
+      'Ask a yes/no question. Resolves false if dismissed, so it never hangs.',
+    isAsync: true,
+  },
+  {
+    name: 'ask',
+    signature: 'ask(question, options)',
+    summary:
+      'Ask the user to pick one of up to three choices. Resolves the choice, or null if dismissed.',
+    isAsync: true,
+  },
+  {
+    name: 'copyToClipboard',
+    signature: 'copyToClipboard(text)',
+    summary: 'Put text on the clipboard.',
+  },
+  {
+    name: 'http',
+    signature: 'http(url)',
+    summary:
+      'Fetch a page as text, or null. Only sites on the allowed list in Settings > AI, and never a private address.',
+    isAsync: true,
   },
   {
     name: 'playSound',

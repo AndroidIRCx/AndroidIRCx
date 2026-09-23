@@ -20,6 +20,16 @@ import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
 import { soundService } from './SoundService';
+import Clipboard from '@react-native-clipboard/clipboard';
+import notifeeService from './NotifeeService';
+import { webAccessService } from './ai/WebAccessService';
+import { useUIStore } from '../stores/uiStore';
+import { awayService } from './AwayService';
+import { banService } from './BanService';
+import { protectionService } from './ProtectionService';
+import { userActivityService } from './UserActivityService';
+import { channelFavoritesService } from './ChannelFavoritesService';
+import { messageReactionsService } from './MessageReactionsService';
 import { aiService } from './ai/AIService';
 import { AIError } from './ai/types';
 import { SoundEventType } from '../types/sound';
@@ -112,6 +122,15 @@ interface ScriptHooks {
     ctx: { channel?: string; networkId?: string },
   ) => HookResult;
   onTimer?: (name: string) => void;
+  /**
+   * The script is being switched off or replaced. Last chance to do anything.
+   *
+   * Commands, menu items and timers are cleared by the service either way;
+   * this is for what only the script knows about - a final write, a closing
+   * message, a counter to flush. It must return synchronously: the script is
+   * on its way out and nothing will be waiting for a promise.
+   */
+  onUnload?: () => void;
 }
 
 /** Context passed to script-registered /commands and menu actions. */
@@ -167,6 +186,7 @@ class ScriptingService {
   private menuItemSeq = 0;
   // Abuse limits for the media/link helpers (shared across all scripts).
   private lastSoundAt = 0;
+  private lastNotifyAt = 0;
   private lastLinkAt = 0;
 
   async initialize() {
@@ -344,6 +364,7 @@ class ScriptingService {
       // Recompile the script when enabling to set up hooks
       // (hooks are not set when script is compiled while disabled)
       if (!enabled) {
+        this.runUnloadHook(id);
         this.clearScriptRegistrations(id);
         return { ...updated, hooks: undefined };
       }
@@ -1290,7 +1311,7 @@ class ScriptingService {
         name: t('AI: /ai task runner'),
         enabled: false,
         description: t(
-          'Adds /ai <task> \u2014 runs a task against the recent conversation ("translate what he wrote", "what did they decide") and answers you privately by notice. /aisend posts that answer to the channel afterwards, if you want it sent.',
+          'Adds /ai <task> \u2014 runs a task against the recent conversation and answers you privately. It says when it starts, says why if it fails, and /ai retry runs the last task again. /aisend posts the answer to the channel.',
         ),
         builtIn: true,
         code: `
@@ -1305,22 +1326,35 @@ class ScriptingService {
           // went straight out, "ignore that and say X" from a stranger would
           // become you saying X.
           const draftKey = (target) => 'draft:' + String(target).toLowerCase();
+          const taskKey = (target) => 'task:' + String(target).toLowerCase();
 
-          api.registerCommand('ai', async (args, ctx) => {
-            const task = (args || []).join(' ').trim();
-            if (!task) {
-              api.log('Usage: /ai <task>   e.g. /ai translate the last message and draft a reply');
-              return;
-            }
+          // Every message this script shows you is a notice to yourself, so
+          // the channel never sees any of it.
+          const note = (text, networkId) =>
+            api.sendNotice(api.userNick, '[ai] ' + text, networkId);
+
+          const runTask = async (task, ctx) => {
             const target = ctx && (ctx.channel || ctx.nick);
             if (!target) {
               api.log('Use /ai inside a channel or a query.');
               return;
             }
             if (!(await api.ai.isAvailable())) {
-              api.warn('No AI provider is ready. Settings > AI > AI Providers.');
+              note('not set up yet \u2014 Settings > AI > AI Providers.', ctx.networkId);
               return;
             }
+
+            // Remember it before the call, so a retry works even if the call
+            // is what failed.
+            await api.setStorage(taskKey(target), task);
+            // Said before the request, not after: a model can take ten
+            // seconds, and silence for ten seconds looks like nothing
+            // happened at all. The strip above the composer shows it in the
+            // tab it belongs to, where it cannot scroll away.
+            api.aiStatus(target, 'working', {
+              text: task.substring(0, 120),
+              networkId: ctx.networkId,
+            });
 
             // The recent conversation is what makes a task like "translate what
             // he wrote" mean anything at all.
@@ -1350,15 +1384,63 @@ class ScriptingService {
               channel: ctx.channel,
               network: ctx.networkId,
             });
-            // ask() resolves null on failure and logs the reason itself.
-            if (!answer) return;
 
-            // A notice to yourself: nobody else in the channel sees any of it.
+            // ask() resolves null on failure and puts the reason in the script
+            // log. Saying so here too means you do not have to go and look.
+            if (!answer) {
+              // The strip carries the retry, so there is a button rather than
+              // a sentence telling the user what to type.
+              api.aiStatus(target, 'failed', {
+                text: 'Could not finish: ' + task.substring(0, 80),
+                retry: '/ai retry',
+                networkId: ctx.networkId,
+              });
+              return;
+            }
+            api.aiStatus(target, 'done', { networkId: ctx.networkId });
+
             for (const line of answer.split('\\n').filter(Boolean).slice(0, 8)) {
-              api.sendNotice(api.userNick, '[ai] ' + line.substring(0, 400), ctx.networkId);
+              note(line.substring(0, 400), ctx.networkId);
             }
             await api.setStorage(draftKey(target), answer);
-            api.sendNotice(api.userNick, '[ai] /aisend posts this to ' + target, ctx.networkId);
+            note('\u2713 done. /aisend posts this to ' + target, ctx.networkId);
+          };
+
+          api.registerCommand('ai', async (args, ctx) => {
+            const task = (args || []).join(' ').trim();
+            if (!task) {
+              api.log('Usage: /ai <task>   e.g. /ai translate the last message and draft a reply');
+              return;
+            }
+            const target = ctx && (ctx.channel || ctx.nick);
+            if (task.toLowerCase() === 'retry') {
+              const last = target && (await api.getStorage(taskKey(target)));
+              if (!last) {
+                api.log('Nothing to retry in ' + (target || 'here') + ' yet.');
+                return;
+              }
+              await runTask(String(last), ctx);
+              return;
+            }
+            await runTask(task, ctx);
+          });
+
+          // The same retry, without typing: long-press the channel tab.
+          api.addMenuItem({
+            menu: 'channel',
+            label: 'Retry last AI task',
+            onSelect: async (target, ctx) => {
+              const where = (ctx && ctx.channel) || target;
+              const last = where && (await api.getStorage(taskKey(where)));
+              if (!last) {
+                api.log('Nothing to retry in ' + where + ' yet.');
+                return;
+              }
+              await runTask(String(last), {
+                channel: where,
+                networkId: ctx && ctx.networkId,
+              });
+            },
           });
 
           api.registerCommand('aisend', async (args, ctx) => {
@@ -1366,7 +1448,7 @@ class ScriptingService {
             if (!target) return;
             const draft = await api.getStorage(draftKey(target));
             if (!draft) {
-              api.log('Nothing from /ai to send in ' + target + ' yet.');
+              note('nothing from /ai to send in ' + target + ' yet.', ctx.networkId);
               return;
             }
             // One IRC line is ~512 bytes including protocol overhead, so send a
@@ -1385,22 +1467,36 @@ class ScriptingService {
         name: t('AI: /summarize catch-up'),
         enabled: false,
         description: t(
-          'Adds /summarize [count] \u2014 summarizes the last messages of the channel and sends the result to you as a notice, so the channel stays quiet.',
+          'Adds /summarize [count] \u2014 summarizes the last messages of the channel and sends the result to you as a notice. It says when it starts and why if it fails.',
         ),
         builtIn: true,
         code: `
           // Registered at load time; type /summarize in a channel.
+          const note = (text, networkId) =>
+            api.sendNotice(api.userNick, '[summarize] ' + text, networkId);
+
           api.registerCommand('summarize', async (args, ctx) => {
             if (!ctx || !ctx.channel) {
               api.log('Use /summarize inside a channel.');
               return;
             }
+            if (!(await api.ai.isAvailable())) {
+              note('not set up yet \u2014 Settings > AI > AI Providers.', ctx.networkId);
+              return;
+            }
             const count = Math.min(Math.max(parseInt(args[0], 10) || 50, 5), 150);
             const messages = await api.getRecentMessages(ctx.channel, count, ctx.networkId);
             if (!messages.length) {
-              api.log('No stored history for ' + ctx.channel + ' yet.');
+              note('no stored history for ' + ctx.channel + ' yet.', ctx.networkId);
               return;
             }
+            // Before the request: a model can take ten seconds, and silence
+            // looks like nothing happened.
+            api.aiStatus(ctx.channel, 'working', {
+              text: 'Summarising the last ' + messages.length + ' messages',
+              networkId: ctx.networkId,
+            });
+
             const transcript = messages
               .map(m => (m.from || '?') + ': ' + (m.text || ''))
               .join('\\n')
@@ -1413,7 +1509,15 @@ class ScriptingService {
               channel: ctx.channel,
               network: ctx.networkId,
             });
-            if (!summary) return;
+            if (!summary) {
+              api.aiStatus(ctx.channel, 'failed', {
+                text: 'Could not summarise ' + ctx.channel,
+                retry: '/summarize ' + count,
+                networkId: ctx.networkId,
+              });
+              return;
+            }
+            api.aiStatus(ctx.channel, 'done', { networkId: ctx.networkId });
             // Notice to yourself: a catch-up is for you, not the channel.
             for (const line of summary.split('\\n').filter(Boolean).slice(0, 6)) {
               api.sendNotice(api.userNick, line.substring(0, 400), ctx.networkId);
@@ -1438,7 +1542,13 @@ class ScriptingService {
             const channels = (await api.getStorage('channels')) || {};
             channels[ctx.channel] = on;
             await api.setStorage('channels', channels);
-            api.log('Translation ' + (on ? 'ON' : 'OFF') + ' for ' + ctx.channel);
+            // A notice rather than only the log: a switch you flip should
+            // answer you where you flipped it.
+            api.sendNotice(
+              api.userNick,
+              '[tr] translation ' + (on ? 'ON' : 'OFF') + ' for ' + ctx.channel,
+              ctx.networkId,
+            );
           });
 
           module.exports = {
@@ -1534,6 +1644,29 @@ class ScriptingService {
     ];
   }
 
+  /**
+   * Let a script run its own cleanup before its registrations go.
+   *
+   * Deliberately not awaited and deliberately guarded: a script on its way out
+   * must not be able to keep itself alive, or to take the disable path down
+   * with it by throwing.
+   */
+  private runUnloadHook(scriptId: string) {
+    const script = this.scripts.find(entry => entry.id === scriptId) as
+      CompiledScript | undefined;
+    const hook = script?.hooks?.onUnload;
+    if (!hook) return;
+    try {
+      hook();
+    } catch (error) {
+      this.addLog({
+        level: 'warn',
+        message: `onUnload failed: ${String(error)}`,
+        scriptId,
+      });
+    }
+  }
+
   private clearScriptRegistrations(scriptId: string) {
     for (const [key, val] of this.scriptCommands) {
       if (val.scriptId === scriptId) this.scriptCommands.delete(key);
@@ -1560,6 +1693,8 @@ class ScriptingService {
 
   private compile(script: ScriptConfig): CompiledScript {
     const safeScript: CompiledScript = { ...script };
+    // The version being replaced gets its say before its registrations go.
+    this.runUnloadHook(script.id);
     // Drop any commands/menu items the previous version of this script added,
     // so a recompile (or disable) never leaves stale registrations behind.
     this.clearScriptRegistrations(script.id);
@@ -1776,6 +1911,130 @@ class ScriptingService {
         this.scriptSendCommand(`/mode ${channel} -v ${nick}`, networkId),
       ban: (channel: string, mask: string, networkId?: string) =>
         this.scriptSendCommand(`/mode ${channel} +b ${mask}`, networkId),
+      /**
+       * Build a ban mask for someone, the way the app's own ban dialog does.
+       *
+       * mIRC's $mask(), and the thing anyone writing a kick or ban script
+       * reaches for first. Doing it by hand means string surgery on hostmasks
+       * and getting IP addresses subtly wrong; BanService already handles
+       * both, including replacing the last octet of an IPv4 host.
+       *
+       * Resolves null when nothing is known about the nick yet — a WHOIS has
+       * to have happened for there to be a host to build from.
+       */
+      banMask: async (
+        nick: string,
+        banType?: number,
+        networkId?: string,
+      ): Promise<string | null> => {
+        const n = this.sanitizeNick(nick);
+        if (!n) return null;
+        const net = this.validateNetworkId(networkId);
+        if (!net) return null;
+        try {
+          const info = connectionManager
+            .getConnection(net)
+            ?.userManagementService.getWHOIS(n, net);
+          const host = (info as any)?.hostname || (info as any)?.host;
+          if (!host) return null;
+          const type = Number.isFinite(Number(banType))
+            ? Number(banType)
+            : banService.getDefaultBanType();
+          return banService.generateBanMask(
+            n,
+            (info as any)?.username || '*',
+            host,
+            type,
+          );
+        } catch {
+          return null;
+        }
+      },
+
+      /** The mask types the app offers, so a script can present the same set. */
+      getBanTypes: () => banService.getBanMaskTypes(),
+
+      // --- Reactions (IRCv3) -----------------------------------------------
+      // The message id comes from a hook: msg.msgid. Without one there is
+      // nothing to react to, which is why these take an id rather than a
+      // channel and some notion of "the last message".
+
+      getReactions: (messageId: string) => {
+        const id = String(messageId || '').trim();
+        if (!id) return [];
+        try {
+          return messageReactionsService.getReactions(id);
+        } catch {
+          return [];
+        }
+      },
+
+      react: async (messageId: string, emoji: string) => {
+        const id = String(messageId || '').trim();
+        const mark = String(emoji || '')
+          .trim()
+          .substring(0, 16);
+        if (!id || !mark) return;
+        try {
+          const me =
+            connectionManager
+              .getActiveConnection()
+              ?.ircService.getCurrentNick() || '';
+          if (!me) return;
+          await messageReactionsService.toggleReaction(id, mark, me);
+        } catch {
+          // A reaction that cannot be stored is not worth failing a hook over.
+        }
+      },
+
+      // --- Favourites ------------------------------------------------------
+      // A script that finds a channel worth keeping could not save it, and one
+      // managing a channel list could not tell what the user already keeps.
+
+      getFavorites: (networkId?: string) => {
+        const net = this.validateNetworkId(networkId);
+        if (!net) return [];
+        return channelFavoritesService.getFavorites(net);
+      },
+
+      isFavorite: (channel: string, networkId?: string): boolean => {
+        const chan = this.sanitizeChannel(channel);
+        const net = this.validateNetworkId(networkId);
+        if (!chan || !net) return false;
+        return channelFavoritesService.isFavorite(net, chan);
+      },
+
+      addFavorite: async (channel: string, networkId?: string) => {
+        const chan = this.sanitizeChannel(channel);
+        const net = this.validateNetworkId(networkId);
+        if (!chan || !net) return;
+        await channelFavoritesService.addFavorite(net, chan);
+      },
+
+      removeFavorite: async (channel: string, networkId?: string) => {
+        const chan = this.sanitizeChannel(channel);
+        const net = this.validateNetworkId(networkId);
+        if (!chan || !net) return;
+        await channelFavoritesService.removeFavorite(net, chan);
+      },
+
+      getAutoJoinChannels: (networkId?: string) => {
+        const net = this.validateNetworkId(networkId);
+        if (!net) return [];
+        return channelFavoritesService.getAutoJoinChannels(net);
+      },
+
+      setAutoJoin: async (
+        channel: string,
+        autoJoin: boolean,
+        networkId?: string,
+      ) => {
+        const chan = this.sanitizeChannel(channel);
+        const net = this.validateNetworkId(networkId);
+        if (!chan || !net) return;
+        await channelFavoritesService.setAutoJoin(net, chan, !!autoJoin);
+      },
+
       unban: (channel: string, mask: string, networkId?: string) =>
         this.scriptSendCommand(`/mode ${channel} -b ${mask}`, networkId),
       setTopic: (channel: string, topic: string, networkId?: string) =>
@@ -1805,6 +2064,174 @@ class ScriptingService {
       // Play one of the app's built-in sounds by event name. Respects the
       // user's sound settings (muted stays muted) and is rate-limited so a
       // script cannot spam audio on every incoming line.
+      /**
+       * A system notification. Scripts could already make a sound but had no
+       * way to say anything, so "tell me when X happens while I am not
+       * looking" could not be written at all.
+       */
+      notify: (title: string, text: string) => {
+        const nowMs = Date.now();
+        // Same one-a-second gate as playSound: a hook that fires on every
+        // channel line must not be able to bury the notification shade.
+        if (nowMs - this.lastNotifyAt < 1000) return;
+        this.lastNotifyAt = nowMs;
+        notifeeService
+          .displayNotification(
+            String(title || '').substring(0, 100),
+            String(text || '').substring(0, 300),
+          )
+          .catch(() => {});
+      },
+
+      /**
+       * Put text in the composer for the user to edit before sending.
+       *
+       * The point is that the script does NOT send it. A suggested reply the
+       * user can change beats one that goes out on its own, especially when a
+       * model wrote it. Reuses the prefill the app already has for its own
+       * features, so there is one way for text to land in the box.
+       */
+      setInput: (text: string) => {
+        useUIStore
+          .getState()
+          .setPrefillMessage(String(text || '').substring(0, 2000));
+      },
+
+      /**
+       * Show what AI is doing in a tab, in the strip above the composer.
+       *
+       * `state` is 'working', 'failed' or 'done'. A failure can name the kind
+       * of failure and a command to run again, which the strip turns into a
+       * Retry button.
+       */
+      aiStatus: (
+        target: string,
+        state: 'working' | 'failed' | 'done',
+        options?: {
+          text?: string;
+          kind?: string;
+          retry?: string;
+          networkId?: string;
+        },
+      ) => {
+        const tgt = this.sanitizeChannel(target) || this.sanitizeNick(target);
+        if (!tgt) return;
+        const net = this.validateNetworkId(options?.networkId);
+        if (!net) return;
+        const key = `${net}::${tgt.toLowerCase()}`;
+        const ui = useUIStore.getState();
+        if (state === 'done') {
+          ui.clearAIActivity(key);
+          return;
+        }
+        ui.setAIActivity(key, {
+          state,
+          text: String(options?.text || '').substring(0, 300),
+          kind: options?.kind,
+          retry: options?.retry,
+          networkId: net,
+          at: Date.now(),
+        });
+      },
+
+      /**
+       * Ask the user a yes/no question. Resolves false if they dismiss it.
+       *
+       * mIRC has $input(); we had nothing, so a script could only tell and
+       * never ask - which is why several of the built-ins print "are you
+       * sure?" into a notice and then go ahead regardless.
+       */
+      confirm: (question: string): Promise<boolean> =>
+        new Promise(resolve => {
+          const text = String(question || '').substring(0, 300);
+          if (!text) {
+            resolve(false);
+            return;
+          }
+          Alert.alert(
+            script.name || t('Script'),
+            text,
+            [
+              { text: t('No'), style: 'cancel', onPress: () => resolve(false) },
+              { text: t('Yes'), onPress: () => resolve(true) },
+            ],
+            // Dismissing without choosing is a no, not a hang.
+            { cancelable: true, onDismiss: () => resolve(false) },
+          );
+        }),
+
+      /**
+       * Ask the user to pick one of a few choices. Resolves null if dismissed.
+       *
+       * Buttons rather than a text field: Alert.prompt is iOS-only, and a
+       * free-text box on Android needs a modal of its own, which is a screen
+       * rather than an API. Three choices is what Android's dialog holds.
+       */
+      ask: (question: string, options: string[]): Promise<string | null> =>
+        new Promise(resolve => {
+          const text = String(question || '').substring(0, 300);
+          const choices = (Array.isArray(options) ? options : [])
+            .map(choice => String(choice || '').substring(0, 40))
+            .filter(Boolean)
+            .slice(0, 3);
+          if (!text || !choices.length) {
+            resolve(null);
+            return;
+          }
+          Alert.alert(
+            script.name || t('Script'),
+            text,
+            choices.map(choice => ({
+              text: choice,
+              onPress: () => resolve(choice),
+            })),
+            { cancelable: true, onDismiss: () => resolve(null) },
+          );
+        }),
+
+      copyToClipboard: (text: string) => {
+        Clipboard.setString(String(text || '').substring(0, 5000));
+      },
+
+      /**
+       * Fetch a page as text, through the SAME allowlist the assistant uses.
+       *
+       * Deliberately not a second permission model: a script the user wrote
+       * and a model choosing URLs are different risks, but the user should
+       * only have one list of sites to reason about. Private addresses are
+       * refused here too.
+       */
+      http: async (url: string): Promise<string | null> => {
+        try {
+          const host = webAccessService.hostOf(String(url || ''));
+          if (!host) {
+            this.addLog({
+              level: 'warn',
+              message: 'api.http: only http and https URLs can be fetched',
+              scriptId: script.id,
+            });
+            return null;
+          }
+          if (!webAccessService.isAllowed(host)) {
+            this.addLog({
+              level: 'warn',
+              message: `api.http: ${host} is not on the allowed list (Settings > AI > Sites the assistant may read)`,
+              scriptId: script.id,
+            });
+            return null;
+          }
+          const page = await webAccessService.fetchPage(String(url));
+          return page.text;
+        } catch (error) {
+          this.addLog({
+            level: 'warn',
+            message: `api.http failed: ${String(error)}`,
+            scriptId: script.id,
+          });
+          return null;
+        }
+      },
+
       playSound: (name: string) => {
         const nowMs = Date.now();
         if (nowMs - this.lastSoundAt < 1000) return; // max 1/sec
@@ -1878,6 +2305,40 @@ class ScriptingService {
       },
 
       // --- Small helpers ---
+      // --- Formatting ------------------------------------------------------
+      // IRC control codes, which mIRC scripters write by hand as $chr(2) and
+      // $chr(3). Sending them already worked; knowing them by heart was the
+      // barrier. `strip` matters most: the moment a script wants to match on
+      // text somebody coloured, raw control characters are in the way.
+
+      bold: (text: string) => `\u0002${String(text ?? '')}\u0002`,
+      italic: (text: string) => `\u001d${String(text ?? '')}\u001d`,
+      underline: (text: string) => `\u001f${String(text ?? '')}\u001f`,
+
+      colour: (text: string, fg: number, bg?: number) => {
+        const f = Math.min(Math.max(Number(fg) || 0, 0), 99);
+        const b = Number.isFinite(Number(bg))
+          ? ',' + Math.min(Math.max(Number(bg), 0), 99)
+          : '';
+        return `\u0003${f}${b}${String(text ?? '')}\u0003`;
+      },
+
+      /**
+       * Text with every colour and formatting code removed.
+       *
+       * no-control-regex is switched off for this one function rather than
+       * worked around: IRC formatting IS control characters, so matching them
+       * by code point would be less readable, not safer.
+       */
+      /* eslint-disable no-control-regex */
+      strip: (text: string) =>
+        String(text ?? '')
+          // Colour: \x03 then up to two digits, optionally a comma and two more.
+          .replace(/\u0003\d{0,2}(?:,\d{1,2})?/g, '')
+          // Bold, italic, underline, strikethrough, monospace, reverse, reset.
+          .replace(/[\u0002\u001d\u001f\u001e\u0011\u0016\u000f]/g, ''),
+      /* eslint-enable no-control-regex */
+
       rand: (min: number, max: number): number => {
         if (typeof min !== 'number' || typeof max !== 'number') return 0;
         const lo = Math.ceil(Math.min(min, max));
@@ -1924,6 +2385,28 @@ class ScriptingService {
           },
         };
       },
+      /**
+       * Print a line into a tab, locally. Nothing is sent to IRC.
+       *
+       * mIRC's /echo, and the single biggest thing missing here: a script that
+       * wanted to tell its user something could only use sendNotice, which is
+       * a real NOTICE going to the server and back. That is visible traffic,
+       * it can be rate-limited by the network, and on some servers it is
+       * echoed to other people. This is just a line in your own client.
+       */
+      echo: (target: string, text: string, networkId?: string) => {
+        const tgt = this.sanitizeChannel(target) || this.sanitizeNick(target);
+        if (!tgt || typeof text !== 'string') return;
+        const net = this.validateNetworkId(networkId);
+        if (!net) return;
+        connectionManager.getConnection(net)?.ircService.addMessage({
+          type: 'notice',
+          channel: tgt,
+          text: text.substring(0, 500),
+          timestamp: Date.now(),
+        });
+      },
+
       sendNotice: (target: string, text: string, networkId?: string) => {
         const tgt = this.sanitizeChannel(target) || this.sanitizeNick(target);
         if (!tgt || typeof text !== 'string' || text.length > 500) return;
@@ -1965,6 +2448,83 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         return conn?.ircService.getChannels() || [];
       },
+      /**
+       * The channel list this client already has, optionally filtered.
+       *
+       * Reads the CACHE and never asks the server. `/LIST` on a large network
+       * is thousands of lines and some servers throttle or disconnect over
+       * it, so a script must not be able to trigger one just by asking a
+       * question. `requestChannelList` exists for the user to run from the
+       * channel browser, where they can see what it costs.
+       *
+       * Returns [] when nothing has been listed yet, which is a real answer:
+       * "I do not have one" rather than "there are none".
+       */
+      getChannelList: async (
+        query?: string,
+        networkId?: string,
+      ): Promise<Array<{ name: string; users: number; topic: string }>> => {
+        const net = this.validateNetworkId(networkId);
+        try {
+          // Required here rather than at the top: ChannelListService builds
+          // its singleton by requiring IRCService at module load, so importing
+          // it normally drags the whole IRC stack into everything that imports
+          // ScriptingService - including screens that have no business with it.
+          const { channelListService } =
+            require('./ChannelListService') as typeof import('./ChannelListService');
+          const cached = await channelListService.getCachedList(
+            net ?? undefined,
+          );
+          const term = String(query || '')
+            .trim()
+            .toLowerCase();
+          const matched = term
+            ? cached.filter(
+                item =>
+                  item.name?.toLowerCase().includes(term) ||
+                  item.topic?.toLowerCase().includes(term),
+              )
+            : cached;
+          return matched.slice(0, 500).map(item => ({
+            name: item.name,
+            users: item.userCount ?? 0,
+            topic: item.topic ?? '',
+          }));
+        } catch {
+          return [];
+        }
+      },
+
+      /**
+       * Channels you are in that this nick is also in - mIRC's $comchan.
+       *
+       * Doing it by hand means calling getChannelUsers for every channel and
+       * intersecting, which is what moderation scripts end up writing and
+       * which gets slower with every channel joined.
+       */
+      getSharedChannels: (nick: string, networkId?: string): string[] => {
+        const n = this.sanitizeNick(nick);
+        if (!n) return [];
+        const net = this.validateNetworkId(networkId);
+        if (!net) return [];
+        const conn = connectionManager.getConnection(net);
+        if (!conn) return [];
+        const wanted = n.toLowerCase();
+        try {
+          return (conn.ircService.getChannels() || []).filter(channel => {
+            const users = conn.ircService.getChannelUsers(channel) || [];
+            return users.some(
+              (user: any) =>
+                String(typeof user === 'string' ? user : user?.nick || '')
+                  .replace(/^[@+%~&]/, '')
+                  .toLowerCase() === wanted,
+            );
+          });
+        } catch {
+          return [];
+        }
+      },
+
       getChannelInfo: (channel: string, networkId?: string) => {
         const chan = this.sanitizeChannel(channel);
         if (!chan) return null;
@@ -2317,6 +2877,53 @@ class ScriptingService {
       },
 
       // Connection stats
+      /** True when you are marked away on any network. */
+      isAnyAway: (): boolean => {
+        try {
+          return awayService.isAnyAway();
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * When a nick was last seen doing something, and what.
+       *
+       * Returns undefined when nothing has been recorded, which is the normal
+       * state for someone who has not spoken since the app started.
+       */
+      getUserActivity: (nick: string, networkId?: string) => {
+        const n = this.sanitizeNick(nick);
+        if (!n) return undefined;
+        const net = this.validateNetworkId(networkId);
+        try {
+          return userActivityService.getActivity(n, net ?? undefined);
+        } catch {
+          return undefined;
+        }
+      },
+
+      /**
+       * What the flood protection caught, newest last.
+       *
+       * Capped rather than handed over whole: the log is a file that grows for
+       * as long as the app has been used, and a script asking "what happened
+       * recently" does not want every line of it in memory.
+       */
+      getSpamLog: async (limit?: number): Promise<string[]> => {
+        const count = Math.min(
+          Math.max(Number.isFinite(Number(limit)) ? Number(limit) : 50, 1),
+          500,
+        );
+        try {
+          const raw = await protectionService.getSpamLog();
+          if (!raw) return [];
+          return raw.split('\n').filter(Boolean).slice(-count);
+        } catch {
+          return [];
+        }
+      },
+
       getConnectionStats: (networkId?: string) => {
         const net = this.validateNetworkId(networkId);
         if (!net) return null;
@@ -2412,6 +3019,54 @@ class ScriptingService {
           });
         }
       },
+      /**
+       * The keys this script has stored, without the internal prefix.
+       *
+       * Writing without being able to read back what is there is what made a
+       * whole class of script impossible: one value per nick could be stored
+       * but never counted, iterated or cleaned up, so scripts kept a second
+       * key holding an index of the first and had to keep the two in step by
+       * hand. mIRC has had $hget(table, N).item for twenty years.
+       */
+      listStorage: async (prefix?: string): Promise<string[]> => {
+        const scope = `@AndroidIRCX:script:${script.id}:`;
+        const wanted = typeof prefix === 'string' ? prefix : '';
+        try {
+          const all = await AsyncStorage.getAllKeys();
+          return all
+            .filter(key => key.startsWith(scope))
+            .map(key => key.substring(scope.length))
+            .filter(key => !wanted || key.startsWith(wanted))
+            .sort();
+        } catch {
+          return [];
+        }
+      },
+
+      /** Delete everything this script stored. Other scripts are untouched. */
+      clearStorage: async (prefix?: string): Promise<number> => {
+        const scope = `@AndroidIRCX:script:${script.id}:`;
+        const wanted = typeof prefix === 'string' ? prefix : '';
+        try {
+          const all = await AsyncStorage.getAllKeys();
+          const mine = all.filter(
+            key =>
+              key.startsWith(scope) &&
+              (!wanted || key.substring(scope.length).startsWith(wanted)),
+          );
+          if (!mine.length) return 0;
+          // Removed one at a time: this build's AsyncStorage typing has no
+          // multiRemove, and a script's own store is small enough that the
+          // round trips do not matter.
+          for (const key of mine) {
+            await AsyncStorage.removeItem(key);
+          }
+          return mine.length;
+        } catch {
+          return 0;
+        }
+      },
+
       removeStorage: async (key: string) => {
         if (typeof key !== 'string' || key.length > 100) return;
         try {
@@ -2679,7 +3334,12 @@ class ScriptingService {
     ctx: ScriptCommandContext = {},
   ) {
     const item = this.scriptMenuItems.find(m => m.id === id);
-    if (!item || !adRewardService.hasAvailableTime()) return;
+    if (!item) return;
+    if (!adRewardService.hasAvailableTime()) {
+      // Tapping a menu entry and getting nothing is the same silence.
+      this.tellUser(this.noScriptingTimeMessage(), ctx.networkId);
+      return;
+    }
     try {
       item.onSelect(target, ctx);
     } catch (error) {
@@ -2691,12 +3351,46 @@ class ScriptingService {
     }
   }
 
+  /**
+   * Tell the user something, locally, without sending anything to IRC.
+   *
+   * Used where a script action is refused: staying quiet and letting the text
+   * fall through to the server meant `/ai something` was answered by the
+   * network with "unknown command", or by nothing at all.
+   */
+  private tellUser(text: string, networkId?: string): void {
+    const net = this.validateNetworkId(networkId);
+    if (!net) return;
+    connectionManager.getConnection(net)?.ircService.addMessage({
+      type: 'error',
+      text,
+      timestamp: Date.now(),
+    });
+  }
+
+  /** The one thing standing between a script command and running it. */
+  private noScriptingTimeMessage(): string {
+    return t(
+      '*** No scripting time left, so script commands are off. Watch an ad for an hour, or get Scripting Pro for unlimited.',
+    );
+  }
+
   processOutgoingCommand(
     text: string,
     ctx: { channel?: string; networkId?: string },
   ): string | null {
     // Script-registered /command aliases run first and consume the input.
     const match = /^\/([^\s]+)(?:\s+([\s\S]*))?$/.exec(text.trim());
+    if (match) {
+      const known = this.scriptCommands.get(match[1].toLowerCase());
+      // Say why rather than passing it to the server as if it were IRC. The
+      // old code skipped this whole block without a word, so a command the
+      // user had installed simply vanished.
+      if (known && !adRewardService.hasAvailableTime()) {
+        this.tellUser(this.noScriptingTimeMessage(), ctx.networkId);
+        return null;
+      }
+    }
     if (match && adRewardService.hasAvailableTime()) {
       const cmd = this.scriptCommands.get(match[1].toLowerCase());
       if (cmd) {

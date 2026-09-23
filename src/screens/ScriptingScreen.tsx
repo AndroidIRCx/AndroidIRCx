@@ -1022,6 +1022,15 @@ export const ScriptingScreen: React.FC<Props> = ({
                       showHighlight && styles.codeInputOverlay,
                     ]}
                     multiline
+                    // This is code, not prose. Without these the spellchecker
+                    // underlines every identifier in red and autocorrect
+                    // rewrites what you type.
+                    spellCheck={false}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    textContentType="none"
+                    importantForAutofill="no"
                     value={editing.code}
                     selection={
                       caretTarget
@@ -1623,7 +1632,14 @@ const createStyles = (colors: any) => {
     // When highlight is on, hide the input's own glyphs (keep caret/selection
     // visible) so only the coloured layer behind is read.
     codeInputOverlay: { backgroundColor: 'transparent', color: 'transparent' },
-    syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
+    syntax: {
+      backgroundColor: 'transparent',
+      padding: 0,
+      fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
+    },
     codeText: {
       color: colors.text,
       fontFamily: 'monospace',
@@ -1635,37 +1651,51 @@ const createStyles = (colors: any) => {
       color: syntaxColors.keyword,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeString: {
       color: syntaxColors.string,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeComment: {
       color: syntaxColors.comment,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeNumber: {
       color: syntaxColors.number,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     // AndroidIRCX scripting vocabulary
     codeHook: {
       color: syntaxColors.hook,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeApi: {
       color: syntaxColors.api,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeApiMethod: {
       color: syntaxColors.apiMethod,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     autocompleteBox: {
       marginTop: 4,

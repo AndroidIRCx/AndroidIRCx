@@ -9,6 +9,7 @@ import { aiProviderStore, MAX_ALLOWED_TOKENS } from './AIProviderStore';
 import { openAICompatProvider } from './providers/OpenAICompatProvider';
 import { anthropicProvider } from './providers/AnthropicProvider';
 import { geminiProvider } from './providers/GeminiProvider';
+import { measureRequest } from './measure';
 import {
   AIError,
   AIMessage,
@@ -25,8 +26,20 @@ const STORAGE_CONSENT_KEY = '@AndroidIRCX:aiConsent';
 const STORAGE_CHANNELS_KEY = '@AndroidIRCX:aiChannels';
 const STORAGE_REDACTION_KEY = '@AndroidIRCX:aiRedaction';
 
-/** Prompts longer than this are refused outright — see MAX_PROMPT_CHARS use. */
-export const MAX_PROMPT_CHARS = 8000;
+/**
+ * The hard ceiling on one request, in characters.
+ *
+ * This used to be 8000 and counted only `system` plus each message's
+ * `content` — not `toolResults`. So a 40 KB page from `fetch_page` sailed
+ * through uncounted while a dozen ordinary exchanges were refused: it was
+ * measuring the wrong thing and set too low besides.
+ *
+ * It is now a backstop, not a budget. A caller that wants to stay well under
+ * it (the assistant compacting its own history) does that itself; this only
+ * stops a runaway script sending a novel. Roughly 30k tokens, which every
+ * current model comfortably exceeds.
+ */
+export const MAX_PROMPT_CHARS = 120000;
 export const DEFAULT_TIMEOUT_MS = 30000;
 /** Minimum gap between two calls from the same caller. */
 export const DEFAULT_COOLDOWN_MS = 5000;
@@ -51,18 +64,35 @@ export interface AILimits {
 }
 
 /**
+ * The assistant's own limits.
+ *
+ * The defaults above were written for a *script* reacting to channel traffic,
+ * where one call per event is the whole point and a gap between them stops a
+ * flood. The assistant is a person typing into a screen, which is its own rate
+ * limit, and it inherited numbers that only got in their way. The daily cap
+ * stays, higher, because it is the one that protects the user's bill.
+ */
+export const AGENT_LIMITS: AILimits = {
+  cooldownMs: 0,
+  maxCallsPerDay: 500,
+  maxConcurrent: 2,
+};
+
+/**
  * Orchestrates AI calls: provider resolution, key lookup, anti-flood limits,
  * caps, redaction and the kill switch.
  *
  * Deliberately NOT here: monetization gating. `api.ai.*` rides the existing
  * scripting-time budget — scripts only run while AdRewardService has time (or
  * the user holds pro_unlimited / supporter_pro), so AI inherits that gate for
- * free. The limits below exist to stop a runaway script from flooding a channel
+ * free. The limits here exist to stop a runaway script from flooding a channel
  * and burning the user's own provider credit, nothing else.
  */
 class AIService {
   private adapters = new Map<AIProviderKind, AIProviderAdapter>();
   private callers = new Map<string, CallerState>();
+  /** Per-caller overrides; see setLimitsFor. */
+  private callerLimits = new Map<string, Partial<AILimits>>();
   private limits: AILimits = {
     cooldownMs: DEFAULT_COOLDOWN_MS,
     maxCallsPerDay: DEFAULT_MAX_CALLS_PER_DAY,
@@ -212,6 +242,24 @@ class AIService {
     return { ...this.limits };
   }
 
+  /**
+   * Give one caller its own limits. Stored as a patch rather than a resolved
+   * set, so a later `setLimits` still shows through for anything the override
+   * does not mention.
+   */
+  setLimitsFor(callerId: string, limits: Partial<AILimits>): void {
+    this.callerLimits.set(callerId, { ...limits });
+  }
+
+  clearLimitsFor(callerId: string): void {
+    this.callerLimits.delete(callerId);
+  }
+
+  private limitsFor(callerId: string): AILimits {
+    const override = this.callerLimits.get(callerId);
+    return override ? { ...this.limits, ...override } : this.limits;
+  }
+
   /** True when at least one enabled provider is usable right now. */
   async isAvailable(): Promise<boolean> {
     if (!this.enabled) return false;
@@ -316,6 +364,7 @@ class AIService {
    */
   private reserveSlot(callerId: string, continuesTurn = false): CallerState {
     const state = this.stateFor(callerId);
+    const limits = this.limitsFor(callerId);
     const now = Date.now();
 
     if (now - state.windowStartedAt >= DAY_MS) {
@@ -323,10 +372,10 @@ class AIService {
       state.callsInWindow = 0;
     }
 
-    if (state.inFlight >= this.limits.maxConcurrent) {
+    if (state.inFlight >= limits.maxConcurrent) {
       throw new AIError(
         'rate_limited',
-        `Too many AI requests in flight (max ${this.limits.maxConcurrent})`,
+        `Too many AI requests in flight (max ${limits.maxConcurrent})`,
       );
     }
 
@@ -337,21 +386,19 @@ class AIService {
     if (
       !continuesTurn &&
       state.lastCallAt > 0 &&
-      sinceLast < this.limits.cooldownMs
+      sinceLast < limits.cooldownMs
     ) {
-      const waitSeconds = Math.ceil(
-        (this.limits.cooldownMs - sinceLast) / 1000,
-      );
+      const waitSeconds = Math.ceil((limits.cooldownMs - sinceLast) / 1000);
       throw new AIError(
         'rate_limited',
         `AI cooldown active, retry in ${waitSeconds}s`,
       );
     }
 
-    if (state.callsInWindow >= this.limits.maxCallsPerDay) {
+    if (state.callsInWindow >= limits.maxCallsPerDay) {
       throw new AIError(
         'quota_exceeded',
-        `Daily AI call limit reached (${this.limits.maxCallsPerDay})`,
+        `Daily AI call limit reached (${limits.maxCallsPerDay})`,
       );
     }
 
@@ -372,6 +419,10 @@ class AIService {
     } else {
       this.callers.clear();
     }
+  }
+
+  getLimitsFor(callerId: string): AILimits {
+    return { ...this.limitsFor(callerId) };
   }
 
   // --- Redaction ---------------------------------------------------------
@@ -509,10 +560,7 @@ class AIService {
       throw new AIError('invalid_request', 'At least one message is required');
     }
 
-    const totalChars = messages.reduce(
-      (sum, message) => sum + (message?.content?.length ?? 0),
-      (options.system ?? '').length,
-    );
+    const totalChars = measureRequest(messages, options.system);
     if (totalChars > MAX_PROMPT_CHARS) {
       throw new AIError(
         'prompt_too_long',
@@ -617,6 +665,7 @@ class AIService {
   /** Test hook — restores construction-time state. */
   resetForTests(): void {
     this.callers.clear();
+    this.callerLimits.clear();
     this.enabled = true;
     this.enabledLoaded = false;
     this.redactionEnabled = true;

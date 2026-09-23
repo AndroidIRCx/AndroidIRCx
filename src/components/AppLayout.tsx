@@ -8,7 +8,13 @@
  * Extracted from App.tsx to reduce complexity.
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   Keyboard,
   Platform,
@@ -23,6 +29,7 @@ import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
 import { MessageInput } from './MessageInput';
 import { TypingIndicator } from './TypingIndicator';
+import { AIActivityStrip } from './AIActivityStrip';
 import { UserList } from './UserList';
 import { HeaderBar } from './HeaderBar';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
@@ -30,6 +37,7 @@ import { ChannelTab } from '../types';
 import { bannerAdService } from '../services/BannerAdService';
 import { settingsService } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
+import { scriptingService } from '../services/ScriptingService';
 import { LayoutConfig } from '../services/LayoutService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
@@ -200,6 +208,33 @@ export function AppLayout({
   >('off');
   const [swipeInverse, setSwipeInverse] = useState(false);
   const setShowUserList = useUIStore(state => state.setShowUserList);
+
+  // What AI is doing in the tab being looked at. Keyed the same way the
+  // scripting API writes it, so a script in one channel cannot show a strip
+  // over another.
+  const aiActivityKey = activeTab
+    ? `${activeTab.networkId}::${activeTab.name.toLowerCase()}`
+    : '';
+  // Optional: a store rehydrated from a build without this field, or a test
+  // that stubs the store, must not crash the whole layout.
+  const aiActivity = useUIStore(state => state.aiActivity?.[aiActivityKey]);
+
+  const handleAIDismiss = useCallback(() => {
+    useUIStore.getState().clearAIActivity(aiActivityKey);
+  }, [aiActivityKey]);
+
+  const handleAIRetry = useCallback(() => {
+    const retry = aiActivity?.retry;
+    useUIStore.getState().clearAIActivity(aiActivityKey);
+    if (!retry || !activeTab) return;
+    // Re-dispatch through the same path the user's own typing takes, so the
+    // retry is the command running again rather than a second code path that
+    // can drift from it.
+    scriptingService.processOutgoingCommand(retry, {
+      channel: activeTab.name,
+      networkId: activeTab.networkId,
+    });
+  }, [aiActivity, aiActivityKey, activeTab]);
   const effectiveLayoutConfig = useMemo(
     () =>
       getEffectiveLayoutConfig(
@@ -706,6 +741,13 @@ export function AppLayout({
           />
         )}
       </View>
+      {activeTab && aiActivity && (
+        <AIActivityStrip
+          activity={aiActivity}
+          onRetry={handleAIRetry}
+          onDismiss={handleAIDismiss}
+        />
+      )}
       {activeTab &&
         showTypingIndicators &&
         typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (

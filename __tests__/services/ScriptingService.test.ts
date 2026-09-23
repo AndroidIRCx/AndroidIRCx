@@ -22,6 +22,7 @@ const mockAdRewardService = {
 const mockIrcService = {
   sendMessage: jest.fn(),
   sendCommand: jest.fn(),
+  addMessage: jest.fn(),
   getChannelUsers: jest.fn(() => [{ nick: 'alice' }, { nick: '@bob' }]),
   getChannels: jest.fn(() => ['#chat', '#help']),
   getCurrentNick: jest.fn(() => 'myNick'),
@@ -180,6 +181,7 @@ jest.mock('../../src/services/ai/AIService', () => ({
 }));
 
 const { scriptingService } = require('../../src/services/ScriptingService');
+const { useUIStore } = require('../../src/stores/uiStore');
 const { Alert, Linking } = require('react-native');
 
 describe('ScriptingService', () => {
@@ -1314,6 +1316,276 @@ describe('ScriptingService', () => {
     openSpy.mockRestore();
   });
 
+  describe('the wider api', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('echoes locally without sending anything to IRC', async () => {
+      const api = await apiOf();
+
+      api.echo('#chat', 'just for me', 'net1');
+
+      // The whole point: sendNotice is real traffic that goes out and comes
+      // back, and some networks throttle or relay it. echo is a line in your
+      // own client.
+      expect(mockIrcService.sendCommand).not.toHaveBeenCalled();
+      expect(mockIrcService.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ channel: '#chat', text: 'just for me' }),
+      );
+    });
+
+    it('builds a ban mask from what is known about a nick', async () => {
+      const api = await apiOf();
+      mockConnection.userManagementService.getWHOIS.mockReturnValue({
+        nick: 'troll',
+        username: 'bob',
+        hostname: 'some.host.example',
+      });
+
+      const mask = await api.banMask('troll', 2, 'net1');
+
+      expect(mask).toBe('*!*@some.host.example');
+    });
+
+    it('returns null for a nick nothing is known about', async () => {
+      const api = await apiOf();
+      mockConnection.userManagementService.getWHOIS.mockReturnValue(undefined);
+
+      // A WHOIS has to have happened for there to be a host to build from,
+      // and inventing one would produce a mask that bans the wrong people.
+      expect(await api.banMask('stranger', 2, 'net1')).toBeNull();
+    });
+
+    it('reads the channel list from the cache and never runs /LIST', async () => {
+      const api = await apiOf();
+
+      const list = await api.getChannelList('dev', 'net1');
+
+      // /LIST on a large network is thousands of lines and some servers
+      // throttle or disconnect over it, so a script must not be able to
+      // trigger one just by asking a question.
+      expect(Array.isArray(list)).toBe(true);
+      expect(mockIrcService.sendCommand).not.toHaveBeenCalled();
+    });
+
+    it('caps the spam log rather than handing over the whole file', async () => {
+      const api = await apiOf();
+
+      const lines = await api.getSpamLog(5);
+
+      expect(Array.isArray(lines)).toBe(true);
+      expect(lines.length).toBeLessThanOrEqual(5);
+    });
+
+    it('puts text in the composer without sending it', async () => {
+      const api = await apiOf();
+
+      api.setInput('how about this instead?');
+
+      expect(useUIStore.getState().prefillMessage).toBe(
+        'how about this instead?',
+      );
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it('refuses api.http for a host that is not allowed', async () => {
+      const api = await apiOf();
+      await scriptingService.setLoggingEnabled(true);
+
+      const result = await api.http('https://example.com/whatever');
+
+      // One allowlist for the app, not a second one for scripts.
+      expect(result).toBeNull();
+      const logged = scriptingService
+        .getLogs()
+        .map((entry: any) => entry.message)
+        .join(' ');
+      expect(logged).toMatch(/not on the allowed list/i);
+    });
+  });
+
+  describe('storage a script can actually manage', () => {
+    const apiFor = async (id: string) => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id, name: id });
+    };
+
+    it('lists back what it stored', async () => {
+      const api = await apiFor('s1');
+      await api.setStorage('seen:alice', 1);
+      await api.setStorage('seen:bob', 2);
+      await api.setStorage('config', {});
+
+      // Writing without reading back the keys is what made a whole class of
+      // script impossible: one value per nick could be stored but never
+      // counted, iterated or cleaned up.
+      expect(await api.listStorage()).toEqual([
+        'config',
+        'seen:alice',
+        'seen:bob',
+      ]);
+      expect(await api.listStorage('seen:')).toEqual([
+        'seen:alice',
+        'seen:bob',
+      ]);
+    });
+
+    it('never shows one script another script\u2019s keys', async () => {
+      const mine = await apiFor('s1');
+      const theirs = await apiFor('s2');
+      await mine.setStorage('secret', 1);
+
+      expect(await theirs.listStorage()).toEqual([]);
+    });
+
+    it('clears only what it is asked to', async () => {
+      const api = await apiFor('s1');
+      await api.setStorage('seen:alice', 1);
+      await api.setStorage('keep', 2);
+
+      expect(await api.clearStorage('seen:')).toBe(1);
+      expect(await api.listStorage()).toEqual(['keep']);
+    });
+  });
+
+  describe('asking the user', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('resolves what they chose', async () => {
+      (Alert.alert as jest.Mock).mockImplementation((_title, _msg, buttons) =>
+        buttons[1].onPress(),
+      );
+      const api = await apiOf();
+
+      expect(await api.confirm('really?')).toBe(true);
+    });
+
+    it('treats a dismissal as no, rather than hanging', async () => {
+      (Alert.alert as jest.Mock).mockImplementation(
+        (_title, _msg, _buttons, opts) => opts.onDismiss(),
+      );
+      const api = await apiOf();
+
+      // A promise nobody resolves would wedge the script forever.
+      expect(await api.confirm('really?')).toBe(false);
+      expect(await api.ask('which?', ['a', 'b'])).toBeNull();
+    });
+
+    it('offers at most the three Android holds', async () => {
+      let offered: unknown[] = [];
+      (Alert.alert as jest.Mock).mockImplementation((_t, _m, buttons) => {
+        offered = buttons;
+        buttons[0].onPress();
+      });
+      const api = await apiOf();
+
+      await api.ask('which?', ['a', 'b', 'c', 'd', 'e']);
+
+      expect(offered).toHaveLength(3);
+    });
+  });
+
+  describe('formatting helpers', () => {
+    it('strips colour and formatting before matching', async () => {
+      await scriptingService.initialize();
+      const api = (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+
+      const shouty = api.bold(api.colour('hello', 4)) + '\u001fthere\u001f';
+
+      // The point of strip: control characters sit between a script and any
+      // attempt to match on what somebody actually said.
+      expect(api.strip(shouty)).toBe('hellothere');
+    });
+  });
+
+  describe('a script leaving', () => {
+    it('gets a last word before its registrations go', async () => {
+      await scriptingService.initialize();
+      const farewells: string[] = [];
+      (global as any).__farewell = () => farewells.push('bye');
+
+      await scriptingService.add({
+        id: 'leaver',
+        name: 'Leaver',
+        enabled: true,
+        code: 'module.exports = { onUnload: () => global.__farewell() };',
+        config: {},
+      });
+
+      await scriptingService.setEnabled('leaver', false);
+
+      expect(farewells).toEqual(['bye']);
+      delete (global as any).__farewell;
+    });
+
+    it('is not taken down by a hook that throws', async () => {
+      await scriptingService.initialize();
+      await scriptingService.add({
+        id: 'rude',
+        name: 'Rude',
+        enabled: true,
+        code: "module.exports = { onUnload: () => { throw new Error('no'); } };",
+        config: {},
+      });
+
+      // A script on its way out must not be able to block being switched off.
+      await expect(
+        scriptingService.setEnabled('rude', false),
+      ).resolves.not.toThrow();
+      expect(
+        scriptingService.list().find(s2 => s2.id === 'rude')?.enabled,
+      ).toBe(false);
+    });
+  });
+
+  describe('when scripting time has run out', () => {
+    beforeEach(async () => {
+      await scriptingService.initialize();
+      await scriptingService.add({
+        id: 'cmd',
+        name: 'Cmd',
+        enabled: true,
+        code: "api.registerCommand('mine', () => {});",
+        config: {},
+      });
+    });
+
+    it('says why, instead of letting the command reach the server', () => {
+      mockAdRewardService.hasAvailableTime.mockReturnValue(false);
+
+      const passedOn = scriptingService.processOutgoingCommand('/mine now', {
+        channel: '#chat',
+        networkId: 'net1',
+      });
+
+      // It used to skip the whole block without a word, so a command the user
+      // had installed was sent to IRC as an unknown command and answered with
+      // nothing at all.
+      expect(passedOn).toBeNull();
+      const said = mockIrcService.addMessage.mock.calls
+        .map(call => call[0]?.text)
+        .join(' ');
+      expect(said).toMatch(/scripting time/i);
+    });
+
+    it('leaves commands it does not know alone', () => {
+      mockAdRewardService.hasAvailableTime.mockReturnValue(false);
+
+      // Not a script command, so it is IRC's business and must pass through
+      // untouched even with no time left.
+      expect(
+        scriptingService.processOutgoingCommand('/whois someone', {
+          networkId: 'net1',
+        }),
+      ).toBe('/whois someone');
+    });
+  });
+
   describe('built-in AI scripts', () => {
     const aiScripts = () =>
       scriptingService
@@ -1417,6 +1689,82 @@ describe('ScriptingService', () => {
       expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
       const issued = mockIrcService.sendCommand.mock.calls.map(call => call[0]);
       expect(issued.some(command => /^NOTICE /.test(command))).toBe(true);
+    });
+
+    it('says it is working before the model is asked', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      (scriptingService as any).compile({ ...script, enabled: true });
+
+      let stripWhileWorking: any;
+      mockAiService.ask.mockImplementation(async () => {
+        stripWhileWorking = useUIStore.getState().aiActivity['net1::#chat'];
+        return { text: 'answer', model: 'm', providerId: 'p1' };
+      });
+
+      await (scriptingService as any).scriptCommands
+        .get('ai')
+        .handler(['translate', 'that'], {
+          channel: '#chat',
+          networkId: 'net1',
+        });
+
+      // A model can take ten seconds, and ten seconds of silence looks like
+      // the command did nothing at all.
+      expect(stripWhileWorking?.state).toBe('working');
+      expect(stripWhileWorking?.text).toContain('translate that');
+      // And it is cleared once the answer lands.
+      expect(useUIStore.getState().aiActivity['net1::#chat']).toBeUndefined();
+    });
+
+    it('leaves a retry on the strip when the call fails', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      (scriptingService as any).compile({ ...script, enabled: true });
+      // ask() resolves null on failure and logs the reason itself.
+      mockAiService.ask.mockResolvedValue(null);
+
+      await (scriptingService as any).scriptCommands
+        .get('ai')
+        .handler(['translate', 'that'], {
+          channel: '#chat',
+          networkId: 'net1',
+        });
+
+      const strip = useUIStore.getState().aiActivity['net1::#chat'];
+      expect(strip?.state).toBe('failed');
+      // A button rather than a sentence telling the user what to type.
+      expect(strip?.retry).toBe('/ai retry');
+    });
+
+    it('runs the last task again on /ai retry', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      (scriptingService as any).compile({ ...script, enabled: true });
+      const ctx = { channel: '#chat', networkId: 'net1' };
+      const ai = (scriptingService as any).scriptCommands.get('ai');
+
+      await ai.handler(['summarise', 'the', 'argument'], ctx);
+      mockAiService.ask.mockClear();
+
+      await ai.handler(['retry'], ctx);
+
+      // Retry means the same task, not the word "retry".
+      expect(mockAiService.ask.mock.calls[0][0]).toContain(
+        'Task: summarise the argument',
+      );
+    });
+
+    it('offers the same retry from the channel menu', async () => {
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
+      (scriptingService as any).compile({ ...script, enabled: true });
+
+      const items = (scriptingService as any).scriptMenuItems as Array<{
+        menu: string;
+        label: string;
+      }>;
+      expect(
+        items.some(
+          item => item.menu === 'channel' && /retry/i.test(item.label),
+        ),
+      ).toBe(true);
     });
 
     it('only posts to the channel when /aisend asks for it', async () => {

@@ -23,6 +23,26 @@ type UserListsInitialTab =
   | 'blacklist'
   | 'other';
 
+/**
+ * What AI is doing in one tab.
+ *
+ * `kind` is the typed AIErrorCode the failure came with. It exists because
+ * "no network", "the provider refused" and "a limit here" arrived as one grey
+ * line of text, so nobody could tell whether to check their signal, their key,
+ * or just wait — the distinction was already in the data and nothing showed
+ * it.
+ */
+export interface AIActivity {
+  state: 'working' | 'failed';
+  /** What was asked, or why it failed. */
+  text: string;
+  kind?: string;
+  /** The command to run again when the user taps retry. */
+  retry?: string;
+  networkId?: string;
+  at: number;
+}
+
 export interface UIState {
   // First run setup
   showFirstRunSetup: boolean;
@@ -89,6 +109,14 @@ export interface UIState {
   showChannelLogModal: boolean;
   channelLogEntries: ChannelLogEntry[];
   prefillMessage: string | null;
+  /**
+   * What AI is doing in a tab, keyed `networkId::target`.
+   *
+   * UI state, so it lives here with the rest of it: both the strip that shows
+   * it and the scripting API that drives it need to reach the same thing, and
+   * a second observable just for this would be a mechanism nobody else uses.
+   */
+  aiActivity: Record<string, AIActivity>;
   showDccTransfers: boolean;
   dccTransfersMinimized: boolean;
   showDccSendModal: boolean;
@@ -213,6 +241,8 @@ export interface UIState {
   setShowChannelLogModal: (show: boolean) => void;
   setChannelLogEntries: (entries: ChannelLogEntry[]) => void;
   setPrefillMessage: (message: string | null) => void;
+  setAIActivity: (key: string, activity: AIActivity) => void;
+  clearAIActivity: (key: string) => void;
   setShowDccTransfers: (show: boolean) => void;
   setDccTransfersMinimized: (minimized: boolean) => void;
   setShowDccSendModal: (show: boolean) => void;
@@ -323,6 +353,7 @@ const initialState = {
   showChannelLogModal: false,
   channelLogEntries: [],
   prefillMessage: null,
+  aiActivity: {},
   showDccTransfers: false,
   dccTransfersMinimized: false,
   showDccSendModal: false,
@@ -396,6 +427,7 @@ const initialState = {
   | 'showChannelLogModal'
   | 'channelLogEntries'
   | 'prefillMessage'
+  | 'aiActivity'
   | 'showDccTransfers'
   | 'dccTransfersMinimized'
   | 'showDccSendModal'
@@ -507,6 +539,17 @@ export const useUIStore = create<UIState>()(
       setShowChannelLogModal: show => set({ showChannelLogModal: show }),
       setChannelLogEntries: entries => set({ channelLogEntries: entries }),
       setPrefillMessage: message => set({ prefillMessage: message }),
+      setAIActivity: (key, activity) =>
+        set(state => ({
+          aiActivity: { ...state.aiActivity, [key]: activity },
+        })),
+      clearAIActivity: key =>
+        set(state => {
+          if (!state.aiActivity[key]) return {};
+          const next = { ...state.aiActivity };
+          delete next[key];
+          return { aiActivity: next };
+        }),
       setShowDccTransfers: show => set({ showDccTransfers: show }),
       setDccTransfersMinimized: minimized =>
         set({ dccTransfersMinimized: minimized }),

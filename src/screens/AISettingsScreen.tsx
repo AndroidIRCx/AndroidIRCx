@@ -42,6 +42,7 @@ import {
   mcpClientService,
   McpClientServer,
 } from '../services/ai/McpClientService';
+import { aiMemoryService, AIMemory } from '../services/ai/AIMemoryService';
 import { webAccessService } from '../services/ai/WebAccessService';
 import { useTabStore } from '../stores/tabStore';
 
@@ -135,6 +136,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [modelFilter, setModelFilter] = useState('');
   const [preset, setPreset] = useState<AIProviderPreset | null>(null);
   const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
+  const [memories, setMemories] = useState<AIMemory[]>([]);
+  const [memoryOn, setMemoryOn] = useState(true);
 
   const refresh = useCallback(async () => {
     await aiService.loadSettings();
@@ -150,6 +153,9 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     setAllowedChannels(aiService.listAllowedChannels());
     await webAccessService.load();
     setAllowedHosts(webAccessService.listHosts());
+    await aiMemoryService.load();
+    setMemories(aiMemoryService.list());
+    setMemoryOn(aiMemoryService.isEnabled());
     setProviders(list);
     setDefaultId(currentDefault);
     if (mcpClientService.isSupported()) {
@@ -262,6 +268,34 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     await aiService.setChannelAllowed(channel, false, network);
     setAllowedChannels(aiService.listAllowedChannels());
   }, []);
+
+  const toggleMemory = useCallback(async (value: boolean) => {
+    setMemoryOn(value);
+    await aiMemoryService.setEnabled(value);
+  }, []);
+
+  const forgetMemory = useCallback(async (id: string) => {
+    await aiMemoryService.forget(id);
+    setMemories(aiMemoryService.list());
+  }, []);
+
+  const clearMemories = useCallback(() => {
+    Alert.alert(
+      t('Forget everything?'),
+      t('The assistant will start from nothing again. This cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Forget all'),
+          style: 'destructive',
+          onPress: async () => {
+            await aiMemoryService.clearAll();
+            setMemories([]);
+          },
+        },
+      ],
+    );
+  }, [t]);
 
   const forgetHost = useCallback(async (host: string) => {
     await webAccessService.forgetHost(host);
@@ -755,6 +789,42 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                   </TouchableOpacity>
                 </View>
               ))}
+            </>
+          )}
+
+          <View style={styles.masterRow}>
+            <View style={styles.masterText}>
+              <Text style={styles.masterTitle}>
+                {t('What the assistant remembers')}
+              </Text>
+              <Text style={styles.subtle}>
+                {t(
+                  'Short facts it keeps between conversations \u2014 your role, a preference, what you are working on. Every one is listed below and can be deleted. They are sent to your provider with the conversation, like everything else, so anything you would not send should not be remembered.',
+                )}
+              </Text>
+            </View>
+            <Switch value={memoryOn} onValueChange={toggleMemory} />
+          </View>
+          {memories.length === 0 ? (
+            <Text style={styles.empty}>{t('Nothing remembered yet.')}</Text>
+          ) : (
+            <>
+              {memories.map(memory => (
+                <View key={memory.id} style={styles.channelRow}>
+                  <View style={styles.masterText}>
+                    <Text style={styles.channelText}>{memory.text}</Text>
+                    <Text style={styles.subtle}>{memory.category}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => forgetMemory(memory.id)}>
+                    <Text style={styles.actionDanger}>{t('Forget')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity onPress={clearMemories}>
+                <Text style={styles.actionDanger}>
+                  {t('Forget everything')}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
 

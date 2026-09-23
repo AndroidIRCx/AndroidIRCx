@@ -117,6 +117,127 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           )}
         </Text>
 
+        <Text style={styles.sub}>{t('Storage you can iterate')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.listStorage(prefix?) gives the keys this script saved. Without it you could write a value per nick but never count, iterate or clean them up.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.clearStorage(prefix?) deletes them and returns how many went. Each script sees only its own keys.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Asking the user')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.confirm(question) resolves false if dismissed. await api.ask(question, options) resolves the choice, or null. Neither can leave a script waiting forever.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Buttons, not a text box: Android\u2019s alert has no text field, and three choices is what it holds.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Formatting and cleanup')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.bold, api.italic, api.underline, api.colour(text, fg, bg?) and api.strip(text). Remember strip: colour codes sit between you and any attempt to match what somebody said.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onUnload() runs when the script is switched off or replaced. Commands, menus and timers are cleared for you; this is for what only your script knows about. Must return synchronously.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.getSharedChannels(nick) \u2014 channels you are both in, mIRC\u2019s $comchan.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Bans and saved channels')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.banMask(nick, banType?, networkId?) builds a ban mask the way the app does \u2014 mIRC\u2019s $mask(). Null when no host is known yet, because a WHOIS has to have happened first and guessing would ban the wrong people. api.getBanTypes() lists the types.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.getFavorites, isFavorite, addFavorite, removeFavorite, getAutoJoinChannels, setAutoJoin \u2014 the saved channel list.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Looking around')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.getChannelList(query?, networkId?) reads the list already fetched and NEVER runs /LIST \u2014 that is thousands of lines on a big network and some servers throttle or disconnect over it. An empty array means there is no list, not that there are no channels.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.isAnyAway(), api.getUserActivity(nick), await api.getSpamLog(limit?) \u2014 away state, when someone was last seen, and what the flood protection caught. The log is capped; it grows for as long as the app has been used.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.react(msg.msgid, emoji) toggles a reaction, api.getReactions(msg.msgid) reads them. Hooks give you the id as msg.msgid.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Talking to your own user')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.echo(target, text, networkId?) puts a line in that tab and sends NOTHING. This is mIRC\u2019s /echo and it is usually what you want.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.sendNotice(target, text) is a real IRC NOTICE: it goes out and comes back, some networks throttle it, a few show it to other people. Use echo unless you mean to send.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• api.log(text) goes to the script log, for debugging.')}
+        </Text>
+
+        <Text style={styles.sub}>
+          {t('Notifications, clipboard, composer')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.notify(title, text) puts up a system notification. At most one a second, so a hook on every line cannot bury the shade.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>{t('• api.copyToClipboard(text)')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.setInput(text) puts text in the composer for you to edit. It does NOT send it \u2014 which is the point when a model wrote it.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>
+          {t('Showing that something is happening')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            "• api.aiStatus(target, 'working'|'failed'|'done', { text, retry, networkId }) drives the strip above the composer, where the typing indicator appears. retry becomes a Retry button that runs that command again.",
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Worth doing for anything slow. A script that thinks for ten seconds and says nothing looks exactly like one that is broken.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('Fetching a page')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• await api.http(url) returns the page as text, or null. It uses the SAME allowlist as the assistant (Settings > AI > Sites the assistant may read), so there is one list of sites rather than two. Private addresses are refused whatever the list says, and a refusal is written to the script log.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('Action helpers')}</Text>
         <Text style={styles.bullet}>
           {t('• api.join(channel, networkId?)')}
@@ -243,6 +364,23 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         <Text style={styles.bullet}>
           {t(
             '• They are kept on this phone, so closing the screen or the app does not lose the thread. They are not deleted when you switch AI off — nothing about them left the device. Delete all conversations removes them when you want that. The twenty most recent are kept.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('What the assistant remembers')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Tell it something worth knowing next time — what you work on, that you prefer short answers — and it keeps a short note for later conversations.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Settings > AI > What the assistant remembers lists every note, with Forget on each and Forget everything at the bottom. A switch turns it off completely.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Notes are sent to your provider with the conversation, like everything else in it. Anything you would not send should not be remembered.',
           )}
         </Text>
 

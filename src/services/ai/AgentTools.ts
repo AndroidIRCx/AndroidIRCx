@@ -5,8 +5,11 @@
 
 import { connectionManager } from '../ConnectionManager';
 import { messageHistoryService } from '../MessageHistoryService';
+import { banService } from '../BanService';
+import { channelFavoritesService } from '../ChannelFavoritesService';
 import { scriptingService } from '../ScriptingService';
 import { aiService } from './AIService';
+import { aiMemoryService } from './AIMemoryService';
 import { webAccessService } from './WebAccessService';
 import { AITool, AIToolCall } from './types';
 
@@ -416,7 +419,7 @@ const DEFINITIONS: AgentToolDefinition[] = [
   {
     name: 'save_script',
     description:
-      'Save a script. Creating a new one needs a name; passing an existing id replaces that script. The script is left DISABLED - the user enables it themselves.',
+      'Create or update a script. Saving under a name that already exists UPDATES that script rather than making another copy, so to change one just save it again under the same name - call list_scripts first if you are unsure what it is called. Pass id to be certain which one you mean. The script is always left DISABLED; the user enables it themselves.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -439,33 +442,356 @@ const DEFINITIONS: AgentToolDefinition[] = [
         return fail(`Not saved, it does not compile: ${lint.message}`);
 
       const id = str(input.id);
+      const name = str(input.name);
+      const scripts = scriptingService.list();
+
+      // Match on id when given, otherwise on NAME. Without the name match a
+      // new id was minted every time, so "change that script" left a hundred
+      // near-identical copies behind instead of editing the one it made.
       const existing = id
-        ? scriptingService.list().find(entry => entry.id === id)
-        : undefined;
+        ? scripts.find(entry => entry.id === id)
+        : name
+          ? scripts.find(
+              entry => entry.name.toLowerCase() === name.toLowerCase(),
+            )
+          : undefined;
+
       if (id && !existing) return fail(`No script with id "${id}".`);
       if (existing?.builtIn) {
         return fail(
-          'That is a built-in script. Save it under a new name instead.',
+          'That is a built-in script. Save it under a different name instead.',
         );
       }
 
-      const name = str(input.name) || existing?.name;
-      if (!name) return fail('A new script needs a name.');
+      const finalName = name || existing?.name;
+      if (!finalName) return fail('A new script needs a name.');
 
       await scriptingService.add({
         id: existing?.id ?? `ai-${Date.now().toString(36)}`,
-        name: name.substring(0, 60),
+        name: finalName.substring(0, 60),
         description: str(input.description) || existing?.description,
         code,
         // Never enabled from here, not even when replacing one that was.
         enabled: false,
         config: existing?.config ?? {},
       });
+      // Say which it did, so the model can tell whether it edited or forked
+      // and does not keep creating when it meant to change.
       return ok(
         existing
-          ? `Replaced "${name}". It is disabled; enable it in Settings > Scripting when you have read it.`
-          : `Saved "${name}". It is disabled; enable it in Settings > Scripting when you have read it.`,
+          ? `Updated "${finalName}" (id ${existing.id}). Still disabled; enable it in Settings > Scripting once you have read it.`
+          : `Created "${finalName}". It is disabled; enable it in Settings > Scripting once you have read it.`,
       );
+    },
+  },
+
+  // --- Analysis ----------------------------------------------------------
+  // Read-only, and under the same per-channel opt-in as everything else that
+  // reads other people's words. These exist because "analyse this channel"
+  // needs numbers, and counting lines by hand through search_history is not
+  // something a model does well or cheaply.
+  {
+    name: 'channel_stats',
+    description:
+      'Who talks in a channel and how much, over the last N days. Use this for questions about how busy a channel is or who is active in it, rather than reading every message.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        channel: { type: 'string', description: 'The channel, with its #.' },
+        days: { type: 'number', description: 'How far back, default 7.' },
+        network: { type: 'string' },
+      },
+      required: ['channel'],
+    },
+    mutates: false,
+    execute: async input => {
+      const channel = str(input.channel);
+      if (!channel) return fail('A channel is required.');
+      const network = resolveNetwork(input);
+      if (!aiService.isChannelAllowed(channel, network ?? undefined)) {
+        return fail(`The user has not enabled AI for ${channel}.`);
+      }
+      const daysValue = Number(input.days);
+      const days = Math.min(
+        Math.max(Number.isFinite(daysValue) ? daysValue : 7, 1),
+        90,
+      );
+      const since = Date.now() - days * 24 * 60 * 60 * 1000;
+
+      try {
+        const all = await messageHistoryService.loadMessages(
+          network ?? '',
+          channel,
+        );
+        const recent = (all ?? []).filter(
+          message => (message.timestamp ?? 0) >= since,
+        );
+        if (!recent.length) {
+          return ok(
+            `No stored messages for ${channel} in the last ${days} days.`,
+          );
+        }
+
+        const byNick = new Map<string, number>();
+        const byHour = new Array(24).fill(0);
+        for (const message of recent) {
+          const from = message.from || '?';
+          byNick.set(from, (byNick.get(from) ?? 0) + 1);
+          if (message.timestamp) {
+            byHour[new Date(message.timestamp).getHours()] += 1;
+          }
+        }
+
+        const top = Array.from(byNick.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 15)
+          .map(([nick, count]) => `${nick}: ${count}`)
+          .join(', ');
+        const busiest = byHour
+          .map((count, hour) => ({ hour, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3)
+          .map(entry => `${entry.hour}:00 (${entry.count})`)
+          .join(', ');
+
+        return ok(
+          [
+            `${channel}, last ${days} days: ${recent.length} messages from ${byNick.size} people.`,
+            `Most active: ${top}`,
+            `Busiest hours: ${busiest}`,
+          ].join('\n'),
+        );
+      } catch (error) {
+        return fail(`Could not read history for ${channel}: ${String(error)}`);
+      }
+    },
+  },
+  {
+    name: 'user_activity',
+    description:
+      'When one person is around and which channels they appear in, over the last N days. Only counts channels the user has enabled AI for.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nick: { type: 'string' },
+        days: { type: 'number', description: 'How far back, default 7.' },
+        network: { type: 'string' },
+      },
+      required: ['nick'],
+    },
+    mutates: false,
+    execute: async input => {
+      const nick = str(input.nick);
+      if (!nick) return fail('A nick is required.');
+      const network = resolveNetwork(input);
+      const daysValue = Number(input.days);
+      const days = Math.min(
+        Math.max(Number.isFinite(daysValue) ? daysValue : 7, 1),
+        90,
+      );
+      const since = Date.now() - days * 24 * 60 * 60 * 1000;
+
+      try {
+        const results = await messageHistoryService.searchMessages({
+          network: network ?? undefined,
+          from: nick,
+        });
+        // Same rule as search_history: a channel with no opt-in does not
+        // appear, even in a count.
+        const permitted = (results ?? []).filter(
+          message =>
+            (message.timestamp ?? 0) >= since &&
+            (!message.channel ||
+              aiService.isChannelAllowed(
+                message.channel,
+                message.network ?? network ?? undefined,
+              )),
+        );
+        if (!permitted.length) {
+          return ok(
+            `Nothing from ${nick} in the last ${days} days, in channels AI may read.`,
+          );
+        }
+
+        const byChannel = new Map<string, number>();
+        const byHour = new Array(24).fill(0);
+        for (const message of permitted) {
+          const where = message.channel || '(private)';
+          byChannel.set(where, (byChannel.get(where) ?? 0) + 1);
+          if (message.timestamp) {
+            byHour[new Date(message.timestamp).getHours()] += 1;
+          }
+        }
+        const channels = Array.from(byChannel.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([where, count]) => `${where}: ${count}`)
+          .join(', ');
+        const hours = byHour
+          .map((count, hour) => ({ hour, count }))
+          .filter(entry => entry.count > 0)
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3)
+          .map(entry => `${entry.hour}:00`)
+          .join(', ');
+
+        return ok(
+          [
+            `${nick}, last ${days} days: ${permitted.length} messages.`,
+            `Where: ${channels}`,
+            `Usually around at: ${hours}`,
+          ].join('\n'),
+        );
+      } catch (error) {
+        return fail(`Could not read history for ${nick}: ${String(error)}`);
+      }
+    },
+  },
+
+  {
+    name: 'list_favourites',
+    description:
+      'The channels the user has saved, and which of them join automatically.',
+    inputSchema: {
+      type: 'object',
+      properties: { network: { type: 'string' } },
+      required: [],
+    },
+    mutates: false,
+    execute: async input => {
+      const network = resolveNetwork(input);
+      if (!network) return fail('No network is connected.');
+      const saved = channelFavoritesService.getFavorites(network);
+      if (!saved.length) return ok('No saved channels.');
+      return ok(
+        saved
+          .map(
+            entry =>
+              `${entry.name}${entry.autoJoin ? ' (joins automatically)' : ''}`,
+          )
+          .join('\n'),
+      );
+    },
+  },
+  {
+    name: 'ban_mask',
+    description:
+      "Build the ban mask for a nick, the way the app's own ban dialog does. This only calculates a mask - it bans nobody.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nick: { type: 'string' },
+        network: { type: 'string' },
+      },
+      required: ['nick'],
+    },
+    // A calculation, not an action: it changes nothing, so it does not wait
+    // for approval even though an actual ban would.
+    mutates: false,
+    execute: async input => {
+      const nick = str(input.nick);
+      if (!nick) return fail('A nick is required.');
+      const network = resolveNetwork(input);
+      if (!network) return fail('No network is connected.');
+      const info = connectionManager
+        .getConnection(network)
+        ?.userManagementService.getWHOIS(nick, network);
+      const host = (info as any)?.hostname || (info as any)?.host;
+      if (!host) {
+        return fail(
+          `Nothing is known about ${nick} yet - a WHOIS has to have happened first.`,
+        );
+      }
+      return ok(
+        banService.generateBanMask(
+          nick,
+          (info as any)?.username || '*',
+          host,
+          banService.getDefaultBanType(),
+        ),
+      );
+    },
+  },
+
+  // --- Memory ------------------------------------------------------------
+  // None of these are marked as mutating. They change nothing outside the
+  // app and nothing leaves the device by writing one, and a confirmation on
+  // every remembered fact would only train people to tap yes. What keeps it
+  // honest is that every entry is listed, and deletable, in Settings > AI.
+  {
+    name: 'remember',
+    description:
+      "Remember something about the user for later conversations - their role, a preference, what they are working on. Keep it to one short fact. Do not store anything they have not effectively told you, and do not store other people's private details.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        fact: {
+          type: 'string',
+          description: 'One short fact, in plain words.',
+        },
+        category: {
+          type: 'string',
+          enum: ['person', 'preference', 'project', 'other'],
+          description: 'Which kind of fact this is.',
+        },
+      },
+      required: ['fact'],
+    },
+    mutates: false,
+    execute: async input => {
+      if (!aiMemoryService.isEnabled()) {
+        return fail('Memory is switched off in Settings > AI.');
+      }
+      const entry = await aiMemoryService.remember(
+        str(input.fact),
+        input.category,
+      );
+      if (!entry)
+        return ok('Nothing new to remember - already known, or empty.');
+      return ok(`Remembered: ${entry.text}`);
+    },
+  },
+  {
+    name: 'recall',
+    description:
+      'Search what you remember about the user. The most recent memories are already in your instructions; use this to look further back.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Words to look for.' },
+      },
+      required: [],
+    },
+    mutates: false,
+    execute: async input => {
+      if (!aiMemoryService.isEnabled()) {
+        return fail('Memory is switched off in Settings > AI.');
+      }
+      await aiMemoryService.load();
+      const found = aiMemoryService.search(str(input.query)).slice(0, 25);
+      if (!found.length) return ok('Nothing remembered that matches.');
+      return ok(
+        found
+          .map(entry => `${entry.id} \u2014 (${entry.category}) ${entry.text}`)
+          .join('\n'),
+      );
+    },
+  },
+  {
+    name: 'forget_memory',
+    description:
+      'Delete one remembered fact by its id, when it turns out to be wrong or out of date.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'The memory id, from recall.' },
+      },
+      required: ['id'],
+    },
+    mutates: false,
+    execute: async input => {
+      const id = str(input.id);
+      const gone = await aiMemoryService.forget(id);
+      return gone ? ok('Forgotten.') : fail(`No memory with id "${id}".`);
     },
   },
 
