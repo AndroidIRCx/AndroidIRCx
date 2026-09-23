@@ -1273,14 +1273,18 @@ export const ScriptingScreen: React.FC<Props> = ({
                 placeholderTextColor={colors.textSecondary}
               />
               <TouchableOpacity
-                style={styles.button}
+                style={[
+                  styles.generatorAction,
+                  (generating || !generatorPrompt.trim()) &&
+                    styles.generatorActionDisabled,
+                ]}
                 onPress={handleGenerate}
                 disabled={generating || !generatorPrompt.trim()}
               >
                 {generating ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
-                  <Text style={styles.buttonText}>
+                  <Text style={styles.generatorActionText}>
                     {willEdit ? t('Apply the change') : t('Generate')}
                   </Text>
                 )}
@@ -1307,10 +1311,10 @@ export const ScriptingScreen: React.FC<Props> = ({
                     <Text style={styles.codeText}>{generatedCode}</Text>
                   </ScrollView>
                   <TouchableOpacity
-                    style={styles.button}
+                    style={styles.generatorAction}
                     onPress={handleUseGenerated}
                   >
-                    <Text style={styles.buttonText}>
+                    <Text style={styles.generatorActionText}>
                       {willEdit
                         ? t('Use the updated script')
                         : t('Put it in the editor')}
@@ -1398,6 +1402,20 @@ const createStyles = (colors: any) => {
       fontWeight: '600',
       lineHeight: 18,
       marginTop: 4,
+    },
+    generatorAction: {
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 4,
+    },
+    generatorActionDisabled: { opacity: 0.45 },
+    generatorActionText: {
+      color: colors.onPrimary || colors.buttonText || '#fff',
+      fontWeight: '700',
+      fontSize: 15.5,
     },
     generatorModes: {
       flexDirection: 'row',
@@ -1561,11 +1579,12 @@ const createStyles = (colors: any) => {
       right: 0,
       bottom: 0,
       backgroundColor: 'transparent',
-      // Behind the input, not in front of it. The input's glyphs are
-      // transparent when highlight is on, so the colours show through anyway,
-      // and nothing can then sit between a tap and the text field — which is
-      // what made the editor feel dead with highlight switched on.
-      zIndex: 1,
+      // ON TOP of the input, per the note above. Moving it behind seemed
+      // safer for touch handling, but the caret was what blocked typing, not
+      // this layer — and behind, Android's high-contrast outlines around the
+      // input's transparent glyphs show through as a second, offset copy of
+      // the whole script. pointerEvents="none" keeps taps reaching the field.
+      zIndex: 2,
     },
     codeHighlightContent: { padding: 8 },
     codeInput: {
@@ -1578,7 +1597,7 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
-      zIndex: 2,
+      zIndex: 1,
     },
     // When highlight is on, hide the input's own glyphs (keep caret/selection
     // visible) so only the coloured layer behind is read.
@@ -1657,14 +1676,18 @@ const createStyles = (colors: any) => {
       backgroundColor: colors.background,
     },
     editorAction: {
+      // Share the row evenly rather than each shrinking to its own label,
+      // which left three differently sized buttons floating to the left.
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 7,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      borderRadius: 8,
+      justifyContent: 'center',
+      gap: 8,
+      height: 46,
+      borderRadius: 10,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
+      backgroundColor: colors.surface,
     },
     editorActionPrimary: {
       backgroundColor: colors.primary,
@@ -1673,12 +1696,12 @@ const createStyles = (colors: any) => {
     editorActionText: {
       color: colors.primary,
       fontWeight: '600',
-      fontSize: 14,
+      fontSize: 15,
     },
     editorActionPrimaryText: {
       color: colors.onPrimary,
       fontWeight: '700',
-      fontSize: 14,
+      fontSize: 15,
     },
     autocompleteList: { maxHeight: 220 },
     autocompleteItem: {
