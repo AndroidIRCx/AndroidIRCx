@@ -8,6 +8,23 @@ import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ScriptingScreen } from '../../src/screens/ScriptingScreen';
 
+jest.mock('../../src/services/ai/AIService', () => ({
+  aiService: {
+    diagnose: jest.fn().mockResolvedValue({
+      code: 'no_provider',
+      ready: false,
+      reason: 'No AI provider is set up.',
+      where: 'Settings > AI > AI Providers > Add',
+    }),
+  },
+}));
+
+jest.mock('../../src/services/ai/ScriptGenerator', () => ({
+  scriptGenerator: { generate: jest.fn(), isAvailable: jest.fn() },
+}));
+
+const { aiService } = require('../../src/services/ai/AIService');
+
 const mockScripts = [
   {
     id: 'script-1',
@@ -905,13 +922,14 @@ describe('ScriptingScreen', () => {
   it('renders Prism syntax highlighting and syncs scroll offset', async () => {
     scriptingService.list.mockReturnValue([]);
 
-    const { findByText, getAllByDisplayValue, getAllByRole } = await render(
-      <ScriptingScreen
-        visible
-        onClose={jest.fn()}
-        onShowPurchaseScreen={jest.fn()}
-      />,
-    );
+    const { findByText, getAllByDisplayValue, getAllByRole, getByTestId } =
+      await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
 
     await fireEvent.press(await findByText('New Script'));
 
@@ -925,13 +943,88 @@ describe('ScriptingScreen', () => {
     const switches = getAllByRole('switch');
     await fireEvent(switches[switches.length - 1], 'valueChange', true);
 
-    // Scrolling the code input should mirror to the highlight overlay.
+    // Scrolling the code input must move the highlight layer with it.
     const overlayInput = getAllByDisplayValue(code)[0];
     await fireEvent.scroll(overlayInput, {
       nativeEvent: { contentOffset: { y: 25 } },
     });
 
+    // The layer is translated, not scrolled. It used to be a ScrollView with
+    // scrolling disabled, and Android ignores scrollTo on one of those - so
+    // the two layers drifted apart and the editor showed two different parts
+    // of the script at the same time.
+    const layer = getByTestId('script-highlight-layer');
+    const flattened = Object.assign(
+      {},
+      ...[].concat(layer.props.style).filter(Boolean),
+    );
+    expect(flattened.transform).toBeTruthy();
+    expect(flattened.position).toBe('absolute');
+
     expect(await findByText('Edit Script')).toBeTruthy();
+  });
+
+  it('keeps the highlight layer behind the input', async () => {
+    scriptingService.list.mockReturnValue([]);
+
+    const { findByText, getAllByDisplayValue, getAllByRole, getByTestId } =
+      await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+
+    await fireEvent.press(await findByText('New Script'));
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+    const flat = (style: unknown) =>
+      Object.assign({}, ...([] as any[]).concat(style).filter(Boolean));
+    const layer = flat(getByTestId('script-highlight-layer').props.style);
+    const input = flat(
+      getAllByDisplayValue(
+        '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+      )[0].props.style,
+    );
+
+    // In front, pointerEvents="none" is not enough on Android: taps never
+    // reach the field, so there is no caret and the editor reads as a preview
+    // you cannot type into. This has been got wrong twice.
+    expect(layer.zIndex).toBeLessThan(input.zIndex);
+  });
+
+  it('keeps the code editable with highlight on', async () => {
+    scriptingService.list.mockReturnValue([]);
+
+    const { findByText, getAllByDisplayValue, getAllByRole } = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(await findByText('New Script'));
+
+    const switches = getAllByRole('switch');
+    await fireEvent(switches[switches.length - 1], 'valueChange', true);
+
+    const start = '// module.exports = { onMessage: (msg) => { /* ... */ } };';
+    let input = getAllByDisplayValue(start)[0];
+
+    // The editor must not pin the caret while the user types: doing that is
+    // what dragged every keystroke back to the same spot once the highlight
+    // layer made each render slow enough to lose the race.
+    expect(input.props.selection).toBeUndefined();
+
+    await fireEvent.changeText(input, 'const a = 1;');
+    input = getAllByDisplayValue('const a = 1;')[0];
+    expect(input.props.selection).toBeUndefined();
+
+    await fireEvent.changeText(input, 'const a = 1;\nconst b = 2;');
+    expect(getAllByDisplayValue('const a = 1;\nconst b = 2;')[0]).toBeTruthy();
   });
 
   it('falls back to manual highlighting when Prism grammar is unavailable', async () => {
@@ -1066,5 +1159,63 @@ describe('ScriptingScreen', () => {
     // Since the button text changes to a loading indicator, we can't press it again
     // So we verify showRewardedAd was called only once
     expect(adRewardService.showRewardedAd).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Generate with AI button', () => {
+    const openEditor = async () => {
+      const utils = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+      await fireEvent.press(await utils.findByText('New Script'));
+      await utils.findByText('Edit Script');
+      return utils;
+    };
+
+    it('stays hidden for someone who never set up AI', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'no_provider',
+        ready: false,
+        reason: 'No AI provider is set up.',
+        where: 'Settings > AI > AI Providers > Add',
+      });
+
+      const { queryByLabelText, findByText } = await openEditor();
+
+      await findByText('Lint');
+      // The one place AI would otherwise appear uninvited.
+      expect(queryByLabelText('Generate with AI')).toBeNull();
+    });
+
+    it('appears once a provider exists', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'ok',
+        ready: true,
+        reason: '',
+        where: '',
+      });
+
+      const { findByLabelText } = await openEditor();
+
+      await findByLabelText('Generate with AI');
+    });
+
+    it('stays visible when AI is set up but something else is off', async () => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'consent_required',
+        ready: false,
+        reason: 'Not agreed yet.',
+        where: 'Settings > AI > Privacy',
+      });
+
+      const { findByLabelText } = await openEditor();
+
+      // Hiding a button the user configured would be a disappearing act;
+      // the modal's banner explains what is missing instead.
+      await findByLabelText('Generate with AI');
+    });
   });
 });

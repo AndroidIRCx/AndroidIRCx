@@ -256,8 +256,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 163
-        versionName = "1.9.55"
+        versionCode = 169
+        versionName = "1.9.56"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -371,6 +371,16 @@ dependencies {
     debugImplementation("com.google.firebase:firebase-appcheck-debug")
     implementation("com.google.android.play:integrity:1.6.0")
     implementation("com.google.android.play:age-signals:0.0.3")
+
+    // MCP server (phase 11). Pinned to 0.10.0: 0.11+ require kotlin-stdlib
+    // 2.3.10+ and 0.15 requires 2.4.0, which this project's Kotlin 2.2.0
+    // compiler cannot read (metadata <= 2.3.0) — it breaks EVERY Kotlin file
+    // in the module, not just this one. Raise kotlinVersion before bumping.
+    // The SDK ships no Ktor engine transitively, so they are declared here.
+    implementation("io.modelcontextprotocol:kotlin-sdk:0.10.0")
+    implementation("io.ktor:ktor-server-cio:3.2.3")
+    implementation("io.ktor:ktor-server-sse:3.2.3")
+    implementation("io.ktor:ktor-client-okhttp:3.2.3")
 }
 
 // React Native Vector Icons

@@ -11,6 +11,7 @@ import React, {
   useRef,
 } from 'react';
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
@@ -30,6 +31,9 @@ import {
   ScriptLogEntry,
 } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
+import { scriptGenerator } from '../services/ai/ScriptGenerator';
+import { aiService } from '../services/ai/AIService';
+import { AIReadiness } from '../services/ai/types';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
@@ -37,14 +41,19 @@ import Prism from 'prismjs';
 import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { deriveSyntaxColors } from '../themes/syntaxColors';
+import {
+  AI_MEMBERS,
+  API_MEMBERS,
+  describeMember,
+  HOOK_LIST,
+  IRCX_HOOKS,
+  JS_KEYWORDS,
+} from '../config/scriptVocabulary';
 
 // Teach Prism about the AndroidIRCX scripting vocabulary so the editor
 // highlights our own hooks and `api.*` calls, not just plain JavaScript.
-const IRCX_HOOKS =
-  'onConnect|onDisconnect|onMessage|onNotice|onJoin|onPart|onQuit|' +
-  'onNickChange|onKick|onMode|onTopic|onInvite|onCTCP|onAction|onHighlight|' +
-  'onRaw|onCommand|onTimer';
 let ircxGrammarReady = false;
 const ensureIrcxGrammar = () => {
   if (ircxGrammarReady || !Prism.languages.javascript) return;
@@ -71,133 +80,52 @@ const ensureIrcxGrammar = () => {
 };
 
 // --- Editor autocomplete vocabulary ---
-const HOOK_LIST = IRCX_HOOKS.split('|');
-// `api.*` members (kept in sync with ScriptingService.makeApi).
-const API_MEMBERS = [
-  'log',
-  'warn',
-  'error',
-  'userNick',
-  'appVersion',
-  'getConfig',
-  'sendMessage',
-  'sendCommand',
-  'sendNotice',
-  'sendCTCP',
-  'registerCommand',
-  'addMenuItem',
-  'join',
-  'part',
-  'kick',
-  'mode',
-  'op',
-  'deop',
-  'voice',
-  'devoice',
-  'ban',
-  'unban',
-  'setTopic',
-  'changeNick',
-  'setAway',
-  'back',
-  'whois',
-  'action',
-  'rand',
-  'list',
-  'getChannelUsers',
-  'getChannels',
-  'getChannelInfo',
-  'getTabs',
-  'getActiveTab',
-  'switchToTab',
-  'getUserInfo',
-  'getUserNote',
-  'setUserNote',
-  'getUserAlias',
-  'setUserAlias',
-  'isIgnored',
-  'getChannelNote',
-  'setChannelNote',
-  'isChannelBookmarked',
-  'getHighlightWords',
-  'addHighlightWord',
-  'removeHighlightWord',
-  'isHighlighted',
-  'searchHistory',
-  'getHistoryStats',
-  'getSetting',
-  'getTheme',
-  'getConnectionStats',
-  'setTimer',
-  'clearTimer',
-  'getNetworkId',
-  'getAllNetworks',
-  'isConnected',
-  'getStorage',
-  'setStorage',
-  'removeStorage',
-  'playSound',
-  'openLink',
-  'now',
-  'sleep',
-];
-const JS_KEYWORDS = [
-  'const',
-  'let',
-  'var',
-  'function',
-  'return',
-  'if',
-  'else',
-  'for',
-  'while',
-  'switch',
-  'case',
-  'break',
-  'continue',
-  'new',
-  'try',
-  'catch',
-  'throw',
-  'async',
-  'await',
-  'true',
-  'false',
-  'null',
-  'typeof',
-  'module',
-  'exports',
-  'console',
-];
 const WORD_POOL = Array.from(new Set([...HOOK_LIST, 'api', ...JS_KEYWORDS]));
 
 interface Completion {
   items: string[];
   start: number; // index where the token being completed begins
   end: number; // index where it ends (caret)
+  /**
+   * Which namespace the suggestions came from, so the signature shown under
+   * each one is looked up in the right place: `chat` means `api.ai.chat` after
+   * `api.ai.`, and something else entirely on its own.
+   */
+  scope: 'api' | 'ai' | 'word';
 }
 
 // Compute completions for the token immediately before `caret` in `code`.
 const completionsAt = (code: string, caret: number): Completion => {
   const before = code.slice(0, caret);
+  // Nested namespace first: `api . ai . <partial>` — checked before the
+  // plain member pattern, which would otherwise match `api.ai` and offer
+  // the wrong set.
+  const aiMember = before.match(/\bapi\s*\.\s*ai\s*\.\s*([A-Za-z_$][\w$]*)?$/);
+  if (aiMember) {
+    const prefix = aiMember[1] || '';
+    const items = AI_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
+    return { items, start: caret - prefix.length, end: caret, scope: 'ai' };
+  }
   // Member access: `api . <partial>`
   const member = before.match(/\bapi\s*\.\s*([A-Za-z_$][\w$]*)?$/);
   if (member) {
     const prefix = member[1] || '';
     const items = API_MEMBERS.filter(m => m.startsWith(prefix)).slice(0, 8);
-    return { items, start: caret - prefix.length, end: caret };
+    return { items, start: caret - prefix.length, end: caret, scope: 'api' };
   }
   // Bare word: hook names, `api`, keywords (need >= 2 chars to reduce noise)
   const word = before.match(/([A-Za-z_$][\w$]*)$/);
   if (word) {
     const prefix = word[1];
-    if (prefix.length < 2) return { items: [], start: caret, end: caret };
+    if (prefix.length < 2) {
+      return { items: [], start: caret, end: caret, scope: 'word' };
+    }
     const items = WORD_POOL.filter(
       w => w.startsWith(prefix) && w !== prefix,
     ).slice(0, 8);
-    return { items, start: caret - prefix.length, end: caret };
+    return { items, start: caret - prefix.length, end: caret, scope: 'word' };
   }
-  return { items: [], start: caret, end: caret };
+  return { items: [], start: caret, end: caret, scope: 'word' };
 };
 
 interface Props {
@@ -238,6 +166,21 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [logs, setLogs] = useState<ScriptLogEntry[]>([]);
   const [repo, setRepo] = useState<ScriptConfig[]>([]);
   const [showEditor, setShowEditor] = useState(false);
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [generatorPrompt, setGeneratorPrompt] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [generatedLint, setGeneratedLint] = useState<string | null>(null);
+  /**
+   * Whether the generator changes the script in the editor or writes a fresh
+   * one. It only means anything when the editor already holds code; opening
+   * the generator on an empty script forces it off.
+   */
+  const [generatorEdits, setGeneratorEdits] = useState(true);
+  const [aiBlocker, setAiBlocker] = useState<AIReadiness | null>(null);
+  // Whether ANY provider exists. Someone who never asked for AI has none,
+  // and should not be offered the button at all.
+  const [aiConfigured, setAiConfigured] = useState(false);
   const [editing, setEditing] = useState<ScriptConfig | null>(null);
   const [logFilter, setLogFilter] = useState<string | null>(null);
   const [showHighlight, setShowHighlight] = useState(false);
@@ -253,9 +196,16 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
   const [scriptingTimeActive, setScriptingTimeActive] =
     useState<boolean>(false);
-  const highlightScrollRef = useRef<React.ComponentRef<
-    typeof ScrollView
-  > | null>(null);
+  /**
+   * How far the code input is scrolled. The highlight layer is translated by
+   * the negative of it, which is the only way the two stay aligned: a
+   * ScrollView with scrolling disabled ignores scrollTo on Android.
+   */
+  const highlightOffset = useRef(new Animated.Value(0)).current;
+  const highlightShift = useMemo(
+    () => Animated.multiply(highlightOffset, -1),
+    [highlightOffset],
+  );
   const codeInputRef = useRef<React.ComponentRef<typeof TextInput> | null>(
     null,
   );
@@ -270,17 +220,32 @@ export const ScriptingScreen: React.FC<Props> = ({
     start: 0,
     end: 0,
   });
+  /**
+   * Set only while the caret is being moved deliberately — after accepting a
+   * completion, for instance — and released as soon as the field reports it
+   * landed there.
+   *
+   * Feeding `selection` back into the input on every render instead is what
+   * broke typing: each keystroke re-rendered the highlight layer, and the
+   * caret was pushed back to where it had been before the character arrived.
+   * It only showed up with highlight on because that render is the slow one.
+   */
+  const [caretTarget, setCaretTarget] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
   const [completion, setCompletion] = useState<Completion>({
     items: [],
     start: 0,
     end: 0,
+    scope: 'word',
   });
   const [editorFocused, setEditorFocused] = useState(false);
 
   // Recompute autocomplete suggestions as the code or caret changes.
   useEffect(() => {
     if (!editorFocused || !editing) {
-      setCompletion({ items: [], start: 0, end: 0 });
+      setCompletion({ items: [], start: 0, end: 0, scope: 'word' });
       return;
     }
     setCompletion(completionsAt(editing.code || '', selection.start));
@@ -297,7 +262,8 @@ export const ScriptingScreen: React.FC<Props> = ({
       if (blurTimer.current) clearTimeout(blurTimer.current);
       setEditing({ ...editing, code: next });
       setSelection({ start: caret, end: caret });
-      setCompletion({ items: [], start: 0, end: 0 });
+      setCaretTarget({ start: caret, end: caret });
+      setCompletion({ items: [], start: 0, end: 0, scope: 'word' });
       codeInputRef.current?.focus();
     },
     [editing, selection.start],
@@ -495,6 +461,95 @@ export const ScriptingScreen: React.FC<Props> = ({
   ) => {
     scriptingService.testHook(scriptId, hook);
     setLogs(scriptingService.getLogs());
+  };
+
+  useEffect(() => {
+    if (!showEditor) return;
+    // Hide the button only when there is no provider at all. Hiding it
+    // because consent or a key is missing would make a button the user set
+    // up disappear with no explanation; the modal's banner covers those.
+    aiService
+      .diagnose()
+      .then(readiness => setAiConfigured(readiness.code !== 'no_provider'));
+  }, [showEditor]);
+
+  useEffect(() => {
+    if (!showGenerator) return;
+    aiService
+      .diagnose()
+      .then(readiness => setAiBlocker(readiness.ready ? null : readiness));
+  }, [showGenerator]);
+
+  /** Code the generator would be editing, or '' when there is nothing to edit. */
+  const editableCode = editing?.code?.trim() ? editing.code : '';
+  const willEdit = generatorEdits && editableCode !== '';
+
+  // A freshly opened script starts at the top, and so must the layer.
+  useEffect(() => {
+    highlightOffset.setValue(0);
+  }, [editing?.id, showHighlight, highlightOffset]);
+
+  const openGenerator = () => {
+    // Default to editing whenever there is something to edit — someone who
+    // opens this from a script they wrote almost always means "change this",
+    // and the old behaviour of always starting fresh threw that work away.
+    setGeneratorEdits(editableCode !== '');
+    setGeneratedCode(null);
+    setGeneratedLint(null);
+    setShowGenerator(true);
+  };
+
+  const handleGenerate = async () => {
+    if (!generatorPrompt.trim()) return;
+    setGenerating(true);
+    setGeneratedCode(null);
+    setGeneratedLint(null);
+    try {
+      const result = await scriptGenerator.generate(
+        generatorPrompt,
+        willEdit ? editableCode : undefined,
+      );
+      setGeneratedCode(result.code);
+      // Show the lint verdict rather than silently trusting the model: a
+      // script that cannot compile is worth knowing about before it is kept.
+      setGeneratedLint(result.lint.ok ? null : result.lint.message);
+    } catch (error: any) {
+      Alert.alert(t('Could not generate'), String(error?.message ?? error));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  /** Put the generated code in the editor. It is never saved or enabled here. */
+  const handleUseGenerated = () => {
+    if (!editing || !generatedCode) return;
+    const apply = () => {
+      setEditing(current =>
+        current ? { ...current, code: generatedCode } : current,
+      );
+      setShowGenerator(false);
+      setGeneratedCode(null);
+      setGeneratedLint(null);
+      setGeneratorPrompt('');
+    };
+
+    // Writing a new script on top of one the user already has is the one case
+    // where this button destroys work. Editing does not need the prompt: the
+    // model was given the original and asked to keep it.
+    if (!willEdit && editableCode !== '') {
+      Alert.alert(
+        t('Replace this script?'),
+        t(
+          'This will overwrite the code in the editor. It is not saved until you tap Save.',
+        ),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          { text: t('Replace'), style: 'destructive', onPress: apply },
+        ],
+      );
+      return;
+    }
+    apply();
   };
 
   const handleLint = () => {
@@ -901,156 +956,399 @@ export const ScriptingScreen: React.FC<Props> = ({
           </View>
           {editing && (
             <>
-              <Text style={styles.label}>{t('Name')}</Text>
-              <TextInput
-                style={styles.input}
-                value={editing.name}
-                onChangeText={value => setEditing({ ...editing, name: value })}
-              />
-              <View style={styles.switchRow}>
-                <Text style={styles.subtitle}>{t('Enabled')}</Text>
-                <Switch
-                  value={editing.enabled}
-                  onValueChange={v => setEditing({ ...editing, enabled: v })}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                  thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
-                  style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
-                />
-                <View style={spacerStyle} />
-                <Text style={styles.subtitle}>{t('Highlight')}</Text>
-                <Switch
-                  value={showHighlight}
-                  onValueChange={setShowHighlight}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                  thumbColor={showHighlight ? '#fff' : colors.textSecondary}
-                  style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
-                />
-              </View>
-              <Text style={styles.label}>{t('Code')}</Text>
-              <View style={styles.codeEditorWrapper}>
-                {showHighlight && (
-                  <ScrollView
-                    ref={highlightScrollRef}
-                    testID="script-highlight-layer"
-                    pointerEvents="none"
-                    style={styles.codeHighlight}
-                    contentContainerStyle={styles.codeHighlightContent}
-                    showsVerticalScrollIndicator={false}
-                    scrollEnabled={false}
-                  >
-                    <Text style={styles.codeText}>
-                      {highlightedCode.map((part, idx) => (
-                        <Text key={idx} style={part.style}>
-                          {part.text}
-                        </Text>
-                      ))}
-                    </Text>
-                  </ScrollView>
-                )}
+              {/*
+                Scrollable, because the editor used to be a fixed column: in
+                landscape the buttons sat below the fold with no way to reach
+                them. `keyboardShouldPersistTaps` keeps the autocomplete list
+                tappable while the keyboard is up.
+              */}
+              <ScrollView
+                style={styles.editorBody}
+                contentContainerStyle={styles.editorBodyContent}
+                keyboardShouldPersistTaps="handled"
+              >
                 <TextInput
-                  ref={codeInputRef}
-                  style={[
-                    styles.codeInput,
-                    showHighlight && styles.codeInputOverlay,
-                  ]}
+                  style={styles.nameInput}
+                  value={editing.name}
+                  placeholder={t('Script name')}
+                  placeholderTextColor={colors.textSecondary}
+                  onChangeText={value =>
+                    setEditing({ ...editing, name: value })
+                  }
+                />
+                <View style={styles.switchRow}>
+                  <Text style={styles.subtitle}>{t('Enabled')}</Text>
+                  <Switch
+                    value={editing.enabled}
+                    onValueChange={v => setEditing({ ...editing, enabled: v })}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
+                    style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
+                  />
+                  <View style={spacerStyle} />
+                  <Text style={styles.subtitle}>{t('Highlight')}</Text>
+                  <Switch
+                    value={showHighlight}
+                    onValueChange={setShowHighlight}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor={showHighlight ? '#fff' : colors.textSecondary}
+                    style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
+                  />
+                </View>
+                <Text style={styles.label}>{t('Code')}</Text>
+                <View style={styles.codeEditorWrapper}>
+                  {showHighlight && (
+                    <Animated.View
+                      testID="script-highlight-layer"
+                      pointerEvents="none"
+                      style={[
+                        styles.codeHighlight,
+                        { transform: [{ translateY: highlightShift }] },
+                      ]}
+                    >
+                      <Text style={styles.codeText}>
+                        {highlightedCode.map((part, idx) => (
+                          <Text key={idx} style={part.style}>
+                            {part.text}
+                          </Text>
+                        ))}
+                      </Text>
+                    </Animated.View>
+                  )}
+                  <TextInput
+                    ref={codeInputRef}
+                    style={[
+                      styles.codeInput,
+                      showHighlight && styles.codeInputOverlay,
+                    ]}
+                    multiline
+                    // This is code, not prose. Without these the spellchecker
+                    // underlines every identifier in red and autocorrect
+                    // rewrites what you type.
+                    spellCheck={false}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    textContentType="none"
+                    importantForAutofill="no"
+                    value={editing.code}
+                    selection={
+                      caretTarget
+                        ? {
+                            start: Math.min(
+                              caretTarget.start,
+                              editing.code.length,
+                            ),
+                            end: Math.min(caretTarget.end, editing.code.length),
+                          }
+                        : undefined
+                    }
+                    onSelectionChange={e => {
+                      const next = e.nativeEvent.selection;
+                      setSelection(next);
+                      // The caret arrived where it was sent, so hand control of
+                      // it back to the field.
+                      if (
+                        caretTarget &&
+                        next.start === caretTarget.start &&
+                        next.end === caretTarget.end
+                      ) {
+                        setCaretTarget(null);
+                      }
+                    }}
+                    onFocus={() => {
+                      if (blurTimer.current) clearTimeout(blurTimer.current);
+                      setEditorFocused(true);
+                    }}
+                    onBlur={() => {
+                      blurTimer.current = setTimeout(
+                        () => setEditorFocused(false),
+                        200,
+                      );
+                    }}
+                    onKeyPress={e => {
+                      if (
+                        e.nativeEvent.key === 'Tab' &&
+                        completion.items.length > 0
+                      ) {
+                        acceptCompletion(completion.items[0]);
+                      }
+                    }}
+                    onChangeText={value => {
+                      // Typing releases the caret unconditionally: if a forced
+                      // position were ever left set, every keystroke after it
+                      // would be dragged back to the same spot.
+                      setCaretTarget(null);
+                      setEditing({ ...editing, code: value });
+                    }}
+                    onScroll={
+                      showHighlight
+                        ? e => {
+                            // Shift the layer rather than scrolling it. The
+                            // old code called scrollTo on a ScrollView with
+                            // scrollEnabled={false}, which Android ignores, so
+                            // the two layers drifted apart and the editor
+                            // showed two different parts of the script at once.
+                            highlightOffset.setValue(
+                              e.nativeEvent.contentOffset?.y || 0,
+                            );
+                          }
+                        : undefined
+                    }
+                    selectionColor={colors.primary}
+                    cursorColor={colors.primary}
+                  />
+                </View>
+                {editorFocused && completion.items.length > 0 && (
+                  <View style={styles.autocompleteBox}>
+                    <ScrollView
+                      keyboardShouldPersistTaps="always"
+                      nestedScrollEnabled
+                      style={styles.autocompleteList}
+                    >
+                      {completion.items.map((item, idx) => {
+                        // The signature and summary are the point: a list of
+                        // bare names cannot say whether `userNick` is a value
+                        // or a call, or what `setTimer` wants.
+                        const entry = describeMember(
+                          item,
+                          completion.scope === 'ai' ? 'ai' : 'api',
+                        );
+                        return (
+                          <TouchableOpacity
+                            key={item}
+                            style={[
+                              styles.autocompleteItem,
+                              idx === 0 && styles.autocompleteItemFirst,
+                            ]}
+                            onPress={() => acceptCompletion(item)}
+                          >
+                            <View style={styles.autocompleteHead}>
+                              <Text style={styles.autocompleteText}>
+                                {entry?.signature ?? item}
+                              </Text>
+                              <Text style={styles.autocompleteTag}>
+                                {entry?.isAsync
+                                  ? t('async')
+                                  : HOOK_LIST.includes(item)
+                                    ? t('hook')
+                                    : completion.scope === 'ai'
+                                      ? t('api.ai')
+                                      : API_MEMBERS.includes(item)
+                                        ? t('api')
+                                        : t('keyword')}
+                              </Text>
+                            </View>
+                            {!!entry?.summary && (
+                              <Text
+                                style={styles.autocompleteDoc}
+                                numberOfLines={2}
+                              >
+                                {entry.summary}
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
+                <Text style={styles.label}>{t('Config (JSON)')}</Text>
+                <TextInput
+                  style={styles.codeInput}
                   multiline
-                  value={editing.code}
-                  selection={{
-                    start: Math.min(selection.start, editing.code.length),
-                    end: Math.min(selection.end, editing.code.length),
-                  }}
-                  onSelectionChange={e => setSelection(e.nativeEvent.selection)}
-                  onFocus={() => {
-                    if (blurTimer.current) clearTimeout(blurTimer.current);
-                    setEditorFocused(true);
-                  }}
-                  onBlur={() => {
-                    blurTimer.current = setTimeout(
-                      () => setEditorFocused(false),
-                      200,
-                    );
-                  }}
-                  onKeyPress={e => {
-                    if (
-                      e.nativeEvent.key === 'Tab' &&
-                      completion.items.length > 0
-                    ) {
-                      acceptCompletion(completion.items[0]);
+                  value={JSON.stringify(editing.config || {}, null, 2)}
+                  onChangeText={jsonText => {
+                    try {
+                      const parsed = JSON.parse(jsonText || '{}');
+                      setEditing({ ...editing, config: parsed });
+                    } catch (err) {
+                      Alert.alert(t('Invalid JSON'), String(err));
                     }
                   }}
-                  onChangeText={value =>
-                    setEditing({ ...editing, code: value })
-                  }
-                  onScroll={
-                    showHighlight
-                      ? e => {
-                          const y = e.nativeEvent.contentOffset?.y || 0;
-                          highlightScrollRef.current?.scrollTo({
-                            y,
-                            animated: false,
-                          });
-                        }
-                      : undefined
-                  }
-                  selectionColor={colors.primary}
-                  cursorColor={colors.primary}
                 />
-              </View>
-              {editorFocused && completion.items.length > 0 && (
-                <View style={styles.autocompleteBox}>
-                  <ScrollView
-                    keyboardShouldPersistTaps="always"
-                    nestedScrollEnabled
-                    style={styles.autocompleteList}
+              </ScrollView>
+
+              {/*
+                Pinned below the scroll area so Save is always one tap away,
+                whichever way the phone is held.
+              */}
+              <View style={styles.editorActions}>
+                <TouchableOpacity
+                  style={[styles.editorAction, styles.editorActionPrimary]}
+                  onPress={handleSaveScript}
+                >
+                  <Icon name="save" size={15} color={colors.onPrimary} solid />
+                  <Text style={styles.editorActionPrimaryText}>
+                    {t('Save')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.editorAction}
+                  onPress={handleLint}
+                >
+                  <Icon name="check-circle" size={15} color={colors.primary} />
+                  <Text style={styles.editorActionText}>{t('Lint')}</Text>
+                </TouchableOpacity>
+                {aiConfigured && (
+                  <TouchableOpacity
+                    style={styles.editorAction}
+                    onPress={openGenerator}
+                    // The visible label is short so three buttons fit a phone
+                    // in portrait; the full one is still announced.
+                    accessibilityLabel={t('Generate with AI')}
                   >
-                    {completion.items.map((item, idx) => (
-                      <TouchableOpacity
-                        key={item}
-                        style={[
-                          styles.autocompleteItem,
-                          idx === 0 && styles.autocompleteItemFirst,
-                        ]}
-                        onPress={() => acceptCompletion(item)}
-                      >
-                        <Text style={styles.autocompleteText}>{item}</Text>
-                        <Text style={styles.autocompleteTag}>
-                          {HOOK_LIST.includes(item)
-                            ? t('hook')
-                            : API_MEMBERS.includes(item)
-                              ? t('api')
-                              : t('keyword')}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-              <Text style={styles.label}>{t('Config (JSON)')}</Text>
-              <TextInput
-                style={styles.codeInput}
-                multiline
-                value={JSON.stringify(editing.config || {}, null, 2)}
-                onChangeText={jsonText => {
-                  try {
-                    const parsed = JSON.parse(jsonText || '{}');
-                    setEditing({ ...editing, config: parsed });
-                  } catch (err) {
-                    Alert.alert(t('Invalid JSON'), String(err));
-                  }
-                }}
-              />
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleSaveScript}
-              >
-                <Text style={styles.buttonText}>{t('Save')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={handleLint}>
-                <Text style={styles.buttonText}>{t('Lint')}</Text>
-              </TouchableOpacity>
+                    <Icon name="robot" size={15} color={colors.primary} />
+                    <Text style={styles.editorActionText}>{t('AI')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </>
           )}
         </ModalSafeArea>
+
+        <Modal
+          visible={showGenerator}
+          animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
+          onRequestClose={() => setShowGenerator(false)}
+        >
+          <ModalSafeArea style={styles.container}>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>{t('Generate with AI')}</Text>
+              <TouchableOpacity onPress={() => setShowGenerator(false)}>
+                <Text style={styles.close}>{t('Close')}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.generatorBody}>
+              <Text style={styles.subtitle}>
+                {willEdit
+                  ? t(
+                      'Describe the change you want. Your script is sent along so the rest of it is kept. The result is shown for you to review — it is never saved or enabled on its own.',
+                    )
+                  : t(
+                      'Describe what the script should do. The generated code is shown for you to review — it is never saved or enabled on its own.',
+                    )}
+              </Text>
+
+              {editableCode !== '' && (
+                <View style={styles.generatorModes}>
+                  <TouchableOpacity
+                    style={[
+                      styles.generatorMode,
+                      generatorEdits && styles.generatorModeActive,
+                    ]}
+                    onPress={() => setGeneratorEdits(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.generatorModeText,
+                        generatorEdits && styles.generatorModeTextActive,
+                      ]}
+                    >
+                      {t('Change this script')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.generatorMode,
+                      !generatorEdits && styles.generatorModeActive,
+                    ]}
+                    onPress={() => setGeneratorEdits(false)}
+                  >
+                    <Text
+                      style={[
+                        styles.generatorModeText,
+                        !generatorEdits && styles.generatorModeTextActive,
+                      ]}
+                    >
+                      {t('Write a new one')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {aiBlocker && (
+                <View style={styles.generatorBlocker}>
+                  <Text style={styles.generatorBlockerReason}>
+                    {aiBlocker.reason}
+                  </Text>
+                  <Text style={styles.generatorBlockerWhere}>
+                    {aiBlocker.where}
+                  </Text>
+                </View>
+              )}
+
+              <Text style={styles.label}>
+                {willEdit ? t('Change to make') : t('Description')}
+              </Text>
+              <TextInput
+                style={styles.generatorInput}
+                value={generatorPrompt}
+                onChangeText={setGeneratorPrompt}
+                multiline
+                placeholder={
+                  willEdit
+                    ? t('e.g. only greet people once per day, not every join')
+                    : t(
+                        'e.g. greet people who join #chat, but only once per nick per day',
+                      )
+                }
+                placeholderTextColor={colors.textSecondary}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.generatorAction,
+                  (generating || !generatorPrompt.trim()) &&
+                    styles.generatorActionDisabled,
+                ]}
+                onPress={handleGenerate}
+                disabled={generating || !generatorPrompt.trim()}
+              >
+                {generating ? (
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
+                ) : (
+                  <Text style={styles.generatorActionText}>
+                    {willEdit ? t('Apply the change') : t('Generate')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {generatedLint && (
+                <Text style={styles.generatorWarning}>
+                  {t('This code does not compile: {message}', {
+                    message: generatedLint,
+                  })}
+                </Text>
+              )}
+
+              {generatedCode && (
+                <>
+                  <Text style={styles.label}>
+                    {willEdit ? t('Updated script') : t('Generated code')}
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    style={styles.generatedCodeBox}
+                    contentContainerStyle={styles.generatedCodeContent}
+                  >
+                    <Text style={styles.codeText}>{generatedCode}</Text>
+                  </ScrollView>
+                  <TouchableOpacity
+                    style={styles.generatorAction}
+                    onPress={handleUseGenerated}
+                  >
+                    <Text style={styles.generatorActionText}>
+                      {willEdit
+                        ? t('Use the updated script')
+                        : t('Put it in the editor')}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </ScrollView>
+          </ModalSafeArea>
+        </Modal>
       </Modal>
     </Modal>
   );
@@ -1108,6 +1406,90 @@ const createStyles = (colors: any) => {
       alignItems: 'center',
       marginBottom: 8,
     },
+    generatorBody: { padding: 12, paddingBottom: 40 },
+    generatorBlocker: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.warning,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 10,
+    },
+    generatorBlockerReason: {
+      color: colors.text,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    generatorBlockerWhere: {
+      color: colors.warning,
+      fontSize: 12.5,
+      fontWeight: '600',
+      lineHeight: 18,
+      marginTop: 4,
+    },
+    generatorAction: {
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 4,
+    },
+    generatorActionDisabled: { opacity: 0.45 },
+    generatorActionText: {
+      color: colors.onPrimary || colors.buttonText || '#fff',
+      fontWeight: '700',
+      fontSize: 15.5,
+    },
+    generatorModes: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      padding: 3,
+      marginTop: 12,
+    },
+    generatorMode: {
+      flex: 1,
+      paddingVertical: 8,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+    generatorModeActive: {
+      backgroundColor: colors.surface,
+    },
+    generatorModeText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    generatorModeTextActive: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    generatorInput: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      borderRadius: 6,
+      padding: 10,
+      minHeight: 90,
+      textAlignVertical: 'top',
+      marginBottom: 10,
+    },
+    generatorWarning: {
+      color: colors.warning,
+      fontSize: 12.5,
+      marginTop: 10,
+      lineHeight: 18,
+    },
+    generatedCodeBox: {
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      maxHeight: 280,
+      marginBottom: 10,
+    },
+    generatedCodeContent: { padding: 10 },
     watchAdButtonDisabled: { backgroundColor: colors.border, opacity: 0.6 },
     watchAdButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     upgradeButton: {
@@ -1211,19 +1593,28 @@ const createStyles = (colors: any) => {
       borderColor: colors.border,
       overflow: 'hidden',
     },
-    // Keep the coloured glyphs above the native input. Android high-contrast
-    // text outlines transparent TextInput glyphs; placing this layer last in
-    // the visual stack prevents the outlined copy from obscuring the syntax.
+    // BEHIND the input, and it has to stay there.
+    //
+    // In front, `pointerEvents="none"` is not enough on Android: taps never
+    // reach the field, so there is no caret and the editor reads as a preview
+    // you cannot type into. Behind, every tap lands on the input.
+    //
+    // The doubled, offset copy of the script that this layer was once blamed
+    // for had nothing to do with z-order - it showed up in both arrangements,
+    // because the two layers were scrolled independently. That is fixed by
+    // translating this one with the input's scroll offset instead.
     codeHighlight: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
-      bottom: 0,
+      // No `bottom`: the layer is as tall as the script and is shifted up as
+      // the input scrolls, with the wrapper's overflow clipping the rest.
+      padding: 8,
       backgroundColor: 'transparent',
-      zIndex: 2,
+      zIndex: 1,
     },
-    codeHighlightContent: { padding: 8 },
+
     codeInput: {
       backgroundColor: 'transparent',
       color: colors.text,
@@ -1234,12 +1625,21 @@ const createStyles = (colors: any) => {
       fontFamily: 'monospace',
       fontSize: 13,
       lineHeight: 20,
-      zIndex: 1,
+      // Above the highlight layer, so it receives every tap and draws the
+      // caret and the selection. Its own glyphs are transparent.
+      zIndex: 2,
     },
     // When highlight is on, hide the input's own glyphs (keep caret/selection
     // visible) so only the coloured layer behind is read.
     codeInputOverlay: { backgroundColor: 'transparent', color: 'transparent' },
-    syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
+    syntax: {
+      backgroundColor: 'transparent',
+      padding: 0,
+      fontFamily: 'monospace',
+      fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
+    },
     codeText: {
       color: colors.text,
       fontFamily: 'monospace',
@@ -1251,37 +1651,51 @@ const createStyles = (colors: any) => {
       color: syntaxColors.keyword,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeString: {
       color: syntaxColors.string,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeComment: {
       color: syntaxColors.comment,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeNumber: {
       color: syntaxColors.number,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     // AndroidIRCX scripting vocabulary
     codeHook: {
       color: syntaxColors.hook,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeApi: {
       color: syntaxColors.api,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     codeApiMethod: {
       color: syntaxColors.apiMethod,
       fontFamily: 'monospace',
       fontSize: 13,
+      lineHeight: 20,
+      includeFontPadding: false,
     },
     autocompleteBox: {
       marginTop: 4,
@@ -1291,15 +1705,66 @@ const createStyles = (colors: any) => {
       backgroundColor: colors.surface,
       overflow: 'hidden',
     },
-    autocompleteList: { maxHeight: 168 },
-    autocompleteItem: {
+    editorBody: { flex: 1 },
+    editorBodyContent: { paddingBottom: 16 },
+    nameInput: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      fontSize: 15,
+      marginBottom: 4,
+    },
+    editorActions: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      gap: 10,
       paddingHorizontal: 12,
       paddingVertical: 10,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    editorAction: {
+      // Share the row evenly rather than each shrinking to its own label,
+      // which left three differently sized buttons floating to the left.
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      height: 46,
+      borderRadius: 10,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    editorActionPrimary: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    editorActionText: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 15,
+    },
+    editorActionPrimaryText: {
+      color: colors.onPrimary,
+      fontWeight: '700',
+      fontSize: 15,
+    },
+    autocompleteList: { maxHeight: 220 },
+    autocompleteItem: {
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    autocompleteHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     autocompleteItemFirst: {
       borderTopWidth: 0,
@@ -1314,6 +1779,13 @@ const createStyles = (colors: any) => {
       color: colors.textSecondary,
       fontSize: 11,
       textTransform: 'uppercase',
+      marginLeft: 8,
+    },
+    autocompleteDoc: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: 3,
     },
   });
 };

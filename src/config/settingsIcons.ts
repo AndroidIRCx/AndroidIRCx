@@ -127,6 +127,9 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'commands-custom': { name: 'plus-circle', solid: false },
 
   // Scripting & Ads
+  'ai-enabled': { name: 'robot', solid: false },
+  'ai-providers': { name: 'key', solid: false },
+  'ai-agent': { name: 'comments', solid: false },
   'advanced-scripts': { name: 'code', solid: false },
   'advanced-scripts-help': { name: 'question-circle', solid: false },
   'watch-ad-button': { name: 'play-circle', solid: false },

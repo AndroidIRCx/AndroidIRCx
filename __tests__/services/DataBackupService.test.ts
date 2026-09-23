@@ -118,6 +118,41 @@ describe('DataBackupService', () => {
       );
     });
 
+    it('never exports an AI provider API key', async () => {
+      mockSecureStorage['net1:server:s1'] = 'server-pass';
+      mockSecureStorage['ai:key:p1'] = 'sk-live-secret';
+
+      const backup = await dataBackupService.exportAll();
+
+      // A backup file gets copied to cloud storage and e-mailed around; a
+      // leaked provider key is a bill the user pays. IRC credentials still
+      // travel, because losing those breaks the app's whole purpose.
+      expect(backup).not.toContain('sk-live-secret');
+      expect(backup).toContain('server-pass');
+    });
+
+    it('drops an AI key even when the caller asks for it by name', async () => {
+      mockSecureStorage['ai:key:p1'] = 'sk-live-secret';
+
+      const backup = await dataBackupService.exportSettings([
+        '@AndroidIRCX:secure:ai:key:p1',
+      ]);
+
+      // The exclusion must sit after the selection is resolved, or naming the
+      // key would walk straight past it.
+      expect(backup).not.toContain('sk-live-secret');
+    });
+
+    it('does not offer AI keys in the backup key list', async () => {
+      mockSecureStorage['net1:server:s1'] = 'server-pass';
+      mockSecureStorage['ai:key:p1'] = 'sk-live-secret';
+
+      const keys = await dataBackupService.getAllKeys();
+
+      expect(keys).toContain('@AndroidIRCX:secure:net1:server:s1');
+      expect(keys).not.toContain('@AndroidIRCX:secure:ai:key:p1');
+    });
+
     it('should handle empty storage', async () => {
       const backup = await dataBackupService.exportAll();
       const parsed = JSON.parse(backup);

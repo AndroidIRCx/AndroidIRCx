@@ -1265,6 +1265,18 @@ export const useConnectionLifecycle = (
         );
 
       // Listen for typing indicators
+      // Every raw line, in and out, to whatever scripts are listening.
+      // Observation only: it fires after the line has been written or read,
+      // because a script able to swallow raw protocol would only have to drop
+      // a PONG to hang its own connection. onCommand is the supported way to
+      // stop something going out.
+      const unsubscribeWire = activeIRCService.on(
+        'wire',
+        (event: { direction: 'in' | 'out'; line: string }) => {
+          scriptingService.handleRaw(event.line, event.direction);
+        },
+      );
+
       const unsubscribeTyping = activeIRCService.on(
         'typing-indicator',
         (
@@ -1810,6 +1822,7 @@ export const useConnectionLifecycle = (
         unsubscribeEncryption();
         unsubscribeKeyRequests();
         unsubscribeChannelKeys();
+        unsubscribeWire();
         unsubscribeTyping();
         unsubscribeClearTab();
         unsubscribeCloseTab();

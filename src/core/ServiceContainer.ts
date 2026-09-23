@@ -46,6 +46,8 @@ import { autoRejoinService } from '../services/AutoRejoinService';
 import { autoVoiceService } from '../services/AutoVoiceService';
 import { offlineQueueService } from '../services/OfflineQueueService';
 import { scriptingService } from '../services/ScriptingService';
+import { aiService } from '../services/ai/AIService';
+import { aiProviderStore } from '../services/ai/AIProviderStore';
 import { identityProfilesService } from '../services/IdentityProfilesService';
 
 // DCC Services
@@ -115,6 +117,8 @@ export const services = {
   autoVoice: autoVoiceService,
   offlineQueue: offlineQueueService,
   scripting: scriptingService,
+  ai: aiService,
+  aiProviders: aiProviderStore,
   identityProfiles: identityProfilesService,
 
   // DCC
@@ -182,6 +186,8 @@ export {
   autoVoiceService,
   offlineQueueService,
   scriptingService,
+  aiService,
+  aiProviderStore,
   identityProfilesService,
 
   // DCC

@@ -3687,6 +3687,11 @@ export class IRCService {
       direction === 'in' ? 'trafficIn' : 'trafficOut',
       timestamp,
     );
+    // The one place every wire line passes, in both directions, which is why
+    // the event goes here rather than at the half-dozen call sites. Emitted
+    // rather than handed to ScriptingService directly: this file deliberately
+    // imports no services, to keep the dependency cycle broken.
+    this.emit('wire', { direction, line, timestamp });
   }
 
   private emitMessage(message: IRCMessage): void {
