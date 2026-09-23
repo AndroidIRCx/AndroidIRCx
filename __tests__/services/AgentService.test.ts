@@ -46,6 +46,14 @@ jest.mock('../../src/services/Logger', () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
+jest.mock('../../src/services/ScriptingService', () => ({
+  scriptingService: {
+    list: jest.fn(() => []),
+    lint: jest.fn(() => ({ ok: true, message: 'ok' })),
+    add: jest.fn(async () => undefined),
+  },
+}));
+
 jest.mock('../../src/services/ai/McpClientService', () => ({
   MCP_TOOL_PREFIX: 'mcp__',
   mcpClientService: {
@@ -57,15 +65,17 @@ jest.mock('../../src/services/ai/McpClientService', () => ({
   },
 }));
 
-import { agentService } from '../../src/services/ai/AgentService';
+import { agentService, MAX_SESSIONS } from '../../src/services/ai/AgentService';
 import {
   agentToolSchemas,
   executeTool,
   toolMutates,
 } from '../../src/services/ai/AgentTools';
+import { webAccessService } from '../../src/services/ai/WebAccessService';
 
 const { aiService } = require('../../src/services/ai/AIService');
 const { mcpClientService } = require('../../src/services/ai/McpClientService');
+const { scriptingService } = require('../../src/services/ScriptingService');
 
 const reply = (text: string, toolCalls?: any[]) => ({
   text,
@@ -168,10 +178,14 @@ describe('AgentTools', () => {
 });
 
 describe('AgentService', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
-    agentService.reset();
+    await agentService.clearAllSessions();
+    webAccessService.resetForTests();
+    await webAccessService.load();
     aiService.isChannelAllowed.mockReturnValue(true);
+    scriptingService.list.mockReturnValue([]);
+    scriptingService.lint.mockReturnValue({ ok: true, message: 'ok' });
   });
 
   it('answers a plain question in one round', async () => {
@@ -490,6 +504,198 @@ describe('AgentService', () => {
     it('refuses to retry an empty conversation', async () => {
       expect(await agentService.retry()).toMatchObject({ status: 'error' });
       expect(aiService.chat).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sessions', () => {
+    it('keeps the thread after the screen is closed and reopened', async () => {
+      aiService.chat.mockResolvedValue(reply('You are in #chat.'));
+      await agentService.send('which channels am I in?');
+
+      // The screen drops its bubbles when it unmounts; the conversation does
+      // not live there. Rebuilding from history() is what makes reopening
+      // show the thread instead of an empty screen.
+      const restored = agentService.history();
+      expect(restored.map(m => m.content)).toEqual([
+        'which channels am I in?',
+        'You are in #chat.',
+      ]);
+    });
+
+    it('gives each session its own thread', async () => {
+      aiService.chat.mockResolvedValue(reply('ok'));
+      await agentService.send('draft me a script');
+      const first = agentService.activeSessionId();
+
+      await agentService.newSession();
+      await agentService.send('summarise #dev');
+
+      expect(agentService.history()).toHaveLength(2);
+      expect(agentService.history()[0].content).toBe('summarise #dev');
+
+      await agentService.switchTo(first as string);
+      expect(agentService.history()[0].content).toBe('draft me a script');
+    });
+
+    it('names a session after the question that started it', async () => {
+      aiService.chat.mockResolvedValue(reply('ok'));
+      await agentService.send('summarise #dev for me');
+
+      expect(agentService.listSessions()[0].title).toBe(
+        'summarise #dev for me',
+      );
+    });
+
+    it('deletes one without touching the others', async () => {
+      aiService.chat.mockResolvedValue(reply('ok'));
+      await agentService.send('first');
+      const first = agentService.activeSessionId() as string;
+      await agentService.newSession();
+      await agentService.send('second');
+
+      await agentService.deleteSession(first);
+
+      const titles = agentService.listSessions().map(entry => entry.title);
+      expect(titles).toEqual(['second']);
+    });
+
+    it('caps how many it keeps', async () => {
+      aiService.chat.mockResolvedValue(reply('ok'));
+      for (let i = 0; i < MAX_SESSIONS + 4; i += 1) {
+        await agentService.newSession();
+        await agentService.send(`question ${i}`);
+      }
+
+      expect(agentService.listSessions().length).toBe(MAX_SESSIONS);
+    });
+  });
+
+  describe('script tools', () => {
+    it('refuses to save code that does not compile', async () => {
+      scriptingService.lint.mockReturnValue({
+        ok: false,
+        message: 'Unexpected end of input',
+      });
+
+      const outcome = await executeTool({
+        id: 'c1',
+        name: 'save_script',
+        input: { name: 'Greeter', code: 'module.exports = {' },
+      });
+
+      // A broken script only shows up as an error later, far from whoever
+      // wrote it.
+      expect(outcome.isError).toBe(true);
+      expect(scriptingService.add).not.toHaveBeenCalled();
+    });
+
+    it('saves a script disabled, never enabled', async () => {
+      scriptingService.lint.mockReturnValue({ ok: true, message: 'ok' });
+
+      await executeTool({
+        id: 'c1',
+        name: 'save_script',
+        input: { name: 'Greeter', code: 'module.exports = {};' },
+      });
+
+      // An enabled script runs unattended against live traffic and spends the
+      // user's own provider credit. Starting one stays their decision.
+      expect(scriptingService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Greeter', enabled: false }),
+      );
+    });
+
+    it('will not overwrite a built-in', async () => {
+      scriptingService.lint.mockReturnValue({ ok: true, message: 'ok' });
+      scriptingService.list.mockReturnValue([
+        { id: 'builtin-autoop', name: 'Auto-Op', builtIn: true, code: '' },
+      ]);
+
+      const outcome = await executeTool({
+        id: 'c1',
+        name: 'save_script',
+        input: { id: 'builtin-autoop', code: 'module.exports = {};' },
+      });
+
+      expect(outcome.isError).toBe(true);
+      expect(scriptingService.add).not.toHaveBeenCalled();
+    });
+
+    it('needs approval to save, but not to read', () => {
+      expect(toolMutates({ id: 'a', name: 'save_script', input: {} })).toBe(
+        true,
+      );
+      for (const name of ['list_scripts', 'read_script', 'lint_script']) {
+        expect(toolMutates({ id: 'a', name, input: {} })).toBe(false);
+      }
+    });
+  });
+
+  describe('reading documentation', () => {
+    it("does not ask about the project's own wiki", async () => {
+      aiService.chat
+        .mockResolvedValueOnce(
+          reply('', [
+            {
+              id: 'c1',
+              name: 'fetch_page',
+              input: {
+                url: 'https://github.com/AndroidIRCx/AndroidIRCx/wiki/AI',
+              },
+            },
+          ]),
+        )
+        .mockResolvedValueOnce(reply('Here is how MCP works.'));
+      (global as any).fetch = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        text: async () => '<html><body><p>MCP docs</p></body></html>',
+      }));
+
+      const turn = await agentService.send('how does MCP work?');
+
+      expect(turn.status).toBe('done');
+    });
+
+    it('stops and asks before reading anywhere else', async () => {
+      aiService.chat.mockResolvedValue(
+        reply('', [
+          {
+            id: 'c1',
+            name: 'fetch_page',
+            input: { url: 'https://example.com/whatever' },
+          },
+        ]),
+      );
+
+      const turn = await agentService.send('what does example.com say?');
+
+      // Reading is normally free, but which sites the app may reach is a
+      // decision only the user can make.
+      expect(turn.status).toBe('needs_confirmation');
+      expect(turn.pending?.[0].call.name).toBe('fetch_page');
+    });
+
+    it('remembers a host when the user says always', async () => {
+      aiService.chat.mockResolvedValue(
+        reply('', [
+          {
+            id: 'c1',
+            name: 'fetch_page',
+            input: { url: 'https://example.com/whatever' },
+          },
+        ]),
+      );
+      (global as any).fetch = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        text: async () => 'hello',
+      }));
+      await agentService.send('what does example.com say?');
+
+      await agentService.resolvePending({ c1: true }, ['example.com']);
+
+      expect(webAccessService.isAllowed('example.com')).toBe(true);
     });
   });
 

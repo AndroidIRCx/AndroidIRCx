@@ -42,6 +42,7 @@ import {
   mcpClientService,
   McpClientServer,
 } from '../services/ai/McpClientService';
+import { webAccessService } from '../services/ai/WebAccessService';
 import { useTabStore } from '../stores/tabStore';
 
 interface Props {
@@ -133,6 +134,7 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [loadingModels, setLoadingModels] = useState(false);
   const [modelFilter, setModelFilter] = useState('');
   const [preset, setPreset] = useState<AIProviderPreset | null>(null);
+  const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
 
   const refresh = useCallback(async () => {
     await aiService.loadSettings();
@@ -146,6 +148,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     setConsent(aiService.hasConsent());
     setRedaction(aiService.isRedactionEnabled());
     setAllowedChannels(aiService.listAllowedChannels());
+    await webAccessService.load();
+    setAllowedHosts(webAccessService.listHosts());
     setProviders(list);
     setDefaultId(currentDefault);
     if (mcpClientService.isSupported()) {
@@ -257,6 +261,11 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     const channel = separator > -1 ? entry.substring(separator + 2) : entry;
     await aiService.setChannelAllowed(channel, false, network);
     setAllowedChannels(aiService.listAllowedChannels());
+  }, []);
+
+  const forgetHost = useCallback(async (host: string) => {
+    await webAccessService.forgetHost(host);
+    setAllowedHosts(webAccessService.listHosts());
   }, []);
 
   const setChannel = useCallback(
@@ -748,6 +757,27 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
               ))}
             </>
           )}
+
+          <Text style={styles.masterTitle}>
+            {t('Sites the assistant may read')}
+          </Text>
+          <Text style={styles.subtle}>
+            {t(
+              "The assistant can look something up when a question is about how this app works. This project's own documentation is allowed from the start; any other site asks you first, and you can allow it once or add it here.",
+            )}
+          </Text>
+          {allowedHosts.map(host => (
+            <View key={host} style={styles.channelRow}>
+              <Text style={styles.channelText}>{host}</Text>
+              {webAccessService.isDefaultHost(host) ? (
+                <Text style={styles.subtle}>{t('built in')}</Text>
+              ) : (
+                <TouchableOpacity onPress={() => forgetHost(host)}>
+                  <Text style={styles.actionDanger}>{t('Remove')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
 
           {mcpClientService.isSupported() && (
             <>
@@ -1461,6 +1491,7 @@ const createStyles = (colors: any) =>
       marginRight: 12,
     },
     masterTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
+    actionDisabled: { opacity: 0.4 },
     channelNetwork: {
       color: colors.textSecondary,
       fontSize: 12,

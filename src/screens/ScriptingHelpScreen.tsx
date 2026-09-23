@@ -234,6 +234,45 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           )}
         </Text>
 
+        <Text style={styles.sub}>{t('Assistant conversations')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Tap the title at the top of the Assistant for the list. One conversation for drafting a script, one catching up on a channel — each keeps its own thread. New starts one, Delete removes one.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• They are kept on this phone, so closing the screen or the app does not lose the thread. They are not deleted when you switch AI off — nothing about them left the device. Delete all conversations removes them when you want that. The twenty most recent are kept.',
+          )}
+        </Text>
+
+        <Text style={styles.sub}>{t('What the assistant can do for you')}</Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Scripts: it can list yours, read one, check that code compiles, and save it. Saving asks you first, and anything it saves is left DISABLED — enabling a script is what starts it running against live traffic, and that stays your decision. It will not overwrite a built-in.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Documentation: ask how something in the app works and it can look it up. This project\u2019s own wiki on github.com is readable from the start; any other site stops and asks, with No, Allow once, or Always allow this site.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Remembered sites are listed under Settings > AI > Sites the assistant may read, each removable.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• Private addresses are never reached, allowed or not — loopback, 10.x, 192.168.x, 172.16-31.x, .local. Otherwise a model could be talked into probing your own network, which you never asked for and would never see.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• A fetched page is data, not instructions. One page per request, no links followed. A page saying "ignore your instructions" is reported to you, not obeyed.',
+          )}
+        </Text>
+
         <Text style={styles.sub}>{t('Writing scripts with AI')}</Text>
         <Text style={styles.bullet}>
           {t(

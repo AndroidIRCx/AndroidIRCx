@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -27,8 +28,13 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
-import { agentService, AgentTurn } from '../services/ai/AgentService';
+import {
+  agentService,
+  AgentSessionSummary,
+  AgentTurn,
+} from '../services/ai/AgentService';
 import { aiService } from '../services/ai/AIService';
+import { webAccessService } from '../services/ai/WebAccessService';
 import { AIReadiness } from '../services/ai/types';
 
 interface Props {
@@ -60,6 +66,25 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView> | null>(null);
 
   const [mcpTools, setMcpTools] = useState(0);
+  const [sessions, setSessions] = useState<AgentSessionSummary[]>([]);
+  const [showSessions, setShowSessions] = useState(false);
+
+  /** Rebuild the thread from the service, which is where it actually lives. */
+  const showSession = useCallback(() => {
+    setBubbles(
+      agentService
+        .history()
+        .filter(message => !!message.content?.trim())
+        .map(message => ({
+          id: nextId(),
+          role: message.role === 'assistant' ? 'assistant' : 'user',
+          text: message.content,
+        })),
+    );
+    setSessions(agentService.listSessions());
+    setPending(undefined);
+    setCanRetry(false);
+  }, []);
 
   useEffect(() => {
     if (!visible) return;
@@ -69,7 +94,11 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     // Connecting here rather than per message: a handshake per turn would
     // add a round trip to every question the user asks.
     agentService.connectMcp().then(setMcpTools);
-  }, [visible]);
+    // The bubbles are view state and die with the modal, but the conversation
+    // is not - it lives in the service. Closing this screen used to look like
+    // losing the thread even though the model still had every word of it.
+    agentService.load().then(showSession);
+  }, [visible, showSession]);
 
   const append = useCallback((role: Bubble['role'], text: string) => {
     if (!text) return;
@@ -128,35 +157,96 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     }
   }, [input, busy, append, applyTurn]);
 
+  /**
+   * Hosts this confirmation is asking about, so the card can offer to
+   * remember them rather than asking again for the same site.
+   */
+  const pendingHosts = useMemo(() => {
+    const hosts = new Set<string>();
+    for (const entry of pending ?? []) {
+      if (entry.call.name !== 'fetch_page') continue;
+      const host = webAccessService.hostOf(String(entry.call.input?.url ?? ''));
+      if (host && !webAccessService.isAllowed(host)) hosts.add(host);
+    }
+    return Array.from(hosts);
+  }, [pending]);
+
   /** Approve or decline everything the agent asked for in one go. */
   const resolveAll = useCallback(
-    async (approved: boolean) => {
+    async (approved: boolean, remember = false) => {
       if (!pending?.length) return;
       const approvals: Record<string, boolean> = {};
       for (const entry of pending) approvals[entry.call.id] = approved;
+      const hosts = remember ? pendingHosts : [];
       setPending(undefined);
       append(
         'system',
         approved
-          ? t('You approved the action.')
+          ? remember
+            ? t('Allowed, and {host} is remembered.', {
+                host: hosts.join(', '),
+              })
+            : t('You approved the action.')
           : t('You declined the action.'),
       );
       setBusy(true);
       try {
-        applyTurn(await agentService.resolvePending(approvals));
+        applyTurn(await agentService.resolvePending(approvals, hosts));
       } finally {
         setBusy(false);
       }
     },
-    [pending, append, applyTurn, t],
+    [pending, pendingHosts, append, applyTurn, t],
   );
 
-  const handleReset = useCallback(() => {
-    agentService.reset();
+  const handleNew = useCallback(async () => {
+    await agentService.newSession();
     setBubbles([]);
     setPending(undefined);
     setCanRetry(false);
+    setSessions(agentService.listSessions());
+    setShowSessions(false);
   }, []);
+
+  const handleSwitch = useCallback(
+    async (id: string) => {
+      await agentService.switchTo(id);
+      showSession();
+      setShowSessions(false);
+    },
+    [showSession],
+  );
+
+  const handleDeleteSession = useCallback(
+    async (id: string) => {
+      await agentService.deleteSession(id);
+      showSession();
+    },
+    [showSession],
+  );
+
+  /**
+   * Deliberately here rather than in AI settings, for two reasons: this is
+   * where the conversations are, and importing AgentService into the settings
+   * screen would drag the whole IRC stack in behind it.
+   */
+  const handleDeleteAll = useCallback(() => {
+    Alert.alert(t('Delete every conversation?'), t('This cannot be undone.'), [
+      { text: t('Cancel'), style: 'cancel' },
+      {
+        text: t('Delete'),
+        style: 'destructive',
+        onPress: async () => {
+          await agentService.clearAllSessions();
+          setBubbles([]);
+          setPending(undefined);
+          setCanRetry(false);
+          setSessions(agentService.listSessions());
+          setShowSessions(false);
+        },
+      },
+    ]);
+  }, [t]);
 
   if (!visible) return null;
 
@@ -177,8 +267,19 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.headerAction}>{t('Close')}</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t('Assistant')}</Text>
-            <TouchableOpacity onPress={handleReset}>
+            <TouchableOpacity
+              onPress={() => setShowSessions(true)}
+              style={styles.headerCentre}
+            >
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {sessions.find(session => session.active)?.title ||
+                  t('Assistant')}
+              </Text>
+              <Text style={styles.headerSub}>
+                {t('{count} conversations', { count: sessions.length })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleNew}>
               <Text style={styles.headerAction}>{t('New')}</Text>
             </TouchableOpacity>
           </View>
@@ -265,6 +366,14 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
                   {entry.summary}
                 </Text>
               ))}
+              {pendingHosts.length > 0 && (
+                <Text style={styles.confirmNote}>
+                  {t(
+                    'It wants to read {host}, which is not on your allowed list.',
+                    { host: pendingHosts.join(', ') },
+                  )}
+                </Text>
+              )}
               <View style={styles.confirmActions}>
                 <TouchableOpacity
                   style={styles.confirmDeny}
@@ -276,9 +385,21 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
                   style={styles.confirmApprove}
                   onPress={() => resolveAll(true)}
                 >
-                  <Text style={styles.confirmApproveText}>{t('Do it')}</Text>
+                  <Text style={styles.confirmApproveText}>
+                    {pendingHosts.length > 0 ? t('Allow once') : t('Do it')}
+                  </Text>
                 </TouchableOpacity>
               </View>
+              {pendingHosts.length > 0 && (
+                <TouchableOpacity
+                  style={styles.confirmAlways}
+                  onPress={() => resolveAll(true, true)}
+                >
+                  <Text style={styles.confirmAlwaysText}>
+                    {t('Always allow this site')}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -301,6 +422,74 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+
+        <Modal
+          visible={showSessions}
+          animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
+          onRequestClose={() => setShowSessions(false)}
+        >
+          <ModalSafeArea style={styles.container}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => setShowSessions(false)}>
+                <Text style={styles.headerAction}>{t('Back')}</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>{t('Conversations')}</Text>
+              <TouchableOpacity onPress={handleNew}>
+                <Text style={styles.headerAction}>{t('New')}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.sessionList}>
+              <Text style={styles.subtleNote}>
+                {t(
+                  'One for drafting a script, one catching up on a channel \u2014 each keeps its own thread.',
+                )}
+              </Text>
+              {sessions.length === 0 && (
+                <Text style={styles.empty}>
+                  {t('Nothing yet. Ask something and it lands here.')}
+                </Text>
+              )}
+              {sessions.length > 1 && (
+                <TouchableOpacity
+                  style={styles.sessionClearAll}
+                  onPress={handleDeleteAll}
+                >
+                  <Text style={styles.sessionDelete}>
+                    {t('Delete all conversations')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {sessions.map(session => (
+                <View key={session.id} style={styles.sessionRow}>
+                  <TouchableOpacity
+                    style={styles.sessionMain}
+                    onPress={() => handleSwitch(session.id)}
+                  >
+                    <Text
+                      style={[
+                        styles.sessionTitle,
+                        session.active && styles.sessionTitleActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {session.title}
+                    </Text>
+                    <Text style={styles.sessionMeta}>
+                      {t('{count} messages', { count: session.messageCount })}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteSession(session.id)}
+                  >
+                    <Text style={styles.sessionDelete}>{t('Delete')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          </ModalSafeArea>
+        </Modal>
       </ModalSafeArea>
     </Modal>
   );
@@ -319,6 +508,42 @@ const createStyles = (colors: any) =>
       borderBottomColor: colors.border,
     },
     headerTitle: { color: colors.text, fontSize: 17, fontWeight: '600' },
+    headerCentre: { flex: 1, alignItems: 'center', paddingHorizontal: 12 },
+    headerSub: { color: colors.textSecondary, fontSize: 11.5, marginTop: 1 },
+    sessionList: { padding: 16, paddingBottom: 32 },
+    sessionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    sessionMain: { flex: 1, marginRight: 12 },
+    sessionTitle: { color: colors.text, fontSize: 15 },
+    sessionTitleActive: { color: colors.primary, fontWeight: '700' },
+    sessionMeta: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    sessionDelete: { color: colors.error, fontSize: 13, fontWeight: '600' },
+    sessionClearAll: { paddingVertical: 12, alignSelf: 'flex-start' },
+    confirmNote: {
+      color: colors.warning,
+      fontSize: 12.5,
+      lineHeight: 18,
+      marginBottom: 8,
+    },
+    confirmAlways: {
+      alignSelf: 'flex-end',
+      marginTop: 8,
+      paddingVertical: 6,
+    },
+    confirmAlwaysText: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 13,
+    },
     headerAction: { color: colors.primary, fontSize: 15, fontWeight: '600' },
     blocker: {
       margin: 12,
