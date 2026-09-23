@@ -141,8 +141,14 @@ class AgentService {
       return { status: 'error', error: 'There is nothing to retry' };
     }
     this.pending = [];
+    // A fresh round budget, but still the same turn as far as the cooldown is
+    // concerned: the user already waited for it once, and the attempt this
+    // replaces produced nothing. Counting it as a new turn made Try again
+    // answer "AI cooldown active, retry in 3s" — a button refusing to do the
+    // one thing it exists for. The daily cap still counts every call, and a
+    // person tapping a button is its own rate limit.
     this.rounds = 0;
-    return this.run();
+    return this.run(true);
   }
 
   /**
@@ -181,7 +187,11 @@ class AgentService {
     return this.run();
   }
 
-  private async run(): Promise<AgentTurn> {
+  /**
+   * `continuing` forces the first round to count as part of an existing turn.
+   * Only a retry sets it; a fresh question serves the gap like any caller.
+   */
+  private async run(continuing = false): Promise<AgentTurn> {
     const tools = this.tools();
 
     while (this.rounds < MAX_ROUNDS) {
@@ -197,7 +207,7 @@ class AgentService {
             // Only the first round opens a turn. The rest are this turn
             // finishing its own work, and throttling them would strand the
             // user halfway through an answer they already asked for.
-            continuesTurn: this.rounds > 1,
+            continuesTurn: continuing || this.rounds > 1,
           },
           CALLER_ID,
         );

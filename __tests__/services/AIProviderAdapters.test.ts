@@ -305,6 +305,76 @@ describe('GeminiProvider', () => {
     expect(models).toEqual(['gemini-pro']);
   });
 
+  it('carries a thought signature back into the next round', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: { name: 'list_networks', args: {} },
+                  thoughtSignature: 'sig-abc',
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+
+    const first = await geminiProvider.chat(
+      provider,
+      'k',
+      [{ role: 'user', content: 'which networks?' }],
+      { tools: [] },
+      signal(),
+    );
+    expect(first.toolCalls?.[0].providerSignature).toBe('sig-abc');
+
+    // Replaying the turn without it is rejected outright with "Function call
+    // is missing a thought_signature", which makes tool use impossible.
+    await geminiProvider.chat(
+      provider,
+      'k',
+      [
+        { role: 'user', content: 'which networks?' },
+        { role: 'assistant', content: '', toolCalls: first.toolCalls },
+      ],
+      { tools: [] },
+      signal(),
+    );
+
+    const body = JSON.parse(fetchMock.mock.calls[1][1].body);
+    const modelTurn = body.contents.find((c: any) => c.role === 'model');
+    expect(modelTurn.parts[0].thoughtSignature).toBe('sig-abc');
+  });
+
+  it('omits the signature field when the model sent none', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ candidates: [] }));
+
+    await geminiProvider
+      .chat(
+        provider,
+        'k',
+        [
+          { role: 'user', content: 'hi' },
+          {
+            role: 'assistant',
+            content: '',
+            toolCalls: [{ id: 'a_0', name: 'a', input: {} }],
+          },
+        ],
+        { tools: [] },
+        signal(),
+      )
+      .catch(() => undefined);
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const modelTurn = body.contents.find((c: any) => c.role === 'model');
+    expect(modelTurn.parts[0]).not.toHaveProperty('thoughtSignature');
+  });
+
   it('follows the pages instead of stopping at the first one', async () => {
     fetchMock
       .mockResolvedValueOnce(

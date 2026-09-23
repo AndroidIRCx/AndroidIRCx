@@ -21,14 +21,19 @@ const MODEL_PAGE_SIZE = 200;
 /** A stop, so a provider that always returns a token cannot loop forever. */
 const MAX_MODEL_PAGES = 10;
 
+/**
+ * A part of a model turn. `thoughtSignature` rides alongside `functionCall`
+ * rather than inside it, and has to be sent back exactly as received.
+ */
+interface GeminiPart {
+  text?: string;
+  functionCall?: { name?: string; args?: Record<string, unknown> };
+  thoughtSignature?: string;
+}
+
 interface GenerateContentResponse {
   candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-        functionCall?: { name?: string; args?: Record<string, unknown> };
-      }>;
-    };
+    content?: { parts?: GeminiPart[] };
   }>;
   usageMetadata?: {
     promptTokenCount?: number;
@@ -95,6 +100,12 @@ class GeminiProvider implements AIProviderAdapter {
           for (const call of message.toolCalls) {
             parts.push({
               functionCall: { name: call.name, args: call.input ?? {} },
+              // Thinking models reject the whole request when a replayed
+              // function call comes back without the signature they issued
+              // with it, so tool use fails on the second round.
+              ...(call.providerSignature
+                ? { thoughtSignature: call.providerSignature }
+                : {}),
             });
           }
           return { role: 'model', parts };
@@ -106,11 +117,7 @@ class GeminiProvider implements AIProviderAdapter {
       });
   }
 
-  private parseToolCalls(
-    parts: Array<{
-      functionCall?: { name?: string; args?: Record<string, unknown> };
-    }>,
-  ): AIToolCall[] | undefined {
+  private parseToolCalls(parts: GeminiPart[]): AIToolCall[] | undefined {
     const calls = parts
       .filter(part => part?.functionCall?.name)
       .map((part, index) => ({
@@ -118,6 +125,10 @@ class GeminiProvider implements AIProviderAdapter {
         id: `${part.functionCall?.name}_${index}`,
         name: part.functionCall?.name as string,
         input: (part.functionCall?.args ?? {}) as Record<string, unknown>,
+        // Kept so the next round can hand it straight back.
+        ...(part.thoughtSignature
+          ? { providerSignature: part.thoughtSignature }
+          : {}),
       }));
     return calls.length ? calls : undefined;
   }

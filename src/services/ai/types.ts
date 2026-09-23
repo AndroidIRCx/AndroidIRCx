@@ -88,6 +88,17 @@ export interface AIToolCall {
   id: string;
   name: string;
   input: Record<string, unknown>;
+  /**
+   * An opaque token the provider attached to this call and requires echoed
+   * back verbatim when the turn is replayed.
+   *
+   * Gemini's thinking models send a `thoughtSignature` with every function
+   * call and reject the follow-up request outright without it ("Function call
+   * is missing a thought_signature"), which makes tool use impossible. Only
+   * the adapter that issued it may interpret it; everything else carries it
+   * along untouched, including the redaction pass.
+   */
+  providerSignature?: string;
 }
 
 export interface AIToolResult {

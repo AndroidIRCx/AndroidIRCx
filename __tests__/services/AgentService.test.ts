@@ -461,6 +461,32 @@ describe('AgentService', () => {
       ).toHaveLength(0);
     });
 
+    it('does not make the user wait out the cooldown to retry', async () => {
+      aiService.chat.mockRejectedValueOnce(new Error('HTTP 400'));
+      await agentService.send('what did I miss?');
+
+      aiService.chat.mockResolvedValue(reply('Nothing much.'));
+      await agentService.retry();
+
+      // The attempt this replaces produced nothing, and the user already
+      // waited once. Try again answering "cooldown active, retry in 3s" is a
+      // button refusing to do the one thing it exists for.
+      expect(aiService.chat.mock.calls[1][1].continuesTurn).toBe(true);
+    });
+
+    it('gives a retry a fresh round budget', async () => {
+      // Six rounds of tool calls exhausts the budget.
+      aiService.chat.mockResolvedValue(
+        reply('', [{ id: 'c1', name: 'list_channels', input: {} }]),
+      );
+      const exhausted = await agentService.send('loop please');
+      expect(exhausted.status).toBe('error');
+
+      aiService.chat.mockResolvedValue(reply('Done.'));
+
+      expect(await agentService.retry()).toMatchObject({ status: 'done' });
+    });
+
     it('refuses to retry an empty conversation', async () => {
       expect(await agentService.retry()).toMatchObject({ status: 'error' });
       expect(aiService.chat).not.toHaveBeenCalled();
