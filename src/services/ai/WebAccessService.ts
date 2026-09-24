@@ -45,6 +45,40 @@ export interface WebFetchResult {
   truncated: boolean;
 }
 
+/** The named entities worth knowing for plain-text extraction. */
+const HTML_ENTITIES: Readonly<Record<string, string>> = Object.freeze({
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  hellip: '\u2026',
+  mdash: '\u2014',
+  ndash: '\u2013',
+  lsquo: '\u2018',
+  rsquo: '\u2019',
+  ldquo: '\u201c',
+  rdquo: '\u201d',
+});
+
+/**
+ * Whether a numeric entity is safe to turn into a character.
+ *
+ * Surrogates and out-of-range values throw from `fromCodePoint`, and the C0
+ * controls have no business in extracted text: a decoded `&#0;` or `&#13;`
+ * only makes the result harder to read.
+ */
+function isPrintable(code: number): boolean {
+  return (
+    Number.isInteger(code) &&
+    code >= 0x20 &&
+    code <= 0x10ffff &&
+    !(code >= 0xd800 && code <= 0xdfff) &&
+    code !== 0x7f
+  );
+}
+
 class WebAccessService {
   private hosts: string[] = [...DEFAULT_ALLOWED_HOSTS];
   private loaded = false;
@@ -252,33 +286,68 @@ class WebAccessService {
     }
   }
 
-  /** Strip markup down to readable text; good enough for documentation. */
+  /**
+   * Strip markup down to readable text; good enough for documentation.
+   *
+   * Two things here are deliberate rather than incidental, both flagged by
+   * static analysis on an earlier version:
+   *
+   * 1. The `script` and `style` end tags allow whitespace. `</script >` is a
+   *    valid end tag, and a pattern demanding exactly `</script>` misses it,
+   *    which leaves the script body in the text handed to a model. An
+   *    unterminated `<script` swallows the rest of the document for the same
+   *    reason - which is what a browser does with it too.
+   * 2. Entities are decoded **after** the tags are gone, in a single pass, so
+   *    no replacement can feed the next one. See `decode`.
+   */
   private toText(body: string): { title: string; text: string } {
-    const titleMatch = body.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const titleMatch = body.match(/<title[^>]*>([\s\S]*?)<\/title\s*>/i);
     const title = titleMatch ? this.decode(titleMatch[1]).trim() : '';
     const text = this.decode(
       body
         // Script and style bodies are not content and are mostly noise.
-        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-        .replace(/<\/(p|div|li|tr|h[1-6])>/gi, '\n')
+        .replace(/<script\b[^>]*>[\s\S]*?(?:<\/script\s*>|$)/gi, ' ')
+        .replace(/<style\b[^>]*>[\s\S]*?(?:<\/style\s*>|$)/gi, ' ')
+        .replace(/<!--[\s\S]*?(?:-->|$)/g, ' ')
+        .replace(/<\/(p|div|li|tr|h[1-6])\s*>/gi, '\n')
         .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<[^>]+>/g, ' '),
+        .replace(/<[^>]*>/g, ' '),
     )
-      .replace(/[ \t ]+/g, ' ')
+      .replace(/[ \t\u00a0]+/g, ' ')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
     return { title, text };
   }
 
+  /**
+   * Decode HTML entities in **one pass**.
+   *
+   * Chained replaces are the bug, not the order of them: replacing `&amp;`
+   * first turns `&amp;lt;` into `&lt;`, which the next replace turns into a
+   * real `<`. A page that merely *displays* `&lt;script&gt;` then arrives as
+   * markup, after the tag stripping that was supposed to remove markup. Doing
+   * it once means no replacement's output is another's input, whatever order
+   * the table happens to be in.
+   */
   private decode(value: string): string {
-    return value
-      .replace(/&nbsp;/gi, ' ')
-      .replace(/&amp;/gi, '&')
-      .replace(/&lt;/gi, '<')
-      .replace(/&gt;/gi, '>')
-      .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'");
+    return value.replace(
+      /&(#\d{1,7}|#x[0-9a-f]{1,6}|[a-z][a-z0-9]{1,31});/gi,
+      (whole, body: string) => {
+        const token = body.toLowerCase();
+        if (token.startsWith('#x')) {
+          const code = Number.parseInt(token.slice(2), 16);
+          return isPrintable(code) ? String.fromCodePoint(code) : whole;
+        }
+        if (token.startsWith('#')) {
+          const code = Number.parseInt(token.slice(1), 10);
+          return isPrintable(code) ? String.fromCodePoint(code) : whole;
+        }
+        // An entity not in the table is left exactly as written: turning one
+        // we do not know into a guess is how text stops meaning what the page
+        // actually said.
+        return HTML_ENTITIES[token] ?? whole;
+      },
+    );
   }
 
   /** Test hook. */
