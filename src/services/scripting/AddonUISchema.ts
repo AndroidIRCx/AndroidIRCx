@@ -166,7 +166,8 @@ export interface ValidationResult<T> {
  * containing one breaks the row rather than saying anything.
  */
 // eslint-disable-next-line no-control-regex, no-misleading-character-class
-const DECEPTIVE = /[\u0000-\u001f\u007f\u061c\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g;
+const DECEPTIVE =
+  /[\u0000-\u001f\u007f\u061c\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g;
 
 /** Text an addon supplied, with the deceptive characters removed. */
 export function sanitizeDisplayText(value: string): string {
