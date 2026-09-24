@@ -1,0 +1,46 @@
+diff --git a/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridPreviewViewManager.kt b/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridPreviewViewManager.kt
+index d2a7948..00f0ed7 100644
+--- a/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridPreviewViewManager.kt
++++ b/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridPreviewViewManager.kt
+@@ -78,10 +78,15 @@ public class HybridPreviewViewManager: SimpleViewManager<View>() {
+     val hybridView = holder.hybridView
+     holder.lastState = null
+ 
+-    @Suppress("USELESS_IS_CHECK")
+-    if (hybridView is RecyclableView) {
++    // Kotlin 2.4 reports "check is always false" as an error, and @Suppress does
++    // not silence errors. This view is a final class that does not implement
++    // RecyclableView, so the compiler can prove the branch dead. Going through
++    // Any keeps the runtime check the generator intended, so recycling still
++    // works if the view ever does implement it.
++    val recyclable: Any = hybridView
++    if (recyclable is RecyclableView) {
+       // Recycle in it's implementation
+-      hybridView.prepareForRecycle()
++      recyclable.prepareForRecycle()
+ 
+       // Maybe update the view if it changed
+       return hybridView.view
+diff --git a/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridFrameRendererViewManager.kt b/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridFrameRendererViewManager.kt
+index 883c5bf..c5f306f 100644
+--- a/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridFrameRendererViewManager.kt
++++ b/node_modules/react-native-vision-camera/nitrogen/generated/android/kotlin/com/margelo/nitro/camera/views/HybridFrameRendererViewManager.kt
+@@ -78,10 +78,15 @@ public class HybridFrameRendererViewManager: SimpleViewManager<View>() {
+     val hybridView = holder.hybridView
+     holder.lastState = null
+ 
+-    @Suppress("USELESS_IS_CHECK")
+-    if (hybridView is RecyclableView) {
++    // Kotlin 2.4 reports "check is always false" as an error, and @Suppress does
++    // not silence errors. This view is a final class that does not implement
++    // RecyclableView, so the compiler can prove the branch dead. Going through
++    // Any keeps the runtime check the generator intended, so recycling still
++    // works if the view ever does implement it.
++    val recyclable: Any = hybridView
++    if (recyclable is RecyclableView) {
+       // Recycle in it's implementation
+-      hybridView.prepareForRecycle()
++      recyclable.prepareForRecycle()
+ 
+       // Maybe update the view if it changed
+       return hybridView.view
