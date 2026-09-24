@@ -141,6 +141,18 @@ jest.mock('../../src/services/MediaPickerService', () => ({
   MediaPickResult: {},
 }));
 
+const mockProcessComposerInput = jest.fn((text: string) => text);
+const mockGetTabCompletions = jest.fn(() => [] as any[]);
+const mockListScriptCommands = jest.fn(() => [] as any[]);
+jest.mock('../../src/services/ScriptingService', () => ({
+  scriptingService: {
+    processComposerInput: (...args: unknown[]) =>
+      mockProcessComposerInput(...(args as [string, any])),
+    getTabCompletions: (...args: unknown[]) => mockGetTabCompletions(...args),
+    listScriptCommands: () => mockListScriptCommands(),
+  },
+}));
+
 // ── utility mocks ──────────────────────────────────────────────────────────
 jest.mock('../../src/utils/IRCFormatter', () => ({
   IRC_FORMAT_CODES: {
@@ -250,6 +262,8 @@ describe('MessageInput', () => {
     jest.clearAllMocks();
     mockServiceCommandsState.isDetected = false;
     mockServiceCommandsState.getSuggestions.mockReturnValue([]);
+    mockProcessComposerInput.mockImplementation((text: string) => text);
+    mockGetTabCompletions.mockReturnValue([]);
 
     mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
       // Default enterKeyBehavior to 'send' for submitEditing tests
@@ -404,6 +418,65 @@ describe('MessageInput', () => {
     });
     expect(input.props.value).toBe('');
     expect(onSubmit).toHaveBeenCalledWith('Hello IRC!');
+    expect(mockProcessComposerInput).toHaveBeenCalledWith(
+      'Hello IRC!',
+      expect.objectContaining({ tabType: 'server' }),
+    );
+  });
+
+  it('honors onInput cancellation without exposing non-composer fields', async () => {
+    mockProcessComposerInput.mockReturnValue(null);
+    const onSubmit = jest.fn();
+    const { getByPlaceholderText } = await render(
+      <MessageInput
+        {...defaultProps}
+        onSubmit={onSubmit}
+        tabType="channel"
+        tabName="#safe"
+        network="net-1"
+        tabId="tab-1"
+      />,
+    );
+    await flushAsync();
+    const input = getByPlaceholderText('Enter a message');
+    await act(async () => {
+      await fireEvent.changeText(input, 'do not send');
+    });
+    await flushAsync();
+    await act(async () => {
+      await fireEvent(input, 'submitEditing');
+    });
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(mockProcessComposerInput).toHaveBeenCalledWith('do not send', {
+      channel: '#safe',
+      networkId: 'net-1',
+      tabId: 'tab-1',
+      tabType: 'channel',
+    });
+  });
+
+  it('appends bounded addon completions after built-in suggestions', async () => {
+    mockGetTabCompletions.mockReturnValue([
+      { text: '/addon-result', description: 'Addon completion' },
+    ]);
+    const { getByPlaceholderText, getByText } = await render(
+      <MessageInput {...defaultProps} network="net-1" />,
+    );
+    await flushAsync();
+    await act(async () => {
+      await fireEvent.changeText(
+        getByPlaceholderText('Enter a message'),
+        '/ad',
+      );
+    });
+
+    expect(getByText('/addon-result — Addon completion')).toBeTruthy();
+    expect(mockGetTabCompletions).toHaveBeenCalledWith(
+      '/ad',
+      expect.any(Number),
+      expect.objectContaining({ networkId: 'net-1' }),
+    );
   });
 
   it('does not submit when message is empty', async () => {
@@ -581,6 +654,75 @@ describe('MessageInput', () => {
       await fireEvent.changeText(input, '/jo');
     });
     expect(input.props.value).toBe('/jo');
+  });
+
+  it('offers a command a script registered, which used to be invisible', async () => {
+    mockListScriptCommands.mockReturnValueOnce([
+      {
+        name: 'opall',
+        description: 'Ops everyone',
+        scriptId: 'builtin-opall',
+        scriptName: 'Op Everyone',
+      },
+    ] as any);
+
+    const { getByPlaceholderText, findByText } = await render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" />,
+    );
+    await flushAsync();
+
+    await act(async () => {
+      await fireEvent.changeText(
+        getByPlaceholderText('Enter a message'),
+        '/opa',
+      );
+    });
+
+    // It always worked when typed in full; it was simply never offered.
+    expect(await findByText(/\/opall/)).toBeTruthy();
+  });
+
+  it('falls back to the script name when a command gave no description', async () => {
+    mockListScriptCommands.mockReturnValueOnce([
+      { name: 'slap', scriptId: 'builtin-slap', scriptName: 'Slap' },
+    ] as any);
+
+    const { getByPlaceholderText, findByText } = await render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" />,
+    );
+    await flushAsync();
+
+    await act(async () => {
+      await fireEvent.changeText(
+        getByPlaceholderText('Enter a message'),
+        '/sla',
+      );
+    });
+
+    // The mocked translator returns the key and ignores params, so this
+    // asserts the fallback label is used at all, not its final wording.
+    expect(await findByText(/\/slap — From/)).toBeTruthy();
+  });
+
+  it('does not offer a script command that does not match what was typed', async () => {
+    mockListScriptCommands.mockReturnValue([
+      { name: 'opall', scriptId: 's', scriptName: 'S' },
+    ] as any);
+
+    const { getByPlaceholderText, queryByText } = await render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" />,
+    );
+    await flushAsync();
+
+    await act(async () => {
+      await fireEvent.changeText(
+        getByPlaceholderText('Enter a message'),
+        '/xyz',
+      );
+    });
+
+    expect(queryByText(/\/opall/)).toBeNull();
+    mockListScriptCommands.mockReturnValue([] as any);
   });
 
   it('clears suggestions when input is cleared', async () => {

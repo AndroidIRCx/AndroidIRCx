@@ -161,4 +161,82 @@ describe('WebAccessService', () => {
       ).rejects.toThrow('404');
     });
   });
+
+  describe('redirects (M3.4)', () => {
+    /** A response that says it ended up somewhere other than it was asked. */
+    const redirectedTo = (finalUrl: string, body = '<p>secret</p>') =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        url: finalUrl,
+        text: async () => body,
+      });
+
+    it('refuses a redirect into a private network and returns no body', async () => {
+      // The checks only ever saw the first URL, so an allowed site answering
+      // `302 -> http://192.168.1.1/` fetched the user's router and handed the
+      // body to the model. The refusal looked like a refusal and was not one.
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('http://192.168.1.1/admin'),
+      );
+
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/private network/i);
+    });
+
+    it.each([
+      'http://127.0.0.1:8080/',
+      'http://localhost/',
+      'http://10.0.0.1/',
+      'http://169.254.169.254/latest/meta-data/',
+    ])('refuses a redirect to %s', async finalUrl => {
+      (global as any).fetch = jest.fn(() => redirectedTo(finalUrl));
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/private network/i);
+    });
+
+    it('refuses a redirect off the allowed list', async () => {
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('https://evil.example/collect'),
+      );
+
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/not on your allowed list/i);
+    });
+
+    it('refuses a redirect to a scheme it cannot check', async () => {
+      (global as any).fetch = jest.fn(() => redirectedTo('file:///etc/passwd'));
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/cannot follow/i);
+    });
+
+    it('allows a redirect that stays on an allowed host, and reports where the text came from', async () => {
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('https://github.com/x/final', '<p>Fine</p>'),
+      );
+
+      const page = await webAccessService.fetchPage('https://github.com/x');
+      expect(page.text).toContain('Fine');
+      // Quoting the source should quote where the text came from, not where
+      // the caller asked.
+      expect(page.url).toBe('https://github.com/x/final');
+    });
+
+    it('is unbothered when the response reports no url at all', async () => {
+      (global as any).fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => '<p>x</p>',
+        }),
+      );
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).resolves.toMatchObject({ url: 'https://github.com/x' });
+    });
+  });
 });

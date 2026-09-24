@@ -2598,32 +2598,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ], // Placeholder - actual rendering handled by component
     },
     {
-      id: 'ai',
-      title: aiTitle,
-      data: [
-        {
-          id: 'ai-section',
-          title: 'ai-section',
-          type: 'custom' as const,
-          searchKeywords: [
-            'ai',
-            'llm',
-            'api key',
-            'claude',
-            'anthropic',
-            'openai',
-            'chatgpt',
-            'codex',
-            'gemini',
-            'ollama',
-            'local model',
-            'provider',
-            'assistant',
-          ],
-        },
-      ], // Placeholder - actual rendering handled by component
-    },
-    {
       id: 'scripting-ads',
       title: t('Scripting & Ads', { _tags: tags }),
       data: [
@@ -2702,6 +2676,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ],
         },
       ],
+    },
+    {
+      id: 'ai',
+      title: aiTitle,
+      data: [
+        {
+          id: 'ai-section',
+          title: 'ai-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'ai',
+            'llm',
+            'api key',
+            'claude',
+            'anthropic',
+            'openai',
+            'chatgpt',
+            'codex',
+            'gemini',
+            'ollama',
+            'local model',
+            'provider',
+            'assistant',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'privacy-legal',

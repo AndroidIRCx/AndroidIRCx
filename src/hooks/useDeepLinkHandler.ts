@@ -128,25 +128,35 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
           }
         }
 
-        // If already connected and channel specified, just join the channel
+        // If already connected and a channel was named, ask before joining.
+        //
+        // Connecting to a new server already asked; this path did not, so a web
+        // page could put an already-connected user into any channel on a server
+        // they were on, without them agreeing to anything. Joining is visible
+        // and reversible, which is why this is a confirmation rather than a
+        // refusal - but it is an action somebody else's page asked for, and
+        // those get asked about.
         if (existingConnection && parsed.channel) {
           logger.info(
             'deeplink',
-            `Already connected to ${parsed.server}, joining channel ${parsed.channel}`,
+            `Already connected to ${parsed.server}, asking before joining ${parsed.channel}`,
           );
 
-          // Switch to this connection's server tab first
-          const serverTab = tabs.find(
-            t =>
-              t.type === 'server' &&
-              t.networkId === existingConnection!.networkId,
+          safeAlert(
+            t('Join Channel'),
+            t('A link wants to join you to {channel} on {server}.', {
+              channel: parsed.channel,
+              server: parsed.server,
+            }),
+            [
+              { text: t('Cancel'), style: 'cancel' },
+              {
+                text: t('Join'),
+                onPress: () =>
+                  handleJoinChannel(parsed.channel!, parsed.channelKey),
+              },
+            ],
           );
-          if (serverTab) {
-            // Tab will be switched when channel is joined
-          }
-
-          // Join the channel
-          handleJoinChannel(parsed.channel, parsed.channelKey);
           return;
         }
 

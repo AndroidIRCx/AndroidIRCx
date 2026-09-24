@@ -43,6 +43,24 @@ import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { deriveSyntaxColors } from '../themes/syntaxColors';
+import { addonSafetyService } from '../services/scripting/AddonSafetyService';
+import {
+  AddonImportCancelledError,
+  pickAddonPackageBytes,
+} from '../services/scripting/AddonFileImportService';
+import {
+  addonInstallerService,
+  type PreparedAddonInstall,
+} from '../services/scripting/AddonInstallerService';
+import { addonManagementService } from '../services/scripting/AddonManagementService';
+import type { InstalledAddonPackage } from '../services/scripting/AddonPackageStore';
+import { addonLifecycleService } from '../services/scripting/AddonLifecycleService';
+import { AddonInstallReviewScreen } from './AddonInstallReviewScreen';
+import { AddonPermissionManagerScreen } from './AddonPermissionManagerScreen';
+import {
+  AddonExportCancelledError,
+  addonExportService,
+} from '../services/scripting/AddonExportService';
 import {
   AI_MEMBERS,
   API_MEMBERS,
@@ -196,6 +214,20 @@ export const ScriptingScreen: React.FC<Props> = ({
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
   const [scriptingTimeActive, setScriptingTimeActive] =
     useState<boolean>(false);
+  const [addonSafeMode, setAddonSafeMode] = useState(false);
+  const [disabledAddonCount, setDisabledAddonCount] = useState(0);
+  const [installedAddons, setInstalledAddons] = useState<
+    Array<InstalledAddonPackage & { enabled: boolean; disabledReason?: string }>
+  >([]);
+  const [developerMode, setDeveloperMode] = useState(false);
+  const [importingAddon, setImportingAddon] = useState(false);
+  const [preparedAddon, setPreparedAddon] =
+    useState<PreparedAddonInstall | null>(null);
+  const [managedAddonId, setManagedAddonId] = useState<string | null>(null);
+  const [sourceReview, setSourceReview] = useState<{
+    name: string;
+    source: string;
+  } | null>(null);
   /**
    * How far the code input is scrolled. The highlight layer is translated by
    * the negative of it, which is the only way the two stay aligned: a
@@ -271,6 +303,8 @@ export const ScriptingScreen: React.FC<Props> = ({
 
   const refresh = useCallback(async () => {
     await scriptingService.initialize();
+    await addonSafetyService.initialize();
+    await addonManagementService.initialize();
     setScripts(scriptingService.list());
     setLoggingEnabled(scriptingService.isLoggingEnabled());
     setLogs(scriptingService.getLogs());
@@ -279,6 +313,10 @@ export const ScriptingScreen: React.FC<Props> = ({
     setHasTime(adRewardService.hasAvailableTime());
     setHasUnlimitedScripting(inAppPurchaseService.hasUnlimitedScripting());
     setScriptingTimeActive(adRewardService.isTracking());
+    const safety = addonSafetyService.getSnapshot();
+    setAddonSafeMode(safety.safeMode);
+    setDisabledAddonCount(safety.disabled.size);
+    setInstalledAddons(addonManagementService.list());
 
     const adStatus = adRewardService.getAdStatus();
     setAdReady(adStatus.ready);
@@ -287,6 +325,155 @@ export const ScriptingScreen: React.FC<Props> = ({
     setCooldownSeconds(adStatus.cooldownSeconds);
     setAdUnitType(adStatus.adUnitType);
   }, []);
+
+  const refreshAddons = useCallback(async () => {
+    await addonManagementService.initialize();
+    const safety = addonSafetyService.getSnapshot();
+    setDisabledAddonCount(safety.disabled.size);
+    setInstalledAddons(addonManagementService.list());
+  }, []);
+
+  const handleImportAddon = useCallback(async () => {
+    if (importingAddon) return;
+    setImportingAddon(true);
+    try {
+      const bytes = await pickAddonPackageBytes();
+      setPreparedAddon(
+        await addonInstallerService.prepare(bytes, { developerMode }),
+      );
+    } catch (error) {
+      if (!(error instanceof AddonImportCancelledError))
+        Alert.alert(
+          t('Cannot Import Addon'),
+          error instanceof Error ? error.message : String(error),
+        );
+    } finally {
+      setImportingAddon(false);
+    }
+  }, [developerMode, importingAddon, t]);
+
+  const confirmAddonInstall = useCallback(async () => {
+    if (!preparedAddon) return;
+    try {
+      const installed = await addonInstallerService.confirm(preparedAddon);
+      // Installation never implies execution. The user must explicitly enable
+      // the reviewed package from its manager after choosing permissions.
+      await addonLifecycleService.stop(installed.manifest.id);
+      await addonSafetyService.disable(installed.manifest.id);
+      setPreparedAddon(null);
+      await refreshAddons();
+      setManagedAddonId(installed.manifest.id);
+    } catch (error) {
+      Alert.alert(
+        t('Cannot Install Addon'),
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }, [preparedAddon, refreshAddons, t]);
+
+  const setAddonEnabled = useCallback(
+    async (addonId: string, enabled: boolean) => {
+      try {
+        await addonManagementService.setEnabled(addonId, enabled);
+        await refreshAddons();
+      } catch (error) {
+        await refreshAddons();
+        Alert.alert(
+          t('Cannot Update Addon'),
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    },
+    [refreshAddons, t],
+  );
+
+  const uninstallAddon = useCallback(
+    async (addonId: string) => {
+      try {
+        await addonManagementService.uninstall(addonId);
+        setManagedAddonId(null);
+        await refreshAddons();
+      } catch (error) {
+        Alert.alert(
+          t('Cannot Uninstall Addon'),
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    },
+    [refreshAddons, t],
+  );
+
+  const rollbackAddon = useCallback(
+    async (addonId: string) => {
+      try {
+        await addonManagementService.rollback(addonId);
+        setManagedAddonId(null);
+        await refreshAddons();
+      } catch (error) {
+        Alert.alert(
+          t('Cannot Roll Back Addon'),
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    },
+    [refreshAddons, t],
+  );
+
+  const reviewAddonSource = useCallback(
+    async (addon: InstalledAddonPackage) => {
+      try {
+        const source = await addonManagementService.readSource(
+          addon.manifest.id,
+        );
+        const previewLimit = 128 * 1024;
+        setSourceReview({
+          name: addon.manifest.name,
+          source:
+            source.length > previewLimit
+              ? `${source.slice(0, previewLimit)}\n\n// Preview truncated. Use Export source for the complete file.`
+              : source,
+        });
+      } catch (error) {
+        Alert.alert(
+          t('Cannot Read Addon Source'),
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    },
+    [t],
+  );
+
+  const exportAddon = useCallback(
+    async (addonId: string, kind: 'source' | 'diagnostics') => {
+      try {
+        if (kind === 'source') await addonExportService.shareSource(addonId);
+        else await addonExportService.shareDiagnostics(addonId);
+      } catch (error) {
+        if (!(error instanceof AddonExportCancelledError))
+          Alert.alert(
+            t('Cannot Export Addon'),
+            error instanceof Error ? error.message : String(error),
+          );
+      }
+    },
+    [t],
+  );
+
+  const toggleAddonSafeMode = useCallback(
+    async (enabled: boolean) => {
+      try {
+        await addonSafetyService.setSafeMode(enabled);
+        setAddonSafeMode(enabled);
+      } catch (error) {
+        setAddonSafeMode(addonSafetyService.getSnapshot().safeMode);
+        Alert.alert(
+          t('Could not update Safe Mode'),
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -659,6 +846,9 @@ export const ScriptingScreen: React.FC<Props> = ({
   const filteredLogs = logFilter
     ? logs.filter(l => l.scriptId === logFilter)
     : logs;
+  const managedAddon = managedAddonId
+    ? installedAddons.find(addon => addon.manifest.id === managedAddonId)
+    : undefined;
 
   const renderScript = ({ item }: { item: ScriptConfig }) => (
     <View style={styles.card}>
@@ -671,6 +861,7 @@ export const ScriptingScreen: React.FC<Props> = ({
           ) : null}
         </View>
         <Switch
+          accessibilityLabel={`Toggle ${item.name}`}
           value={item.enabled}
           onValueChange={v => toggleScript(item.id, v)}
           trackColor={{ false: colors.border, true: colors.primary }}
@@ -873,6 +1064,101 @@ export const ScriptingScreen: React.FC<Props> = ({
             </Text>
           </View>
 
+          <View style={styles.masterToggleContainer}>
+            <View style={masterToggleContentStyle}>
+              <Text style={[styles.timeLabel, titleSpacingStyle]}>
+                {t('Third-party addon Safe Mode')}
+              </Text>
+              <Text style={[styles.subtitle, compactSubtitleStyle]}>
+                {t(
+                  'When enabled, imported addons cannot start. Your scripts, source and configuration are preserved.',
+                )}
+              </Text>
+              {disabledAddonCount > 0 ? (
+                <Text style={[styles.subtitle, italicSubtitleStyle]}>
+                  {t('{count} addons are disabled for recovery.').replace(
+                    '{count}',
+                    String(disabledAddonCount),
+                  )}
+                </Text>
+              ) : null}
+            </View>
+            <Switch
+              accessibilityLabel="Third-party addon Safe Mode"
+              value={addonSafeMode}
+              onValueChange={toggleAddonSafeMode}
+              trackColor={{ false: colors.border, true: colors.warning }}
+              thumbColor={addonSafeMode ? '#fff' : colors.textSecondary}
+              style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
+            />
+          </View>
+
+          <View style={styles.addonSection}>
+            <Text style={styles.sectionTitle}>{t('Addon packages')}</Text>
+            <Text style={styles.subtitle}>
+              {t(
+                'Imported packages are verified and installed disabled. Review permissions, then enable them explicitly.',
+              )}
+            </Text>
+            <View style={styles.row}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={styles.button}
+                disabled={importingAddon}
+                onPress={handleImportAddon}
+              >
+                <Text style={styles.buttonText}>
+                  {importingAddon ? t('Reading package...') : t('Import addon')}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.switchRow}>
+                <Text style={styles.subtitle}>{t('Developer Mode')}</Text>
+                <Switch
+                  accessibilityLabel="Addon Developer Mode"
+                  value={developerMode}
+                  onValueChange={setDeveloperMode}
+                  trackColor={{ false: colors.border, true: colors.warning }}
+                  thumbColor={developerMode ? '#fff' : colors.textSecondary}
+                />
+              </View>
+            </View>
+            {developerMode ? (
+              <Text style={styles.developerWarning}>
+                {t(
+                  'Developer Mode allows unsigned addon packages. Only use it for source you inspected and trust.',
+                )}
+              </Text>
+            ) : null}
+            {installedAddons.length === 0 ? (
+              <Text style={styles.subtitle}>
+                {t('No addon packages installed.')}
+              </Text>
+            ) : (
+              installedAddons.map(addon => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={addon.manifest.id}
+                  style={styles.addonCard}
+                  onPress={() => setManagedAddonId(addon.manifest.id)}
+                >
+                  <View style={styles.cardHeaderText}>
+                    <Text style={styles.title}>{addon.manifest.name}</Text>
+                    <Text style={styles.subtitle}>
+                      {addon.manifest.id} · {addon.manifest.version}
+                    </Text>
+                  </View>
+                  <Text
+                    style={
+                      addon.enabled ? styles.addonEnabled : styles.addonDisabled
+                    }
+                  >
+                    {t(addon.enabled ? 'ENABLED' : 'DISABLED')}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+
           <View style={styles.row}>
             <TouchableOpacity style={styles.button} onPress={handleNewScript}>
               <Text style={styles.buttonText}>{t('New Script')}</Text>
@@ -939,6 +1225,64 @@ export const ScriptingScreen: React.FC<Props> = ({
           </ScrollView>
         </ScrollView>
       </ModalSafeArea>
+
+      {preparedAddon ? (
+        <AddonInstallReviewScreen
+          visible
+          review={preparedAddon.review}
+          onClose={() => setPreparedAddon(null)}
+          onConfirm={confirmAddonInstall}
+        />
+      ) : null}
+
+      {managedAddon ? (
+        <AddonPermissionManagerScreen
+          visible
+          manifest={managedAddon.manifest}
+          enabled={managedAddon.enabled}
+          disabledReason={managedAddon.disabledReason}
+          onClose={() => setManagedAddonId(null)}
+          onSetEnabled={enabled =>
+            setAddonEnabled(managedAddon.manifest.id, enabled)
+          }
+          onUninstall={() => uninstallAddon(managedAddon.manifest.id)}
+          onRollback={
+            managedAddon.previousChecksum
+              ? () => rollbackAddon(managedAddon.manifest.id)
+              : undefined
+          }
+          onReviewSource={() => reviewAddonSource(managedAddon)}
+          onExportSource={() => exportAddon(managedAddon.manifest.id, 'source')}
+          onExportDiagnostics={() =>
+            exportAddon(managedAddon.manifest.id, 'diagnostics')
+          }
+          onPreviewDisplay={() =>
+            scriptingService.previewAddonDisplay(managedAddon.manifest.id)
+          }
+        />
+      ) : null}
+
+      <Modal
+        visible={sourceReview !== null}
+        animationType="slide"
+        onRequestClose={() => setSourceReview(null)}
+      >
+        <ModalSafeArea style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {sourceReview?.name ?? t('Addon source')}
+            </Text>
+            <TouchableOpacity onPress={() => setSourceReview(null)}>
+              <Text style={styles.close}>{t('Close')}</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal contentContainerStyle={styles.sourceContent}>
+            <Text selectable style={styles.codeText}>
+              {sourceReview?.source ?? ''}
+            </Text>
+          </ScrollView>
+        </ModalSafeArea>
+      </Modal>
 
       <Modal
         visible={showEditor}
@@ -1022,15 +1366,6 @@ export const ScriptingScreen: React.FC<Props> = ({
                       showHighlight && styles.codeInputOverlay,
                     ]}
                     multiline
-                    // This is code, not prose. Without these the spellchecker
-                    // underlines every identifier in red and autocorrect
-                    // rewrites what you type.
-                    spellCheck={false}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                    autoComplete="off"
-                    textContentType="none"
-                    importantForAutofill="no"
                     value={editing.code}
                     selection={
                       caretTarget
@@ -1398,6 +1733,35 @@ const createStyles = (colors: any) => {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
     },
+    addonSection: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+    },
+    addonCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surfaceVariant,
+      borderColor: colors.border,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 8,
+      gap: 8,
+    },
+    addonEnabled: { color: colors.success, fontSize: 11, fontWeight: '700' },
+    addonDisabled: { color: colors.warning, fontSize: 11, fontWeight: '700' },
+    developerWarning: {
+      color: colors.warning,
+      fontSize: 12,
+      lineHeight: 17,
+      marginBottom: 6,
+    },
+    sourceContent: { padding: 16, minWidth: '100%' },
     watchAdButton: {
       backgroundColor: '#4CAF50',
       paddingVertical: 10,

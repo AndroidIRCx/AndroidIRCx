@@ -33,11 +33,21 @@ import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPalettePicker } from './ColorPalettePicker';
 import { useServiceCommands } from '../hooks/useServiceCommands';
 import { compareStringsCaseInsensitive } from '../utils/localeSafe';
+import { scriptingService } from '../services/ScriptingService';
 
 type MessageInputSuggestion = {
   text: string;
   description?: string;
-  source: 'command' | 'alias' | 'history' | 'nick' | 'channel' | 'service';
+  source:
+    | 'command'
+    | 'alias'
+    | 'history'
+    | 'nick'
+    | 'channel'
+    | 'service'
+    | 'addon'
+    /** Registered by one of your scripts at load time. */
+    | 'script';
 };
 
 type PendingNickReplacement = {
@@ -417,7 +427,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       const withNickStyles = trimmedMessage.startsWith('/')
         ? message
         : applyPendingNickReplacements(message);
-      onSubmit(withNickStyles.trim());
+      const scriptedInput = scriptingService.processComposerInput(
+        withNickStyles.trim(),
+        {
+          channel: tabName,
+          networkId: activeNetworkId || undefined,
+          tabId,
+          tabType,
+        },
+      );
+      if (scriptedInput) onSubmit(scriptedInput);
       setMessage('');
       setSuggestions([]);
       setPendingNickReplacements([]);
@@ -691,6 +710,26 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }))
       .slice(0, 6);
 
+    // Commands scripts registered. These already worked when typed in full;
+    // the composer simply never asked anyone what existed beyond its own
+    // hardcoded list, so a command you wrote was one you could not discover.
+    const scriptMatches: MessageInputSuggestion[] = scriptingService
+      .listScriptCommands()
+      .filter(entry => `/${entry.name}`.toLowerCase().startsWith(typedLower))
+      .sort((left, right) =>
+        compareStringsCaseInsensitive(left.name, right.name),
+      )
+      .map(entry => ({
+        text: `/${entry.name}`,
+        description:
+          entry.description ??
+          (entry.scriptName
+            ? t('From {name}', { name: entry.scriptName })
+            : undefined),
+        source: 'script' as const,
+      }))
+      .slice(0, 6);
+
     // Aliases
     const aliasMatches: Array<MessageInputSuggestion & { score: number }> =
       commandService
@@ -817,16 +856,22 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
     }
 
-    // Merge: commands first, then aliases, then service commands, then history, then channel, then nick - dedupe by text
+    // Order is decided rather than falling out of concatenation: an exact match
+    // first, then built-ins, then what your scripts registered, then aliases,
+    // services, history, channels and nicks. Dedupe by text, so a command that
+    // is built in AND in history appears once.
     const merged: MessageInputSuggestion[] = [];
-    [
+    const ranked = [
       ...commandMatches,
+      ...scriptMatches,
       ...aliasMatches,
       ...serviceMatches,
       ...historyMatches,
       ...channelMatches,
       ...nickMatches,
-    ].forEach(item => {
+    ];
+    const exact = ranked.filter(item => item.text.toLowerCase() === typedLower);
+    [...exact, ...ranked].forEach(item => {
       if (!merged.some(m => m.text.toLowerCase() === item.text.toLowerCase())) {
         merged.push({
           text: item.text,
@@ -835,6 +880,24 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         });
       }
     });
+
+    scriptingService
+      .getTabCompletions(text, selectionRef.current.start, {
+        channel: tabName,
+        networkId:
+          network || connectionManager.getActiveNetworkId() || undefined,
+        tabId,
+        tabType,
+      })
+      .forEach(item => {
+        if (
+          !merged.some(
+            entry => entry.text.toLowerCase() === item.text.toLowerCase(),
+          )
+        ) {
+          merged.push({ ...item, source: 'addon' });
+        }
+      });
 
     setSuggestions(merged.slice(0, 8));
   };
@@ -1057,6 +1120,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                   : ''}
                 {!suggestion.description && suggestion.source === 'history'
                   ? ` — ${t('recent')}`
+                  : ''}
+                {!suggestion.description && suggestion.source === 'script'
+                  ? ` — ${t('script')}`
                   : ''}
               </Text>
             </TouchableOpacity>

@@ -814,6 +814,7 @@ jest.mock('react-native-localize', () => ({
 jest.mock('@react-native-documents/picker', () => ({
   __esModule: true,
   pick: jest.fn().mockResolvedValue([]),
+  keepLocalCopy: jest.fn().mockResolvedValue([]),
   pickDirectory: jest.fn().mockResolvedValue(null),
   // Tests that simulate picker errors set `code` on the rejection. Treat any
   // truthy `.code` as an error-with-code so cancellation branches run.

@@ -16,12 +16,45 @@ jest.mock('../../src/services/DCCFileService', () => ({
   },
 }));
 
+jest.mock('../../src/services/ScriptingService', () => ({
+  scriptingService: {
+    handleDccDisplay: jest.fn().mockResolvedValue({
+      delivered: 0,
+      failed: 0,
+      hideDefaultRequestedBy: [],
+      transformations: [],
+    }),
+  },
+}));
+
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: jest.fn().mockReturnValue({
       dccTransfersMinimized: false,
       setDccTransfersMinimized: jest.fn(),
     }),
+  },
+}));
+
+const mockAddMessage = jest.fn();
+jest.mock('../../src/services/ConnectionManager', () => ({
+  connectionManager: {
+    getConnection: jest.fn(() => ({
+      ircService: { addMessage: mockAddMessage },
+    })),
+    getActiveConnection: jest.fn(() => null),
+  },
+}));
+
+jest.mock('../../src/stores/tabStore', () => ({
+  useTabStore: {
+    getState: jest.fn(() => ({
+      getActiveTab: jest.fn(() => ({
+        name: '#active',
+        type: 'channel',
+        networkId: 'net1',
+      })),
+    })),
   },
 }));
 
@@ -106,7 +139,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
 
     expect(mockSafeAlert).toHaveBeenCalledWith(
       'DCC Transfer Complete',
@@ -132,7 +165,7 @@ describe('useDccNotifications', () => {
       error: 'Connection timeout',
     };
 
-    mockTransferCallback(failedTransfer);
+    await mockTransferCallback(failedTransfer);
 
     expect(mockSafeAlert).toHaveBeenCalledWith(
       'DCC Transfer Failed',
@@ -159,7 +192,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(transfer);
+    await mockTransferCallback(transfer);
 
     expect(
       require('../../src/services/DCCFileService').dccFileService.list,
@@ -192,7 +225,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
     await new Promise(resolve => setTimeout(resolve, 0));
 
     // Check that notification was sent
@@ -230,7 +263,7 @@ describe('useDccNotifications', () => {
       error: 'Connection timeout',
     };
 
-    mockTransferCallback(failedTransfer);
+    await mockTransferCallback(failedTransfer);
     await new Promise(resolve => setTimeout(resolve, 0));
 
     // Check that notification was sent
@@ -269,7 +302,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
 
     // Check that notification was NOT sent
     expect(
@@ -308,7 +341,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
 
     // Check that UI was restored (minimized set to false)
     expect(mockSetDccTransfersMinimized).toHaveBeenCalledWith(false);
@@ -345,7 +378,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
 
     // Check that UI was NOT restored since there are still active transfers
     expect(mockSetDccTransfersMinimized).not.toHaveBeenCalled();
@@ -383,7 +416,7 @@ describe('useDccNotifications', () => {
       bytesReceived: 1024,
     };
 
-    mockTransferCallback(completedTransfer);
+    await mockTransferCallback(completedTransfer);
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -394,5 +427,50 @@ describe('useDccNotifications', () => {
     );
 
     mockConsoleWarn.mockRestore();
+  });
+
+  it('can hide the default status and show addon replacements', async () => {
+    let transferCallback: any;
+    require('../../src/services/DCCFileService').dccFileService.onTransferUpdate.mockImplementation(
+      callback => {
+        transferCallback = callback;
+        return jest.fn();
+      },
+    );
+    const { scriptingService } = require('../../src/services/ScriptingService');
+    scriptingService.handleDccDisplay.mockResolvedValueOnce({
+      delivered: 1,
+      failed: 0,
+      hideDefaultRequestedBy: ['test.addon'],
+      transformations: [
+        {
+          addonId: 'test.addon',
+          result: {
+            replacement: 'Custom transfer status',
+            style: { role: 'success', bold: true },
+            routeTo: { kind: 'channel', target: '#files', network: 'net1' },
+          },
+        },
+      ],
+    });
+    await renderHook(() => useDccNotifications(defaultProps));
+
+    await transferCallback({
+      id: 'dcc-1',
+      status: 'completed',
+      offer: { filename: 'test.txt' },
+      bytesReceived: 1024,
+    });
+
+    expect(mockSafeAlert).not.toHaveBeenCalled();
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'notice',
+        text: 'Custom transfer status',
+        channel: '#files',
+        addonDisplayStyle: { role: 'success', bold: true },
+        addonDisplayProcessed: true,
+      }),
+    );
   });
 });

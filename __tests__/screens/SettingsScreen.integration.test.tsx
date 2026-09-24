@@ -1532,6 +1532,25 @@ describe('SettingsScreen Integration', () => {
     await fireEvent.press(view.getByText('PrivacyRelayClose'));
   });
 
+  it('puts AI immediately after Scripting', async () => {
+    // Asked for deliberately, and nothing else checks order: every other test
+    // filters by id, so a future reshuffle of the array would undo this
+    // silently.
+    let captured: string[] = [];
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) => {
+      captured = sections.map(section => section.id);
+      return [];
+    });
+
+    await render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    const scripting = captured.indexOf('scripting-ads');
+    const ai = captured.indexOf('ai');
+    expect(scripting).toBeGreaterThan(-1);
+    expect(ai).toBe(scripting + 1);
+  });
+
   it('should open scripting and scripting help screens from the section component', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>

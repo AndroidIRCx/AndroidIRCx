@@ -1,0 +1,6 @@
+What's new in v1.10.0:
+- Add-ons: reviewed, permission-based packages with Safe Mode, rollback and per-feature switches.
+- Scripts can read who is who, channel state and server settings from the cache, without asking the server.
+- New for scripts: quota-limited tables, Keychain secrets, signals, a private file area, CSV/INI/JSON parsers.
+- Expert mode can rewrite outgoing raw IRC; PING, CAP and AUTHENTICATE stay protected.
+- Auto-Op now matches on your account, never a nick.

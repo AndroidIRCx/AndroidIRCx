@@ -256,8 +256,9 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 169
-        versionName = "1.9.56"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 170
+        versionName = "1.10.0"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -371,6 +372,12 @@ dependencies {
     debugImplementation("com.google.firebase:firebase-appcheck-debug")
     implementation("com.google.android.play:integrity:1.6.0")
     implementation("com.google.android.play:age-signals:0.0.3")
+
+    // Isolated, interruptible runtime for imported .ircx-addon packages.
+    // Keep exact: its native/runtime security controls are part of the L0 gate.
+    implementation("io.github.dokar3:quickjs-kt:1.0.15")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
 
     // MCP server (phase 11). Pinned to 0.10.0: 0.11+ require kotlin-stdlib
     // 2.3.10+ and 0.15 requires 2.4.0, which this project's Kotlin 2.2.0

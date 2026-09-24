@@ -208,6 +208,31 @@ class WebAccessService {
         headers: { accept: 'text/html,text/plain,text/markdown' },
         signal: controller.signal,
       });
+
+      // A redirect is a second request the caller never asked for, and the
+      // checks above only saw the first URL. Without this, an allowed site
+      // answering `302 -> http://192.168.1.1/` fetches the user's router and
+      // hands the body to the model: the refusal looked like a refusal and was
+      // not one. Checked after the fact rather than by refusing to follow,
+      // because `redirect: 'manual'` is not reliably honoured on React Native
+      // - what matters is that the body never reaches the caller.
+      const finalUrl = typeof response.url === 'string' ? response.url : url;
+      if (finalUrl && finalUrl !== url) {
+        const finalHost = this.hostOf(finalUrl);
+        if (!finalHost)
+          throw new Error(
+            'That site redirected somewhere this tool cannot follow.',
+          );
+        if (this.isPrivateAddress(finalHost))
+          throw new Error(
+            'That site redirected to a private network address, which this tool never reaches.',
+          );
+        if (!this.isAllowed(finalHost))
+          throw new Error(
+            `That site redirected to ${finalHost}, which is not on your allowed list.`,
+          );
+      }
+
       if (!response.ok) {
         throw new Error(`The site answered ${response.status}.`);
       }
@@ -215,7 +240,9 @@ class WebAccessService {
       const { title, text } = this.toText(body);
       const truncated = text.length > MAX_PAGE_CHARS;
       return {
-        url,
+        // The URL that actually answered, so a caller quoting its source
+        // quotes where the text came from rather than where it asked.
+        url: finalUrl,
         title,
         text: truncated ? text.substring(0, MAX_PAGE_CHARS) : text,
         truncated,

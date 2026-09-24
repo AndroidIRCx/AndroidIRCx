@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.9.56",
+  "version": "1.10.0",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@noble/curves": "^2.4.0",
+    "@noble/hashes": "2.4.0",
     "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-clipboard/clipboard": "^1.16.3",
@@ -35,6 +36,7 @@
     "@react-native/new-app-screen": "0.87.1",
     "@shopify/flash-list": "2.3.2",
     "buffer": "^6.0.3",
+    "fflate": "0.8.3",
     "node-forge": "^1.4.0",
     "prismjs": "^1.30.0",
     "prop-types": "^15.8.1",

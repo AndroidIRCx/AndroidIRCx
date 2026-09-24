@@ -16,8 +16,11 @@ export const handleERROR: CommandHandler = (ctx, prefix, params, timestamp) => {
   const errorText = params.join(' ') || 'Connection closed by server';
   ctx.addMessage({
     type: 'error',
+    from: ctx.extractNick(prefix),
     text: errorText,
     timestamp,
+    network: ctx.getNetworkName(),
+    command: 'ERROR',
   });
   ctx.addRawMessage(`*** Server error: ${errorText}`, 'server');
   ctx.handleServerError(errorText);
@@ -59,6 +62,8 @@ export const handleWALLOPS: CommandHandler = (
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    network: wallopsNetwork,
+    command: 'WALLOPS',
   });
 };
 

@@ -197,6 +197,19 @@ jest.mock('../../src/services/ScriptingService', () => ({
   },
 }));
 
+jest.mock('../../src/services/scripting/AddonSafetyService', () => ({
+  addonSafetyService: {
+    beginStartup: jest.fn().mockResolvedValue({ safeMode: false }),
+    completeStartup: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../../src/services/scripting/AddonLifecycleService', () => ({
+  addonLifecycleService: {
+    startInstalled: jest.fn().mockResolvedValue([]),
+  },
+}));
+
 jest.mock('../../src/services/MessageHistoryBatching', () => ({
   messageHistoryBatching: {
     flushSync: jest.fn().mockResolvedValue(undefined),
@@ -408,13 +421,7 @@ describe('useStartupServices', () => {
 
     await renderHook(() => useStartupServices());
     await act(async () => {
-      jest.advanceTimersByTime(800);
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-      jest.advanceTimersByTime(200);
-      await Promise.resolve();
-      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(1500);
     });
 
     expect(hideMock).toHaveBeenCalledWith({ fade: true });
@@ -434,16 +441,7 @@ describe('useStartupServices', () => {
 
     await renderHook(() => useStartupServices());
     await act(async () => {
-      jest.advanceTimersByTime(900);
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-      jest.advanceTimersByTime(200);
-      await Promise.resolve();
-      await Promise.resolve();
-      jest.advanceTimersByTime(200);
-      await Promise.resolve();
-      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(1500);
     });
 
     expect(hideMock).toHaveBeenCalledWith({ fade: true });

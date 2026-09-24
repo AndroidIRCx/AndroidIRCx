@@ -59,7 +59,12 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
   onCTCP: (type, from, text, msg) => { /* ... */ },
   onAction: (target, nick, text, msg) => { /* /me actions */ },
   onHighlight: (msg) => { /* your nick/word was mentioned */ },
-  onRaw: (line, direction, msg) => { /* return modified line or { cancel: true } */ },
+  onRaw: (line, direction, msg) => { /* observe only */ },
+  onNumeric: (code, params, text, msg) => { /* return false to hide default display */ },
+  onTabOpen: (tab) => { /* ... */ },
+  onTabClose: (tab) => { /* ... */ },
+  onFileSent: (transfer) => { /* outgoing DCC completed */ },
+  onFileReceived: (transfer) => { /* incoming DCC completed */ },
   onCommand: (text, ctx) => { /* return newText or { cancel: true } */ },
   onTimer: (name) => { /* timer fired */ },
 };`}
@@ -69,6 +74,16 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         <Text style={styles.sub}>{t('Available functions')}</Text>
         <Text style={styles.bullet}>
           {t('• api.log(text) — log to script log buffer')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onBan/onUnban, onOp/onDeop, onVoice/onDevoice, onHelp/onDehelp — parsed target mode changes',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onUserMode / onServerMode — user or server-originated mode change',
+          )}
         </Text>
         <Text style={styles.bullet}>
           {t('• api.sendMessage(channel, text, networkId?)')}
@@ -131,6 +146,21 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
         <Text style={styles.bullet}>
           {t(
             '• api.getTheme() returns { name, isDark, colors }. Read it before choosing your own colours — a hardcoded palette clashes with whichever theme the user is actually on.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• api.themeColour(role) resolves semantic colours such as warning, error or messageText. await api.setTheme(name) always asks you before it changes the app theme.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onNumeric(code, params, text, msg) receives parsed server numerics. Return false to hide only the default line; protocol handling still runs.',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onTabOpen/onTabClose receive the tab. onFileSent/onFileReceived run once when a DCC transfer completes.',
           )}
         </Text>
 
@@ -606,9 +636,40 @@ export const ScriptingHelpScreen: React.FC<Props> = ({ visible, onClose }) => {
           {t('• onRaw(line, direction, msg?) — raw IRC line (in/out)')}
         </Text>
         <Text style={styles.bullet}>
+          {t('• onPing / onPong — observing-only keepalive events')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onServerNotice / onWallops / onServerError — server events')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onNotifyOnline / onNotifyOffline — MONITOR/WATCH presence')}
+        </Text>
+        <Text style={styles.bullet}>
           {t('• onCommand(text, ctx) — outgoing command')}
         </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onInput(text, ctx) — transform/cancel submitted composer text; never receives secure form fields',
+          )}
+        </Text>
+        <Text style={styles.bullet}>
+          {t(
+            '• onTabComplete(text, cursor, ctx) — return bounded synchronous composer suggestions',
+          )}
+        </Text>
         <Text style={styles.bullet}>{t('• onTimer(name) — timer fired')}</Text>
+        <Text style={styles.bullet}>
+          {t('• onTabActivate(previous, current) — active tab changed')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onDccSendFailed / onDccReceiveFailed — file transfer failed')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onAppStateChange(state) — app foreground/background state')}
+        </Text>
+        <Text style={styles.bullet}>
+          {t('• onLoad / onStart — installation and enabled startup lifecycle')}
+        </Text>
 
         <Text style={styles.title}>{t('Examples')}</Text>
         <Text style={styles.sub}>{t('Auto-op')}</Text>
@@ -736,7 +797,9 @@ module.exports = {};`}
           {t('• onCommand can cancel send by returning { cancel: true }.')}
         </Text>
         <Text style={styles.bullet}>
-          {t('• onRaw can modify or cancel raw IRC lines.')}
+          {t(
+            '• onRaw observes raw IRC lines; use onNumeric to hide a numeric display safely.',
+          )}
         </Text>
         <Text style={styles.bullet}>
           {t(
