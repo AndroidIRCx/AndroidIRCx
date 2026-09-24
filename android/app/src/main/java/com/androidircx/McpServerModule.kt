@@ -9,10 +9,16 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.request.header
+import io.ktor.server.response.respondText
 import io.ktor.server.sse.SSE
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
@@ -24,6 +30,7 @@ import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import io.modelcontextprotocol.kotlin.sdk.types.Tool
 import io.modelcontextprotocol.kotlin.sdk.types.ToolSchema
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
@@ -75,6 +82,27 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
     private data class ToolReply(val content: String, val isError: Boolean)
 
     override fun getName(): String = "McpServer"
+
+    /**
+     * Whether a request presented the token this server was started with.
+     *
+     * Compared with [MessageDigest.isEqual], which does not return early on the
+     * first differing byte. A plain `==` on a secret is timing-observable, and
+     * on a LAN an attacker can take as many samples as they like.
+     */
+    private fun isAuthorized(call: ApplicationCall): Boolean {
+        val expected = token
+        // An empty token means the server is not properly started; refuse
+        // rather than accepting everything, which is what an empty comparison
+        // would otherwise do.
+        if (expected.isEmpty()) return false
+        val header = call.request.header("Authorization") ?: return false
+        val presented = header.removePrefix("Bearer ").trim()
+        return MessageDigest.isEqual(
+            presented.toByteArray(Charsets.UTF_8),
+            expected.toByteArray(Charsets.UTF_8),
+        )
+    }
 
     private fun newToken(): String {
         val bytes = ByteArray(24)
@@ -195,6 +223,22 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
 
             val started = embeddedServer(CIO, port = port, host = host) {
                 install(SSE)
+                // Every request carries the token or it does not get in.
+                //
+                // The token was generated and shown to the user from the first
+                // version of this, and never actually checked - so binding to
+                // the LAN or to every interface put the user's IRC session on
+                // the network with no credential at all, while the settings
+                // screen displayed a token that did nothing.
+                intercept(ApplicationCallPipeline.Plugins) {
+                    if (!isAuthorized(call)) {
+                        call.respondText(
+                            "Unauthorized",
+                            status = HttpStatusCode.Unauthorized,
+                        )
+                        finish()
+                    }
+                }
                 mcpStreamableHttp(path = "/mcp") { buildServer(tools, allowWrites) }
             }
             started.start(wait = false)

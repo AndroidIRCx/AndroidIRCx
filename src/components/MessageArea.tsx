@@ -532,14 +532,37 @@ const MessageItem = React.memo<MessageItemProps>(
       actionText,
     ]);
 
+    const addonRoleColor = (() => {
+      switch (message.addonDisplayStyle?.role) {
+        case 'notice':
+          return colors.noticeMessage || colors.warning;
+        case 'error':
+          return colors.error;
+        case 'warning':
+          return colors.warning;
+        case 'success':
+          return colors.success;
+        case 'info':
+          return colors.info;
+        case 'accent':
+          return colors.primary;
+        case 'muted':
+          return colors.textSecondary;
+        case 'message':
+          return colors.messageText;
+        default:
+          return undefined;
+      }
+    })();
     const baseLineColor =
-      message.type === 'message'
+      addonRoleColor ??
+      (message.type === 'message'
         ? actionText !== null
           ? actionMessageColor
           : isHighlighted
             ? colors.highlightText
             : colors.messageText
-        : getMessageColor(message.type);
+        : getMessageColor(message.type));
 
     const inlineBaseStyle = useMemo<TextStyle>(() => {
       const baseLineStyle = StyleSheet.flatten([
@@ -548,11 +571,20 @@ const MessageItem = React.memo<MessageItemProps>(
       ]) as TextStyle;
       return {
         ...baseLineStyle,
+        fontWeight: message.addonDisplayStyle?.bold
+          ? 'bold'
+          : baseLineStyle.fontWeight,
+        fontStyle: message.addonDisplayStyle?.italic
+          ? 'italic'
+          : baseLineStyle.fontStyle,
+        textDecorationLine: message.addonDisplayStyle?.underline
+          ? 'underline'
+          : baseLineStyle.textDecorationLine,
         flex: undefined,
         flexGrow: undefined,
         flexShrink: undefined,
       };
-    }, [baseLineColor, styles.messageText]);
+    }, [baseLineColor, message.addonDisplayStyle, styles.messageText]);
 
     const inlineNickStyle = useMemo<TextStyle>(() => {
       const nickStyle = StyleSheet.flatten([

@@ -959,6 +959,76 @@ describe('IRCService coverage - message buffering & numerics', () => {
     );
     expect(msgs.some(m => m.rawCategory === 'server')).toBe(true);
   });
+
+  it('lets scripts hide numeric display without skipping numeric handling', () => {
+    const { irc } = makeConnected();
+    const { scriptingService } = require('../src/services/ScriptingService');
+    const scriptSpy = jest
+      .spyOn(scriptingService, 'handleNumeric')
+      .mockReturnValue(false);
+    const numericHandler = jest.fn(() => {
+      irc.addMessage({ type: 'raw', text: 'default', timestamp: 123 });
+      return true;
+    });
+    (irc as any).numericHandlers = { handle: numericHandler };
+    const displayed: any[] = [];
+    irc.onMessage(message => displayed.push(message));
+    displayed.length = 0;
+
+    (irc as any).handleNumericReply(
+      372,
+      'server',
+      ['tester', 'MOTD line'],
+      123,
+    );
+
+    expect(scriptSpy).toHaveBeenCalledWith(
+      372,
+      ['MOTD line'],
+      'MOTD line',
+      expect.objectContaining({ numeric: '372', target: 'tester' }),
+    );
+    expect(numericHandler).toHaveBeenCalled();
+    expect(displayed).toEqual([]);
+    expect((irc as any).suppressNumericDisplay).toBe(false);
+  });
+
+  it('marks generated numeric display lines for the addon display pipeline', () => {
+    const { irc } = makeConnected();
+    const { scriptingService } = require('../src/services/ScriptingService');
+    jest.spyOn(scriptingService, 'handleNumeric').mockReturnValue(true);
+    (irc as any).numericHandlers = {
+      handle: jest.fn(() => {
+        irc.addMessage({
+          type: 'raw',
+          text: 'generated numeric line',
+          timestamp: 456,
+          rawCategory: 'server',
+        });
+        return true;
+      }),
+    };
+    const displayed: any[] = [];
+    irc.onMessage(message => displayed.push(message));
+    displayed.length = 0;
+
+    (irc as any).handleNumericReply(
+      372,
+      'server',
+      ['tester', 'MOTD line'],
+      456,
+    );
+
+    expect(displayed).toEqual([
+      expect.objectContaining({
+        text: 'generated numeric line',
+        numeric: '372',
+        command: '372',
+        target: 'tester',
+      }),
+    ]);
+    expect((irc as any).activeNumericDisplayContext).toBeUndefined();
+  });
 });
 
 describe('IRCService coverage - webirc & clone detection', () => {

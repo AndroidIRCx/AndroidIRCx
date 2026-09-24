@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://androidircx.com/schemas/addon-manifest-v1.json",
+  "title": "AndroidIRCX Addon Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "author",
+    "version",
+    "description",
+    "license",
+    "apiVersion",
+    "minAppVersion",
+    "entry",
+    "permissions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[a-z0-9]+([.-][a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "author": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": { "$ref": "#/$defs/semver" },
+    "description": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "license": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "apiVersion": { "const": 1 },
+    "minAppVersion": { "$ref": "#/$defs/semver" },
+    "entry": {
+      "type": "string",
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//).+\\.js$"
+    },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "irc.read",
+          "irc.send",
+          "irc.moderate",
+          "irc.raw.observe",
+          "irc.raw.modify",
+          "history.read",
+          "tabs.read",
+          "tabs.write",
+          "ui.extend",
+          "theme.read",
+          "theme.write",
+          "storage",
+          "secrets",
+          "network",
+          "network.private",
+          "files.userSelected",
+          "notifications",
+          "clipboard.write",
+          "ai"
+        ]
+      }
+    },
+    "homepage": { "type": "string", "pattern": "^https://" },
+    "icon": { "type": "string" },
+    "assets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "maxLength": 50,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    }
+  }
+}

@@ -19,6 +19,8 @@ import { offlineQueueService } from '../services/OfflineQueueService';
 import { autoReconnectService } from '../services/AutoReconnectService';
 import { userActivityService } from '../services/UserActivityService';
 import { scriptingService } from '../services/ScriptingService';
+import { addonRawMiddleware } from '../services/scripting/AddonRawMiddleware';
+import { addonKnowledgeFeed } from '../services/scripting/AddonKnowledgeFeed';
 import { dccChatService } from '../services/DCCChatService';
 import { dccFileService } from '../services/DCCFileService';
 import { soundService } from '../services/SoundService';
@@ -362,7 +364,20 @@ export const useConnectionLifecycle = (
             message.from.includes('.');
           const forceServerNotice =
             isServerNoticeTarget && isServerNoticeOrigin;
-          scriptingService.handleMessage(message);
+          // Feed the addon platform's view of who is where before display is
+          // decided, so an addon asked about a user during this same message
+          // sees the state the message just established.
+          if (messageNetwork)
+            addonKnowledgeFeed.observeMessage(messageNetwork, message);
+
+          const addonDisplay = message.addonDisplayProcessed
+            ? {
+                delivered: 0,
+                failed: 0,
+                hideDefaultRequestedBy: [],
+                transformations: [],
+              }
+            : await scriptingService.handleMessage(message);
 
           if (message.typing && message.from) {
             const typingTarget =
@@ -826,16 +841,54 @@ export const useConnectionLifecycle = (
             soundService.playSound(SoundEventType.KICK);
           }
 
-          // Add message to pending batch
-          latest.pendingMessagesRef.current.push({
-            message,
-            context: {
-              targetTabId,
-              targetTabType,
-              messageNetwork,
-              newTabIsEncrypted,
-              hasValidNetwork,
-            },
+          const defaultContext = {
+            targetTabId,
+            targetTabType,
+            messageNetwork,
+            newTabIsEncrypted,
+            hasValidNetwork,
+          };
+          if (addonDisplay.hideDefaultRequestedBy.length === 0) {
+            latest.pendingMessagesRef.current.push({
+              message,
+              context: defaultContext,
+            });
+          }
+          addonDisplay.transformations.forEach((transformation, index) => {
+            const replacement = transformation.result.replacement;
+            if (replacement === undefined) return;
+            const route = transformation.result.routeTo;
+            const routeNetwork = route?.network || messageNetwork;
+            const routeTarget = route?.target;
+            const replacementMessage: IRCMessage = {
+              ...message,
+              id: `${message.id}:addon:${index}`,
+              text: replacement,
+              timestamp: Date.now(),
+              network: routeNetwork,
+              channel:
+                route?.kind === 'server'
+                  ? undefined
+                  : routeTarget || message.channel,
+              isRaw: false,
+              addonDisplayStyle: transformation.result.style,
+            };
+            const replacementTargetTabId =
+              route?.kind === 'server'
+                ? serverTabId(routeNetwork)
+                : route?.kind === 'channel' && routeTarget
+                  ? channelTabId(routeNetwork, routeTarget)
+                  : route?.kind === 'query' && routeTarget
+                    ? queryTabId(routeNetwork, routeTarget)
+                    : targetTabId;
+            latest.pendingMessagesRef.current.push({
+              message: replacementMessage,
+              context: {
+                ...defaultContext,
+                targetTabId: replacementTargetTabId,
+                messageNetwork: routeNetwork,
+              },
+            });
           });
 
           if (__DEV__ || message.batchTag) {
@@ -1060,6 +1113,10 @@ export const useConnectionLifecycle = (
                 currentConnectionId,
                 'Disconnected',
               );
+              // A raw-modifying addon that breaks registration produces a
+              // connect/drop cycle rather than an error, so the loop is the
+              // only signal there is.
+              addonRawMiddleware.noteDisconnected().catch(() => {});
             }
             // Play disconnect sound
             soundService.playSound(SoundEventType.DISCONNECT);
@@ -1074,6 +1131,10 @@ export const useConnectionLifecycle = (
             connectionManager.getActiveNetworkId() ||
             activeIRCService.getNetworkName();
           if (!netId || netId === 'Not connected') return;
+
+          // A registration that completes clears the reconnect-loop tally:
+          // whatever the modifiers are doing, it is not breaking the handshake.
+          addonRawMiddleware.noteConnected();
 
           // Play login sound
           soundService.playSound(SoundEventType.LOGIN);
@@ -1274,6 +1335,13 @@ export const useConnectionLifecycle = (
         'wire',
         (event: { direction: 'in' | 'out'; line: string }) => {
           scriptingService.handleRaw(event.line, event.direction);
+          // Imported add-ons see inbound lines through their own permissioned
+          // path. Still observation only: holding a line while an isolated
+          // runtime decides would stall protocol processing, and IRC state
+          // completing regardless of an addon is the boundary this platform
+          // is built on.
+          if (event.direction === 'in')
+            addonRawMiddleware.observeIncoming(event.line).catch(() => {});
         },
       );
 

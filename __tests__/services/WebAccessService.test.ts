@@ -161,4 +161,183 @@ describe('WebAccessService', () => {
       ).rejects.toThrow('404');
     });
   });
+
+  describe('redirects (M3.4)', () => {
+    /** A response that says it ended up somewhere other than it was asked. */
+    const redirectedTo = (finalUrl: string, body = '<p>secret</p>') =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        url: finalUrl,
+        text: async () => body,
+      });
+
+    it('refuses a redirect into a private network and returns no body', async () => {
+      // The checks only ever saw the first URL, so an allowed site answering
+      // `302 -> http://192.168.1.1/` fetched the user's router and handed the
+      // body to the model. The refusal looked like a refusal and was not one.
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('http://192.168.1.1/admin'),
+      );
+
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/private network/i);
+    });
+
+    it.each([
+      'http://127.0.0.1:8080/',
+      'http://localhost/',
+      'http://10.0.0.1/',
+      'http://169.254.169.254/latest/meta-data/',
+    ])('refuses a redirect to %s', async finalUrl => {
+      (global as any).fetch = jest.fn(() => redirectedTo(finalUrl));
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/private network/i);
+    });
+
+    it('refuses a redirect off the allowed list', async () => {
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('https://evil.example/collect'),
+      );
+
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/not on your allowed list/i);
+    });
+
+    it('refuses a redirect to a scheme it cannot check', async () => {
+      (global as any).fetch = jest.fn(() => redirectedTo('file:///etc/passwd'));
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).rejects.toThrow(/cannot follow/i);
+    });
+
+    it('allows a redirect that stays on an allowed host, and reports where the text came from', async () => {
+      (global as any).fetch = jest.fn(() =>
+        redirectedTo('https://github.com/x/final', '<p>Fine</p>'),
+      );
+
+      const page = await webAccessService.fetchPage('https://github.com/x');
+      expect(page.text).toContain('Fine');
+      // Quoting the source should quote where the text came from, not where
+      // the caller asked.
+      expect(page.url).toBe('https://github.com/x/final');
+    });
+
+    it('is unbothered when the response reports no url at all', async () => {
+      (global as any).fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => '<p>x</p>',
+        }),
+      );
+      await expect(
+        webAccessService.fetchPage('https://github.com/x'),
+      ).resolves.toMatchObject({ url: 'https://github.com/x' });
+    });
+  });
+});
+
+describe('turning a page into text (CodeQL: bad-tag-filter, double-escaping)', () => {
+  const page = (body: string) =>
+    Promise.resolve({ ok: true, status: 200, text: async () => body });
+
+  const textOf = async (body: string) => {
+    (global as any).fetch = jest.fn(() => page(body));
+    return (await webAccessService.fetchPage('https://github.com/x')).text;
+  };
+
+  describe('script and style bodies', () => {
+    it('removes a plain script body', async () => {
+      expect(
+        await textOf('<p>Keep</p><script>secret()</script>'),
+      ).not.toContain('secret');
+    });
+
+    it('removes one whose end tag has whitespace', async () => {
+      // `</script >` is a valid end tag. A pattern demanding exactly
+      // `</script>` misses it and the body lands in the text a model reads.
+      expect(
+        await textOf('<p>Keep</p><script>secret()</script >'),
+      ).not.toContain('secret');
+      expect(
+        await textOf('<p>Keep</p><script>secret()</script\n>'),
+      ).not.toContain('secret');
+    });
+
+    it('removes one with attributes', async () => {
+      expect(
+        await textOf('<script type="text/javascript">secret()</script>'),
+      ).not.toContain('secret');
+    });
+
+    it('removes an unterminated script rather than leaking the rest', async () => {
+      expect(await textOf('<p>Keep</p><script>secret()')).not.toContain(
+        'secret',
+      );
+    });
+
+    it('does not eat a tag that merely starts with the same letters', async () => {
+      expect(
+        await textOf('<p>Keep</p><scripture>Visible</scripture>'),
+      ).toContain('Visible');
+    });
+
+    it('removes style and comment bodies too', async () => {
+      expect(await textOf('<style>.a{color:red}</style >Keep')).not.toContain(
+        'color',
+      );
+      expect(await textOf('<!-- hidden -->Keep')).not.toContain('hidden');
+    });
+  });
+
+  describe('entities', () => {
+    it('does not decode twice', async () => {
+      // `&amp;lt;` means the user should SEE "&lt;". Decoding `&amp;` first and
+      // `&lt;` after turns it into a real `<`, putting markup back into text
+      // the tag stripping had just cleaned.
+      const text = await textOf('<p>&amp;lt;script&amp;gt;</p>');
+      expect(text).toContain('&lt;script&gt;');
+      expect(text).not.toContain('<script>');
+    });
+
+    it('decodes each entity exactly once', async () => {
+      expect(await textOf('<p>&amp;amp;</p>')).toBe('&amp;');
+      expect(await textOf('<p>a &amp; b</p>')).toBe('a & b');
+    });
+
+    it('decodes the named entities it knows', async () => {
+      expect(await textOf('<p>&lt;a&gt; &quot;b&quot; &apos;c&apos;</p>')).toBe(
+        '<a> "b" \'c\'',
+      );
+    });
+
+    it('decodes numeric and hex entities', async () => {
+      expect(await textOf('<p>&#65;&#x42;</p>')).toBe('AB');
+    });
+
+    it('leaves an entity it does not know exactly as written', async () => {
+      // Guessing is how text stops meaning what the page said.
+      expect(await textOf('<p>&notareal; &frobnicate;</p>')).toContain(
+        '&notareal;',
+      );
+    });
+
+    it('refuses a numeric entity that is not a printable character', async () => {
+      const text = await textOf('<p>&#0;&#13;&#xD800;</p>');
+      expect(text).toContain('&#0;');
+      expect(text).not.toContain('\u0000');
+    });
+  });
+
+  it('still reads an ordinary page', async () => {
+    const text = await textOf(
+      '<html><body><h1>Title</h1><p>First</p><p>Second &amp; last</p></body></html>',
+    );
+    expect(text).toContain('First');
+    expect(text).toContain('Second & last');
+  });
 });

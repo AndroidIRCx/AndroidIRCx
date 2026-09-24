@@ -68,6 +68,7 @@ jest.mock('../../src/hooks/useTheme', () => ({
       buttonText: '#fff',
       border: '#444',
       error: '#f44336',
+      warning: '#ff9800',
     },
   }),
 }));
@@ -125,11 +126,25 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
   },
 }));
 
+jest.mock('../../src/services/scripting/AddonSafetyService', () => ({
+  addonSafetyService: {
+    initialize: jest.fn().mockResolvedValue(undefined),
+    getSnapshot: jest.fn(() => ({
+      safeMode: false,
+      disabled: new Map(),
+    })),
+    setSafeMode: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 const { scriptingService } = require('../../src/services/ScriptingService');
 const { adRewardService } = require('../../src/services/AdRewardService');
 const {
   inAppPurchaseService,
 } = require('../../src/services/InAppPurchaseService');
+const {
+  addonSafetyService,
+} = require('../../src/services/scripting/AddonSafetyService');
 
 describe('ScriptingScreen', () => {
   beforeEach(async () => {
@@ -182,7 +197,7 @@ describe('ScriptingScreen', () => {
   });
 
   it('renders script list and allows toggling, deleting and testing a script', async () => {
-    const { findByText, getAllByRole } = await render(
+    const { findByText, getByLabelText } = await render(
       <ScriptingScreen
         visible
         onClose={jest.fn()}
@@ -193,7 +208,11 @@ describe('ScriptingScreen', () => {
     expect(await findByText('Logger Script')).toBeTruthy();
     expect(await findByText('Repository')).toBeTruthy();
 
-    await fireEvent(getAllByRole('switch')[2], 'valueChange', false);
+    await fireEvent(
+      getByLabelText('Toggle Logger Script'),
+      'valueChange',
+      false,
+    );
     await waitFor(async () => {
       expect(scriptingService.setEnabled).toHaveBeenCalledWith(
         'script-1',
@@ -210,6 +229,21 @@ describe('ScriptingScreen', () => {
     expect(scriptingService.testHook).toHaveBeenCalledWith(
       'script-1',
       'onMessage',
+    );
+  });
+
+  it('shows and immediately updates third-party addon Safe Mode', async () => {
+    const { findByText, getByLabelText } = await render(
+      <ScriptingScreen visible onClose={jest.fn()} />,
+    );
+    expect(await findByText('Third-party addon Safe Mode')).toBeTruthy();
+    await fireEvent(
+      getByLabelText('Third-party addon Safe Mode'),
+      'valueChange',
+      true,
+    );
+    await waitFor(() =>
+      expect(addonSafetyService.setSafeMode).toHaveBeenCalledWith(true),
     );
   });
 
@@ -277,6 +311,9 @@ describe('ScriptingScreen', () => {
     const codeInput = getAllByDisplayValue(
       '// module.exports = { onMessage: (msg) => { /* ... */ } };',
     )[0];
+    expect(codeInput.props.spellCheck).not.toBe(false);
+    expect(codeInput.props.autoCorrect).not.toBe(false);
+    expect(codeInput.props.autoCapitalize).not.toBe('none');
     await fireEvent.changeText(codeInput, 'const x = 1;');
 
     await fireEvent.changeText(await findByDisplayValue('{}'), '{bad json');
@@ -422,7 +459,7 @@ describe('ScriptingScreen', () => {
     const error = new Error('Cannot enable: dependency missing');
     scriptingService.setEnabled.mockRejectedValue(error);
 
-    const { findByText, getAllByRole } = await render(
+    const { findByText, getByLabelText } = await render(
       <ScriptingScreen
         visible
         onClose={jest.fn()}
@@ -432,9 +469,11 @@ describe('ScriptingScreen', () => {
 
     expect(await findByText('Logger Script')).toBeTruthy();
 
-    // Get script toggle switch (third switch - after master toggle and time toggle)
-    const switches = getAllByRole('switch');
-    await fireEvent(switches[2], 'valueChange', false);
+    await fireEvent(
+      getByLabelText('Toggle Logger Script'),
+      'valueChange',
+      false,
+    );
 
     await waitFor(async () => {
       expect(Alert.alert).toHaveBeenCalledWith(

@@ -76,6 +76,7 @@ const mockTabStoreState = {
 
 const mockUseTabStore = {
   getState: jest.fn(() => mockTabStoreState),
+  subscribe: jest.fn(() => jest.fn()),
 };
 
 const mockHighlightService = {
@@ -101,10 +102,24 @@ const mockMessageHistoryService = {
 
 const mockThemeService = {
   getCurrentTheme: jest.fn(() => ({
+    id: 'ircap',
     name: 'IRcap',
     isDark: true,
-    colors: { background: '#101010' },
+    colors: {
+      background: '#101010',
+      warning: '#ffaa00',
+      messageText: '#ffffff',
+    },
   })),
+  getColors: jest.fn(() => ({
+    background: '#101010',
+    warning: '#ffaa00',
+    messageText: '#ffffff',
+  })),
+  getAvailableThemes: jest.fn(() => [
+    { id: 'ircap', name: 'IRcap', colors: { background: '#101010' } },
+  ]),
+  setTheme: jest.fn(async () => undefined),
 };
 
 const mockConnectionQualityService = {
@@ -162,6 +177,13 @@ jest.mock('../../src/services/SettingsService', () => ({
   settingsService: mockSettingsService,
 }));
 
+const mockDccFileService = {
+  onTransferUpdate: jest.fn(() => jest.fn()),
+};
+jest.mock('../../src/services/DCCFileService', () => ({
+  dccFileService: mockDccFileService,
+}));
+
 const mockSoundService = {
   playSound: jest.fn().mockResolvedValue(undefined),
   playCustomSoundByName: jest.fn().mockResolvedValue(false),
@@ -184,6 +206,28 @@ const { scriptingService } = require('../../src/services/ScriptingService');
 const { useUIStore } = require('../../src/stores/uiStore');
 const { Alert, Linking } = require('react-native');
 
+/**
+ * What a script logged, in order. `global` is shadowed inside script bodies,
+ * so this is the observation channel a real script would have.
+ */
+const loggedByScripts = (scriptId?: string): string[] =>
+  scriptingService
+    .getLogs()
+    .filter(
+      entry =>
+        entry.level === 'info' &&
+        (scriptId === undefined || entry.scriptId === scriptId),
+    )
+    .map(entry => entry.message);
+
+const startCollecting = () => {
+  (scriptingService as any).settings.loggingEnabled = true;
+  (scriptingService as any).log = [];
+  // Another test lowers this to 2 on the singleton and never puts it back, so
+  // without this only the last two lines of any script survive.
+  (scriptingService as any).logLimit = 500;
+};
+
 describe('ScriptingService', () => {
   const resetServiceState = () => {
     const svc = scriptingService as any;
@@ -193,6 +237,14 @@ describe('ScriptingService', () => {
     svc.settings = { loggingEnabled: false };
     svc.repository = [];
     svc.timers = new Map();
+    svc.unsubscribeTabEvents?.();
+    svc.unsubscribeDccEvents?.();
+    svc.unsubscribeAppLifecycle?.();
+    svc.unsubscribeTabEvents = undefined;
+    svc.unsubscribeDccEvents = undefined;
+    svc.unsubscribeAppLifecycle = undefined;
+    svc.completedDccTransfers = new Set();
+    svc.failedDccTransfers = new Set();
   };
 
   beforeEach(() => {
@@ -331,6 +383,54 @@ describe('ScriptingService', () => {
         networkId: 'net1',
       }),
     ).toBe('/y');
+  });
+
+  it('bounds synchronous composer transforms and addon completions', async () => {
+    await scriptingService.add({
+      id: 'composer-hooks',
+      name: 'Composer hooks',
+      enabled: true,
+      code: `module.exports = {
+        onInput: (text, ctx) => ctx.channel === '#blocked' ? { cancel: true } : text + '!',
+        onTabComplete: () => [
+          { text: '/addon-one', description: 'first' },
+          '/addon-one',
+          '',
+          'x'.repeat(401),
+          '/addon-two', '/3', '/4', '/5', '/6', '/7', '/8', '/9'
+        ],
+      };`,
+    });
+
+    expect(
+      scriptingService.processComposerInput('hello', { channel: '#chat' }),
+    ).toBe('hello!');
+    expect(
+      scriptingService.processComposerInput('secret', { channel: '#blocked' }),
+    ).toBeNull();
+    expect(
+      scriptingService.processComposerInput('x'.repeat(4001), {}),
+    ).toBeNull();
+
+    const completions = scriptingService.getTabCompletions('/a', 2, {
+      channel: '#chat',
+    });
+    expect(completions).toHaveLength(8);
+    expect(completions[0]).toEqual({
+      text: '/addon-one',
+      description: 'first',
+    });
+    expect(completions.map(item => item.text)).toEqual([
+      '/addon-one',
+      '/addon-two',
+      '/3',
+      '/4',
+      '/5',
+      '/6',
+      '/7',
+      '/8',
+    ]);
+    expect(scriptingService.getTabCompletions('/a', 3, {})).toEqual([]);
   });
 
   it('handles corrupt or unavailable persisted scripts without crashing', async () => {
@@ -487,6 +587,8 @@ describe('ScriptingService', () => {
     // hardcode a palette, which then clashes with every built-in theme.
     expect(api.getTheme()).toMatchObject({ name: 'IRcap', isDark: true });
     expect(api.getTheme().colors).toBeTruthy();
+    expect(api.themeColour('warning')).toBe('#ffaa00');
+    expect(api.themeColour('missing')).toBeNull();
     expect(api.getConnectionStats('net1')).toEqual({ latency: 42 });
     expect(api.getNetworkId()).toBe('net1');
     expect(api.getAllNetworks()).toEqual([
@@ -588,6 +690,128 @@ describe('ScriptingService', () => {
     scriptingService.testHook('events', 'onTimer');
 
     expect(scriptingService.getLogs().length).toBeGreaterThan(0);
+  });
+
+  it('dispatches specialized IRC hooks once from parsed protocol fields', async () => {
+    await scriptingService.add({
+      id: 'special-events',
+      name: 'Special events',
+      enabled: true,
+      code: `
+        module.exports = {
+          onMode: (_c, _s, _m, _t, msg) => api.log('mode:' + msg.id),
+          onOp: (_c, _s, target, msg) => api.log('op:' + target + ':' + msg.id),
+          onVoice: (_c, _s, target, msg) => api.log('voice:' + target + ':' + msg.id),
+          onDehelp: (_c, _s, target, msg) => api.log('dehelp:' + target + ':' + msg.id),
+          onUserMode: (target, _s, mode, msg) => api.log('usermode:' + target + ':' + mode + ':' + msg.id),
+          onServerMode: (target, server, mode, msg) => api.log('servermode:' + target + ':' + server + ':' + mode + ':' + msg.id),
+          onServerNotice: (from, text) => api.log('snotice:' + from + ':' + text),
+          onWallops: (from, text) => api.log('wallops:' + from + ':' + text),
+          onServerError: text => api.log('error:' + text),
+          onPing: (token, direction) => api.log('ping:' + token + ':' + direction),
+          onPong: (token, direction) => api.log('pong:' + token + ':' + direction),
+          onNotifyOnline: (nick, user, host) => api.log('online:' + nick + ':' + user + ':' + host),
+          onNotifyOffline: nick => api.log('offline:' + nick),
+        };
+      `,
+    });
+    await scriptingService.setLoggingEnabled(true);
+    const timestamp = Date.now();
+
+    scriptingService.handleMessage({
+      id: 'mode-1',
+      type: 'mode',
+      channel: '#c',
+      from: 'setter',
+      text: 'localized',
+      mode: '+ov-h alice bob carol',
+      command: 'MODE',
+      timestamp,
+    } as any);
+    scriptingService.handleMessage({
+      id: 'mode-2',
+      type: 'raw',
+      target: 'me',
+      from: 'me',
+      text: 'localized',
+      mode: '+i',
+      command: 'MODE',
+      timestamp,
+    } as any);
+    scriptingService.handleMessage({
+      id: 'mode-3',
+      type: 'mode',
+      channel: '#c',
+      from: 'irc.example',
+      text: 'localized',
+      mode: '+m',
+      command: 'MODE',
+      timestamp,
+    } as any);
+    scriptingService.handleMessage({
+      id: 'notice-1',
+      type: 'notice',
+      from: 'irc.example',
+      text: 'maintenance',
+      isRaw: true,
+      rawCategory: 'server',
+      timestamp,
+    } as any);
+    scriptingService.handleMessage({
+      id: 'wallops-1',
+      type: 'notice',
+      from: 'oper',
+      text: 'attention',
+      isRaw: true,
+      rawCategory: 'server',
+      command: 'WALLOPS',
+      timestamp,
+    } as any);
+    scriptingService.handleMessage({
+      id: 'error-1',
+      type: 'error',
+      text: 'closing',
+      command: 'ERROR',
+      timestamp,
+    } as any);
+    scriptingService.handleRaw('@time=x :irc.example PING :keep alive', 'in');
+    scriptingService.handleRaw('PONG :keepalive-1', 'out');
+    scriptingService.handleNumeric(600, ['alice', 'user', 'host'], '', {
+      id: 'numeric-600',
+      type: 'raw',
+      text: '',
+      timestamp,
+    } as any);
+    scriptingService.handleNumeric(731, [':bob!u@h,carol!v@z'], '', {
+      id: 'numeric-731',
+      type: 'raw',
+      text: '',
+      timestamp,
+    } as any);
+
+    const messages = scriptingService.getLogs().map(entry => entry.message);
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        'mode:mode-1',
+        'op:alice:mode-1',
+        'voice:bob:mode-1',
+        'dehelp:carol:mode-1',
+        'usermode:me:+i:mode-2',
+        'servermode:#c:irc.example:+m:mode-3',
+        'snotice:irc.example:maintenance',
+        'wallops:oper:attention',
+        'error:closing',
+        'ping:keep alive:in',
+        'pong:keepalive-1:out',
+        'online:alice:user:host',
+        'offline:bob',
+        'offline:carol',
+      ]),
+    );
+    expect(messages.filter(message => message === 'mode:mode-1')).toHaveLength(
+      1,
+    );
+    expect(messages).not.toContain('snotice:oper:attention');
   });
 
   it('loads persisted settings and log entries', async () => {
@@ -949,19 +1173,222 @@ describe('ScriptingService', () => {
   });
 
   it('hands every raw line to onRaw, in both directions', async () => {
-    (global as any).__seen = [];
+    startCollecting();
     await scriptingService.add({
       id: 'raw',
       name: 'Raw',
       enabled: true,
-      code: 'module.exports = { onRaw: (line, dir) => global.__seen.push(dir + " " + line) };',
+      code: 'module.exports = { onRaw: (line, dir) => api.log(dir + " " + line) };',
     });
 
     scriptingService.handleRaw('PING :x', 'in');
     scriptingService.handleRaw('PONG :x', 'out');
 
-    expect((global as any).__seen).toEqual(['in PING :x', 'out PONG :x']);
-    delete (global as any).__seen;
+    expect(loggedByScripts('raw')).toEqual(['in PING :x', 'out PONG :x']);
+  });
+
+  it('resolves semantic colours and changes theme only after approval', async () => {
+    const api = (scriptingService as any).makeApi({
+      id: 'theme-change',
+      name: 'Theme changer',
+      code: '',
+      enabled: true,
+    });
+
+    expect(api.themeColour('warning')).toBe('#ffaa00');
+    expect(api.themeColour('unknown')).toBeNull();
+    expect(await api.setTheme('does-not-exist')).toBe(false);
+
+    const approved = api.setTheme('IRcap');
+    const approveButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)[2];
+    approveButtons[1].onPress();
+    await expect(approved).resolves.toBe(true);
+    expect(mockThemeService.setTheme).toHaveBeenCalledWith('ircap');
+
+    const declined = api.setTheme('ircap');
+    const declineButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)[2];
+    declineButtons[0].onPress();
+    await expect(declined).resolves.toBe(false);
+  });
+
+  it('dispatches parsed numerics and suppresses only their default display', async () => {
+    startCollecting();
+    await scriptingService.add({
+      id: 'numeric',
+      name: 'Numeric',
+      enabled: true,
+      code: `module.exports = {
+        onNumeric: (code, params, text, msg) => {
+          api.log(JSON.stringify({ code, params, text, numeric: msg.numeric }));
+          return code === 372 ? false : true;
+        }
+      };`,
+    });
+
+    const message = {
+      id: 'n1',
+      type: 'raw',
+      text: 'MOTD',
+      timestamp: 1,
+      numeric: '372',
+    } as any;
+    expect(
+      scriptingService.handleNumeric(372, ['#chat', 'MOTD'], 'MOTD', message),
+    ).toBe(false);
+    expect(
+      scriptingService.handleNumeric(1, ['welcome'], 'welcome', message),
+    ).toBe(true);
+    expect(loggedByScripts('numeric').map(entry => JSON.parse(entry))).toEqual([
+      { code: 372, params: ['#chat', 'MOTD'], text: 'MOTD', numeric: '372' },
+      { code: 1, params: ['welcome'], text: 'welcome', numeric: '372' },
+    ]);
+  });
+
+  it('logs a numeric hook failure and keeps the default display', async () => {
+    await scriptingService.add({
+      id: 'numeric-error',
+      name: 'Numeric error',
+      enabled: true,
+      code: 'module.exports = { onNumeric: () => { throw new Error("bad numeric"); } };',
+    });
+
+    expect(scriptingService.handleNumeric(401, [], 'missing', {} as any)).toBe(
+      true,
+    );
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'scripting',
+      expect.stringContaining('onNumeric'),
+    );
+  });
+
+  it('dispatches tab, app and DCC lifecycle hooks exactly once', async () => {
+    let tabListener: any;
+    let dccListener: any;
+    mockUseTabStore.subscribe.mockImplementation((listener: any) => {
+      tabListener = listener;
+      return jest.fn();
+    });
+    mockDccFileService.onTransferUpdate.mockImplementation((listener: any) => {
+      dccListener = listener;
+      return jest.fn();
+    });
+    await scriptingService.initialize();
+    // After initialize, which reloads settings from storage and switches
+    // logging back off; before add, during which onLoad and onStart fire.
+    startCollecting();
+    await scriptingService.add({
+      id: 'lifecycle',
+      name: 'Lifecycle',
+      enabled: true,
+      code: `module.exports = {
+        onTabOpen: tab => api.log('open:' + tab.id),
+        onTabClose: tab => api.log('close:' + tab.id),
+        onTabActivate: (previous, current) => api.log('activate:' + previous.id + ':' + current.id),
+        onFileSent: transfer => api.log('sent:' + transfer.id),
+        onFileReceived: transfer => api.log('received:' + transfer.id),
+        onDccSendFailed: transfer => api.log('send-failed:' + transfer.id),
+        onDccReceiveFailed: transfer => api.log('receive-failed:' + transfer.id),
+        onAppStateChange: state => api.log('state:' + state),
+        onLoad: () => api.log('load'),
+        onStart: () => api.log('start'),
+      };`,
+    });
+
+    const oldTab = {
+      id: 'old',
+      name: '#old',
+      type: 'channel',
+      networkId: 'net1',
+      messages: [],
+    };
+    const newTab = { ...oldTab, id: 'new', name: '#new' };
+    tabListener(
+      { tabs: [newTab], activeTabId: 'new' },
+      { tabs: [oldTab], activeTabId: 'old' },
+    );
+    dccListener({ id: 'pending', status: 'sending', direction: 'outgoing' });
+    dccListener({ id: 'out', status: 'completed', direction: 'outgoing' });
+    dccListener({ id: 'out', status: 'completed', direction: 'outgoing' });
+    dccListener({ id: 'in', status: 'completed', direction: 'incoming' });
+    dccListener({ id: 'failed-out', status: 'failed', direction: 'outgoing' });
+    dccListener({ id: 'failed-out', status: 'failed', direction: 'outgoing' });
+    dccListener({ id: 'failed-in', status: 'failed', direction: 'incoming' });
+    scriptingService.handleAppStateChange('background');
+
+    expect(loggedByScripts('lifecycle')).toEqual([
+      'load',
+      'start',
+      'open:new',
+      'close:old',
+      'activate:old:new',
+      'sent:out',
+      'received:in',
+      'send-failed:failed-out',
+      'receive-failed:failed-in',
+      'state:background',
+    ]);
+  });
+
+  it('deduplicates imported-addon routing for each terminal DCC status', async () => {
+    const {
+      addonEventRouter,
+    } = require('../../src/services/scripting/AddonEventRouter');
+    const route = jest.spyOn(addonEventRouter, 'route').mockResolvedValue({
+      delivered: 1,
+      failed: 0,
+      hideDefaultRequestedBy: ['test.addon'],
+      transformations: [],
+    });
+    const transfer = {
+      id: 'dcc-dedup',
+      networkId: 'net1',
+      peerNick: 'alice',
+      offer: { filename: 'file.txt', host: '127.0.0.1', port: 1234 },
+      status: 'completed',
+      bytesReceived: 42,
+      direction: 'incoming',
+    } as any;
+
+    const first = scriptingService.handleDccDisplay(transfer);
+    const second = scriptingService.handleDccDisplay(transfer);
+
+    expect(first).toBe(second);
+    await expect(first).resolves.toEqual(
+      expect.objectContaining({ hideDefaultRequestedBy: ['test.addon'] }),
+    );
+    expect(route).toHaveBeenCalledTimes(1);
+    expect(route.mock.calls[0][0]).toMatchObject({
+      type: 'transfer.file-received',
+      network: 'net1',
+      target: 'alice',
+      payload: expect.objectContaining({
+        transferId: 'dcc-dedup',
+        status: 'completed',
+      }),
+    });
+  });
+
+  it('runs onStart once for an enabled script restored at app startup', async () => {
+    (global as any).__startupCount = 0;
+    await (AsyncStorage as any).setItem(
+      '@AndroidIRCX:scripts',
+      JSON.stringify([
+        {
+          id: 'restored-start',
+          name: 'Restored start',
+          enabled: true,
+          code: `module.exports = { onStart: () => api.log('started') };`,
+        },
+      ]),
+    );
+
+    startCollecting();
+    await scriptingService.initialize();
+    await scriptingService.initialize();
+
+    expect(
+      loggedByScripts('restored-start').filter(line => line === 'started'),
+    ).toHaveLength(1);
   });
 
   it('ignores whatever onRaw returns', async () => {
@@ -1533,18 +1960,18 @@ describe('ScriptingService', () => {
       const farewells: string[] = [];
       (global as any).__farewell = () => farewells.push('bye');
 
+      startCollecting();
       await scriptingService.add({
         id: 'leaver',
         name: 'Leaver',
         enabled: true,
-        code: 'module.exports = { onUnload: () => global.__farewell() };',
+        code: "module.exports = { onUnload: () => api.log('bye') };",
         config: {},
       });
 
       await scriptingService.setEnabled('leaver', false);
 
-      expect(farewells).toEqual(['bye']);
-      delete (global as any).__farewell;
+      expect(loggedByScripts('leaver')).toContain('bye');
     });
 
     it('is not taken down by a hook that throws', async () => {
@@ -1999,6 +2426,68 @@ describe('ScriptingService', () => {
 
       expect(await apiFor().listProviders()).toEqual([]);
       expect(await apiFor().isAvailable()).toBe(false);
+    });
+  });
+
+  describe('normalized addon event compatibility adapter', () => {
+    it('emits one immutable envelope while preserving legacy hooks', async () => {
+      const listener = jest.fn();
+      const unsubscribe = scriptingService.subscribeAddonEvents(listener);
+      await scriptingService.setLoggingEnabled(true);
+      await scriptingService.add({
+        id: 'event-compat',
+        name: 'Event compatibility',
+        enabled: true,
+        code: `module.exports = { onMessage: msg => api.log('legacy:' + msg.text) };`,
+      });
+      const message = {
+        id: 'normalized-1',
+        type: 'message' as const,
+        text: 'hello',
+        timestamp: 123,
+        network: 'net1',
+        channel: '#chat',
+        from: 'alice',
+      };
+
+      scriptingService.handleMessage(message);
+      unsubscribe();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener.mock.calls[0][0]).toMatchObject({
+        schemaVersion: 1,
+        id: 'normalized-1',
+        type: 'irc.message',
+        payload: { text: 'hello' },
+      });
+      expect(Object.isFrozen(listener.mock.calls[0][0])).toBe(true);
+      expect(
+        scriptingService
+          .getLogs()
+          .some(entry => entry.message === 'legacy:hello'),
+      ).toBe(true);
+    });
+
+    it('isolates listener errors and stops delivery after unsubscribe', () => {
+      const broken = jest.fn(() => {
+        throw new Error('listener failed');
+      });
+      const healthy = jest.fn();
+      const removeBroken = scriptingService.subscribeAddonEvents(broken);
+      const removeHealthy = scriptingService.subscribeAddonEvents(healthy);
+
+      scriptingService.handleConnect('net1');
+      expect(broken).toHaveBeenCalledTimes(1);
+      expect(healthy).toHaveBeenCalledTimes(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'scripting',
+        expect.stringContaining('listener failed'),
+      );
+
+      removeBroken();
+      removeHealthy();
+      scriptingService.handleDisconnect('net1', 'bye');
+      expect(healthy).toHaveBeenCalledTimes(1);
     });
   });
 });

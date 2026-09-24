@@ -1,0 +1,6 @@
+What's new in v1.10.0:
+- Add-ons: reviewed, permission-based packages with Safe Mode and rollback.
+- Scripts can read who is who and channel state from the cache, and now have tables, Keychain secrets, signals, a file area and CSV/INI/JSON parsers.
+- Commands your scripts add finally appear when you type /.
+- Expert mode can rewrite outgoing raw IRC; PING and CAP stay safe.
+- Hardened: a script cannot reach the network off your allowed list or flood a server, and MCP checks its token.

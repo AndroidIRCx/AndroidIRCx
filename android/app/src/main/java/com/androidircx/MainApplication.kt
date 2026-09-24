@@ -151,6 +151,14 @@ class MainApplication : Application(), ReactApplication {
               // Don't fail completely if custom package fails
           }
 
+          // Add the isolated QuickJS runtime used only by imported addons.
+          try {
+              packages.add(AddonRuntimePackage())
+              Log.d(TAG, "Added AddonRuntimePackage")
+          } catch (e: Throwable) {
+              Log.e(TAG, "Failed to add AddonRuntimePackage: ${e.message}", e)
+          }
+
           // Add our custom package for phone-to-phone NFC key sharing (HCE)
           try {
               packages.add(NfcHcePackage())

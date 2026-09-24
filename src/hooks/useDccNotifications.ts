@@ -8,6 +8,9 @@ import { dccFileService } from '../services/DCCFileService';
 import { useUIStore } from '../stores/uiStore';
 import notifee from '@notifee/react-native';
 import { NOTIFICATION_CHANNELS } from '../services/NotificationService';
+import { scriptingService } from '../services/ScriptingService';
+import { connectionManager } from '../services/ConnectionManager';
+import { useTabStore } from '../stores/tabStore';
 
 interface UseDccNotificationsProps {
   safeAlert: (title: string, message: string) => void;
@@ -54,7 +57,7 @@ export function useDccNotifications({
   isMountedRef,
 }: UseDccNotificationsProps) {
   useEffect(() => {
-    const unsub = dccFileService.onTransferUpdate(transfer => {
+    const unsub = dccFileService.onTransferUpdate(async transfer => {
       const isMinimized = useUIStore.getState().dccTransfersMinimized;
       const title =
         transfer.status === 'completed'
@@ -76,34 +79,59 @@ export function useDccNotifications({
               _tags: 'screen:app,file:App.tsx,feature:dcc',
             });
 
-      if (transfer.status === 'completed') {
-        // Show in-app alert
-        safeAlert(title, message);
-
-        // If minimized, also send a system notification
-        if (isMinimized) {
-          sendDccNotification(title, message);
-        }
-      } else if (transfer.status === 'failed') {
-        safeAlert(title, message);
-
-        // If minimized, also send a system notification
-        if (isMinimized) {
-          sendDccNotification(title, message);
-        }
-      }
-
+      // Transfer state/UI is updated before addon display work. A slow or bad
+      // addon may delay an alert, but it cannot delay the transfer lifecycle.
       if (isMountedRef.current) {
         const transfers = dccFileService.list();
         setDccTransfers(transfers);
-
-        // Auto-restore modal if minimized and no more active transfers
         const activeTransfers = transfers.filter(
-          t => t.status === 'downloading' || t.status === 'sending',
+          item => item.status === 'downloading' || item.status === 'sending',
         );
         if (isMinimized && activeTransfers.length === 0) {
           useUIStore.getState().setDccTransfersMinimized(false);
         }
+      }
+
+      if (transfer.status === 'completed' || transfer.status === 'failed') {
+        const display = await scriptingService.handleDccDisplay(transfer);
+        const showDefault = display.hideDefaultRequestedBy.length === 0;
+        if (showDefault) {
+          safeAlert(title, message);
+          if (isMinimized) {
+            sendDccNotification(title, message);
+          }
+        }
+        display.transformations.forEach(transformation => {
+          const result = transformation.result;
+          if (result.replacement === undefined) return;
+          const routeNetwork = result.routeTo?.network || transfer.networkId;
+          const connection =
+            connectionManager.getConnection(routeNetwork) ||
+            connectionManager.getActiveConnection();
+          if (!connection) {
+            safeAlert(title, result.replacement);
+            return;
+          }
+          const activeTab = useTabStore.getState().getActiveTab?.();
+          const routeTarget = result.routeTo?.target;
+          const currentTarget =
+            result.routeTo?.kind === 'current' &&
+            activeTab?.networkId === routeNetwork &&
+            (activeTab.type === 'channel' || activeTab.type === 'query')
+              ? activeTab.name
+              : undefined;
+          connection.ircService.addMessage({
+            type: 'notice',
+            text: result.replacement,
+            timestamp: Date.now(),
+            channel:
+              result.routeTo?.kind === 'server'
+                ? undefined
+                : routeTarget || currentTarget,
+            addonDisplayStyle: result.style,
+            addonDisplayProcessed: true,
+          });
+        });
       }
     });
     return () => unsub();

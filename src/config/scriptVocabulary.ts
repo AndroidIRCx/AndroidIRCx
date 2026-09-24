@@ -90,6 +90,92 @@ export const HOOK_ENTRIES: VocabularyEntry[] = [
     summary: 'A mode changed. target is undefined for a channel-wide mode.',
   },
   {
+    name: 'onBan',
+    signature: 'onBan(channel, setter, mask, msg)',
+    summary: 'A ban mask was added.',
+  },
+  {
+    name: 'onUnban',
+    signature: 'onUnban(channel, setter, mask, msg)',
+    summary: 'A ban mask was removed.',
+  },
+  {
+    name: 'onOp',
+    signature: 'onOp(channel, setter, nick, msg)',
+    summary: 'Someone was given operator status.',
+  },
+  {
+    name: 'onDeop',
+    signature: 'onDeop(channel, setter, nick, msg)',
+    summary: 'Someone lost operator status.',
+  },
+  {
+    name: 'onVoice',
+    signature: 'onVoice(channel, setter, nick, msg)',
+    summary: 'Someone was given voice.',
+  },
+  {
+    name: 'onDevoice',
+    signature: 'onDevoice(channel, setter, nick, msg)',
+    summary: 'Someone lost voice.',
+  },
+  {
+    name: 'onHelp',
+    signature: 'onHelp(channel, setter, nick, msg)',
+    summary: 'Someone was given half-operator status.',
+  },
+  {
+    name: 'onDehelp',
+    signature: 'onDehelp(channel, setter, nick, msg)',
+    summary: 'Someone lost half-operator status.',
+  },
+  {
+    name: 'onUserMode',
+    signature: 'onUserMode(target, setter, mode, msg)',
+    summary: 'A user mode changed.',
+  },
+  {
+    name: 'onServerMode',
+    signature: 'onServerMode(target, server, mode, msg)',
+    summary: 'A server-originated channel mode changed.',
+  },
+  {
+    name: 'onServerNotice',
+    signature: 'onServerNotice(from, text, msg)',
+    summary: 'A notice from the server itself, not from a user.',
+  },
+  {
+    name: 'onWallops',
+    signature: 'onWallops(from, text, msg)',
+    summary: 'A WALLOPS message, broadcast to operators.',
+  },
+  {
+    name: 'onServerError',
+    signature: 'onServerError(text, msg)',
+    summary: 'The server sent an ERROR, usually just before closing the link.',
+  },
+  {
+    name: 'onPing',
+    signature: 'onPing(token, direction)',
+    summary:
+      'A PING passed by. Observation only - a return value cannot block or replace it.',
+  },
+  {
+    name: 'onPong',
+    signature: 'onPong(token, direction)',
+    summary: 'A PONG passed by. Observation only.',
+  },
+  {
+    name: 'onNotifyOnline',
+    signature: 'onNotifyOnline(nick, user, host, msg)',
+    summary: 'MONITOR or WATCH reports a nick came online.',
+  },
+  {
+    name: 'onNotifyOffline',
+    signature: 'onNotifyOffline(nick, msg)',
+    summary: 'MONITOR or WATCH reports a nick went offline.',
+  },
+  {
     name: 'onTopic',
     signature: 'onTopic(channel, topic, setterNick, msg)',
     summary: 'A channel topic was changed.',
@@ -118,7 +204,65 @@ export const HOOK_ENTRIES: VocabularyEntry[] = [
     name: 'onRaw',
     signature: 'onRaw(line, direction, msg?)',
     summary:
-      'Every raw IRC line, in or out. Must return synchronously; return false to swallow it.',
+      'Every raw IRC line, in or out. Observation only; anything returned is ignored.',
+  },
+  {
+    name: 'onNumeric',
+    signature: 'onNumeric(code, params, text, msg)',
+    summary:
+      'A parsed server numeric. Return false to hide its default display without blocking protocol handling.',
+  },
+  {
+    name: 'onTabOpen',
+    signature: 'onTabOpen(tab)',
+    summary: 'A server, channel, query, notice or DCC tab opened.',
+  },
+  {
+    name: 'onTabClose',
+    signature: 'onTabClose(tab)',
+    summary: 'A server, channel, query, notice or DCC tab closed.',
+  },
+  {
+    name: 'onTabActivate',
+    signature: 'onTabActivate(previous, current)',
+    summary:
+      'The active tab changed. Either value may be undefined during restore or close.',
+  },
+  {
+    name: 'onFileSent',
+    signature: 'onFileSent(transfer)',
+    summary: 'An outgoing DCC file transfer completed.',
+  },
+  {
+    name: 'onFileReceived',
+    signature: 'onFileReceived(transfer)',
+    summary: 'An incoming DCC file transfer completed.',
+  },
+  {
+    name: 'onDccSendFailed',
+    signature: 'onDccSendFailed(transfer)',
+    summary: 'An outgoing DCC file transfer failed.',
+  },
+  {
+    name: 'onDccReceiveFailed',
+    signature: 'onDccReceiveFailed(transfer)',
+    summary: 'An incoming DCC file transfer failed.',
+  },
+  {
+    name: 'onAppStateChange',
+    signature: 'onAppStateChange(state)',
+    summary: 'The app became active, inactive or backgrounded.',
+  },
+  {
+    name: 'onLoad',
+    signature: 'onLoad()',
+    summary: 'Runs once after the script is installed or replaced.',
+  },
+  {
+    name: 'onStart',
+    signature: 'onStart()',
+    summary:
+      'Runs whenever an enabled script starts, including at app startup.',
   },
   {
     name: 'onCommand',
@@ -127,9 +271,27 @@ export const HOOK_ENTRIES: VocabularyEntry[] = [
       'Text you typed, before it is sent. Must return synchronously; return false to swallow it.',
   },
   {
+    name: 'onInput',
+    signature: 'onInput(text, context)',
+    summary:
+      'Transforms or cancels submitted chat-composer text before onCommand. Secure form fields never enter this hook.',
+  },
+  {
+    name: 'onTabComplete',
+    signature: 'onTabComplete(text, cursor, context)',
+    summary:
+      'Returns up to eight synchronous composer completions after built-in results.',
+  },
+  {
     name: 'onTimer',
     signature: 'onTimer(name)',
     summary: 'A timer you set with api.setTimer fired.',
+  },
+  {
+    name: 'onSignal',
+    signature: 'onSignal({ name, payload, from, scope })',
+    summary:
+      'Another script raised a signal. scope is self, addon or broadcast.',
   },
   {
     name: 'onUnload',
@@ -217,9 +379,9 @@ export const API_ENTRIES: VocabularyEntry[] = [
   // Extending the app
   {
     name: 'registerCommand',
-    signature: 'registerCommand(name, handler)',
+    signature: 'registerCommand(name, handler, description?)',
     summary:
-      'Add your own slash command. handler(args, ctx) must return synchronously.',
+      'Add your own slash command. handler(args, ctx) must return synchronously. The description is shown in autocomplete when someone types / and the first letters.',
   },
   {
     name: 'addMenuItem',
@@ -385,6 +547,207 @@ export const API_ENTRIES: VocabularyEntry[] = [
     name: 'getSharedChannels',
     signature: 'getSharedChannels(nick, networkId?)',
     summary: "Channels you are both in \u2014 mIRC's $comchan.",
+  },
+  {
+    name: 'users.get',
+    signature: 'users.get(nick, networkId?)',
+    summary:
+      "Everything known about one user - ident, host, account, certfp, away, shared channels - with where each fact came from. mIRC's $ial. Cache only; it never sends a WHOIS.",
+  },
+  {
+    name: 'users.find',
+    signature: 'users.find(mask, { account, certfp, channel, away, limit }?)',
+    summary:
+      'Users matching a hostmask, optionally filtered. Bounded result count.',
+  },
+  {
+    name: 'users.onChannel',
+    signature: 'users.onChannel(channel, networkId?)',
+    summary: 'Every user record for one channel, with their prefix modes.',
+  },
+  {
+    name: 'users.sharedChannels',
+    signature: 'users.sharedChannels(nick, networkId?)',
+    summary: 'Channels you are both in, read from the address list.',
+  },
+  {
+    name: 'users.matchesMask',
+    signature: 'users.matchesMask(user, mask)',
+    summary:
+      'Whether a user matches a hostmask, with full IRC wildcards. A component the user has no value for matches only *.',
+  },
+  {
+    name: 'channelState.get',
+    signature: 'channelState.get(channel, networkId?)',
+    summary:
+      'Topic with who set it and when, current modes and their parameters.',
+  },
+  {
+    name: 'channelState.getList',
+    signature:
+      "channelState.getList(channel, 'ban'|'except'|'invite'|'quiet', networkId?)",
+    summary:
+      'A cached mask list with setter and time where the server sent them. status is "unknown" until fetched - which is NOT the same as empty.',
+  },
+  {
+    name: 'server.get',
+    signature: 'server.get(networkId?)',
+    summary:
+      'ISUPPORT tokens, negotiated capabilities, prefix and mode mappings, network name.',
+  },
+  {
+    name: 'server.token',
+    signature: 'server.token(name, networkId?)',
+    summary:
+      'One raw ISUPPORT token, including ones this app does not parse, so a new network needs no app release.',
+  },
+  {
+    name: 'server.hasCapability',
+    signature: 'server.hasCapability(capability, networkId?)',
+    summary: 'Whether an IRCv3 capability was negotiated on this connection.',
+  },
+  {
+    name: 'server.isChannel',
+    signature: 'server.isChannel(target, networkId?)',
+    summary:
+      "Whether a target is a channel, by the server's own CHANTYPES rather than a guess at '#'.",
+  },
+  {
+    name: 'files.read',
+    signature: 'files.read(path)',
+    summary:
+      "mIRC's $read, inside your own directory. Paths are relative; traversal and absolute paths are refused. Returns { ok, value?, reason? }.",
+    isAsync: true,
+  },
+  {
+    name: 'files.write',
+    signature: 'files.write(path, contents)',
+    summary:
+      'Writes a file in your own directory. Atomic: an interrupted write leaves the previous file intact.',
+    isAsync: true,
+  },
+  {
+    name: 'files.list',
+    signature: 'files.list(directory?)',
+    summary: 'Everything in your workspace, or in one directory of it.',
+    isAsync: true,
+  },
+  {
+    name: 'files.stat',
+    signature: 'files.stat(path)',
+    summary: 'Size, kind and modification time for one entry.',
+    isAsync: true,
+  },
+  {
+    name: 'files.remove',
+    signature: 'files.remove(path)',
+    summary: 'Deletes one file from your workspace.',
+    isAsync: true,
+  },
+  {
+    name: 'files.rename',
+    signature: 'files.rename(from, to)',
+    summary:
+      'Renames a file. Both names are checked, so a rename cannot leave your workspace.',
+    isAsync: true,
+  },
+  {
+    name: 'files.usedBytes',
+    signature: 'files.usedBytes()',
+    summary: 'How much of your file quota is in use.',
+    isAsync: true,
+  },
+  {
+    name: 'parse.lines',
+    signature: 'parse.lines(text)',
+    summary: 'Splits text into lines, tolerating CRLF and a trailing newline.',
+  },
+  {
+    name: 'parse.json',
+    signature: 'parse.json(text)',
+    summary:
+      'JSON.parse that reports instead of throwing: returns { ok, value, error }.',
+  },
+  {
+    name: 'parse.csv',
+    signature: 'parse.csv(text)',
+    summary:
+      'RFC 4180 CSV: quoted fields may contain commas, quotes and newlines.',
+  },
+  {
+    name: 'parse.ini',
+    signature: 'parse.ini(text)',
+    summary:
+      'INI text. Keys before any [section] go under "", as $readini does.',
+  },
+  {
+    name: 'format.lines',
+    signature: 'format.lines(lines)',
+    summary: 'Joins lines back into text with a trailing newline.',
+  },
+  {
+    name: 'format.csv',
+    signature: 'format.csv(rows)',
+    summary:
+      'Writes CSV, quoting a field only when it has to so a plain file stays readable.',
+  },
+  {
+    name: 'format.ini',
+    signature: 'format.ini(data)',
+    summary: 'Writes INI text from { section: { key: value } }.',
+  },
+  {
+    name: 'store.table',
+    signature: 'store.table(name)',
+    summary:
+      "mIRC's hash tables, scoped to your script. Returns { get, set, has, keys, delete, increment, compareAndSet, batch, query, drop }. set() returns { ok, reason } rather than throwing when a quota is hit.",
+  },
+  {
+    name: 'store.tables',
+    signature: 'store.tables()',
+    summary: 'The names of the tables your script owns.',
+  },
+  {
+    name: 'store.usedBytes',
+    signature: 'store.usedBytes()',
+    summary: 'How much of your storage quota is in use.',
+  },
+  {
+    name: 'secrets.set',
+    signature: 'secrets.set(key, value)',
+    summary:
+      'Store a secret in the device Keychain. Excluded from every backup and export.',
+    isAsync: true,
+  },
+  {
+    name: 'secrets.get',
+    signature: 'secrets.get(key)',
+    summary: 'Read back one of your own secrets. No script can read another’s.',
+    isAsync: true,
+  },
+  {
+    name: 'secrets.has',
+    signature: 'secrets.has(key)',
+    summary: 'Whether one of your secrets exists, without reading it.',
+    isAsync: true,
+  },
+  {
+    name: 'secrets.delete',
+    signature: 'secrets.delete(key)',
+    summary: 'Removes one of your secrets.',
+    isAsync: true,
+  },
+  {
+    name: 'secrets.keys',
+    signature: 'secrets.keys()',
+    summary: 'Your secret names. Names only - values are never enumerable.',
+    isAsync: true,
+  },
+  {
+    name: 'signal',
+    signature: 'signal(name, payload?, target?)',
+    summary:
+      "mIRC's /signal. Without a target it broadcasts to every other script; a broadcast never comes back to you. Returns { delivered, failed? }.",
   },
   {
     name: 'getChannelInfo',
@@ -558,6 +921,19 @@ export const API_ENTRIES: VocabularyEntry[] = [
     signature: 'getTheme()',
     summary:
       'The current theme: { name, isDark, colors }. Read it before choosing your own colours, so output stays readable on light and dark.',
+  },
+  {
+    name: 'themeColour',
+    signature: 'themeColour(role)',
+    summary:
+      'Resolve a semantic colour such as warning, error or messageText from the active theme.',
+  },
+  {
+    name: 'setTheme',
+    signature: 'setTheme(name)',
+    summary:
+      'Ask the user to approve changing to a built-in or custom theme. Returns true only after approval.',
+    isAsync: true,
   },
 
   // Timers

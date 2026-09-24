@@ -229,6 +229,17 @@ describe('useDeepLinkHandler hook', () => {
 
     await new Promise(r => setTimeout(r, 0));
 
+    // A link asking to join is still an action somebody else's page asked
+    // for, so it is confirmed rather than performed.
+    const buttons = safeAlert.mock.calls.find(
+      c => c[0] === 'Join Channel',
+    )?.[2];
+    expect(buttons).toBeDefined();
+    expect(handleJoinChannel).not.toHaveBeenCalled();
+    await act(async () => {
+      await buttons[1].onPress();
+    });
+
     expect(handleJoinChannel).toHaveBeenCalledWith('#chan', undefined);
     expect(handleConnect).not.toHaveBeenCalled();
   });
@@ -401,6 +412,17 @@ describe('useDeepLinkHandler hook', () => {
       }),
     );
     await new Promise(r => setTimeout(r, 0));
+
+    // A link asking to join is still an action somebody else's page asked
+    // for, so it is confirmed rather than performed.
+    const buttons = safeAlert.mock.calls.find(
+      c => c[0] === 'Join Channel',
+    )?.[2];
+    expect(buttons).toBeDefined();
+    expect(handleJoinChannel).not.toHaveBeenCalled();
+    await act(async () => {
+      await buttons[1].onPress();
+    });
 
     expect(handleJoinChannel).toHaveBeenCalledWith('#mapped', undefined);
     expect(handleConnect).not.toHaveBeenCalled();

@@ -13,6 +13,7 @@ import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 import { notificationService } from '../services/NotificationService';
 import type { ChannelTab } from '../types';
 import { debugLogger } from '../services/DebugLogger';
+import { appLifecycleEventService } from '../services/scripting/AppLifecycleEventService';
 
 interface PendingAlertPayload {
   title: string;
@@ -44,6 +45,13 @@ export const useAppStateEffects = (params: UseAppStateEffectsParams) => {
       'change',
       async nextState => {
         appStateRef.current = nextState;
+        if (
+          nextState === 'active' ||
+          nextState === 'background' ||
+          nextState === 'inactive'
+        ) {
+          appLifecycleEventService.emit(nextState);
+        }
 
         // Handle pending alerts
         if (nextState === 'active' && pendingAlertRef.current) {

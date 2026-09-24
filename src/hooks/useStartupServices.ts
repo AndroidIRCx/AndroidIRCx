@@ -27,6 +27,9 @@ import { commandService } from '../services/CommandService';
 import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
 import { scriptingService } from '../services/ScriptingService';
+import { addonSafetyService } from '../services/scripting/AddonSafetyService';
+import { installAddonGroupWiring } from '../services/scripting/AddonGroupWiring';
+import { addonLifecycleService } from '../services/scripting/AddonLifecycleService';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 import {
   NEW_FEATURE_DEFAULTS,
@@ -52,7 +55,13 @@ export const useStartupServices = () => {
       try {
         // Wait longer to ensure app is fully initialized and rendered
         await new Promise<void>(resolve => setTimeout(resolve, 500));
+        await addonSafetyService.beginStartup();
+        // Installed once, before anything can register: a group switched off
+        // later must take its own contributions with it.
+        installAddonGroupWiring();
         await scriptingService.initialize();
+        await addonLifecycleService.startInstalled();
+        await addonSafetyService.completeStartup();
         // Only hide if component is still mounted
         await RNBootSplash.hide({ fade: true });
       } catch (error) {

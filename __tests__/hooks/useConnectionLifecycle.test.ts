@@ -237,6 +237,15 @@ describe('useConnectionLifecycle', () => {
     require('../../src/services/UserManagementService').userManagementService.isUserIgnored.mockReturnValue(
       false,
     );
+    require('../../src/services/ScriptingService').scriptingService.handleMessage.mockResolvedValue(
+      {
+        delivered: 0,
+        failed: 0,
+        stoppedBy: undefined,
+        hideDefaultRequestedBy: [],
+        transformations: [],
+      },
+    );
   });
 
   it('should render without crashing', async () => {
@@ -1276,6 +1285,101 @@ describe('useConnectionLifecycle', () => {
       expect.stringContaining('Network changed'),
     );
     debugSpy.mockRestore();
+  });
+
+  it('hides only the default line and queues addon replacements locally', async () => {
+    SETTINGS().getSetting.mockImplementation(async (key: string, def: any) =>
+      key === 'noticeTarget' ? 'server' : def,
+    );
+    const { scriptingService } = require('../../src/services/ScriptingService');
+    scriptingService.handleMessage.mockResolvedValueOnce({
+      delivered: 1,
+      failed: 0,
+      stoppedBy: undefined,
+      hideDefaultRequestedBy: ['test.addon'],
+      transformations: [
+        {
+          addonId: 'test.addon',
+          result: {
+            display: 'hide',
+            replacement: 'local replacement',
+            style: { role: 'warning', bold: true },
+            routeTo: { kind: 'channel', target: '#other' },
+          },
+        },
+      ],
+    });
+    const pendingMessagesRef = { current: [] as any[] };
+    const params = {
+      ...mockParams,
+      tabsRef: { current: baseTabs() },
+      activeTabId: 'channel-test-network-test',
+      pendingMessagesRef,
+    };
+    await renderHook(() => useConnectionLifecycle(params));
+    const { message } = captureHandlers();
+    await act(async () => {
+      await message({
+        id: 'original-1',
+        type: 'message',
+        channel: '#test',
+        from: 'alice',
+        text: 'original',
+        network: 'test-network',
+        timestamp: 1,
+      });
+    });
+
+    expect(pendingMessagesRef.current).toHaveLength(1);
+    expect(pendingMessagesRef.current[0]).toMatchObject({
+      message: {
+        id: 'original-1:addon:0',
+        text: 'local replacement',
+        channel: '#other',
+        addonDisplayStyle: { role: 'warning', bold: true },
+      },
+      context: { targetTabId: 'channel-test-network-#test' },
+    });
+    expect(
+      require('../../src/utils/tabUtils').channelTabId,
+    ).toHaveBeenCalledWith('test-network', '#other');
+  });
+
+  it('does not route an addon-generated local line through addons again', async () => {
+    SETTINGS().getSetting.mockImplementation(async (_key: string, def: any) =>
+      Promise.resolve(def),
+    );
+    const { scriptingService } = require('../../src/services/ScriptingService');
+    scriptingService.handleMessage.mockClear();
+    const pendingMessagesRef = { current: [] as any[] };
+    await renderHook(() =>
+      useConnectionLifecycle({
+        ...mockParams,
+        tabsRef: { current: baseTabs() },
+        activeTabId: 'channel-test-network-test',
+        pendingMessagesRef,
+      }),
+    );
+    const { message } = captureHandlers();
+
+    await act(async () => {
+      await message({
+        id: 'dcc-addon-line',
+        type: 'notice',
+        text: 'transformed DCC status',
+        network: 'test-network',
+        timestamp: 1,
+        addonDisplayProcessed: true,
+        addonDisplayStyle: { role: 'success' },
+      });
+    });
+
+    expect(scriptingService.handleMessage).not.toHaveBeenCalled();
+    expect(pendingMessagesRef.current).toHaveLength(1);
+    expect(pendingMessagesRef.current[0].message).toMatchObject({
+      text: 'transformed DCC status',
+      addonDisplayProcessed: true,
+    });
   });
 
   it('handles connection-created events without throwing', async () => {

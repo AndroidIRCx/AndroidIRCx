@@ -47,6 +47,9 @@ import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
 import { stsService } from './STSService';
 import { ScramAuthService } from './irc/ScramAuth';
+// Pure policy with no service dependencies, so importing it here does not
+// break this file's rule of importing no services.
+import { sanitizeOutboundLine } from './scripting/AddonRawPolicy';
 
 /* eslint-disable no-bitwise, no-control-regex, no-useless-escape -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
 // Re-export ChannelTab from types for backward compatibility
@@ -237,6 +240,22 @@ export interface IRCMessage {
   isScrollback?: boolean; // Message loaded from local scrollback history
   isPlayback?: boolean; // Message from bouncer playback buffer
   batchTag?: string; // IRCv3.2 batch tag - indicates message is part of a batch
+  addonDisplayStyle?: {
+    role?:
+      | 'message'
+      | 'notice'
+      | 'error'
+      | 'warning'
+      | 'success'
+      | 'info'
+      | 'accent'
+      | 'muted';
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+  };
+  /** Internal: this local line is already the result of an addon transform. */
+  addonDisplayProcessed?: boolean;
   whoisData?: {
     // Structured WHOIS data for clickable rendering
     nick?: string;
@@ -279,6 +298,12 @@ export class IRCService {
   private nickChangeAttempts: number = 0;
   private verboseLogging: boolean = false;
   private isLoggingRaw: boolean = false;
+  private suppressNumericDisplay: boolean = false;
+  private activeNumericDisplayContext?: {
+    numeric: string;
+    target?: string;
+    command: string;
+  };
   private numericHandlers: IRCNumericHandlers | null = null;
   private commandHandlers: IRCCommandHandlers | null = null;
   private sendMessageHandlers: IRCSendMessageHandlers | null = null;
@@ -1836,31 +1861,67 @@ export class IRCService {
   ): void {
     this.emit('numeric', numeric, prefix, params, timestamp);
 
-    if (
-      this.capEnabledSet.has('draft/metadata-2') &&
-      this.handleMetadataNumeric(numeric, params, timestamp)
-    ) {
-      return;
-    }
-
-    // Try extracted handlers first (modular architecture)
-    if (!this.numericHandlers) {
-      this.numericHandlers = new IRCNumericHandlers(this as any);
-    }
-    if (this.numericHandlers.handle(numeric, prefix, params, timestamp)) {
-      return; // Handler found and executed
-    }
-
-    // Fallback to a generic display for numerics not yet mapped
-    const rawText = params.slice(1).join(' ').replace(/^:/, '');
-    const displayText = rawText || t('Server response');
-    this.addMessage({
+    const text = params.slice(1).join(' ').replace(/^:/, '');
+    const numericMessage: IRCMessage = {
+      id: `numeric-${timestamp}-${numeric}`,
       type: 'raw',
-      text: t('[{numeric}] {message}', { numeric, message: displayText }),
-      timestamp: timestamp,
+      text,
+      timestamp,
+      network: this.getNetworkName(),
+      numeric: String(numeric).padStart(3, '0'),
+      target: params[0],
       isRaw: true,
       rawCategory: 'server',
-    });
+      command: String(numeric).padStart(3, '0'),
+    };
+    try {
+      // Runtime require avoids an IRCService <-> ScriptingService module cycle.
+      const { scriptingService } = require('./ScriptingService');
+      this.suppressNumericDisplay =
+        scriptingService.handleNumeric(
+          numeric,
+          params.slice(1),
+          text,
+          numericMessage,
+        ) === false;
+    } catch {
+      this.suppressNumericDisplay = false;
+    }
+
+    try {
+      this.activeNumericDisplayContext = {
+        numeric: numericMessage.numeric!,
+        target: numericMessage.target,
+        command: numericMessage.command!,
+      };
+      if (
+        this.capEnabledSet.has('draft/metadata-2') &&
+        this.handleMetadataNumeric(numeric, params, timestamp)
+      ) {
+        return;
+      }
+
+      // Try extracted handlers first (modular architecture)
+      if (!this.numericHandlers) {
+        this.numericHandlers = new IRCNumericHandlers(this as any);
+      }
+      if (this.numericHandlers.handle(numeric, prefix, params, timestamp)) {
+        return; // Handler found and executed
+      }
+
+      // Fallback to a generic display for numerics not yet mapped
+      const displayText = text || t('Server response');
+      this.addMessage({
+        type: 'raw',
+        text: t('[{numeric}] {message}', { numeric, message: displayText }),
+        timestamp: timestamp,
+        isRaw: true,
+        rawCategory: 'server',
+      });
+    } finally {
+      this.activeNumericDisplayContext = undefined;
+      this.suppressNumericDisplay = false;
+    }
   }
 
   private startCAPNegotiation(): void {
@@ -2577,6 +2638,22 @@ export class IRCService {
 
   public sendRaw(message: string): void {
     if (this.socket && this.isConnected) {
+      // Every outbound line passes this gate, whoever wrote it: the app, a
+      // script, an addon or the user typing /raw. A CR or LF is refused rather
+      // than stripped, because it is the one way to smuggle a second command
+      // into a line that looked like one, and quietly repairing it would hide
+      // the attempt. Over-length lines are truncated, which is what the server
+      // would do anyway - dropping the whole message is the worse outcome.
+      const checked = sanitizeOutboundLine(message);
+      if (checked.line === null) {
+        this.emit('raw-rejected', { reason: checked.rejected });
+        this.logRaw(
+          `IRCService: refused an outbound line (${checked.rejected})`,
+        );
+        return;
+      }
+      if (checked.truncated) this.emit('raw-truncated', {});
+      message = checked.line;
       try {
         if (this.currentTransport === 'websocket' && this.socket.send) {
           // WebSocket transport is UTF-8 by spec.
@@ -3632,8 +3709,10 @@ export class IRCService {
     },
     batchTag?: string,
   ): void {
+    if (this.suppressNumericDisplay) return;
     const fullMessage: IRCMessage = {
       ...message,
+      ...this.activeNumericDisplayContext,
       id: `${Date.now()}-${Math.random()}`,
       network: this.getNetworkName(),
       batchTag,

@@ -81,7 +81,22 @@ export const handleRAW: SendMessageHandler = (ctx, args) => {
   // /raw <command> - Send raw IRC command (alias for /quote)
   if (args.length > 0) {
     const rawCommand = args.join(' ');
-    ctx.sendRaw(rawCommand);
+    // Required lazily: the addon stack reaches AsyncStorage and the package
+    // store, and this module is loaded on the IRC send path.
+    const { addonRawMiddleware } =
+      require('../../scripting/AddonRawMiddleware') as typeof import('../../scripting/AddonRawMiddleware');
+    if (!addonRawMiddleware.hasOutgoingModifiers()) {
+      // The ordinary case stays synchronous, so enabling no expert-mode addon
+      // costs no change in ordering.
+      ctx.sendRaw(rawCommand);
+      return;
+    }
+    addonRawMiddleware
+      .filterOutgoing(rawCommand)
+      .then(decision => {
+        if (decision.line !== null) ctx.sendRaw(decision.line);
+      })
+      .catch(() => {});
   } else {
     ctx.addMessage({
       type: 'error',

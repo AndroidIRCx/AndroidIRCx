@@ -10,6 +10,7 @@ import { settingsService } from './SettingsService';
 import { storageCache } from './StorageCache';
 import { secureStorageService } from './SecureStorageService';
 import { AI_SECRET_PREFIXES } from './ai/AIProviderStore';
+import { isAddonSecretKey } from './scripting/AddonSecretStore';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -186,9 +187,18 @@ class DataBackupService {
     return keys.filter(key => !this.isSecretExcludedFromBackup(key));
   }
 
-  /** True when this Keychain key is excluded from every backup. */
+  /**
+   * True when this Keychain key is excluded from every backup.
+   *
+   * Addon secrets join the AI provider keys here for the same reason: a backup
+   * file is copied to cloud storage and e-mailed around, and a credential an
+   * addon was trusted with is not the user's to leak on its behalf.
+   */
   isSecretExcludedFromBackup(secretKey: string): boolean {
-    return AI_SECRET_PREFIXES.some(prefix => secretKey.startsWith(prefix));
+    return (
+      AI_SECRET_PREFIXES.some(prefix => secretKey.startsWith(prefix)) ||
+      isAddonSecretKey(secretKey)
+    );
   }
 
   private async getSecureExportEntries(
