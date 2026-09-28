@@ -13,13 +13,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
-import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.header
 import io.ktor.server.response.respondText
-import io.ktor.server.sse.SSE
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
@@ -164,6 +162,11 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
                 required = (parsed["required"] as? JsonArray)
                     ?.mapNotNull { (it as? JsonPrimitive)?.content }
                     ?: emptyList(),
+                // Carried for the same reason the client carries it: a $ref in
+                // a property is meaningless once $defs is gone. None of our
+                // own tools use one today, so this only has to not be wrong
+                // the day one does.
+                defs = parsed["\$defs"] as? JsonObject,
             )
 
             val tool = Tool(name = name, description = description, inputSchema = schema)
@@ -222,7 +225,11 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
             }
 
             val started = embeddedServer(CIO, port = port, host = host) {
-                install(SSE)
+                // No install(SSE) here: mcpStreamableHttp() installs it itself,
+                // and Ktor throws DuplicatePluginException on the second
+                // install - so the server refused to start at all, with a
+                // message about a conflicting plugin key that said nothing
+                // about MCP.
                 // Every request carries the token or it does not get in.
                 //
                 // The token was generated and shown to the user from the first

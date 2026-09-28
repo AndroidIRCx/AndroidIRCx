@@ -51,6 +51,50 @@ const STORAGE_KEY = '@AndroidIRCX:mcpClients';
 const SECRET_PREFIX = 'ai:mcpclient:';
 export const MCP_TOOL_PREFIX = 'mcp__';
 
+/**
+ * What a provider accepts as a tool name: `^[a-zA-Z0-9_-]{1,64}$`.
+ *
+ * The server name is free text the user typed, so it cannot go into a tool
+ * name untouched. A server called "Mem Palace" would otherwise put a space in
+ * the name and the provider would reject the **whole** request — every tool in
+ * it, built-ins included — with an error that says nothing about a space.
+ */
+const MAX_TOOL_NAME = 64;
+
+const sanitiseNamePart = (value: string): string =>
+  value.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+/**
+ * Build the name a remote tool is shown to the model under.
+ *
+ * The tool half is kept whole wherever possible and the server half is what
+ * gets shortened, because the tool name is the part the model reads to decide
+ * what a tool does. Routing never depends on this name: the map stores the
+ * server id and the tool's real remote name separately.
+ *
+ * @param taken names already used in this connect pass, so two servers whose
+ * names differ only in punctuation cannot silently shadow each other.
+ */
+export function namespacedToolName(
+  serverName: string,
+  toolName: string,
+  taken: Set<string> = new Set(),
+): string {
+  const tool = sanitiseNamePart(toolName) || 'tool';
+  const server = sanitiseNamePart(serverName) || 'server';
+  const room = MAX_TOOL_NAME - MCP_TOOL_PREFIX.length - 2 - tool.length;
+  const head =
+    room >= server.length ? server : server.substring(0, Math.max(1, room));
+  const base = `${MCP_TOOL_PREFIX}${head}__${tool}`.substring(0, MAX_TOOL_NAME);
+
+  let name = base;
+  for (let n = 2; taken.has(name); n++) {
+    const suffix = `_${n}`;
+    name = `${base.substring(0, MAX_TOOL_NAME - suffix.length)}${suffix}`;
+  }
+  return name;
+}
+
 export interface McpClientServer {
   id: string;
   name: string;
@@ -67,10 +111,26 @@ interface ConnectedTool {
   tool: AITool;
 }
 
+/**
+ * How the last connection attempt to a server went.
+ *
+ * Kept because a failure used to be a log line and nothing else: the settings
+ * screen showed a server that looked configured, the assistant reported no
+ * tools, and there was no way to tell the two apart.
+ */
+export interface McpClientStatus {
+  state: 'unknown' | 'connected' | 'failed';
+  /** Tools collected, when connected. */
+  tools: number;
+  /** Why it failed, in the server's own words, when it did. */
+  error?: string;
+}
+
 class McpClientService {
   private servers: McpClientServer[] = [];
   private loaded = false;
   private tools = new Map<string, ConnectedTool>();
+  private statuses = new Map<string, McpClientStatus>();
 
   isSupported(): boolean {
     return !!McpClient;
@@ -160,6 +220,7 @@ class McpClientService {
     await this.load();
     this.servers = this.servers.filter(server => server.id !== id);
     await secureStorageService.removeSecret(this.secretKey(id));
+    this.statuses.delete(id);
     await this.disconnect(id);
     await this.persist();
   }
@@ -177,39 +238,97 @@ class McpClientService {
 
     for (const server of this.servers) {
       if (!server.enabled) continue;
-      try {
-        const token = server.hasToken
-          ? await secureStorageService.getSecret(this.secretKey(server.id))
-          : null;
-        const result = await McpClient.connect(server.id, server.url, token);
-        for (const remote of result.tools) {
-          const name = `${MCP_TOOL_PREFIX}${server.name}__${remote.name}`;
-          let inputSchema: Record<string, unknown> = { type: 'object' };
-          try {
-            inputSchema = JSON.parse(remote.inputSchema);
-          } catch {
-            // A server that cannot describe its own tool still gets to be
-            // called; the model just has no schema to fill in.
-          }
-          this.tools.set(name, {
-            serverId: server.id,
-            remoteName: remote.name,
-            tool: {
-              name,
-              description: remote.description,
-              inputSchema,
-              // readOnlyHint is the server's claim about itself, so it only
-              // skips confirmation when the user has said they trust it.
-              mutates: !(server.trustReadOnlyHints && remote.readOnly),
-            },
-          });
-        }
-        logger.info('ai', `MCP ${server.name}: ${result.tools.length} tools`);
-      } catch (error) {
-        logger.warn('ai', `MCP ${server.name} unavailable: ${String(error)}`);
-      }
+      await this.connectOne(server);
     }
     return this.toolSchemas();
+  }
+
+  /**
+   * Connect one server and collect its tools, recording how it went.
+   *
+   * Returns rather than throws: the caller is either connecting every server,
+   * where one failure must not cost the rest, or testing a single one, where
+   * the status is the answer.
+   */
+  private async connectOne(server: McpClientServer): Promise<McpClientStatus> {
+    if (!McpClient) {
+      return this.setStatus(server.id, {
+        state: 'failed',
+        tools: 0,
+        error: 'This build has no MCP support.',
+      });
+    }
+    // Names already used by servers connected earlier in this pass, so a
+    // collision gets a suffix instead of quietly replacing someone's tool.
+    const taken = new Set(this.tools.keys());
+    try {
+      const token = server.hasToken
+        ? await secureStorageService.getSecret(this.secretKey(server.id))
+        : null;
+      const result = await McpClient.connect(server.id, server.url, token);
+      for (const remote of result.tools) {
+        const name = namespacedToolName(server.name, remote.name, taken);
+        taken.add(name);
+        let inputSchema: Record<string, unknown> = { type: 'object' };
+        try {
+          inputSchema = JSON.parse(remote.inputSchema);
+        } catch {
+          // A server that cannot describe its own tool still gets to be
+          // called; the model just has no schema to fill in.
+        }
+        this.tools.set(name, {
+          serverId: server.id,
+          remoteName: remote.name,
+          tool: {
+            name,
+            description: remote.description,
+            inputSchema,
+            // readOnlyHint is the server's claim about itself, so it only
+            // skips confirmation when the user has said they trust it.
+            mutates: !(server.trustReadOnlyHints && remote.readOnly),
+          },
+        });
+      }
+      logger.info('ai', `MCP ${server.name}: ${result.tools.length} tools`);
+      return this.setStatus(server.id, {
+        state: 'connected',
+        tools: result.tools.length,
+      });
+    } catch (error) {
+      const message = String((error as any)?.message ?? error);
+      logger.warn('ai', `MCP ${server.name} unavailable: ${message}`);
+      return this.setStatus(server.id, {
+        state: 'failed',
+        tools: 0,
+        error: message,
+      });
+    }
+  }
+
+  private setStatus(id: string, status: McpClientStatus): McpClientStatus {
+    this.statuses.set(id, status);
+    return status;
+  }
+
+  /** How the last attempt at this server went, for the settings screen. */
+  status(id: string): McpClientStatus {
+    return this.statuses.get(id) ?? { state: 'unknown', tools: 0 };
+  }
+
+  /**
+   * Connect one server on demand, so the user can find out why it does not
+   * work without opening the assistant and reading a log.
+   */
+  async test(id: string): Promise<McpClientStatus> {
+    await this.load();
+    const server = this.servers.find(entry => entry.id === id);
+    if (!server) return { state: 'unknown', tools: 0 };
+    // Drop whatever this server contributed before, or a server that has just
+    // stopped offering a tool would keep it until the next full connect.
+    for (const [name, entry] of this.tools) {
+      if (entry.serverId === id) this.tools.delete(name);
+    }
+    return this.connectOne(server);
   }
 
   /** Tools collected by the last connectAll(), as the providers want them. */
@@ -264,6 +383,7 @@ class McpClientService {
     this.servers = [];
     this.loaded = false;
     this.tools.clear();
+    this.statuses.clear();
   }
 }
 

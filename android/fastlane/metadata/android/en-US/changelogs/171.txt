@@ -1,0 +1,4 @@
+What's new in v1.10.1:
+- MCP: the app now also speaks the older SSE transport, so a server you run yourself, in Termux for example, connects and its tools appear.
+- MCP: a quiet connection is no longer dropped after ten seconds.
+- MCP: letting another agent use this app works again, instead of refusing to start with a message about a conflicting plugin.
