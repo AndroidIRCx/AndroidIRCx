@@ -1,0 +1,6 @@
+What's new in v1.10.1:
+- MCP works again from end to end. A published build refused plain http to every address, so a server you run yourself, in Termux for example, could not be reached at all.
+- MCP now also speaks the older SSE transport, so a server that serves /sse connects and its tools appear.
+- A server that cannot be reached reports the reason instead of closing the app.
+- Letting another agent use this app starts again.
+- The Local / LAN AI provider works in a published build.

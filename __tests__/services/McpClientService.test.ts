@@ -45,6 +45,7 @@ jest.mock('../../src/services/Logger', () => ({
 const {
   mcpClientService,
   MCP_TOOL_PREFIX,
+  namespacedToolName,
 } = require('../../src/services/ai/McpClientService');
 
 const remoteTool = (overrides = {}) => ({
@@ -214,5 +215,115 @@ describe('McpClientService', () => {
     expect(mockSecrets[`ai:mcpclient:${server.id}`]).toBeUndefined();
     expect(mcpClientService.toolSchemas()).toEqual([]);
     expect(await mcpClientService.list()).toEqual([]);
+  });
+  describe('namespacedToolName', () => {
+    it('keeps a name a provider will accept', () => {
+      // Providers take ^[a-zA-Z0-9_-]{1,64}$, and a space in the server name
+      // used to reach them untouched and fail the whole request.
+      const name = namespacedToolName('Mem Palace', 'mempalace_search');
+
+      expect(name).toBe('mcp__Mem_Palace__mempalace_search');
+      expect(name).toMatch(/^[a-zA-Z0-9_-]{1,64}$/);
+    });
+
+    it('replaces every character a provider would reject', () => {
+      const name = namespacedToolName('naš:server!', 'tool.name');
+
+      expect(name).toMatch(/^[a-zA-Z0-9_-]{1,64}$/);
+    });
+
+    it('stays within 64 characters by shortening the server, not the tool', () => {
+      const name = namespacedToolName(
+        'a'.repeat(60),
+        'mempalace_memories_filed_away',
+      );
+
+      expect(name.length).toBeLessThanOrEqual(64);
+      expect(name.endsWith('__mempalace_memories_filed_away')).toBe(true);
+    });
+
+    it('truncates even a tool name that fills the budget on its own', () => {
+      const name = namespacedToolName('server', 'x'.repeat(90));
+
+      expect(name.length).toBe(64);
+    });
+
+    it('gives a colliding name a suffix instead of shadowing the first', () => {
+      const taken = new Set(['mcp__a_b__search']);
+
+      const name = namespacedToolName('a b', 'search', taken);
+
+      expect(name).toBe('mcp__a_b__search_2');
+    });
+
+    it('falls back rather than producing an empty part', () => {
+      expect(namespacedToolName('', '')).toBe('mcp__server__tool');
+    });
+  });
+
+  it('does not let two servers with equivalent names shadow each other', async () => {
+    await mcpClientService.add({ name: 'a b', url: 'https://a.example.com' });
+    await mcpClientService.add({ name: 'a:b', url: 'https://b.example.com' });
+    mockNative.connect.mockResolvedValue({ id: 'x', tools: [remoteTool()] });
+
+    const tools = await mcpClientService.connectAll();
+
+    expect(tools).toHaveLength(2);
+    expect(new Set(tools.map((tool: any) => tool.name)).size).toBe(2);
+  });
+
+  it('remembers why a server failed, and says so', async () => {
+    const server = await mcpClientService.add({
+      name: 'Docs',
+      url: 'https://a.example.com',
+    });
+    mockNative.connect.mockRejectedValue(new Error('Connection refused'));
+
+    await mcpClientService.connectAll();
+
+    expect(mcpClientService.status(server.id)).toEqual({
+      state: 'failed',
+      tools: 0,
+      error: 'Connection refused',
+    });
+  });
+
+  it('reports the tool count when a server connects', async () => {
+    const server = await mcpClientService.add({
+      name: 'Docs',
+      url: 'https://a.example.com',
+    });
+    mockNative.connect.mockResolvedValue({ id: 'x', tools: [remoteTool()] });
+
+    await mcpClientService.connectAll();
+
+    expect(mcpClientService.status(server.id)).toEqual({
+      state: 'connected',
+      tools: 1,
+    });
+  });
+
+  it('has no status for a server nobody has tried yet', () => {
+    expect(mcpClientService.status('never-seen')).toEqual({
+      state: 'unknown',
+      tools: 0,
+    });
+  });
+
+  it('tests one server on demand without touching the others', async () => {
+    const one = await mcpClientService.add({
+      name: 'One',
+      url: 'https://one.example.com',
+    });
+    await mcpClientService.add({ name: 'Two', url: 'https://two.example.com' });
+    mockNative.connect.mockResolvedValue({ id: 'x', tools: [remoteTool()] });
+    await mcpClientService.connectAll();
+
+    mockNative.connect.mockRejectedValue(new Error('Gone'));
+    const status = await mcpClientService.test(one.id);
+
+    expect(status).toEqual({ state: 'failed', tools: 0, error: 'Gone' });
+    // The other server's tool is still there; only the tested one was dropped.
+    expect(mcpClientService.toolSchemas()).toHaveLength(1);
   });
 });

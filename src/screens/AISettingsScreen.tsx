@@ -41,6 +41,7 @@ import {
 import {
   mcpClientService,
   McpClientServer,
+  McpClientStatus,
 } from '../services/ai/McpClientService';
 import { aiMemoryService, AIMemory } from '../services/ai/AIMemoryService';
 import { webAccessService } from '../services/ai/WebAccessService';
@@ -128,6 +129,9 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [serverBind, setServerBind] = useState<McpBindMode>('loopback');
   const [serverBusy, setServerBusy] = useState(false);
   const [clientServers, setClientServers] = useState<McpClientServer[]>([]);
+  const [clientStatuses, setClientStatuses] = useState<
+    Record<string, McpClientStatus>
+  >({});
   const [clientName, setClientName] = useState('');
   const [clientUrl, setClientUrl] = useState('');
   const [clientToken, setClientToken] = useState('');
@@ -390,6 +394,37 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
       await refresh();
     },
     [refresh],
+  );
+
+  /**
+   * Connect one server now and say what happened.
+   *
+   * Without this a server that cannot be reached is indistinguishable from one
+   * that offers no tools: both look configured here and both leave the
+   * assistant with nothing.
+   */
+  const testClientServer = useCallback(
+    async (id: string) => {
+      setTestingId(id);
+      try {
+        const status = await mcpClientService.test(id);
+        setClientStatuses(previous => ({ ...previous, [id]: status }));
+        if (status.state === 'connected') {
+          Alert.alert(
+            t('Connection works'),
+            t('The server offered {count} tools.', { count: status.tools }),
+          );
+        } else {
+          Alert.alert(
+            t('Connection failed'),
+            status.error ?? t('The server did not answer.'),
+          );
+        }
+      } finally {
+        setTestingId(null);
+      }
+    },
+    [t],
   );
 
   const toggleClientTrust = useCallback(
@@ -897,8 +932,39 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                       }
                     />
                   </View>
+                  {clientStatuses[server.id] && (
+                    <Text
+                      style={
+                        clientStatuses[server.id].state === 'failed'
+                          ? styles.statusBad
+                          : styles.statusGood
+                      }
+                    >
+                      {clientStatuses[server.id].state === 'connected'
+                        ? t('Connected · {count} tools', {
+                            count: clientStatuses[server.id].tools,
+                          })
+                        : (clientStatuses[server.id].error ??
+                          t('The server did not answer.'))}
+                    </Text>
+                  )}
                   <View style={styles.actions}>
                     <TouchableOpacity
+                      style={styles.action}
+                      onPress={() => testClientServer(server.id)}
+                      disabled={testingId === server.id}
+                    >
+                      {testingId === server.id ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={colors.primary}
+                        />
+                      ) : (
+                        <Text style={styles.actionText}>{t('Test')}</Text>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.action}
                       onPress={() => removeClientServer(server.id)}
                     >
                       <Text style={styles.actionDanger}>{t('Remove')}</Text>
@@ -1705,6 +1771,8 @@ const createStyles = (colors: any) =>
       gap: 16,
     },
     action: { paddingVertical: 4 },
+    statusGood: { color: colors.success, fontSize: 12.5, marginTop: 8 },
+    statusBad: { color: colors.error, fontSize: 12.5, marginTop: 8 },
     actionText: { color: colors.primary, fontSize: 13.5, fontWeight: '600' },
     actionDanger: { color: colors.error, fontSize: 13.5, fontWeight: '600' },
     label: {

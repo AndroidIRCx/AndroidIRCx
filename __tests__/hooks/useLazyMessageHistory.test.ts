@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useLazyMessageHistory } from '../../src/hooks/useLazyMessageHistory';
 
 let appStateChangeListener: ((state: string) => void) | null = null;
@@ -438,7 +438,11 @@ describe('useLazyMessageHistory', () => {
       ({ activeTabId }) => useLazyMessageHistory({ activeTabId }),
       { initialProps: { activeTabId: 't1' as string | null } },
     );
-    await new Promise(r => setTimeout(r, 0));
+    // The initial load resolves empty, and the hook retries 250ms later to let
+    // a lagging storage write land. Waiting a tick is not enough: on a busy
+    // machine that retry arrives after mockClear() and is counted as the
+    // foreground reload this test is asserting never happens.
+    await waitFor(() => expect(loadMessages).toHaveBeenCalledTimes(2));
     loadMessages.mockClear();
 
     appStateChangeListener?.('background');

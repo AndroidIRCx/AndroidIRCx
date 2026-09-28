@@ -257,8 +257,8 @@ android {
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 170
-        versionName = "1.10.0"
+        versionCode = 172
+        versionName = "1.10.1"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -388,6 +388,12 @@ dependencies {
     implementation("io.ktor:ktor-server-cio:3.2.3")
     implementation("io.ktor:ktor-server-sse:3.2.3")
     implementation("io.ktor:ktor-client-okhttp:3.2.3")
+    // The MCP client runs on CIO, not OkHttp. OkHttpSSESession starts its
+    // request before it creates the deferred that its own onFailure completes,
+    // so a connection that fails immediately - a refused port, a blocked
+    // cleartext request - hits a NullPointerException on an OkHttp thread and
+    // takes the app down. CIO has no such class.
+    implementation("io.ktor:ktor-client-cio:3.2.3")
 }
 
 // React Native Vector Icons
