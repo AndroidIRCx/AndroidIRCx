@@ -258,7 +258,7 @@ android {
         targetSdkVersion = rootProject.ext.targetSdkVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode = 172
-        versionName = "1.10.2"
+        versionName = "1.10.1"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
