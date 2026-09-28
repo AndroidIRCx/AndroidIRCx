@@ -7,14 +7,13 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.sse.SSE
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.mcpSse
 import io.modelcontextprotocol.kotlin.sdk.client.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -108,15 +107,17 @@ class McpClientModule(reactContext: ReactApplicationContext) :
             var http: HttpClient? = null
             try {
                 clients.remove(id)?.let { (stale, _) -> stale.close() }
-                val opened = HttpClient(OkHttp) {
+                val opened = HttpClient(CIO) {
                     // SseClientTransport opens the stream through this plugin;
                     // without it the SSE transport fails before it starts.
                     install(SSE)
                     engine {
                         // An SSE stream is idle between events by design, and
-                        // OkHttp's default ten-second read timeout would tear
-                        // down a perfectly healthy connection.
-                        config { readTimeout(0, TimeUnit.MILLISECONDS) }
+                        // CIO's fifteen-second request timeout would tear down
+                        // a perfectly healthy connection. Zero means no limit;
+                        // the connect timeout still applies, and connectAll()
+                        // has its own.
+                        requestTimeout = 0
                     }
                 }
                 http = opened
@@ -174,7 +175,7 @@ class McpClientModule(reactContext: ReactApplicationContext) :
                 Log.e(TAG, "Connect to $url failed: ${e.message}", e)
                 // Close by id when the connection got that far, and otherwise
                 // close the client that never made it into the map — it holds
-                // an OkHttp dispatcher and connection pool either way.
+                // a connection pool and a dispatcher either way.
                 clients.remove(id)?.let { (stale, _) -> stale.close() } ?: http?.close()
                 promise.reject("connect_failed", e.message, e)
             }

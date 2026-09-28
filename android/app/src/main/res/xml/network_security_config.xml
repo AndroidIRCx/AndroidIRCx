@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Why this file exists at all.
+
+  The React Native Gradle plugin forces `usesCleartextTraffic` to false on the
+  release build type (AgpConfiguratorUtils.configureBuildTypesForApp), and the
+  `usesCleartextTraffic=true` in gradle.properties is not read for it. So a
+  release build refused every plain-http request, including one to 127.0.0.1,
+  and an MCP server the user runs on the phone in Termux could not be reached
+  at all: "CLEARTEXT communication to 127.0.0.1 not permitted by network
+  security policy". The same block silently broke the "Local / LAN" AI
+  provider kind, which exists to point at Ollama or LM Studio over http.
+
+  A network security configuration takes precedence over that attribute, which
+  is what makes this the fix rather than a workaround.
+
+  What it does, stated plainly: cleartext is permitted everywhere. The
+  intention is localhost and the user's own network, but Android's
+  configuration format matches host names and single addresses only - it has no
+  notion of an address range, so 192.168.0.0/16 cannot be expressed. The
+  localhost entries below are therefore documentation of the intent, not a
+  narrowing of it.
+
+  What still protects the user: every address here is one they typed
+  themselves, TLS is used wherever the other end offers it, and certificate
+  trust is unchanged - only the plaintext refusal is lifted.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- The case this was actually opened for: a server on the phone itself. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">::1</domain>
+    </domain-config>
+</network-security-config>

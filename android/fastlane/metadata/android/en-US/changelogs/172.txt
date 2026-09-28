@@ -1,0 +1,4 @@
+What's new in v1.10.2:
+- MCP: a server you run yourself can be reached again. A release build refused every plain-http address, including one on the phone itself.
+- MCP: a server that cannot be reached now reports the reason instead of closing the app.
+- The Local / LAN AI provider kind works in a release build for the same reason.
