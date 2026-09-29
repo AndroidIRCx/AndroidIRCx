@@ -72,7 +72,7 @@ export const TabOptionsModal: React.FC<TabOptionsModalProps> = ({
                         ? colors?.destructive || '#EF5350'
                         : colors?.text || '#666'
                     }
-                    style={{ marginRight: 12 }}
+                    style={{ marginEnd: 12 }}
                   />
                 )}
                 <Text

@@ -204,7 +204,7 @@ const createStyles = (colors: any) =>
       fontSize: 13,
       lineHeight: 20,
       minWidth: 80,
-      paddingRight: 12,
+      paddingEnd: 12,
       paddingVertical: 2,
     },
     headerCell: { color: colors.textSecondary, fontWeight: '600' },

@@ -31,6 +31,7 @@ import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { useT } from '../i18n/localization';
 import { Picker } from '@react-native-picker/picker';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface ConnectionProfilesScreenProps {
   visible: boolean;
@@ -921,7 +922,7 @@ export const ConnectionProfilesScreen: React.FC<
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
                   {t('SASL Password', { _tags: tags })}
                 </Text>
-                <TextInput
+                <PasswordInput
                   style={[
                     styles.modalInput,
                     {
@@ -934,13 +935,12 @@ export const ConnectionProfilesScreen: React.FC<
                   onChangeText={setEditProfileSaslPassword}
                   placeholder={t('SASL Password', { _tags: tags })}
                   placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
                 />
 
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
                   {t('NickServ Password', { _tags: tags })}
                 </Text>
-                <TextInput
+                <PasswordInput
                   style={[
                     styles.modalInput,
                     {
@@ -953,7 +953,6 @@ export const ConnectionProfilesScreen: React.FC<
                   onChangeText={setEditProfileNickservPassword}
                   placeholder={t('NickServ Password', { _tags: tags })}
                   placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
                 />
 
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
@@ -977,7 +976,7 @@ export const ConnectionProfilesScreen: React.FC<
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
                   {t('Oper Password', { _tags: tags })}
                 </Text>
-                <TextInput
+                <PasswordInput
                   style={[
                     styles.modalInput,
                     {
@@ -990,7 +989,6 @@ export const ConnectionProfilesScreen: React.FC<
                   onChangeText={setEditProfileOperPassword}
                   placeholder={t('Oper Password', { _tags: tags })}
                   placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
                 />
 
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
@@ -1234,7 +1232,7 @@ const createStyles = (colors: any) =>
     expandIcon: {
       fontSize: 16,
       color: colors.textSecondary,
-      marginLeft: 12,
+      marginStart: 12,
     },
     networkDetails: {
       padding: 16,
@@ -1399,7 +1397,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 4,
-      marginLeft: 8,
+      marginStart: 8,
     },
     editServerButtonText: {
       fontSize: 12,
@@ -1409,7 +1407,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 4,
-      marginLeft: 8,
+      marginStart: 8,
     },
     deleteServerButtonDisabled: {
       opacity: 0.5,
@@ -1422,7 +1420,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 4,
-      marginLeft: 8,
+      marginStart: 8,
     },
     editProfileIconButtonText: {
       fontSize: 11,

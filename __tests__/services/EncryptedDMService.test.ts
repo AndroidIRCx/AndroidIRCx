@@ -696,4 +696,184 @@ describe('EncryptedDMService', () => {
       await encryptedDMService.handleKeyAcceptance('alice', 'not-json'),
     ).toEqual({ status: 'invalid' });
   });
+
+  /**
+   * Trust records and per-network key storage. Getting these wrong is not a
+   * cosmetic bug: a bundle silently replaced is a key swapped under the user,
+   * and a "verified" flag that survives that swap is worse than no flag at all.
+   */
+  describe('trust records', () => {
+    it('has nothing to say about a nick it has never seen', async () => {
+      expect(await encryptedDMService.getTrustRecord('stranger')).toBeNull();
+    });
+
+    it('refuses to mark a nick verified when there is no record', async () => {
+      await encryptedDMService.setVerified('stranger', true);
+
+      // Nothing invented: a verified flag with no key behind it would be a lie.
+      expect(await encryptedDMService.getTrustRecord('stranger')).toBeNull();
+    });
+
+    it('treats the nick case-insensitively', async () => {
+      store.set(
+        'encdm:trust:alice',
+        JSON.stringify({ verified: false, firstSeen: 1, lastSeen: 1 }),
+      );
+
+      expect(await encryptedDMService.getTrustRecord('ALICE')).toMatchObject({
+        verified: false,
+      });
+
+      await encryptedDMService.setVerified('Alice', true);
+      expect(await encryptedDMService.getTrustRecord('alice')).toMatchObject({
+        verified: true,
+      });
+    });
+  });
+
+  describe('accepting a bundle someone sent us', () => {
+    it('stores one for a nick we have never seen', async () => {
+      await encryptedDMService.acceptExternalBundle(
+        'alice',
+        validBundle as any,
+        false,
+      );
+
+      expect(await encryptedDMService.getBundle('alice')).toMatchObject({
+        idPub: validBundle.idPub,
+      });
+    });
+
+    it('refuses a changed key unless replacing was asked for', async () => {
+      // The sodium stub hashes every bundle to the same fingerprint, so a
+      // genuine "changed" verdict cannot be produced from content here. What
+      // is under test is the guard that acts on the verdict.
+      const compare = jest
+        .spyOn(encryptedDMService as any, 'compareBundle')
+        .mockResolvedValue({
+          status: 'changed',
+          existingFingerprint: 'aaaa',
+          newFingerprint: 'bbbb',
+        });
+
+      try {
+        // A key that changed behind the user's back is how an impersonation
+        // looks from the inside, so it is refused rather than absorbed.
+        await expect(
+          encryptedDMService.acceptExternalBundle(
+            'alice',
+            validBundle as any,
+            false,
+          ),
+        ).rejects.toThrow(/Key changed/i);
+
+        // Unless the user said to replace it, having been shown both
+        // fingerprints.
+        await expect(
+          encryptedDMService.acceptExternalBundle(
+            'alice',
+            validBundle as any,
+            true,
+          ),
+        ).resolves.toBeUndefined();
+        expect(await encryptedDMService.getBundle('alice')).toMatchObject({
+          idPub: validBundle.idPub,
+        });
+      } finally {
+        compare.mockRestore();
+      }
+    });
+
+    it('accepts the same bundle twice without complaint', async () => {
+      await encryptedDMService.acceptExternalBundle(
+        'alice',
+        validBundle as any,
+        false,
+      );
+
+      await expect(
+        encryptedDMService.acceptExternalBundle(
+          'alice',
+          validBundle as any,
+          false,
+        ),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('listing every key that is stored', () => {
+    const putBundle = (network: string, nick: string) =>
+      store.set(
+        `encdm:bundle:v2:${network}:${nick}`,
+        JSON.stringify(validBundle),
+      );
+
+    it('finds nothing in an empty keychain', async () => {
+      expect(await encryptedDMService.listAllKeys()).toEqual([]);
+    });
+
+    it('reads network and nick back out of the key', async () => {
+      putBundle('Libera', 'alice');
+
+      const keys = await encryptedDMService.listAllKeys();
+
+      expect(keys).toHaveLength(1);
+      expect(keys[0]).toMatchObject({ network: 'Libera', nick: 'alice' });
+    });
+
+    it('keeps a nick that has a colon in it whole', async () => {
+      // The storage key is colon-separated, so a nick containing one has to be
+      // rejoined rather than truncated at the first colon.
+      putBundle('Libera', 'odd:nick');
+
+      const keys = await encryptedDMService.listAllKeys();
+
+      expect(keys[0]).toMatchObject({ network: 'Libera', nick: 'odd:nick' });
+    });
+
+    it('ignores keys that belong to something else', async () => {
+      putBundle('Libera', 'alice');
+      store.set('encdm:trust:alice', JSON.stringify({ verified: true }));
+      store.set('something:else', 'x');
+      store.set('encdm:bundle:v2:incomplete', JSON.stringify(validBundle));
+
+      const keys = await encryptedDMService.listAllKeys();
+
+      expect(keys).toHaveLength(1);
+      expect(keys[0].nick).toBe('alice');
+    });
+
+    it('defaults the trust fields when no record was kept', async () => {
+      putBundle('Libera', 'alice');
+
+      const [key] = await encryptedDMService.listAllKeys();
+
+      expect(key.verified).toBe(false);
+      expect(key.firstSeen).toBe(0);
+      expect(key.lastSeen).toBe(0);
+    });
+
+    it('carries the trust record through when there is one', async () => {
+      putBundle('Libera', 'alice');
+      store.set(
+        'encdm:trust:Libera:alice',
+        JSON.stringify({ verified: true, firstSeen: 111, lastSeen: 222 }),
+      );
+
+      const [key] = await encryptedDMService.listAllKeys();
+
+      expect(typeof key.verified).toBe('boolean');
+      expect(typeof key.firstSeen).toBe('number');
+    });
+
+    it('skips a stored bundle it cannot read rather than giving up', async () => {
+      putBundle('Libera', 'good');
+      store.set('encdm:bundle:v2:Libera:broken', '{ not json');
+
+      const keys = await encryptedDMService.listAllKeys();
+
+      // One unreadable entry must not cost the user the whole list.
+      expect(keys.map(k => k.nick)).toContain('good');
+    });
+  });
 });

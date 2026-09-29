@@ -2136,4 +2136,118 @@ describe('SettingsScreen Integration', () => {
     await byId('bouncer-scrollback-lines').onValueChange('0'); // invalid branch
     await byId('bouncer-scrollback-lines').onValueChange('150'); // valid branch
   });
+
+  it('applies every user-list performance knob, and ignores nonsense input', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
+    // The section list only renders the rows near the top, so narrow the
+    // section to the user-list rows rather than scrolling to them.
+    const WANTED = [
+      'perf-user-list-grouping-threshold',
+      'perf-user-debounce',
+      'perf-user-skip-sort',
+      'perf-user-chunk-loading',
+      'perf-user-chunk-size',
+      'perf-user-initial-render',
+    ];
+    fsMock.mockImplementation((sections: any[]) =>
+      sections
+        .filter(s => s.id === 'performance')
+        .map(s => ({
+          ...s,
+          data: s.data.filter((i: any) => WANTED.includes(i.id)),
+        })),
+    );
+
+    const view = await render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
+    await fireEvent.press(view.getByText('Performance'));
+
+    await waitFor(() =>
+      expect(mockCapturedSettingItems.get('perf-user-debounce')).toBeTruthy(),
+    );
+
+    await mockCapturedSettingItems
+      .get('perf-user-list-grouping-threshold')
+      ?.onValueChange('250');
+    await mockCapturedSettingItems
+      .get('perf-user-debounce')
+      .onValueChange('80');
+    await mockCapturedSettingItems
+      .get('perf-user-skip-sort')
+      .onValueChange('900');
+    await mockCapturedSettingItems
+      .get('perf-user-chunk-loading')
+      .onValueChange(true);
+    await mockCapturedSettingItems
+      .get('perf-user-chunk-size')
+      .onValueChange('120');
+    await mockCapturedSettingItems
+      .get('perf-user-initial-render')
+      .onValueChange('40');
+
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      userListSearchDebounceMs: 80,
+    });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      userListSkipSortThreshold: 900,
+    });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      userListEnableChunkLoading: true,
+    });
+
+    // A field left half-typed must not write a NaN into the config.
+    performanceService.setConfig.mockClear();
+    await mockCapturedSettingItems.get('perf-user-debounce').onValueChange('');
+    await mockCapturedSettingItems
+      .get('perf-user-chunk-size')
+      .onValueChange('abc');
+    await mockCapturedSettingItems
+      .get('perf-user-initial-render')
+      .onValueChange('-5');
+    await mockCapturedSettingItems
+      .get('perf-user-list-grouping-threshold')
+      ?.onValueChange('nope');
+    expect(performanceService.setConfig).not.toHaveBeenCalled();
+  });
+
+  it('says nothing was migrated when there were no old keys', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const {
+      connectionManager,
+    } = require('../../src/services/ConnectionManager');
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
+    jest.spyOn(Alert, 'alert');
+
+    (connectionManager.getAllConnections as jest.Mock).mockReturnValue([
+      { networkId: 'net-a' },
+    ]);
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'security'),
+    );
+
+    const view = await render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
+    await fireEvent.press(view.getByText('Security'));
+    await fireEvent.press(view.getByTestId('sec-open-migration'));
+
+    (
+      encryptedDMService.migrateOldKeysToNetwork as jest.Mock
+    ).mockResolvedValueOnce(0);
+    await fireEvent.press(view.getByText('net-a'));
+    await fireEvent.press(view.getByText('Migrate'));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Migration Complete',
+        'No old keys found to migrate',
+      ),
+    );
+  });
 });

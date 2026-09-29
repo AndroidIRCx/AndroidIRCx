@@ -1241,7 +1241,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 4,
     borderWidth: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   pickerOverlay: {
     flex: 1,

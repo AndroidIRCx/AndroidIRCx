@@ -311,4 +311,106 @@ describe('WhoisNumerics', () => {
       expect.objectContaining({ text: '*** End of WHOWAS for Alice' }),
     );
   });
+
+  /**
+   * Every handler here reads its text out of `params` with a fallback, and the
+   * ones that touch the WHOIS cache guard the service being absent. A server
+   * that sends a numeric with nothing after it is ordinary — several send a
+   * bare 305/306 — so the fallbacks are the normal path, not an edge case.
+   */
+  describe('numerics that arrive with nothing after them', () => {
+    const ALL: Array<[string, any]> = [
+      ['301', handle301],
+      ['302', handle302],
+      ['303', handle303],
+      ['304', handle304],
+      ['305', handle305],
+      ['306', handle306],
+      ['307', handle307],
+      ['308', handle308],
+      ['309', handle309],
+      ['310', handle310],
+      ['311', handle311],
+      ['312', handle312],
+      ['313', handle313],
+      ['314', handle314],
+      ['316', handle316],
+      ['317', handle317],
+      ['318', handle318],
+      ['319', handle319],
+      ['320', handle320],
+      ['330', handle330],
+      ['335', handle335],
+      ['338', handle338],
+      ['369', handle369],
+      ['378', handle378],
+      ['379', handle379],
+      ['671', handle671],
+    ];
+
+    it.each(ALL)('%s says something sensible with no parameters', (_n, fn) => {
+      fn(ctx, 'server', [], 900);
+
+      expect(ctx.addMessage).toHaveBeenCalled();
+      const message = ctx.addMessage.mock.calls.at(-1)[0];
+      expect(typeof message.text).toBe('string');
+      // A missing value must not reach the user as "undefined".
+      expect(message.text).not.toMatch(/undefined|\[object/);
+    });
+
+    it.each(ALL)('%s copes with no user management service', (_n, fn) => {
+      ctx.getUserManagementService = jest.fn(() => undefined);
+
+      expect(() => fn(ctx, 'server', ['me', 'Alice'], 901)).not.toThrow();
+      expect(ctx.addMessage).toHaveBeenCalled();
+    });
+
+    it.each(ALL)('%s copes with a service that cannot cache', (_n, fn) => {
+      // An older service object with no updateWHOIS on it: the guard is two
+      // conditions, and only one of them was ever exercised.
+      ctx.getUserManagementService = jest.fn(() => ({}));
+
+      expect(() => fn(ctx, 'server', ['me', 'Alice'], 902)).not.toThrow();
+      expect(updateWHOIS).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('where a WHOIS reply is shown', () => {
+    it('routes to the active tab or to the server tab, as configured', () => {
+      const { useUIStore } = require('../../../../src/stores/uiStore');
+
+      handle311(ctx, 'server', ['me', 'Alice', 'ali', 'host', '*', ':Real'], 1);
+      expect(ctx.addMessage.mock.calls.at(-1)[0].whoisActiveTab).toBe(true);
+
+      useUIStore.getState.mockReturnValue({ whoisDisplayMode: 'server' });
+      handle311(ctx, 'server', ['me', 'Alice', 'ali', 'host', '*', ':Real'], 2);
+      expect(ctx.addMessage.mock.calls.at(-1)[0].whoisActiveTab).toBe(false);
+
+      useUIStore.getState.mockReturnValue({ whoisDisplayMode: 'active' });
+    });
+  });
+
+  describe('idle time, in the units a person reads', () => {
+    const idleTextOf = () => ctx.addMessage.mock.calls.at(-1)[0].text;
+
+    it('counts hours and minutes past an hour', () => {
+      handle317(ctx, 'server', ['me', 'Alice', '7325', '1700000000'], 1);
+      expect(idleTextOf()).toContain('2 hours, 2 minutes');
+    });
+
+    it('counts minutes under an hour', () => {
+      handle317(ctx, 'server', ['me', 'Alice', '300', '1700000000'], 2);
+      expect(idleTextOf()).toContain('5 minutes');
+    });
+
+    it('counts seconds under a minute', () => {
+      handle317(ctx, 'server', ['me', 'Alice', '42', '1700000000'], 3);
+      expect(idleTextOf()).toContain('42 seconds');
+    });
+
+    it('says the signon time is unknown rather than showing the epoch', () => {
+      handle317(ctx, 'server', ['me', 'Alice', '5', '0'], 4);
+      expect(idleTextOf()).toContain('unknown');
+    });
+  });
 });

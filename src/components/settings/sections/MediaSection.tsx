@@ -34,6 +34,7 @@ import { mediaSettingsService } from '../../../services/MediaSettingsService';
 import { mediaCacheService } from '../../../services/MediaCacheService';
 import { callMediaProfileService } from '../../../services/CallMediaProfileService';
 import { settingsService } from '../../../services/SettingsService';
+import { PasswordInput } from '../../PasswordInput';
 
 interface MediaSectionProps {
   colors: {
@@ -1221,7 +1222,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
                       <Text style={modalStyles.submenuItemText}>
                         {t('TURN Credential', { _tags: tags })}
                       </Text>
-                      <TextInput
+                      <PasswordInput
                         style={[
                           modalStyles.submenuInput,
                           {
@@ -1234,7 +1235,6 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
                         onChangeText={setCallTurnCredential}
                         placeholder="credential"
                         placeholderTextColor={colors.textSecondary}
-                        secureTextEntry
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
@@ -1295,7 +1295,6 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
                             placeholder={subItem.placeholder}
                             placeholderTextColor={colors.textSecondary}
                             keyboardType={subItem.keyboardType || 'default'}
-                            secureTextEntry={subItem.secureTextEntry}
                             editable={!subItem.disabled}
                           />
                         </View>
@@ -1457,7 +1456,7 @@ const createModalStyles = (colors: any) =>
       borderRadius: 6,
       paddingHorizontal: 8,
       paddingVertical: 4,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     serverActionButtonDisabled: {
@@ -1474,7 +1473,7 @@ const createModalStyles = (colors: any) =>
       borderRadius: 6,
       paddingHorizontal: 8,
       paddingVertical: 4,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     serverActionTextDanger: {
@@ -1497,7 +1496,7 @@ const createModalStyles = (colors: any) =>
       borderRadius: 6,
       paddingHorizontal: 12,
       paddingVertical: 9,
-      marginLeft: 8,
+      marginStart: 8,
     },
     addServerButtonText: {
       color: colors.primary,

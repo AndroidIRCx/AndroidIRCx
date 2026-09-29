@@ -460,15 +460,20 @@ class SettingsService {
         const ensured = await this.ensureDefaults(loaded);
         const withSecrets = await this.applySecrets(ensured.networks);
         this.networks = withSecrets;
-        if (ensured.updated || this.networks.length !== loaded.length) {
-          await this.saveNetworks(this.networks);
+        if (ensured.updated || withSecrets.length !== loaded.length) {
+          await this.saveNetworks(withSecrets);
+          // saveNetworks writes the stripped copy and points `this.networks`
+          // at it. That copy is for storage only: a caller that connects right
+          // after this load still needs the passwords, so put the hydrated
+          // list back before returning it.
+          this.networks = withSecrets;
         }
         return this.networks;
       }
       const ensured = await this.ensureDefaults([]);
       const withSecrets = await this.applySecrets(ensured.networks);
+      await this.saveNetworks(withSecrets);
       this.networks = withSecrets;
-      await this.saveNetworks(this.networks);
       return this.networks;
     } catch (error) {
       console.error('Error loading networks:', error);

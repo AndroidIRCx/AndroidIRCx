@@ -20,6 +20,7 @@ import { IRCServerConfig, settingsService } from '../services/SettingsService';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useT } from '../i18n/localization';
 import { useTheme } from '../hooks/useTheme';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface ServerSettingsScreenProps {
   networkId: string;
@@ -178,7 +179,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
                     colors.buttonPrimaryText || colors.onAccent || colors.text
                   }
                 />
-                <Text style={[styles.saveText, { marginLeft: 6 }]}>
+                <Text style={[styles.saveText, { marginStart: 6 }]}>
                   {t('Saving...')}
                 </Text>
               </View>
@@ -304,13 +305,12 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
                 <Text style={styles.label}>
                   {t('Server Password (Optional)')}
                 </Text>
-                <TextInput
+                <PasswordInput
                   style={styles.input}
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('Server connection password')}
                   placeholderTextColor={mutedTextColor}
-                  secureTextEntry
                   autoCapitalize="none"
                 />
                 <Text style={styles.hint}>

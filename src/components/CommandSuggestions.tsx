@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   iconContainer: {
-    marginRight: 12,
+    marginEnd: 12,
   },
   content: {
     flex: 1,

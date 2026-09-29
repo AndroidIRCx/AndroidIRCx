@@ -880,7 +880,7 @@ const createStyles = (colors: any) =>
     },
     settingInfo: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     settingLabel: {
       fontSize: 16,
@@ -904,7 +904,7 @@ const createStyles = (colors: any) =>
       width: 45,
       fontSize: 14,
       color: colors.textSecondary,
-      textAlign: 'right',
+      textAlign: 'end',
     },
     schemeList: {
       gap: 8,
@@ -952,7 +952,7 @@ const createStyles = (colors: any) =>
       padding: 12,
     },
     categoryIcon: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     categoryTitle: {
       flex: 1,
@@ -978,7 +978,7 @@ const createStyles = (colors: any) =>
     },
     eventInfo: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     eventLabel: {
       fontSize: 14,
@@ -1034,7 +1034,7 @@ const createStyles = (colors: any) =>
     },
     customSoundInfo: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     customSoundName: {
       fontSize: 15,

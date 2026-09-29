@@ -5,6 +5,15 @@
 
 // Global Jest setup for React Native project to mock native modules used in tests.
 
+// RNTL's findBy*/waitFor give up after 1s by default. That is comfortable for a
+// plain run and too tight under `--coverage`: instrumentation slows every
+// render, and screen suites then fail on timing alone while passing on their
+// own. Ten seconds costs nothing when a wait succeeds, because these helpers
+// resolve as soon as the condition holds.
+import { configure as configureRNTL } from '@testing-library/react-native';
+
+configureRNTL({ asyncUtilTimeout: 10000 });
+
 console.log = jest.fn();
 console.info = jest.fn();
 console.debug = jest.fn();

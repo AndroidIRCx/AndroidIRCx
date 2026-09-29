@@ -593,7 +593,7 @@ const MessageItem = React.memo<MessageItemProps>(
       ]) as TextStyle;
       return {
         ...nickStyle,
-        marginRight: undefined,
+        marginEnd: undefined,
         flex: undefined,
         flexGrow: undefined,
         flexShrink: undefined,
@@ -4150,7 +4150,7 @@ const createStyles = (
       color: colors.messageTimestamp,
       fontSize: timestampFontSize,
       lineHeight: timestampLineHeight,
-      marginRight: 8,
+      marginEnd: 8,
       minWidth: 50,
       writingDirection: layoutConfig.messageTextDirection || 'auto',
     },
@@ -4158,15 +4158,15 @@ const createStyles = (
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 4,
-      paddingLeft: 8,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.primary,
+      paddingStart: 8,
+      borderStartWidth: 3,
+      borderStartColor: colors.primary,
       opacity: 0.85,
     },
     replyIndicatorIcon: {
       color: colors.primary,
       fontSize: 11,
-      marginRight: 4,
+      marginEnd: 4,
       fontWeight: '700',
     },
     replyIndicatorText: {
@@ -4203,7 +4203,7 @@ const createStyles = (
       fontFamily: messageFontFamily,
       lineHeight: messageLineHeight,
       fontWeight: '600',
-      marginRight: 8,
+      marginEnd: 8,
       writingDirection: layoutConfig.messageTextDirection || 'auto',
     },
     messageText: {
@@ -4310,7 +4310,7 @@ const createStyles = (
       marginVertical: 8,
     },
     contextSubGroup: {
-      paddingLeft: 10,
+      paddingStart: 10,
     },
     contextSubHeader: {
       marginTop: 8,
@@ -4448,7 +4448,7 @@ const createStyles = (
       alignItems: 'center',
     },
     blacklistButtonCancel: {
-      marginRight: 8,
+      marginEnd: 8,
       backgroundColor: colors.surfaceVariant || colors.messageBackground,
     },
     blacklistButtonPrimary: {
@@ -4583,7 +4583,7 @@ const createStyles = (
       paddingHorizontal: 12,
       borderRadius: 8,
       backgroundColor: colors.primary,
-      marginLeft: 8,
+      marginStart: 8,
     },
     cameraFlex: {
       flex: 1,
@@ -4621,7 +4621,7 @@ const createStyles = (
     searchButton: {
       position: 'absolute',
       bottom: 80,
-      right: 16,
+      end: 16,
       width: 56,
       height: 56,
       borderRadius: 28,

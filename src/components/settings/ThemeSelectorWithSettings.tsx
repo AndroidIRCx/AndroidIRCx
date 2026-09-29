@@ -224,7 +224,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
     },
     swatchStrip: {
       flexDirection: 'row',
-      marginRight: 12,
+      marginEnd: 12,
       borderRadius: 6,
       overflow: 'hidden',
       borderWidth: 1,
@@ -247,7 +247,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
       color: colors.text,
     },
     modeChip: {
-      marginLeft: 8,
+      marginStart: 8,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,

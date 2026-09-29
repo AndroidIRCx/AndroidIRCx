@@ -1,0 +1,5 @@
+What's new in v1.10.2:
+- 18 new languages: Czech, Polish, Turkish, Dutch, Hungarian, Greek, Slovak, Swedish, Norwegian, Danish, Finnish, Bulgarian, Chinese, Japanese, Korean and Hindi. AndroidIRCX now speaks 29.
+- Tap the eye in a password field to see what you typed, so a mistyped server or SASL password no longer shows up only as a connection that will not come up.
+- Saved network passwords no longer go missing after a restart.
+- The built-in MCP server answers again.

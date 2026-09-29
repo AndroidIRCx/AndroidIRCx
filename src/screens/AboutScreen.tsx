@@ -335,7 +335,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.buttonPrimary || '#2196F3',
     },
     rateIcon: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     rateButtonText: {
       fontSize: 15,
@@ -368,6 +368,6 @@ const createStyles = (colors: any) =>
       marginBottom: 10,
     },
     socialIcon: {
-      marginRight: 10,
+      marginEnd: 10,
     },
   });

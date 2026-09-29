@@ -189,7 +189,7 @@ const createStyles = (colors: any) =>
       gap: 8,
     },
     searchIcon: {
-      marginLeft: 4,
+      marginStart: 4,
     },
     searchInput: {
       flex: 1,

@@ -882,7 +882,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
     },
     entryContent: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     entryMask: {
       fontSize: 16,

@@ -382,4 +382,97 @@ describe('DCCFileService', () => {
     mockFs.exists.mockRejectedValueOnce(new Error('exists failed'));
     await (dccFileService as any).cleanupCachedFile('/cache/y.tmp');
   });
+
+  /**
+   * A DCC SEND offer names the address the client should dial. A hostile peer
+   * can name an address on the user's own network — their router, a printer, a
+   * service on localhost — and the phone will happily connect to it. That is an
+   * SSRF with the user's LAN on the inside, which is why the check exists and
+   * why it is on by default.
+   */
+  describe('refusing to dial the local network', () => {
+    const offerFrom = (host: string) =>
+      dccFileService.handleOffer('peer', 'net1', {
+        filename: 'x.txt',
+        host,
+        port: 5000,
+        size: 10,
+      } as any);
+
+    const acceptFrom = async (host: string) => {
+      const transfer = offerFrom(host);
+      try {
+        await dccFileService.accept(transfer.id, {} as any, '/downloads');
+      } catch {
+        // Past the guard it opens a real socket, which this environment has
+        // none of. What is under test is whether the guard let it get there.
+      }
+      return (dccFileService as any).transfers.get(transfer.id);
+    };
+
+    beforeEach(() => {
+      // The protection is on unless the user turned it off.
+      mockGetSetting.mockImplementation(
+        async (_key: string, fallback: unknown) => fallback,
+      );
+    });
+
+    it.each([
+      ['localhost', 'the name'],
+      ['LOCALHOST', 'the name in capitals'],
+      ['10.0.0.5', '10/8'],
+      ['172.16.0.1', 'the bottom of 172.16/12'],
+      ['172.31.255.254', 'the top of 172.16/12'],
+      ['192.168.1.10', '192.168/16'],
+      ['127.0.0.1', 'loopback'],
+      ['169.254.1.1', 'link-local'],
+      ['0.0.0.0', 'the unspecified address'],
+    ])('blocks %s (%s)', async (host: string) => {
+      const blocked = await acceptFrom(host);
+
+      expect(blocked.status).toBe('failed');
+      expect(blocked.error).toMatch(/SSRF|Private\/local/i);
+    });
+
+    it.each([
+      ['1.2.3.4', 'an ordinary public address'],
+      ['172.15.0.1', 'just below the private 172 range'],
+      ['172.32.0.1', 'just above it'],
+      ['11.0.0.1', 'just above 10/8'],
+      ['169.253.0.1', 'just below link-local'],
+      ['192.167.0.1', 'just below 192.168/16'],
+      ['0.1.2.3', 'not the unspecified address'],
+    ])('allows %s (%s)', async (host: string) => {
+      const allowed = await acceptFrom(host);
+
+      // It gets past the guard; what happens on the socket is another test's
+      // business.
+      expect(String(allowed.error ?? '')).not.toMatch(/Private\/local/i);
+    });
+
+    it('treats something that is not an IPv4 address as not local', async () => {
+      const allowed = await acceptFrom('files.example.com');
+      expect(String(allowed.error ?? '')).not.toMatch(/Private\/local/i);
+
+      const short = await acceptFrom('10.0.0');
+      expect(String(short.error ?? '')).not.toMatch(/Private\/local/i);
+    });
+
+    it('lets the user turn the protection off and reach their own network', async () => {
+      mockGetSetting.mockImplementation(
+        async (key: string, fallback: unknown) =>
+          key === 'dccBlockPrivateIp' ? false : fallback,
+      );
+
+      const allowed = await acceptFrom('192.168.1.10');
+
+      expect(String(allowed.error ?? '')).not.toMatch(/Private\/local/i);
+    });
+
+    it('does nothing for a transfer that is not there', async () => {
+      await expect(
+        dccFileService.accept('no-such-transfer', {} as any, '/downloads'),
+      ).resolves.toBeUndefined();
+    });
+  });
 });

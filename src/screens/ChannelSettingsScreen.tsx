@@ -34,6 +34,7 @@ import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPickerModal } from '../components/ColorPickerModal';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface ChannelSettingsScreenProps {
   channel: string;
@@ -764,12 +765,11 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                 </Text>
               )}
             </View>
-            <TextInput
+            <PasswordInput
               style={styles.input}
               value={key}
               onChangeText={setKey}
               placeholder={t('Channel key (leave empty to remove)')}
-              secureTextEntry
             />
             <TouchableOpacity style={styles.button} onPress={handleSetKey}>
               <Text style={styles.buttonText}>
@@ -1299,7 +1299,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
       fontStyle: 'italic',
       marginTop: 4,
     },
-    modeLabelContainer: { flex: 1, marginRight: 12 },
+    modeLabelContainer: { flex: 1, marginEnd: 12 },
     modeDescription: {
       fontSize: 11,
       color: colors.textDisabled,

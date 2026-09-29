@@ -7,24 +7,26 @@ import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { FirstRunSetupScreen } from '../../src/screens/FirstRunSetupScreen';
 
+const mockThemeValue: { colors: Record<string, string | undefined> } = {
+  colors: {
+    background: '#000',
+    surface: '#111',
+    border: '#333',
+    text: '#fff',
+    textSecondary: '#bbb',
+    primary: '#4caf50',
+    buttonPrimary: '#4caf50',
+    buttonPrimaryText: '#fff',
+    buttonSecondary: '#222',
+    buttonSecondaryText: '#fff',
+    success: '#4caf50',
+    warning: '#ff9800',
+    inputBackground: '#222',
+  },
+};
+
 jest.mock('../../src/hooks/useTheme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: '#000',
-      surface: '#111',
-      border: '#333',
-      text: '#fff',
-      textSecondary: '#bbb',
-      primary: '#4caf50',
-      buttonPrimary: '#4caf50',
-      buttonPrimaryText: '#fff',
-      buttonSecondary: '#222',
-      buttonSecondaryText: '#fff',
-      success: '#4caf50',
-      warning: '#ff9800',
-      inputBackground: '#222',
-    },
-  }),
+  useTheme: () => mockThemeValue,
 }));
 
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
@@ -512,5 +514,27 @@ describe('FirstRunSetupScreen', () => {
       'Failed to save consent:',
       expect.any(Error),
     );
+  });
+});
+
+/**
+ * Every colour this screen uses is read as `colors.x || '#hex'`. A theme that
+ * predates a colour — a user's own imported theme, or one carried over from an
+ * older version — leaves that key undefined, and the fallback is what keeps
+ * the screen readable instead of rendering with undefined styles.
+ */
+describe('with a theme that names no colours', () => {
+  it('still renders, on its built-in fallbacks', async () => {
+    const original = { ...mockThemeValue.colors };
+    mockThemeValue.colors = {};
+
+    try {
+      const view = await render(
+        <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
+      );
+      expect(view.toJSON()).toBeTruthy();
+    } finally {
+      mockThemeValue.colors = original;
+    }
   });
 });

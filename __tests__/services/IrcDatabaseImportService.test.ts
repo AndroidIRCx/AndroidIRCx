@@ -466,4 +466,108 @@ describe('IrcDatabaseImportService', () => {
       }),
     ]);
   });
+
+  /**
+   * The catalog comes off a public API nobody here controls. A record with a
+   * missing name, a port as a string, a hostname with a space in it or an
+   * average-user count that is not a number are all things that arrive in
+   * practice, and each one has to be dropped or coerced rather than imported
+   * as a broken network the user then cannot connect to.
+   */
+  describe('a catalog that is not as clean as the example', () => {
+    const catalogWith = (networks: unknown[]) => ({
+      ok: true,
+      json: async () => ({
+        meta: {
+          description: 'Approved and active IRC networks',
+          sorted_by: 'average_users_desc',
+          generated_at: '2026-03-12T23:42:01+01:00',
+          pagination: { has_more_pages: false, next_page_url: null, total: 1 },
+        },
+        data: networks,
+      }),
+    });
+
+    const load = async (networks: unknown[]) => {
+      const fetchMock = jest.fn().mockResolvedValue(catalogWith(networks));
+      return ircDatabaseImportService.loadCatalog(fetchMock as any);
+    };
+
+    it.each([
+      ['no name at all', {}],
+      ['a name that is not a string', { network_name: 42 }],
+      ['an empty name', { network_name: '' }],
+      ['a name of only spaces', { network_name: '   ' }],
+    ])('drops a record with %s', async (_label, record) => {
+      const catalog = await load([record]);
+      expect(catalog.networks).toEqual([]);
+    });
+
+    it('keeps a record with no servers, and counts none', async () => {
+      const catalog = await load([{ network_name: 'Bare' }]);
+
+      expect(catalog.networks).toHaveLength(1);
+      expect(catalog.networks[0].serverCount).toBe(0);
+      expect(catalog.networks[0].lastScannedAt).toBeNull();
+    });
+
+    it('ignores a server list that is not a list', async () => {
+      const catalog = await load([
+        { network_name: 'Odd', server_list: 'not a list' },
+      ]);
+
+      expect(catalog.networks[0].serverCount).toBe(0);
+    });
+
+    it('reads an average-user count sent as a string, and refuses nonsense', async () => {
+      const catalog = await load([
+        { network_name: 'AsString', average_users: '1234' },
+        { network_name: 'AsNonsense', average_users: 'many' },
+        { network_name: 'AsNothing' },
+      ]);
+
+      const byName = Object.fromEntries(
+        catalog.networks.map(n => [n.name, n.averageUsers]),
+      );
+      expect(byName.AsString).toBe(1234);
+      expect(byName.AsNonsense).toBeNull();
+      expect(byName.AsNothing).toBeNull();
+    });
+
+    it('takes the newest scan time and ignores the blanks', async () => {
+      const catalog = await load([
+        {
+          network_name: 'Timed',
+          server_list: [
+            { hostname: 'a.example', last_scanned_at: '2026-01-01T00:00:00Z' },
+            { hostname: 'b.example', last_scanned_at: '   ' },
+            { hostname: 'c.example', last_scanned_at: 42 },
+            { hostname: 'd.example', last_scanned_at: '2026-06-01T00:00:00Z' },
+          ],
+        },
+      ]);
+
+      expect(catalog.networks[0].lastScannedAt).toBe('2026-06-01T00:00:00Z');
+    });
+
+    it('gives a network whose name has no usable characters a workable id', async () => {
+      const catalog = await load([
+        { network_name: '!!!' },
+        { network_name: '#' },
+      ]);
+
+      // The id goes into storage keys, so it cannot come out empty.
+      for (const network of catalog.networks) {
+        expect(network.id).toMatch(/^catalog-[a-z0-9-]+-\d+$/);
+        expect(network.id).not.toContain('--');
+      }
+    });
+
+    it('builds a readable id from a name full of punctuation', async () => {
+      const catalog = await load([{ network_name: '  Libera .Chat!  ' }]);
+
+      expect(catalog.networks[0].name).toBe('Libera .Chat!');
+      expect(catalog.networks[0].id).toBe('catalog-libera-chat-0');
+    });
+  });
 });

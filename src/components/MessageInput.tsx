@@ -1253,14 +1253,14 @@ const createStyles = (colors: any, bottomInset: number = 0) =>
       paddingVertical: 8,
     },
     toolbarContainer: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     toolbarContent: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     attachmentButton: {
-      marginRight: 8,
+      marginEnd: 8,
       padding: 4,
     },
     attachmentIcon: {
@@ -1268,7 +1268,7 @@ const createStyles = (colors: any, bottomInset: number = 0) =>
       opacity: 0.7,
     },
     colorButton: {
-      marginRight: 4,
+      marginEnd: 4,
       padding: 6,
       borderRadius: 8,
       backgroundColor: colors.surface,
@@ -1276,7 +1276,7 @@ const createStyles = (colors: any, bottomInset: number = 0) =>
       borderColor: colors.border,
     },
     sendButton: {
-      marginLeft: 8,
+      marginStart: 8,
       padding: 6,
       justifyContent: 'center',
       alignItems: 'center',

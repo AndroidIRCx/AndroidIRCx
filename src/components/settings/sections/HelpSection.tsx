@@ -39,7 +39,7 @@ export const HelpSection: React.FC = () => {
     },
     helpItemContent: {
       flex: 1,
-      marginLeft: 12,
+      marginStart: 12,
     },
     helpItemTitle: {
       fontSize: 15,
@@ -60,7 +60,7 @@ export const HelpSection: React.FC = () => {
       alignItems: 'center',
     },
     chevron: {
-      marginLeft: 8,
+      marginStart: 8,
     },
   });
 

@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   iconContainer: {
-    marginRight: 12,
+    marginEnd: 12,
   },
   icon: {
     fontSize: 24,
   },
   textContainer: {
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   title: {
     fontSize: 14,

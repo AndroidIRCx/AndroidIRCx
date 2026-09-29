@@ -1185,4 +1185,170 @@ describe('MessageInput', () => {
 
     expect(onSubmit).toHaveBeenCalledWith('@media=abc caption');
   });
+
+  /**
+   * IRCv3 typing indicators: the other side sees "is typing" until we say
+   * otherwise. Getting the transitions wrong leaves someone shown as typing
+   * forever, or spams a tag on every keystroke, so each edge is worth pinning:
+   * first character sends active, a pause sends paused, clearing the box sends
+   * done, and a server tab sends nothing at all.
+   */
+  describe('telling the other side we are typing', () => {
+    const typingFor = async (
+      props: Record<string, unknown>,
+    ): Promise<{ typing: jest.Mock; input: any; view: any }> => {
+      const typing = jest.fn();
+      mockGetActiveNetworkId.mockReturnValue('net1');
+      mockGetConnection.mockReturnValue({
+        ircService: {
+          sendTypingIndicator: typing,
+          getChannelUsers: jest.fn(() => []),
+        },
+      });
+
+      const view = await render(
+        <MessageInput
+          {...defaultProps}
+          tabName="#general"
+          tabType="channel"
+          network="net1"
+          {...props}
+        />,
+      );
+      await flushAsync();
+
+      const { TextInput } = require('react-native');
+      const input = view.UNSAFE_getAllByType(TextInput)[0];
+      return { typing, input, view };
+    };
+
+    it('says active on the first character, and only once', async () => {
+      const { typing, input } = await typingFor({});
+
+      await fireEvent.changeText(input, 'h');
+      await fireEvent.changeText(input, 'he');
+      await fireEvent.changeText(input, 'hel');
+
+      const active = typing.mock.calls.filter(call => call[1] === 'active');
+      expect(active).toHaveLength(1);
+    });
+
+    it('says done when the box is emptied again', async () => {
+      const { typing, input } = await typingFor({});
+
+      await fireEvent.changeText(input, 'hello');
+      typing.mockClear();
+      await fireEvent.changeText(input, '');
+
+      expect(typing).toHaveBeenCalledWith('#general', 'done');
+    });
+
+    it('says nothing at all on a server tab', async () => {
+      const { typing, input } = await typingFor({ tabType: 'server' });
+
+      await fireEvent.changeText(input, 'hello');
+
+      expect(typing).not.toHaveBeenCalled();
+    });
+
+    it('says nothing while the composer is disabled', async () => {
+      const { typing, input } = await typingFor({ disabled: true });
+
+      await fireEvent.changeText(input, 'hello');
+
+      expect(typing).not.toHaveBeenCalled();
+    });
+
+    it('says nothing for whitespace alone', async () => {
+      const { typing, input } = await typingFor({});
+
+      await fireEvent.changeText(input, '   ');
+
+      expect(typing).not.toHaveBeenCalledWith('#general', 'active');
+    });
+  });
+
+  /**
+   * Service command suggestions only appear for the prefixes that actually
+   * belong to a service — `/ns`, `/cs`, and so on. Suggesting them for every
+   * slash command would bury the built-ins and the user's own aliases under
+   * NickServ noise, which is why the prefix list exists.
+   */
+  describe('suggesting service commands', () => {
+    const withServices = (isDetected: boolean) => {
+      mockServiceCommandsState.isDetected = isDetected;
+      mockServiceCommandsState.getSuggestions.mockReturnValue([
+        {
+          text: 'IDENTIFY',
+          description: 'Identify to NickServ',
+          serviceNick: 'NickServ',
+          isAlias: false,
+        },
+        {
+          text: '/ns identify',
+          description: 'Alias',
+          serviceNick: 'NickServ',
+          isAlias: true,
+        },
+      ]);
+    };
+
+    const typeInto = async (text: string) => {
+      const view = await render(
+        <MessageInput {...defaultProps} tabName="#general" tabType="channel" />,
+      );
+      await flushAsync();
+      const { TextInput } = require('react-native');
+      const input = view.UNSAFE_getAllByType(TextInput)[0];
+      await fireEvent.changeText(input, text);
+      await flushAsync();
+      return view;
+    };
+
+    afterEach(() => {
+      mockServiceCommandsState.isDetected = false;
+      mockServiceCommandsState.getSuggestions.mockReturnValue([]);
+    });
+
+    it.each([
+      ['/ns ', 'NickServ'],
+      ['/cs ', 'ChanServ'],
+      ['/hs ', 'HostServ'],
+      ['/os ', 'OperServ'],
+      ['/ms ', 'MemoServ'],
+      ['/bs ', 'BotServ'],
+      ['/msg ', 'a direct message to a service'],
+    ])('asks for suggestions after %s (%s)', async prefix => {
+      withServices(true);
+
+      await typeInto(prefix);
+
+      expect(mockServiceCommandsState.getSuggestions).toHaveBeenCalled();
+    });
+
+    it('asks for nothing on a slash command that belongs to no service', async () => {
+      withServices(true);
+
+      await typeInto('/join #somewhere');
+
+      expect(mockServiceCommandsState.getSuggestions).not.toHaveBeenCalled();
+    });
+
+    it('asks for nothing when no services were detected on this network', async () => {
+      withServices(false);
+
+      await typeInto('/ns identify');
+
+      // A network without services should not be offering their commands.
+      expect(mockServiceCommandsState.getSuggestions).not.toHaveBeenCalled();
+    });
+
+    it('asks for nothing for ordinary text', async () => {
+      withServices(true);
+
+      await typeInto('hello everyone');
+
+      expect(mockServiceCommandsState.getSuggestions).not.toHaveBeenCalled();
+    });
+  });
 });

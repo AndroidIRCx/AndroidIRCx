@@ -530,7 +530,7 @@ const createStyles = (colors: any) =>
     recommendedBadge: {
       position: 'absolute',
       top: -12,
-      right: 16,
+      end: 16,
       backgroundColor: colors.accent,
       paddingHorizontal: 12,
       paddingVertical: 4,
@@ -573,7 +573,7 @@ const createStyles = (colors: any) =>
     featureIcon: {
       fontSize: 16,
       color: colors.success,
-      marginRight: 8,
+      marginEnd: 8,
       width: 20,
     },
     featureText: {

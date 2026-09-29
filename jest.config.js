@@ -26,6 +26,11 @@ module.exports = {
   fakeTimers: {
     doNotFake: ['queueMicrotask', 'nextTick'],
   },
+  // Jest's own 5s default is below the 10s RNTL waits for a findBy*, so a slow
+  // screen under `--coverage` used to fail as a Jest timeout before its wait
+  // could give up and say what it was looking for. A test that passes is not
+  // slowed by this; only one that was going to fail anyway takes longer to.
+  testTimeout: 30000,
   forceExit: false,
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

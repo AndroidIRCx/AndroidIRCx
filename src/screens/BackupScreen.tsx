@@ -33,6 +33,7 @@ import {
 import { useT } from '../i18n/localization';
 import { connectionManager } from '../services/ConnectionManager';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface BackupScreenProps {
   visible: boolean;
@@ -247,7 +248,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     paddingHorizontal: 16,
     paddingBottom: 8,
   };
-  const backupBusyLabelStyle = { marginLeft: 8 };
+  const backupBusyLabelStyle = { marginStart: 8 };
   const encryptionPromptStyle = { marginTop: 12, fontWeight: '600' as const };
   const restoreNoticeStyle = { marginTop: 10 };
 
@@ -977,13 +978,12 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
               <Text style={[styles.encryptionModalText, encryptionPromptStyle]}>
                 {t('Do you want to encrypt this backup?', { _tags: tags })}
               </Text>
-              <TextInput
+              <PasswordInput
                 style={styles.encryptionInput}
                 placeholder={t('Enter encryption password (optional)', {
                   _tags: tags,
                 })}
                 placeholderTextColor={colors.textSecondary}
-                secureTextEntry
                 value={encryptionPassword}
                 onChangeText={setEncryptionPassword}
               />
@@ -1039,11 +1039,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                   { _tags: tags },
                 )}
               </Text>
-              <TextInput
+              <PasswordInput
                 style={styles.encryptionInput}
                 placeholder={t('Enter decryption password', { _tags: tags })}
                 placeholderTextColor={colors.textSecondary}
-                secureTextEntry
                 value={decryptPassword}
                 onChangeText={setDecryptPassword}
               />
@@ -1445,7 +1444,7 @@ const createStyles = (colors: any) =>
     },
     optionInfo: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     optionName: {
       fontSize: 15,

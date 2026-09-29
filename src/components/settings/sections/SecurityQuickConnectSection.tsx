@@ -282,7 +282,7 @@ export const SecurityQuickConnectSection: React.FC<
                   size={20}
                   color={killSwitchCustomColor}
                   solid
-                  style={{ marginRight: 8 }}
+                  style={{ marginEnd: 8 }}
                 />
                 <Text
                   style={[

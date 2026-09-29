@@ -844,7 +844,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     entryContent: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     entryMask: {
       fontSize: 16,

@@ -39,6 +39,7 @@ import {
   errorCodes,
 } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
+import { PasswordInput } from '../../PasswordInput';
 
 // Message font family choices. Values are Android built-in family names ('system'
 // maps to the platform default); no font assets are bundled. Labels are English
@@ -1330,8 +1331,8 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           <View
             style={{
               backgroundColor: colors.surface,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+              borderTopStartRadius: 20,
+              borderTopEndRadius: 20,
               maxHeight: '80%',
             }}
           >
@@ -1436,6 +1437,11 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   );
                 }
                 if (subItem.type === 'input') {
+                  // The eye only belongs on a field that actually holds a
+                  // password; everything else stays a plain input.
+                  const SubInput = subItem.secureTextEntry
+                    ? PasswordInput
+                    : TextInput;
                   return (
                     <View
                       key={subItem.id}
@@ -1448,7 +1454,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                       <Text style={{ color: colors.text, fontSize: 16 }}>
                         {subItem.title}
                       </Text>
-                      <TextInput
+                      <SubInput
                         style={[
                           styles.input,
                           {
@@ -1464,7 +1470,6 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                         placeholder={subItem.placeholder}
                         placeholderTextColor={colors.textSecondary}
                         keyboardType={subItem.keyboardType || 'default'}
-                        secureTextEntry={subItem.secureTextEntry}
                         editable={!subItem.disabled}
                       />
                     </View>

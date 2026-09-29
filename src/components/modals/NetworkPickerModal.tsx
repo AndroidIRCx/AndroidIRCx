@@ -296,7 +296,7 @@ const createStyles = (_colors: any) =>
       backgroundColor: 'rgba(128, 128, 128, 0.1)',
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 12,
+      marginEnd: 12,
     },
     networkContent: {
       flex: 1,
@@ -311,7 +311,7 @@ const createStyles = (_colors: any) =>
       fontWeight: '600',
     },
     recommendedBadge: {
-      marginLeft: 8,
+      marginStart: 8,
       paddingHorizontal: 8,
       paddingVertical: 2,
       backgroundColor: '#4CAF5020',

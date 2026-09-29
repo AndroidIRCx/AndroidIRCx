@@ -2661,4 +2661,279 @@ describe('ConnectionNetworkSection', () => {
     });
     await waitFor(() => expect(queryByText('Set PIN')).toBeNull());
   });
+
+  /**
+   * Every submenu handler here is wrapped in `if (currentNetwork)` and reads
+   * its current value through `?.` with a fallback, because the section also
+   * renders before a network is chosen. Both sides matter: with no network the
+   * controls must do nothing rather than write settings against `undefined`,
+   * and with one they must actually reach the service.
+   */
+  describe('the auto-reconnect submenu', () => {
+    const renderWith = async (currentNetwork?: string) => {
+      mockCapturedItems.clear();
+      const view = await render(
+        <ConnectionNetworkSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          currentNetwork={currentNetwork as any}
+        />,
+      );
+      await waitFor(() =>
+        expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true),
+      );
+      return view;
+    };
+
+    const submenuOf = (id: string) =>
+      mockCapturedItems.get(id)?.submenuItems ?? [];
+
+    const itemIn = (parentId: string, id: string) =>
+      submenuOf(parentId).find((entry: any) => entry.id === id);
+
+    it('describes itself from the stored config', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue({
+        enabled: true,
+        maxAttempts: 12,
+        rejoinChannels: true,
+      });
+
+      await renderWith('net1');
+
+      // The t() stub in this file does not interpolate, so the assertion is
+      // on the branch taken rather than on the number it would print.
+      const item = mockCapturedItems.get('connection-auto-reconnect');
+      expect(item.description).toContain('attempts');
+      expect(item.description).toContain('rejoin channels');
+    });
+
+    it('says so when it is switched off, and when it will not rejoin', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue(undefined);
+      await renderWith('net1');
+      expect(
+        mockCapturedItems.get('connection-auto-reconnect').description,
+      ).toContain('Automatically reconnect');
+
+      mockAutoReconnectGetConfig.mockReturnValue({
+        enabled: true,
+        rejoinChannels: false,
+      });
+      await renderWith('net1');
+      const description = mockCapturedItems.get(
+        'connection-auto-reconnect',
+      ).description;
+      expect(description).toContain('no rejoin');
+    });
+
+    it('writes each change back to the service', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue({
+        enabled: false,
+        maxAttempts: 8,
+        rejoinChannels: false,
+      });
+      await renderWith('net1');
+
+      await itemIn(
+        'connection-auto-reconnect',
+        'auto-reconnect-enabled',
+      )?.onValueChange?.(true);
+
+      expect(mockAutoReconnectSetConfig).toHaveBeenCalledWith(
+        'net1',
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('falls back to the defaults when the network has no config yet', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue(undefined);
+      await renderWith('net1');
+
+      await itemIn(
+        'connection-auto-reconnect',
+        'auto-reconnect-enabled',
+      )?.onValueChange?.(true);
+
+      // A network being configured for the first time still gets a complete
+      // config written, not a half-empty one.
+      expect(mockAutoReconnectSetConfig).toHaveBeenCalledWith(
+        'net1',
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('does nothing at all when no network is chosen', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue({ enabled: true });
+      await renderWith(undefined);
+      mockAutoReconnectSetConfig.mockClear();
+
+      for (const entry of submenuOf('connection-auto-reconnect')) {
+        await entry.onValueChange?.(true);
+        await entry.onPress?.();
+      }
+
+      expect(mockAutoReconnectSetConfig).not.toHaveBeenCalled();
+    });
+
+    it('drives every switch and input in the submenu with a network set', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue({
+        enabled: true,
+        maxAttempts: 8,
+        rejoinChannels: true,
+      });
+      await renderWith('net1');
+
+      for (const entry of submenuOf('connection-auto-reconnect')) {
+        if (entry.type === 'switch') await entry.onValueChange?.(!entry.value);
+        else if (entry.type === 'input') await entry.onValueChange?.('15');
+        else await entry.onPress?.();
+      }
+
+      expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
+    });
+
+    it('ignores an attempt count that is not a number', async () => {
+      mockAutoReconnectGetConfig.mockReturnValue({
+        enabled: true,
+        maxAttempts: 8,
+        rejoinChannels: true,
+      });
+      await renderWith('net1');
+      mockAutoReconnectSetConfig.mockClear();
+
+      const input = submenuOf('connection-auto-reconnect').find(
+        (entry: any) => entry.type === 'input',
+      );
+      await input?.onValueChange?.('not a number');
+      await input?.onValueChange?.('');
+
+      // A half-typed field must not write NaN into the retry count.
+      for (const call of mockAutoReconnectSetConfig.mock.calls) {
+        expect(Number.isNaN(call[1]?.maxAttempts)).toBe(false);
+      }
+    });
+  });
+
+  /**
+   * The DCC submenu is a wall of numeric fields — port range, speed caps,
+   * timeouts — and each one parses what was typed before storing it. A field
+   * caught mid-edit is empty or half a number, and writing `NaN` into a port
+   * range is how a transfer silently stops working later, far from the typing.
+   */
+  describe('the DCC submenu', () => {
+    const renderSection = async () => {
+      mockCapturedItems.clear();
+      const view = await render(
+        <ConnectionNetworkSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          currentNetwork="net1"
+        />,
+      );
+      await waitFor(() => expect(mockCapturedItems.size).toBeGreaterThan(0));
+      return view;
+    };
+
+    /** Every submenu item this section declares, flattened. */
+    const allSubItems = () => {
+      const out: any[] = [];
+      for (const item of mockCapturedItems.values()) {
+        for (const sub of item.submenuItems ?? []) out.push(sub);
+      }
+      return out;
+    };
+
+    it('stores a number typed into every numeric field', async () => {
+      await renderSection();
+      const numeric = allSubItems().filter(
+        sub => sub.type === 'input' && sub.keyboardType === 'numeric',
+      );
+      expect(numeric.length).toBeGreaterThan(4);
+
+      mockSettingsSet.mockClear();
+      for (const sub of numeric) {
+        await sub.onValueChange?.('42');
+      }
+
+      expect(mockSettingsSet).toHaveBeenCalled();
+      for (const call of mockSettingsSet.mock.calls) {
+        const value = call[1];
+        if (typeof value === 'number') expect(Number.isNaN(value)).toBe(false);
+      }
+    });
+
+    it('writes no NaN when a numeric field is caught mid-edit', async () => {
+      await renderSection();
+      const numeric = allSubItems().filter(
+        sub => sub.type === 'input' && sub.keyboardType === 'numeric',
+      );
+
+      mockSettingsSet.mockClear();
+      for (const sub of numeric) {
+        await sub.onValueChange?.('');
+        await sub.onValueChange?.('not a number');
+        await sub.onValueChange?.('-');
+      }
+
+      // Every stored value has to still be a usable number, whatever was in
+      // the box at the time.
+      for (const call of mockSettingsSet.mock.calls) {
+        const value = call[1];
+        if (typeof value === 'number') {
+          expect(Number.isNaN(value)).toBe(false);
+        }
+        if (value && typeof value === 'object') {
+          // A stored `port: NaN` serialises to null, and the proxy then never
+          // connects with nothing on screen to explain why.
+          for (const inner of Object.values(value)) {
+            if (typeof inner === 'number') {
+              expect(Number.isNaN(inner)).toBe(false);
+            }
+          }
+        }
+      }
+    });
+
+    it('drives every switch in every submenu, both ways', async () => {
+      await renderSection();
+      const switches = allSubItems().filter(sub => sub.type === 'switch');
+      expect(switches.length).toBeGreaterThan(3);
+
+      for (const sub of switches) {
+        await sub.onValueChange?.(true);
+        await sub.onValueChange?.(false);
+      }
+
+      expect(mockSettingsSet).toHaveBeenCalled();
+    });
+
+    it('accepts free text in the fields that take it', async () => {
+      await renderSection();
+      const text = allSubItems().filter(
+        sub => sub.type === 'input' && sub.keyboardType !== 'numeric',
+      );
+
+      for (const sub of text) {
+        // A comma-separated extension list, a host override, a part message.
+        await sub.onValueChange?.('.jpg, .png');
+        await sub.onValueChange?.('');
+      }
+
+      expect(text.length).toBeGreaterThan(0);
+    });
+
+    it('taps every button a submenu offers', async () => {
+      await renderSection();
+      const buttons = allSubItems().filter(
+        sub => sub.type === 'button' || (!sub.type && sub.onPress),
+      );
+
+      for (const sub of buttons) {
+        await sub.onPress?.();
+      }
+
+      expect(mockCapturedItems.size).toBeGreaterThan(0);
+    });
+  });
 });

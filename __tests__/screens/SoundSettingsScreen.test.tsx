@@ -224,4 +224,195 @@ describe('SoundSettingsScreen', () => {
       );
     });
   });
+
+  describe('custom sounds a script can play by name', () => {
+    const withCustomSounds = (overrides: Record<string, unknown> = {}) => {
+      const addCustomSound = jest.fn(async () => undefined);
+      const renameCustomSound = jest.fn(async () => undefined);
+      const removeCustomSound = jest.fn(async () => undefined);
+      useSoundSettings.mockReturnValue({
+        ...baseHookState,
+        customSounds: [{ id: 'c1', name: 'Airhorn', uri: '/tmp/airhorn.mp3' }],
+        addCustomSound,
+        renameCustomSound,
+        removeCustomSound,
+        ...overrides,
+      });
+      return { addCustomSound, renameCustomSound, removeCustomSound };
+    };
+
+    it('lists them, and previews one', async () => {
+      withCustomSounds();
+      const { findByText, getAllByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      expect(await findByText('Airhorn')).toBeTruthy();
+      // The custom-sound list comes after the per-event rows, which have
+      // play icons of their own.
+      await fireEvent.press(getAllByText('play').at(-1)!);
+      expect(baseHookState.previewCustomSound).toHaveBeenCalledWith(
+        '/tmp/airhorn.mp3',
+      );
+    });
+
+    it('names a newly picked file and adds it', async () => {
+      const { addCustomSound } = withCustomSounds();
+      const RNFS = require('react-native-fs');
+      const { getByText, getByPlaceholderText, findByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+      expect(await findByText('Name This Sound')).toBeTruthy();
+
+      await fireEvent.changeText(
+        getByPlaceholderText('Sound name'),
+        'Doorbell',
+      );
+      await fireEvent.press(getByText('Save'));
+
+      await waitFor(() =>
+        expect(addCustomSound).toHaveBeenCalledWith(
+          'Doorbell',
+          '/tmp/copied.mp3',
+        ),
+      );
+      // The picker's own copy is removed once the sound has been stored.
+      await waitFor(() => expect(RNFS.unlink).toHaveBeenCalled());
+    });
+
+    it('will not save an empty name', async () => {
+      const { addCustomSound } = withCustomSounds();
+      const { getByText, findByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+      await findByText('Name This Sound');
+      await fireEvent.press(getByText('Save'));
+
+      expect(addCustomSound).not.toHaveBeenCalled();
+    });
+
+    it('reports a save that fails and keeps the dialog open', async () => {
+      withCustomSounds({
+        addCustomSound: jest.fn(async () => {
+          throw new Error('That name is taken.');
+        }),
+      });
+      const { getByText, getByPlaceholderText, findByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+      await findByText('Name This Sound');
+      await fireEvent.changeText(
+        getByPlaceholderText('Sound name'),
+        'Doorbell',
+      );
+      await fireEvent.press(getByText('Save'));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Error',
+          'That name is taken.',
+        ),
+      );
+      expect(await findByText('Name This Sound')).toBeTruthy();
+    });
+
+    it('renames an existing sound', async () => {
+      const { renameCustomSound } = withCustomSounds();
+      const { findByText, getByText, getByPlaceholderText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(await findByText('Airhorn'));
+      expect(await findByText('Rename Sound')).toBeTruthy();
+      await fireEvent.changeText(getByPlaceholderText('Sound name'), 'Klaxon');
+      await fireEvent.press(getByText('Save'));
+
+      await waitFor(() =>
+        expect(renameCustomSound).toHaveBeenCalledWith('c1', 'Klaxon'),
+      );
+    });
+
+    it('cleans up the picked copy when the naming dialog is cancelled', async () => {
+      withCustomSounds();
+      const RNFS = require('react-native-fs');
+      const { getByText, findByText, queryByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+      await findByText('Name This Sound');
+      await fireEvent.press(getByText('Cancel'));
+
+      await waitFor(() => expect(RNFS.unlink).toHaveBeenCalled());
+      await waitFor(() => expect(queryByText('Name This Sound')).toBeNull());
+    });
+
+    it('asks before deleting one, and deletes on yes', async () => {
+      const { removeCustomSound } = withCustomSounds();
+      const { findByText, getAllByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+      await findByText('Airhorn');
+
+      await fireEvent.press(getAllByText('trash').at(-1)!);
+
+      const buttons = (Alert.alert as jest.Mock).mock.calls.at(
+        -1,
+      )?.[2] as any[];
+      await buttons.find(button => button.style === 'destructive').onPress();
+      expect(removeCustomSound).toHaveBeenCalledWith('c1');
+    });
+
+    it('says so when picking a file fails for a reason other than cancelling', async () => {
+      withCustomSounds();
+      pick.mockRejectedValueOnce(new Error('no storage permission'));
+      const { getByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Error',
+          'Failed to select sound file.',
+        ),
+      );
+    });
+
+    it('stays quiet when the user simply cancelled the picker', async () => {
+      withCustomSounds();
+      const picker = require('@react-native-documents/picker');
+      picker.isErrorWithCode.mockReturnValue(true);
+      pick.mockRejectedValueOnce({ code: 'OPERATION_CANCELED' });
+      const { getByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+
+      await waitFor(() => expect(pick).toHaveBeenCalled());
+      expect(Alert.alert).not.toHaveBeenCalled();
+      picker.isErrorWithCode.mockReturnValue(false);
+    });
+
+    it('opens no dialog when the picker returns nothing usable', async () => {
+      withCustomSounds();
+      pick.mockResolvedValueOnce([{}]);
+      const { getByText, queryByText } = await render(
+        <SoundSettingsScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent.press(getByText('Add custom sound'));
+
+      await waitFor(() => expect(pick).toHaveBeenCalled());
+      expect(queryByText('Name This Sound')).toBeNull();
+    });
+  });
 });

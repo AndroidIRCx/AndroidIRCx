@@ -37,7 +37,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const watchAdButtonIconStyle = { marginRight: 8 };
+  const watchAdButtonIconStyle = { marginEnd: 8 };
   const watchAdButtonContentStyle = { flex: 1 };
   const complianceSpacingStyle = { marginTop: 12 };
   const footerSpacerStyle = { height: 40 };
@@ -713,7 +713,7 @@ const createStyles = (colors: any) =>
       borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 12,
+      marginEnd: 12,
     },
     statusIconText: {
       color: colors.onPrimary,
@@ -757,7 +757,7 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.textSecondary,
       lineHeight: 24,
-      marginLeft: 8,
+      marginStart: 8,
     },
     button: {
       backgroundColor: colors.primary,
@@ -833,8 +833,8 @@ const createStyles = (colors: any) =>
       borderRadius: 8,
       padding: 12,
       marginBottom: 12,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.primary,
+      borderStartWidth: 3,
+      borderStartColor: colors.primary,
     },
     infoText: {
       fontSize: 13,

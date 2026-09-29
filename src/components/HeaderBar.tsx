@@ -357,7 +357,7 @@ const createStyles = (colors: any) =>
       gap: 6,
     },
     sideTabsToggleButton: {
-      marginRight: 8,
+      marginEnd: 8,
       padding: 4,
     },
     sideTabsToggleIcon: {
@@ -419,13 +419,13 @@ const createStyles = (colors: any) =>
     statusDotOnline: {
       color: colors.success,
       fontSize: 10,
-      marginRight: 5,
+      marginEnd: 5,
     },
     statusDotOffline: {
       color: colors.onPrimary,
       opacity: 0.4,
       fontSize: 10,
-      marginRight: 5,
+      marginEnd: 5,
     },
     connectHint: {
       color: colors.onPrimary,

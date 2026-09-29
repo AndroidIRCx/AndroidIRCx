@@ -5,11 +5,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
+import { PasswordInput } from '../PasswordInput';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SettingInputProps } from '../../types/settings';
 
 const stylesLocal = {
-  iconMargin: { marginRight: 8 },
+  iconMargin: { marginEnd: 8 },
   descriptionWrapper: { marginTop: 4 },
   errorText: { marginTop: 4, fontSize: 12 },
 } as const;
@@ -35,6 +36,11 @@ export const SettingInput: React.FC<SettingInputProps> = ({
       setDisplayValue((item.value as string) || '');
     }
   }, [item.value, isFocused]);
+
+  // A password field gets the eye toggle; everything else stays a plain input.
+  // Doing it here covers every password that reaches the settings list without
+  // each section having to know about it.
+  const InputControl = item.secureTextEntry ? PasswordInput : TextInput;
 
   return (
     <View style={[styles.settingItem, item.disabled && styles.disabledItem]}>
@@ -71,7 +77,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
               {descriptionContent}
             </View>
           ))}
-        <TextInput
+        <InputControl
           style={[
             styles.input,
             item.disabled && styles.disabledInput,
@@ -90,7 +96,6 @@ export const SettingInput: React.FC<SettingInputProps> = ({
           placeholderTextColor={colors.textSecondary}
           keyboardType={item.keyboardType || 'default'}
           editable={!item.disabled}
-          secureTextEntry={item.secureTextEntry}
           returnKeyType={onPress ? 'done' : 'default'}
           blurOnSubmit={!!onPress}
           onFocus={() => setIsFocused(true)}

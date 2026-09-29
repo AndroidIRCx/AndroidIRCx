@@ -540,7 +540,7 @@ function createStyles(colors: any) {
       backgroundColor: '#6366F1',
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 12,
+      marginEnd: 12,
     },
     logoTextContainer: {
       flexDirection: 'row',
@@ -557,10 +557,10 @@ function createStyles(colors: any) {
       fontWeight: '800',
       color: '#6366F1',
       letterSpacing: 1,
-      marginLeft: 2,
+      marginStart: 2,
     },
     logoStatusDot: {
-      marginLeft: 12,
+      marginStart: 12,
     },
     statusDot: {
       width: 10,
@@ -582,7 +582,7 @@ function createStyles(colors: any) {
       fontSize: 15,
       fontWeight: '600',
       color: colors.text,
-      marginLeft: 10,
+      marginStart: 10,
     },
 
     // Sections
@@ -613,7 +613,7 @@ function createStyles(colors: any) {
       backgroundColor: '#6366F1',
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 14,
+      marginEnd: 14,
     },
     scoreText: {
       color: '#FFFFFF',
@@ -699,7 +699,7 @@ function createStyles(colors: any) {
       color: colors.textSecondary ?? '#BDBDBD',
       fontFamily: 'monospace',
       maxWidth: '55%',
-      textAlign: 'right',
+      textAlign: 'end',
     },
 
     // Refresh

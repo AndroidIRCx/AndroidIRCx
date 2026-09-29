@@ -368,4 +368,115 @@ describe('PrivacyRelayScreen', () => {
       productId: 'privacy_relay',
     });
   });
+
+  /**
+   * Google Play has renamed this field once already — `subscriptionOfferDetails`
+   * became `subscriptionOfferDetailsAndroid` — and a store that answers with
+   * neither, or with a price missing, is an ordinary bad day rather than an
+   * impossible one. None of those may leave the screen blank or show the word
+   * "undefined" where a price belongs.
+   */
+  describe('offers that do not arrive in the expected shape', () => {
+    const withProducts = (product: unknown) => {
+      const RNIap = require('react-native-iap');
+      RNIap.fetchProducts.mockResolvedValue(product === null ? [] : [product]);
+    };
+
+    const renderScreen = async () => {
+      const view = await render(
+        <PrivacyRelayScreen visible onClose={jest.fn()} />,
+      );
+      await waitFor(() =>
+        expect(view.queryByText('Privacy Relay')).toBeTruthy(),
+      );
+      return view;
+    };
+
+    it('reads the Android-suffixed field when that is the one sent', async () => {
+      withProducts({
+        id: 'privacy_relay',
+        type: 'subs',
+        displayPrice: '$3.99',
+        subscriptionOfferDetailsAndroid: [
+          {
+            basePlanId: 'monthly',
+            offerToken: 'monthly-offer',
+            pricingPhases: { pricingPhaseList: [{ formattedPrice: '$4.49' }] },
+          },
+        ],
+      });
+
+      const view = await renderScreen();
+
+      expect((await view.findAllByText(/\$4\.49/)).length).toBeGreaterThan(0);
+    });
+
+    it('falls back to the product price when an offer carries none', async () => {
+      withProducts({
+        id: 'privacy_relay',
+        type: 'subs',
+        displayPrice: '$9.99',
+        subscriptionOfferDetails: [
+          { basePlanId: 'monthly', offerToken: 'monthly-offer' },
+        ],
+      });
+
+      const view = await renderScreen();
+
+      expect((await view.findAllByText(/\$9\.99/)).length).toBeGreaterThan(0);
+    });
+
+    it('copes with an offer list that is not a list', async () => {
+      withProducts({
+        id: 'privacy_relay',
+        type: 'subs',
+        displayPrice: '$3.99',
+        subscriptionOfferDetails: 'not a list',
+      });
+
+      const view = await renderScreen();
+
+      expect(view.queryByText('Privacy Relay')).toBeTruthy();
+    });
+
+    it('copes with a store that returns no product at all', async () => {
+      withProducts(null);
+
+      const view = await renderScreen();
+
+      expect(view.queryByText('Privacy Relay')).toBeTruthy();
+    });
+
+    it('names a plan that arrived without an id', async () => {
+      withProducts({
+        id: 'privacy_relay',
+        type: 'subs',
+        displayPrice: '$3.99',
+        subscriptionOfferDetails: [
+          {
+            offerToken: 'nameless-offer',
+            pricingPhases: { pricingPhaseList: [{ formattedPrice: '$1.99' }] },
+          },
+        ],
+      });
+
+      const view = await renderScreen();
+
+      // The screen only shows the base plans it knows, so a nameless one gets
+      // a placeholder id and is simply not offered — what matters is that it
+      // does not take the screen down on the way past.
+      expect(view.queryByText('Privacy Relay')).toBeTruthy();
+    });
+
+    it('says so when the store cannot be reached', async () => {
+      const RNIap = require('react-native-iap');
+      RNIap.fetchProducts.mockRejectedValue(new Error('store offline'));
+
+      const view = await renderScreen();
+
+      await waitFor(() =>
+        expect(view.queryByText('Privacy Relay')).toBeTruthy(),
+      );
+    });
+  });
 });

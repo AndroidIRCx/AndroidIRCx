@@ -52,13 +52,19 @@ done <<< "$staged_files"
 
 secret_regex='-----BEGIN ([A-Z ]*PRIVATE KEY|OPENSSH PRIVATE KEY|RSA PRIVATE KEY|EC PRIVATE KEY)-----|AIza[0-9A-Za-z_-]{35}|AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}'
 
+# A PEM header followed by an ellipsis is the placeholder the certificate
+# field in network settings shows, not key material. The English string
+# doubles as the translation key, so it lands in every translations JSON and
+# would otherwise block the commit that adds a language.
+placeholder_regex='-----BEGIN [A-Z ]*PRIVATE KEY-----\.\.\.'
+
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
   if ! git cat-file -e ":$file" 2>/dev/null; then
     continue
   fi
 
-  added_lines="$(git diff --cached --unified=0 -- "$file" | LC_ALL=C grep -E '^\+[^+]' || true)"
+  added_lines="$(git diff --cached --unified=0 -- "$file" | LC_ALL=C grep -E '^\+[^+]' | LC_ALL=C grep -Ev -- "$placeholder_regex" || true)"
   if [[ -n "$added_lines" ]] && printf '%s\n' "$added_lines" | LC_ALL=C grep -En -- "$secret_regex" >/dev/null; then
     violations+=("$file: added content matches secret pattern")
   fi

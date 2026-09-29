@@ -52,6 +52,7 @@ import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface ZncSubscriptionScreenProps {
   visible: boolean;
@@ -1827,7 +1828,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
               {t('Enter your PIN to unlock passwords.')}
             </Text>
 
-            <TextInput
+            <PasswordInput
               style={[
                 styles.usernameInput,
                 {
@@ -1845,7 +1846,6 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
               placeholder={t('PIN')}
               placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
-              secureTextEntry
               autoFocus
             />
             {!!pinError && (
@@ -1990,7 +1990,7 @@ const createStyles = (colors: any) =>
       width: 8,
       height: 8,
       borderRadius: 4,
-      marginRight: 6,
+      marginEnd: 6,
     },
     statusText: {
       fontSize: 12,

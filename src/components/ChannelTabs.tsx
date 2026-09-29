@@ -444,12 +444,12 @@ const createStyles = (colors: any) =>
       width: 140,
     },
     containerLeft: {
-      borderRightWidth: 1,
-      borderRightColor: colors.tabBorder,
+      borderEndWidth: 1,
+      borderEndColor: colors.tabBorder,
     },
     containerRight: {
-      borderLeftWidth: 1,
-      borderLeftColor: colors.tabBorder,
+      borderStartWidth: 1,
+      borderStartColor: colors.tabBorder,
     },
     scrollContent: {
       paddingHorizontal: 4,

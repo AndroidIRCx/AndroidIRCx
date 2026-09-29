@@ -26,6 +26,7 @@ import {
   CommandHistoryEntry,
   CustomCommand,
 } from '../../../services/CommandService';
+import { PasswordInput } from '../../PasswordInput';
 
 interface CommandsSectionProps {
   colors: {
@@ -449,6 +450,11 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                     );
                   }
                   if (subItem.type === 'input') {
+                    // The eye only belongs on a field that actually holds a
+                    // password; everything else stays a plain input.
+                    const SubInput = subItem.secureTextEntry
+                      ? PasswordInput
+                      : TextInput;
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
@@ -460,7 +466,7 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                               {subItem.description}
                             </Text>
                           )}
-                          <TextInput
+                          <SubInput
                             key={`${subItem.id}-${submenuRefreshKey}`}
                             style={[
                               styles.submenuInput,
@@ -483,7 +489,6 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                             placeholder={subItem.placeholder}
                             placeholderTextColor={colors.textSecondary}
                             keyboardType={subItem.keyboardType || 'default'}
-                            secureTextEntry={subItem.secureTextEntry}
                             editable={!subItem.disabled}
                           />
                         </View>

@@ -1122,4 +1122,167 @@ describe('UserManagementService', () => {
       });
     });
   });
+
+  /**
+   * Before a connection is up there is no current network, and almost every
+   * method here reads `network || this.currentNetwork` and then keys its cache
+   * on `net ? \`${net}:${nick}\` : nick`. The unqualified key is the normal
+   * path at that point — the settings screens read notes, aliases and lists
+   * before anything is connected — so both halves have to work.
+   */
+  describe('before any network is known', () => {
+    beforeEach(() => {
+      // @ts-ignore - the service is a singleton with private state
+      userManagementService.currentNetwork = '';
+      // The shared beforeEach clears the other caches but not these, and a
+      // list entry left behind by an earlier test would be counted here.
+      // @ts-ignore
+      for (const list of userManagementService.userLists.values()) list.clear();
+    });
+
+    it('keys a note, an alias and a lookup on the nick alone', async () => {
+      await userManagementService.addUserNote('alice', 'met at a conference');
+      expect(userManagementService.getUserNote('alice')).toBe(
+        'met at a conference',
+      );
+      expect(userManagementService.getUserNotes()).toHaveLength(1);
+
+      await userManagementService.addUserAlias('alice', 'Ally');
+      expect(userManagementService.getUserAlias('alice')).toBe('Ally');
+      expect(userManagementService.getNickFromAlias('Ally')).toBe('alice');
+      expect(userManagementService.getUserAliases()).toHaveLength(1);
+
+      await userManagementService.removeUserNote('alice');
+      expect(userManagementService.getUserNote('alice')).toBeUndefined();
+      await userManagementService.removeUserAlias('alice');
+      expect(userManagementService.getUserAlias('alice')).toBeUndefined();
+    });
+
+    it('ignores and un-ignores without a network', async () => {
+      await userManagementService.ignoreUser('troll!*@*');
+      expect(
+        userManagementService.isUserIgnored('troll', 'ident', 'host'),
+      ).toBe(true);
+      expect(userManagementService.getIgnoredUsers()).toHaveLength(1);
+
+      await userManagementService.unignoreUser('troll!*@*');
+      expect(
+        userManagementService.isUserIgnored('troll', 'ident', 'host'),
+      ).toBe(false);
+    });
+
+    it('blacklists without a network', async () => {
+      await userManagementService.addBlacklistEntry('spammer!*@*', {
+        reason: 'spam',
+      });
+      expect(userManagementService.getBlacklistEntries()).toHaveLength(1);
+      expect(
+        userManagementService.findMatchingBlacklistEntry('spammer', 'a', 'b'),
+      ).toBeDefined();
+
+      await userManagementService.removeBlacklistEntry('spammer!*@*');
+      expect(userManagementService.getBlacklistEntries()).toHaveLength(0);
+    });
+
+    it('keeps user-list entries without a network', async () => {
+      await userManagementService.addUserListEntry('notify', 'friend!*@*', {
+        reason: 'a friend',
+      });
+
+      const entries = userManagementService.getUserListEntries('notify');
+      expect(entries).toHaveLength(1);
+      expect(entries[0].network).toBeUndefined();
+      expect(
+        userManagementService.findMatchingUserListEntry(
+          'notify',
+          'friend',
+          'i',
+          'h',
+        ),
+      ).toBeDefined();
+
+      await userManagementService.removeUserListEntry('notify', 'friend!*@*');
+      expect(userManagementService.getUserListEntries('notify')).toHaveLength(
+        0,
+      );
+    });
+
+    it('caches WHOIS and WHOWAS under the bare nick', () => {
+      userManagementService.updateWHOIS({ nick: 'alice', realname: 'Alice' });
+      expect(userManagementService.getWHOIS('alice')?.realname).toBe('Alice');
+      userManagementService.finalizeWHOIS('alice');
+
+      userManagementService.updateWHOWAS({
+        nick: 'alice',
+        host: 'old.example',
+      });
+      expect(userManagementService.getWHOWAS('alice')).toBeDefined();
+      userManagementService.finalizeWHOWAS('alice');
+    });
+
+    it('finalizing something nobody asked for is a no-op', () => {
+      // No queued request and no cached data: the guards are the whole point.
+      expect(() => userManagementService.finalizeWHOIS('nobody')).not.toThrow();
+      expect(() =>
+        userManagementService.finalizeWHOWAS('nobody'),
+      ).not.toThrow();
+    });
+  });
+
+  describe('updating a list entry that is already there', () => {
+    beforeEach(() => {
+      // @ts-ignore
+      userManagementService.currentNetwork = 'TestNet';
+      // @ts-ignore
+      for (const list of userManagementService.userLists.values()) list.clear();
+    });
+
+    it('keeps the fields the caller did not mention', async () => {
+      await userManagementService.addUserListEntry('autoop', 'op!*@*', {
+        channels: ['#one'],
+        protected: true,
+        reason: 'trusted',
+      });
+      const added = userManagementService.getUserListEntries('autoop')[0];
+
+      await userManagementService.updateUserListEntry('autoop', 'op!*@*', {});
+
+      const updated = userManagementService.getUserListEntries('autoop')[0];
+      expect(updated.channels).toEqual(['#one']);
+      expect(updated.protected).toBe(true);
+      expect(updated.reason).toBe('trusted');
+      expect(updated.addedAt).toBe(added.addedAt);
+    });
+
+    it('fills in defaults when there is nothing to keep', async () => {
+      await userManagementService.updateUserListEntry('autovoice', 'new!*@*', {
+        network: 'TestNet',
+      });
+
+      const entry = userManagementService.getUserListEntries('autovoice')[0];
+      expect(entry.protected).toBe(false);
+      expect(entry.channels).toBeUndefined();
+      expect(entry.reason).toBeUndefined();
+      expect(typeof entry.addedAt).toBe('number');
+    });
+
+    it('returns entries from every network when asked for none', async () => {
+      await userManagementService.addUserListEntry('notify', 'a!*@*', {
+        network: 'TestNet',
+      });
+      await userManagementService.addUserListEntry('notify', 'b!*@*', {
+        network: 'OtherNet',
+      });
+
+      // `null` means "do not filter", which is not the same as leaving it out.
+      const all = userManagementService.getUserListEntries(
+        'notify',
+        null as any,
+      );
+      expect(all.length).toBeGreaterThanOrEqual(2);
+
+      const mine = userManagementService.getUserListEntries('notify');
+      expect(mine.every(e => !e.network || e.network === 'TestNet')).toBe(true);
+    });
+  });
 });

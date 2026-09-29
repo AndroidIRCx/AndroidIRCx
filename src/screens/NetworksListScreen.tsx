@@ -677,8 +677,8 @@ const createStyles = (colors: any) =>
       fontSize: 14,
     },
     serversList: {
-      paddingLeft: 16,
-      paddingRight: 16,
+      paddingStart: 16,
+      paddingEnd: 16,
       paddingBottom: 16,
     },
     serverItem: {
@@ -686,9 +686,9 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 12,
-      paddingLeft: 16,
-      borderLeftWidth: 2,
-      borderLeftColor: colors.border || '#E0E0E0',
+      paddingStart: 16,
+      borderStartWidth: 2,
+      borderStartColor: colors.border || '#E0E0E0',
     },
     serverInfo: {
       flex: 1,
@@ -708,7 +708,7 @@ const createStyles = (colors: any) =>
     },
     serverDeleteButton: {
       padding: 8,
-      marginRight: 4,
+      marginEnd: 4,
     },
     serverDeleteButtonDisabled: {
       opacity: 0.5,
@@ -719,7 +719,7 @@ const createStyles = (colors: any) =>
     },
     addServerButton: {
       paddingVertical: 12,
-      paddingLeft: 16,
+      paddingStart: 16,
     },
     addServerText: {
       color: colors.primary || '#2196F3',

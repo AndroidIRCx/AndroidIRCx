@@ -523,7 +523,7 @@ const createStyles = (colors: any) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    sessionMain: { flex: 1, marginRight: 12 },
+    sessionMain: { flex: 1, marginEnd: 12 },
     sessionTitle: { color: colors.text, fontSize: 15 },
     sessionTitleActive: { color: colors.primary, fontWeight: '700' },
     sessionMeta: {

@@ -22,7 +22,9 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 export const handle372: NumericHandler = (ctx, prefix, params, timestamp) => {
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {message}', { message: params[1] }),
+    // A MOTD line with nothing after it is a blank line, not the word
+    // "undefined": every other numeric here falls back the same way.
+    text: t('*** {message}', { message: params[1] || '' }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -33,7 +35,7 @@ export const handle372: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle375: NumericHandler = (ctx, prefix, params, timestamp) => {
   ctx.addMessage({
     type: 'raw',
-    text: t('*** - {server} Message of the Day -', { server: params[1] }),
+    text: t('*** - {server} Message of the Day -', { server: params[1] || '' }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',

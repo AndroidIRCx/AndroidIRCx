@@ -756,3 +756,36 @@ describe('NetworkSettingsScreen', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('looking at a password', () => {
+  /**
+   * These fields are typed blind on a phone keyboard, and a mistyped SASL or
+   * proxy password shows up only as a connection that will not come up. The
+   * eye is what turns that into something the user can check.
+   */
+  it('reveals the SASL password and hides it again', async () => {
+    const { getAllByLabelText, getAllByDisplayValue } = await render(
+      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />,
+    );
+
+    const toggles = getAllByLabelText('Show password');
+    expect(toggles.length).toBeGreaterThan(0);
+
+    await fireEvent.press(toggles[0]);
+    expect(getAllByLabelText('Hide password').length).toBeGreaterThan(0);
+
+    await fireEvent.press(getAllByLabelText('Hide password')[0]);
+    expect(getAllByLabelText('Show password').length).toBe(toggles.length);
+    expect(getAllByDisplayValue).toBeDefined();
+  });
+
+  it('starts every password field hidden', async () => {
+    const { getAllByLabelText, queryAllByLabelText } = await render(
+      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />,
+    );
+
+    // Nothing is revealed until someone asks for it.
+    expect(queryAllByLabelText('Hide password')).toHaveLength(0);
+    expect(getAllByLabelText('Show password').length).toBeGreaterThan(0);
+  });
+});

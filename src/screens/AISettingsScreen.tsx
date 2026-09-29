@@ -46,6 +46,7 @@ import {
 import { aiMemoryService, AIMemory } from '../services/ai/AIMemoryService';
 import { webAccessService } from '../services/ai/WebAccessService';
 import { useTabStore } from '../stores/tabStore';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface Props {
   visible: boolean;
@@ -1251,11 +1252,10 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
             </Text>
 
             <Text style={styles.label}>{t('Token (optional)')}</Text>
-            <TextInput
+            <PasswordInput
               style={styles.input}
               value={clientToken}
               autoCapitalize="none"
-              secureTextEntry
               placeholder={t('Only if the server asks for one')}
               placeholderTextColor={colors.textSecondary}
               onChangeText={setClientToken}
@@ -1395,12 +1395,11 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
               {needsKey && (
                 <>
                   <Text style={styles.label}>{t('API key')}</Text>
-                  <TextInput
+                  <PasswordInput
                     style={styles.input}
                     value={draft.apiKey}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    secureTextEntry
                     placeholder={
                       draft.hasStoredKey
                         ? t('Stored — type to replace')
@@ -1551,11 +1550,10 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                         placeholderTextColor={colors.textSecondary}
                         onChangeText={setMcpTools}
                       />
-                      <TextInput
+                      <PasswordInput
                         style={styles.input}
                         value={mcpToken}
                         autoCapitalize="none"
-                        secureTextEntry
                         placeholder={t('Token (optional)')}
                         placeholderTextColor={colors.textSecondary}
                         onChangeText={setMcpToken}
@@ -1601,7 +1599,7 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       marginBottom: 16,
     },
-    masterText: { flex: 1, marginRight: 12 },
+    masterText: { flex: 1, marginEnd: 12 },
     groupHeading: {
       color: colors.textSecondary,
       fontSize: 12,
@@ -1624,7 +1622,7 @@ const createStyles = (colors: any) =>
       fontSize: 13.5,
       fontFamily: 'monospace',
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     masterTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
     actionDisabled: { opacity: 0.4 },
@@ -1684,7 +1682,7 @@ const createStyles = (colors: any) =>
       borderColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 12,
+      marginEnd: 12,
       marginTop: 2,
     },
     bindRadioDot: {
@@ -1750,7 +1748,7 @@ const createStyles = (colors: any) =>
       marginBottom: 12,
     },
     cardTop: { flexDirection: 'row', alignItems: 'flex-start' },
-    cardText: { flex: 1, marginRight: 12 },
+    cardText: { flex: 1, marginEnd: 12 },
     titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
     cardTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
     badge: {
@@ -1761,7 +1759,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,
-      marginLeft: 8,
+      marginStart: 8,
       overflow: 'hidden',
     },
     actions: {
@@ -1811,7 +1809,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,
-      marginLeft: 8,
+      marginStart: 8,
       overflow: 'hidden',
     },
     presetLink: {

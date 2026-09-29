@@ -429,8 +429,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF5252',
+    borderStartWidth: 4,
+    borderStartColor: '#FF5252',
   },
   errorText: {
     fontSize: 14,
@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A3A4A',
     borderRadius: 8,
     padding: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4A9EFF',
+    borderStartWidth: 4,
+    borderStartColor: '#4A9EFF',
   },
   infoTitle: {
     fontSize: 14,
