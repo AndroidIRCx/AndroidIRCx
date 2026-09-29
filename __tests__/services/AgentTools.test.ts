@@ -878,7 +878,9 @@ describe('fetch_page', () => {
       truncated: true,
     });
     const result = await run('fetch_page', { url: 'https://example.com' });
-    expect(result.content.startsWith('https://example.com')).toBe(true);
+    // Compared as a whole line, not a prefix: a prefix check would also pass
+    // for a different host that merely starts the same way.
+    expect(result.content.split('\n')[0]).toBe('https://example.com');
     expect(result.content).toContain('[truncated]');
   });
 
