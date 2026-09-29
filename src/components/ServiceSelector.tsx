@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   iconContainer: {
-    marginRight: 16,
+    marginEnd: 16,
   },
   content: {
     flex: 1,
@@ -283,8 +283,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
     maxHeight: '80%',
   },
   modalHeader: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   optionIcon: {
-    marginRight: 16,
+    marginEnd: 16,
   },
   optionContent: {
     flex: 1,

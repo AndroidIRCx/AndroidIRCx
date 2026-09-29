@@ -1704,3 +1704,150 @@ describe('IRCService coverage - connect data decoding & manual close', () => {
     expect((irc as any).isConnected).toBe(false);
   });
 });
+
+describe('IRCService coverage - blacklist mask shapes', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  /**
+   * A blacklist action is turned into an AKILL/GLINE mask, and the mask decides
+   * who is cut off. The stored entry can be a full `nick!user@host`, a bare
+   * `user@host`, a lone nick, or any of those with wildcards where the WHOIS
+   * has not filled a part in yet. Widening one of those by accident bans
+   * everyone on a shared host; narrowing it bans nobody.
+   */
+  const userMgmtReturning = (mask: string) => ({
+    isUserIgnored: jest.fn(() => false),
+    ignoreUser: jest.fn(() => Promise.resolve()),
+    resolveBlacklistMask: jest.fn(() => mask),
+  });
+
+  /** `akill` sends the user mask; `gline` sends the host mask. */
+  const runWith = (
+    resolvedMask: string,
+    context: Record<string, unknown> = {},
+    action = 'akill',
+  ) => {
+    const { irc, socket } = makeConnected();
+    irc.setUserManagementService(userMgmtReturning(resolvedMask) as any);
+    (irc as any).selfUserModes.add('o');
+
+    (irc as any).runBlacklistAction(
+      { action, reason: 'spam', duration: '60' },
+      {
+        nick: 'Spammer',
+        username: 'ident',
+        hostname: 'host.example',
+        ...context,
+      },
+    );
+
+    return socket.writes.join('\n');
+  };
+
+  it('keeps the user and host out of a full nick!user@host mask', () => {
+    expect(runWith('Spammer!ident@host.example')).toContain(
+      'ident@host.example',
+    );
+  });
+
+  it('reads a bare user@host mask', () => {
+    expect(runWith('ident@host.example')).toContain('ident@host.example');
+  });
+
+  it('fills a wildcard user from what the WHOIS knows', () => {
+    // `*@host` plus a known ident should ban that ident, not everyone on the
+    // host.
+    expect(runWith('Spammer!*@host.example')).toContain('ident@host.example');
+  });
+
+  it('fills a wildcard host from what the WHOIS knows', () => {
+    expect(runWith('Spammer!ident@*')).toContain('ident@host.example');
+  });
+
+  it('leaves a wildcard alone when nothing is known to fill it', () => {
+    const written = runWith('Spammer!*@*', {
+      username: undefined,
+      hostname: undefined,
+    });
+
+    // Better a mask that matches nothing than one that matches the world.
+    expect(written).toContain('*@*');
+  });
+
+  it('builds a mask from the context when the entry names no host', () => {
+    expect(runWith('Spammer')).toContain('ident@host.example');
+  });
+
+  it('falls back to a wildcard host when only the ident is known', () => {
+    expect(runWith('Spammer', { hostname: undefined })).toContain('ident@*');
+  });
+
+  it('falls back to a wildcard user when only the host is known', () => {
+    expect(runWith('Spammer', { username: undefined })).toContain(
+      '*@host.example',
+    );
+  });
+
+  it('refuses to act on ourselves', () => {
+    const { irc, socket } = makeConnected();
+    irc.setUserManagementService(
+      userMgmtReturning('tester!ident@host.example') as any,
+    );
+
+    // `tester` is this connection's own nick; banning yourself over your own
+    // blacklist is never what was meant.
+    (irc as any).runBlacklistAction(
+      { action: 'akill', reason: 'spam' },
+      { nick: 'tester', username: 'ident', hostname: 'host.example' },
+    );
+
+    expect(socket.writes.join('\n')).toBe('');
+  });
+
+  it('refuses to act with no nick at all', () => {
+    const { irc, socket } = makeConnected();
+    irc.setUserManagementService(userMgmtReturning('!@') as any);
+
+    (irc as any).runBlacklistAction(
+      { action: 'akill', reason: 'spam' },
+      { nick: '' },
+    );
+
+    expect(socket.writes.join('\n')).toBe('');
+  });
+
+  it('uses the entry reason, and lets the caller override it', () => {
+    expect(
+      runWith('Spammer!ident@host.example', { reasonOverride: 'repeat flood' }),
+    ).toContain('repeat flood');
+
+    const { irc, socket } = makeConnected();
+    irc.setUserManagementService(
+      userMgmtReturning('Spammer!ident@host.example') as any,
+    );
+    (irc as any).selfUserModes.add('o');
+    (irc as any).runBlacklistAction(
+      { action: 'akill', reason: 'the stored reason' },
+      { nick: 'Spammer', username: 'ident', hostname: 'host.example' },
+    );
+    expect(socket.writes.join('\n')).toContain('the stored reason');
+  });
+
+  it('says something even when the entry carries no reason', () => {
+    const { irc, socket } = makeConnected();
+    irc.setUserManagementService(
+      userMgmtReturning('Spammer!ident@host.example') as any,
+    );
+    (irc as any).selfUserModes.add('o');
+
+    (irc as any).runBlacklistAction(
+      { action: 'akill' },
+      { nick: 'Spammer', username: 'ident', hostname: 'host.example' },
+    );
+
+    // An empty reason on an AKILL reads as a bug to whoever reads the log.
+    const written = socket.writes.join('\n');
+    expect(written).toContain('AKILL');
+    expect(written).toContain('Blacklisted');
+  });
+});

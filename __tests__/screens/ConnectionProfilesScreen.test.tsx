@@ -435,3 +435,30 @@ describe('ConnectionProfilesScreen', () => {
     });
   });
 });
+
+describe('looking at an identity profile password', () => {
+  /**
+   * An identity profile carries the NickServ, SASL and oper passwords for a
+   * network. Typing three secrets blind and then finding out at connect time
+   * which one was wrong is the situation the eye exists for.
+   */
+  it('offers to reveal each password, and starts them all hidden', async () => {
+    const { findByText, getByText, getAllByLabelText, queryAllByLabelText } =
+      await render(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
+
+    await findByText('Libera');
+    await fireEvent.press((getByText('Libera') as any).parent?.parent);
+    await waitFor(() =>
+      expect(getByText('+ Add / Edit Identity')).toBeTruthy(),
+    );
+    await fireEvent.press(getByText('+ Add / Edit Identity'));
+
+    const toggles = await waitFor(() => getAllByLabelText('Show password'));
+    // NickServ, SASL and oper.
+    expect(toggles.length).toBeGreaterThanOrEqual(3);
+    expect(queryAllByLabelText('Hide password')).toHaveLength(0);
+
+    await fireEvent.press(toggles[0]);
+    expect(getAllByLabelText('Hide password')).toHaveLength(1);
+  });
+});

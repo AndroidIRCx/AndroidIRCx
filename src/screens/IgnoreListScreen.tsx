@@ -475,7 +475,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
     },
     ignoreContent: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     ignoreMask: {
       fontSize: 16,

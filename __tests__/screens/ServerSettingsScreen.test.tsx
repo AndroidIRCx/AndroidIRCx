@@ -9,6 +9,29 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ServerSettingsScreen } from '../../src/screens/ServerSettingsScreen';
 import { settingsService } from '../../src/services/SettingsService';
 
+// Nearly every colour on this screen is read through a chain of fallbacks
+// (`textMuted || textSecondary || text`), which only ever took its first turn.
+const mockThemeColors: { value: Record<string, string | undefined> } = {
+  value: {
+    background: '#000',
+    surface: '#111',
+    surfaceVariant: '#222',
+    text: '#fff',
+    textSecondary: '#bbb',
+    textMuted: '#999',
+    border: '#333',
+    primary: '#4caf50',
+    buttonPrimary: '#4caf50',
+    buttonPrimaryText: '#fff',
+    onAccent: '#fff',
+    error: '#f44336',
+  },
+};
+
+jest.mock('../../src/hooks/useTheme', () => ({
+  useTheme: () => ({ colors: mockThemeColors.value }),
+}));
+
 jest.mock('../../src/i18n/localization', () => ({
   useT: () => (key: string) => key,
 }));
@@ -301,5 +324,48 @@ describe('ServerSettingsScreen', () => {
         ],
       });
     });
+  });
+});
+
+describe('with a theme that names only the basics', () => {
+  /**
+   * An imported theme, or one carried over from an older version, will not
+   * have every key this screen asks for. Each colour falls back through two or
+   * three others for exactly that reason, and the fallbacks had never run.
+   */
+  it('renders when the optional colours are missing', async () => {
+    const original = mockThemeColors.value;
+    mockThemeColors.value = { text: '#fff', background: '#000' };
+
+    try {
+      const view = await render(
+        <ServerSettingsScreen
+          networkId="net1"
+          onSave={jest.fn()}
+          onCancel={jest.fn()}
+        />,
+      );
+      expect(view.root).toBeTruthy();
+    } finally {
+      mockThemeColors.value = original;
+    }
+  });
+
+  it('renders when the theme names no colours at all', async () => {
+    const original = mockThemeColors.value;
+    mockThemeColors.value = {};
+
+    try {
+      const view = await render(
+        <ServerSettingsScreen
+          networkId="net1"
+          onSave={jest.fn()}
+          onCancel={jest.fn()}
+        />,
+      );
+      expect(view.root).toBeTruthy();
+    } finally {
+      mockThemeColors.value = original;
+    }
   });
 });

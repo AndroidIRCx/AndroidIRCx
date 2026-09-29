@@ -810,4 +810,163 @@ describe('AgentService', () => {
 
     expect(agentService.history()).toEqual([]);
   });
+
+  /**
+   * Conversations are the only thing this service keeps, and it reads them off
+   * disk written by whatever version of the app ran last. A corrupt blob must
+   * cost the user their history at worst, never the assistant itself — the
+   * screen calls `load()` before it can show anything.
+   */
+  describe('reading saved conversations off disk', () => {
+    const KEY = '@AndroidIRCX:aiSessions';
+
+    const fresh = () => {
+      (agentService as any).loaded = false;
+      (agentService as any).sessions = [];
+      (agentService as any).activeId = null;
+    };
+
+    const session = (id: string, extra: Record<string, unknown> = {}) => ({
+      id,
+      title: `Session ${id}`,
+      messages: [],
+      pending: [],
+      ...extra,
+    });
+
+    beforeEach(async () => {
+      await AsyncStorage.clear();
+      fresh();
+    });
+
+    it('starts empty when nothing was ever saved', async () => {
+      await agentService.load();
+      expect(agentService.listSessions()).toEqual([]);
+    });
+
+    it('reads back what it wrote', async () => {
+      await AsyncStorage.setItem(
+        KEY,
+        JSON.stringify({
+          sessions: [session('a'), session('b')],
+          activeId: 'b',
+        }),
+      );
+
+      await agentService.load();
+
+      expect(agentService.listSessions().map(s => s.id)).toEqual(['a', 'b']);
+      expect(agentService.listSessions().find(s => s.active)?.id).toBe('b');
+    });
+
+    it('loads once however often it is asked', async () => {
+      await AsyncStorage.setItem(
+        KEY,
+        JSON.stringify({ sessions: [session('a')], activeId: 'a' }),
+      );
+      await agentService.load();
+      await AsyncStorage.setItem(KEY, JSON.stringify({ sessions: [] }));
+
+      await agentService.load();
+
+      // A second load must not throw away what is already in hand.
+      expect(agentService.listSessions()).toHaveLength(1);
+    });
+
+    it.each([
+      ['not JSON at all', '{ broken'],
+      ['a JSON value that is not an object', '42'],
+      ['an object with no sessions', JSON.stringify({})],
+      ['sessions that are not a list', JSON.stringify({ sessions: 'nope' })],
+    ])('survives %s', async (_label, raw) => {
+      await AsyncStorage.setItem(KEY, raw);
+
+      await agentService.load();
+
+      expect(agentService.listSessions()).toEqual([]);
+    });
+
+    it('drops the entries that are not usable conversations', async () => {
+      await AsyncStorage.setItem(
+        KEY,
+        JSON.stringify({
+          sessions: [
+            session('good'),
+            null,
+            'a string',
+            { id: 42, messages: [], pending: [] },
+            { id: 'no-messages', pending: [] },
+            { id: 'no-pending', messages: [] },
+            { id: 'wrong-shape', messages: 'x', pending: 'y' },
+          ],
+          activeId: 'good',
+        }),
+      );
+
+      await agentService.load();
+
+      expect(agentService.listSessions().map(s => s.id)).toEqual(['good']);
+    });
+
+    it('falls back to the first conversation when the active one is gone', async () => {
+      await AsyncStorage.setItem(
+        KEY,
+        JSON.stringify({
+          sessions: [session('a'), session('b')],
+          activeId: 'deleted-elsewhere',
+        }),
+      );
+
+      await agentService.load();
+
+      expect(agentService.listSessions().find(s => s.active)?.id).toBe('a');
+    });
+  });
+
+  describe('managing conversations', () => {
+    const fresh = () => {
+      (agentService as any).loaded = true;
+      (agentService as any).sessions = [];
+      (agentService as any).activeId = null;
+    };
+
+    beforeEach(async () => {
+      await AsyncStorage.clear();
+      fresh();
+    });
+
+    it('moves the active conversation on when the active one is deleted', async () => {
+      await agentService.newSession();
+      const first = agentService.listSessions()[0].id;
+      await agentService.newSession();
+
+      const activeBefore = agentService.listSessions().find(s => s.active)!.id;
+      await agentService.deleteSession(activeBefore);
+
+      const after = agentService.listSessions();
+      expect(after.map(s => s.id)).not.toContain(activeBefore);
+      expect(after.find(s => s.active)).toBeDefined();
+      expect(first).toBeDefined();
+    });
+
+    it('leaves the active one alone when a different one is deleted', async () => {
+      await agentService.newSession();
+      await agentService.newSession();
+      const active = agentService.listSessions().find(s => s.active)!.id;
+      const other = agentService.listSessions().find(s => !s.active)!.id;
+
+      await agentService.deleteSession(other);
+
+      expect(agentService.listSessions().find(s => s.active)?.id).toBe(active);
+    });
+
+    it('deleting one that is not there changes nothing', async () => {
+      await agentService.newSession();
+      const before = agentService.listSessions().map(s => s.id);
+
+      await agentService.deleteSession('never-existed');
+
+      expect(agentService.listSessions().map(s => s.id)).toEqual(before);
+    });
+  });
 });

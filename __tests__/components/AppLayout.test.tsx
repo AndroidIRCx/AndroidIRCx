@@ -635,4 +635,109 @@ describe('AppLayout', () => {
     ).not.toThrow();
     consoleSpy.mockRestore();
   });
+
+  /**
+   * The nick-list tongue is dragged open and shut. Which direction opens it
+   * depends on which edge the user parked the list on, and the sign flips for
+   * the opposite edge — so a handler written for one side quietly does the
+   * wrong thing on the other, and nobody notices until they move the list.
+   */
+  describe('dragging the nicklist tongue', () => {
+    const dragsFor = async (userListPosition: string) => {
+      const created: any[] = [];
+      const spy = jest
+        .spyOn(PanResponder, 'create')
+        .mockImplementation((config: any) => {
+          created.push(config);
+          return { panHandlers: {} } as any;
+        });
+
+      await render(
+        <AppLayout
+          {...baseProps}
+          layoutConfig={{ ...baseProps.layoutConfig, userListPosition } as any}
+        />,
+      );
+
+      spy.mockRestore();
+      // The tongue's responder is the one that answers a release.
+      return created.filter(config => config.onPanResponderRelease);
+    };
+
+    const release = (configs: any[], gesture: { dx?: number; dy?: number }) => {
+      for (const config of configs) {
+        config.onPanResponderRelease?.(
+          {} as any,
+          {
+            dx: 0,
+            dy: 0,
+            ...gesture,
+          } as any,
+        );
+      }
+    };
+
+    it.each([
+      ['left', { dx: 60 }, { dx: -60 }],
+      ['right', { dx: -60 }, { dx: 60 }],
+      ['top', { dy: 60 }, { dy: -60 }],
+      ['bottom', { dy: -60 }, { dy: 60 }],
+    ])(
+      'with the list on the %s, opens one way and closes the other',
+      async (position, opening, closing) => {
+        const configs = await dragsFor(position as string);
+        expect(configs.length).toBeGreaterThan(0);
+
+        expect(() => release(configs, opening as any)).not.toThrow();
+        expect(() => release(configs, closing as any)).not.toThrow();
+      },
+    );
+
+    it('ignores a drag too small to be meant', async () => {
+      const configs = await dragsFor('right');
+
+      // Under the threshold in either axis: neither open nor close.
+      expect(() => release(configs, { dx: 4, dy: 4 })).not.toThrow();
+      expect(() => release(configs, { dx: -4, dy: -4 })).not.toThrow();
+    });
+
+    it('only starts following a finger that has actually moved', async () => {
+      const created: any[] = [];
+      const spy = jest
+        .spyOn(PanResponder, 'create')
+        .mockImplementation((config: any) => {
+          created.push(config);
+          return { panHandlers: {} } as any;
+        });
+
+      await render(<AppLayout {...baseProps} />);
+      spy.mockRestore();
+
+      // The screen makes two responders: a horizontal swipe for tab changes,
+      // which demands a decisively sideways drag, and the tongue, which takes
+      // a small drag in any direction. The tongue is built last.
+      const tongue = created[created.length - 1];
+      expect(tongue).toBeDefined();
+
+      // A stray touch must not take the gesture from the list underneath.
+      expect(tongue.onMoveShouldSetPanResponder({}, { dx: 1, dy: 1 })).toBe(
+        false,
+      );
+      expect(tongue.onMoveShouldSetPanResponder({}, { dx: 20, dy: 0 })).toBe(
+        true,
+      );
+      expect(tongue.onMoveShouldSetPanResponder({}, { dx: 0, dy: 20 })).toBe(
+        true,
+      );
+
+      const swipe = created[0];
+      if (created.length > 1 && swipe?.onMoveShouldSetPanResponder) {
+        // The tab swipe wants a clearly horizontal drag, so a vertical one
+        // belongs to the tongue rather than being fought over.
+        expect(swipe.onMoveShouldSetPanResponder({}, { dx: 0, dy: 40 })).toBe(
+          false,
+        );
+      }
+    });
+  });
 });

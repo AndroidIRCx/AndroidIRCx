@@ -555,17 +555,17 @@ const createStyles = (colors: any) =>
       fontSize: 16,
       fontWeight: '600',
       color: colors.text,
-      marginRight: 8,
+      marginEnd: 8,
     },
     favoriteIcon: {
       fontSize: 16,
       color: colors.warning,
-      marginRight: 8,
+      marginEnd: 8,
     },
     userCount: {
       fontSize: 12,
       color: colors.textSecondary,
-      marginLeft: 'auto',
+      marginStart: 'auto',
     },
     channelTopic: {
       fontSize: 12,

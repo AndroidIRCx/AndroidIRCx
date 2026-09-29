@@ -68,6 +68,7 @@ import {
   SUPPORTED_ENCODINGS,
   encodingService,
 } from '../../../services/EncodingService';
+import { PasswordInput } from '../../PasswordInput';
 
 interface ConnectionNetworkSectionProps {
   colors: {
@@ -265,6 +266,19 @@ export const ConnectionNetworkSection: React.FC<
   >('socks5');
   const [globalProxyHost, setGlobalProxyHost] = useState('');
   const [globalProxyPort, setGlobalProxyPort] = useState('');
+
+  /**
+   * A proxy port the settings can actually use.
+   *
+   * The field is numeric, but a numeric keyboard still offers "-" and anything
+   * can be pasted in, so `parseInt` alone lets NaN through — and a stored
+   * `port: NaN` serialises to null, leaving a proxy that silently never
+   * connects and gives the user nothing to go on.
+   */
+  const toProxyPort = (value: string): number => {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  };
   const [globalProxyUsername, setGlobalProxyUsername] = useState('');
   const [globalProxyPassword, setGlobalProxyPassword] = useState('');
   const [globalProxyEnabled, setGlobalProxyEnabled] = useState(false);
@@ -1986,7 +2000,7 @@ export const ConnectionNetworkSection: React.FC<
                 enabled: boolValue,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
+                port: toProxyPort(globalProxyPort),
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -2016,7 +2030,7 @@ export const ConnectionNetworkSection: React.FC<
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: strValue,
-                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
+                port: toProxyPort(globalProxyPort),
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -2037,7 +2051,7 @@ export const ConnectionNetworkSection: React.FC<
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: strValue ? parseInt(strValue, 10) : 0,
+                port: toProxyPort(strValue),
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -2059,7 +2073,7 @@ export const ConnectionNetworkSection: React.FC<
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
+                port: toProxyPort(globalProxyPort),
                 username: strValue,
                 password: globalProxyPassword,
               });
@@ -2082,7 +2096,7 @@ export const ConnectionNetworkSection: React.FC<
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
+                port: toProxyPort(globalProxyPort),
                 username: globalProxyUsername,
                 password: strValue,
               });
@@ -2576,7 +2590,7 @@ export const ConnectionNetworkSection: React.FC<
                     onPress={() => {
                       setNestedSubmenuStack(prev => prev.slice(0, -1));
                     }}
-                    style={{ marginRight: 12, padding: 4 }}
+                    style={{ marginEnd: 12, padding: 4 }}
                   >
                     <Text style={[styles.closeButtonText, { fontSize: 18 }]}>
                       ←
@@ -2666,6 +2680,11 @@ export const ConnectionNetworkSection: React.FC<
                     );
                   }
                   if (subItem.type === 'input') {
+                    // The eye only belongs on a field that actually holds a
+                    // password; everything else stays a plain input.
+                    const SubInput = subItem.secureTextEntry
+                      ? PasswordInput
+                      : TextInput;
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
@@ -2677,7 +2696,7 @@ export const ConnectionNetworkSection: React.FC<
                               {subItem.description}
                             </Text>
                           )}
-                          <TextInput
+                          <SubInput
                             key={`${subItem.id}-${submenuRefreshKey}`}
                             style={[
                               styles.submenuInput,
@@ -2701,7 +2720,6 @@ export const ConnectionNetworkSection: React.FC<
                             placeholder={subItem.placeholder}
                             placeholderTextColor={colors.textSecondary}
                             keyboardType={subItem.keyboardType || 'default'}
-                            secureTextEntry={subItem.secureTextEntry}
                             editable={!subItem.disabled}
                           />
                         </View>
@@ -2973,7 +2991,7 @@ export const ConnectionNetworkSection: React.FC<
                       enabled: globalProxyEnabled,
                       type: proxyType,
                       host: globalProxyHost,
-                      port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
+                      port: toProxyPort(globalProxyPort),
                       username: globalProxyUsername,
                       password: globalProxyPassword,
                     });
@@ -3044,7 +3062,7 @@ export const ConnectionNetworkSection: React.FC<
               </TouchableOpacity>
             </View>
             <View style={{ padding: 16 }}>
-              <TextInput
+              <PasswordInput
                 style={[
                   styles.submenuInput,
                   {
@@ -3062,7 +3080,6 @@ export const ConnectionNetworkSection: React.FC<
                 value={pinEntry}
                 onChangeText={setPinEntry}
                 keyboardType="numeric"
-                secureTextEntry
                 autoFocus
               />
               {pinError ? (

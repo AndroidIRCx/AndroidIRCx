@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#FFFFFF',
-    marginRight: 8,
+    marginEnd: 8,
   },
   recordingText: {
     color: '#FFFFFF',

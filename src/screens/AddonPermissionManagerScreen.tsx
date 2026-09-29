@@ -402,8 +402,8 @@ const createStyles = (colors: any) =>
     },
     recoveryBox: {
       backgroundColor: colors.surface,
-      borderLeftColor: colors.warning,
-      borderLeftWidth: 4,
+      borderStartColor: colors.warning,
+      borderStartWidth: 4,
       borderRadius: 8,
       padding: 12,
     },

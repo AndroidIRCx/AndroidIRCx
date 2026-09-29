@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Alert, Platform } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AppearanceSection } from '../../../src/components/settings/sections/AppearanceSection';
 
 const mockCapturedItems = new Map<string, any>();
@@ -1770,6 +1770,130 @@ describe('AppearanceSection', () => {
       expect(mockLayoutSetConfig).toHaveBeenCalledWith(
         expect.objectContaining({ timestampDisplay: 'grouped' }),
       );
+    });
+  });
+
+  /**
+   * Several appearance settings live behind a submenu modal, which nothing
+   * opened until now — so the whole modal body, one branch per control type,
+   * was never rendered. Opening it is also the only way to reach the controls
+   * a user actually touches for fonts, layout and language.
+   */
+  describe('the submenu modal', () => {
+    const openSubmenu = async (id: string) => {
+      const view = await render(
+        <AppearanceSection
+          colors={colors as any}
+          styles={styles as any}
+          settingIcons={{}}
+          languageLabels={{ en: 'English', sr: 'Srpski' }}
+        />,
+      );
+      await waitFor(() => expect(mockCapturedItems.has(id)).toBe(true));
+      await fireEvent.press(view.getByTestId(`setting-${id}`));
+      return view;
+    };
+
+    const SUBMENUS = [
+      'display-theme',
+      'app-language',
+      'layout-tab-position',
+      // The only submenu holding text fields, so the modal's input branch is
+      // reached nowhere else.
+      'layout-font-size',
+    ];
+
+    it.each(SUBMENUS)('opens %s and renders its controls', async id => {
+      const view = await openSubmenu(id);
+
+      // The modal's own Close is proof the body rendered.
+      await waitFor(() =>
+        expect(view.queryAllByText('Close').length).toBeGreaterThan(0),
+      );
+    });
+
+    /**
+     * The font-size submenu is the one place in this section where a text
+     * field lives inside the modal, and the px values it writes drive every
+     * message on screen. A number typed there has to reach the layout
+     * service; a field caught mid-edit must not.
+     */
+    it('stores a px value typed into a font size field', async () => {
+      const view = await openSubmenu('layout-font-size');
+      await waitFor(() =>
+        expect(view.queryAllByText('Close').length).toBeGreaterThan(0),
+      );
+
+      const inputs = (
+        mockCapturedItems.get('layout-font-size')?.submenuItems ?? []
+      ).filter((sub: any) => sub.type === 'input');
+      expect(inputs.length).toBeGreaterThan(0);
+
+      for (const sub of inputs) {
+        await sub.onValueChange('20');
+      }
+      expect(mockLayoutSetFontSizeValue).toHaveBeenCalledWith(
+        expect.any(String),
+        20,
+      );
+
+      mockLayoutSetFontSizeValue.mockClear();
+      for (const sub of inputs) {
+        await sub.onValueChange('');
+        await sub.onValueChange('abc');
+      }
+      // Half a number is not a font size; nothing should have been stored.
+      expect(mockLayoutSetFontSizeValue).not.toHaveBeenCalled();
+    });
+
+    it('closes again', async () => {
+      const view = await openSubmenu('layout-tab-position');
+      await waitFor(() =>
+        expect(view.queryAllByText('Close').length).toBeGreaterThan(0),
+      );
+
+      await fireEvent.press(view.getAllByText('Close')[0]);
+
+      await waitFor(() => expect(view.queryByText('Close')).toBeNull());
+    });
+
+    it('renders every control type a submenu can hold', async () => {
+      const view = await openSubmenu('display-theme');
+      await waitFor(() =>
+        expect(view.queryAllByText('Close').length).toBeGreaterThan(0),
+      );
+
+      // Each submenu item type takes its own branch in the modal body; this
+      // reads whichever ones the section actually declares, after rendering
+      // has put them in front of us.
+      const seen = new Set<string>();
+      for (const id of SUBMENUS) {
+        for (const sub of mockCapturedItems.get(id)?.submenuItems ?? []) {
+          seen.add(sub.type);
+        }
+      }
+      expect(seen.size).toBeGreaterThan(0);
+    });
+
+    it('does not open for an item that is not a submenu', async () => {
+      const view = await render(
+        <AppearanceSection
+          colors={colors as any}
+          styles={styles as any}
+          settingIcons={{}}
+          languageLabels={{ en: 'English', sr: 'Srpski' }}
+        />,
+      );
+      await waitFor(() => expect(mockCapturedItems.size).toBeGreaterThan(0));
+
+      const plain = [...mockCapturedItems.values()].find(
+        item => item.type !== 'submenu',
+      );
+      expect(plain).toBeDefined();
+      await fireEvent.press(view.getByTestId(`setting-${plain.id}`));
+
+      // Tapping a switch or a button must not put a modal over the screen.
+      expect(view.queryByText('Close')).toBeNull();
     });
   });
 });

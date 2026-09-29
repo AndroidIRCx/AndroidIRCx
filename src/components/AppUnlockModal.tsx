@@ -143,7 +143,7 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
                 size={16}
                 color={killSwitchCustomColor}
                 solid
-                style={{ marginRight: 8 }}
+                style={{ marginEnd: 8 }}
               />
               <Text
                 style={[

@@ -160,7 +160,7 @@ export const ScriptingScreen: React.FC<Props> = ({
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
-  const masterToggleContentStyle = { flex: 1, marginRight: 12 };
+  const masterToggleContentStyle = { flex: 1, marginEnd: 12 };
   const titleSpacingStyle = { marginBottom: 4 };
   const compactSubtitleStyle = { fontSize: 12 };
   const italicSubtitleStyle = {
@@ -173,9 +173,9 @@ export const ScriptingScreen: React.FC<Props> = ({
     fontStyle: 'italic' as const,
   };
   const spacerStyle = { width: 16 };
-  const accentBlueBorderStyle = { borderLeftColor: '#2196F3' };
+  const accentBlueBorderStyle = { borderStartColor: '#2196F3' };
   const accentBlueTextStyle = { color: '#2196F3' };
-  const accentOrangeBorderStyle = { borderLeftColor: '#FF9800' };
+  const accentOrangeBorderStyle = { borderStartColor: '#FF9800' };
   const accentOrangeTextStyle = { color: '#FF9800' };
   const [scripts, setScripts] = useState<ScriptConfig[]>([]);
   const [loggingEnabled, setLoggingEnabled] = useState<boolean>(
@@ -1871,8 +1871,8 @@ const createStyles = (colors: any) => {
       padding: 12,
       borderRadius: 8,
       marginBottom: 8,
-      borderLeftWidth: 4,
-      borderLeftColor: colors.error,
+      borderStartWidth: 4,
+      borderStartColor: colors.error,
     },
     warningText: { color: colors.error, fontSize: 13, fontWeight: '600' },
     list: { paddingBottom: 12 },
@@ -1889,7 +1889,7 @@ const createStyles = (colors: any) => {
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    cardHeaderText: { flex: 1, marginRight: 12, minWidth: 0, flexShrink: 1 },
+    cardHeaderText: { flex: 1, marginEnd: 12, minWidth: 0, flexShrink: 1 },
     title: { color: colors.text, fontWeight: '700', fontSize: 16 },
     subtitle: { color: colors.textSecondary, fontSize: 12 },
     row: {
@@ -2143,7 +2143,7 @@ const createStyles = (colors: any) => {
       color: colors.textSecondary,
       fontSize: 11,
       textTransform: 'uppercase',
-      marginLeft: 8,
+      marginStart: 8,
     },
     autocompleteDoc: {
       color: colors.textSecondary,

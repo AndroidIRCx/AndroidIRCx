@@ -376,8 +376,8 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
           <View
             style={{
               backgroundColor: colors.surface,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+              borderTopStartRadius: 20,
+              borderTopEndRadius: 20,
               maxHeight: '80%',
             }}
           >

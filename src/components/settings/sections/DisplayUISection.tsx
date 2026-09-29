@@ -1357,8 +1357,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           <View
             style={{
               backgroundColor: colors.surface,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+              borderTopStartRadius: 20,
+              borderTopEndRadius: 20,
               maxHeight: '80%',
             }}
           >
@@ -1399,7 +1399,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
                         borderBottomColor: colors.border,
                       }}
                     >
-                      <View style={{ flex: 1, marginRight: 12 }}>
+                      <View style={{ flex: 1, marginEnd: 12 }}>
                         <Text style={{ color: colors.text, fontSize: 15 }}>
                           {subItem.title}
                         </Text>

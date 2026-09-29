@@ -20,7 +20,7 @@ import {
 const stylesLocal = {
   subtitleEmphasis: { fontStyle: 'italic' as const, opacity: 0.7 },
   labelSpacing: { marginTop: 15 },
-  pickerSpacing: { marginLeft: 10 },
+  pickerSpacing: { marginStart: 10 },
 } as const;
 
 interface ThemeColors {
@@ -414,7 +414,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 10,
       paddingVertical: 5,
       borderRadius: 5,
-      marginRight: 8,
+      marginEnd: 8,
     },
     quickReasonText: {
       fontSize: 12,

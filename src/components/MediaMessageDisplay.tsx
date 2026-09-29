@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   encryptionIcon: {
-    marginRight: 4,
+    marginEnd: 4,
   },
   encryptionText: {
     fontSize: 11,

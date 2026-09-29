@@ -7,6 +7,7 @@ import React, { useCallback, useSyncExternalStore } from 'react';
 import * as RNLocalize from 'react-native-localize';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './config';
+import { applyLayoutDirection } from './rtl';
 import { bundledTranslations } from './translations';
 
 type TranslationParams = Record<string, unknown>;
@@ -149,6 +150,11 @@ export const applyLocale = async (preferred?: string): Promise<void> => {
     return;
   }
   currentLocale = locale;
+  // Which way the interface runs follows the app's own language, not the
+  // device's. React Native caches direction natively, so this only records the
+  // choice; `isLayoutRestartPending()` says whether the screen still shows the
+  // old one.
+  applyLayoutDirection(locale);
   notifyLocaleChanged();
 };
 

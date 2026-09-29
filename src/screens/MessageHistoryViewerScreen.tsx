@@ -642,7 +642,7 @@ const createStyles = (colors: any) =>
       paddingVertical: 6,
       borderRadius: 12,
       backgroundColor: colors.surfaceVariant || colors.surface || '#F2F2F2',
-      marginRight: 8,
+      marginEnd: 8,
     },
     networkChipActive: {
       backgroundColor: colors.primary || '#2196F3',

@@ -126,7 +126,7 @@ const createStyles = (colors: any) =>
     },
     reactionEmoji: {
       fontSize: 14,
-      marginRight: 4,
+      marginEnd: 4,
     },
     reactionCount: {
       fontSize: 12,
@@ -158,8 +158,8 @@ const createStyles = (colors: any) =>
     },
     modalContent: {
       backgroundColor: colors.background,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
+      borderTopStartRadius: 16,
+      borderTopEndRadius: 16,
       maxHeight: '50%',
     },
     modalHeader: {

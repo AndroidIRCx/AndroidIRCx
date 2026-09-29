@@ -31,6 +31,7 @@ import type { CertificateInfo } from '../types/certificate';
 import { Picker } from '@react-native-picker/picker';
 import { SUPPORTED_ENCODINGS } from '../services/EncodingService';
 import { useTheme } from '../hooks/useTheme';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface NetworkSettingsScreenProps {
   networkId?: string;
@@ -364,7 +365,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
             {saving ? (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <ActivityIndicator size="small" color={colors.onPrimary} />
-                <Text style={[styles.saveText, { marginLeft: 6 }]}>
+                <Text style={[styles.saveText, { marginStart: 6 }]}>
                   {t('Saving...')}
                 </Text>
               </View>
@@ -560,13 +561,12 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{t('SASL Password')}</Text>
-                <TextInput
+                <PasswordInput
                   style={styles.input}
                   value={saslPassword}
                   onChangeText={setSaslPassword}
                   placeholder={t('SASL password')}
                   placeholderTextColor={colors.inputPlaceholder}
-                  secureTextEntry
                   autoCapitalize="none"
                 />
               </View>
@@ -656,14 +656,13 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{t('Password')}</Text>
-                <TextInput
+                <PasswordInput
                   style={[styles.input, !proxyEnabled && styles.inputDisabled]}
                   value={proxyPassword}
                   editable={proxyEnabled}
                   onChangeText={setProxyPassword}
                   placeholder={t('optional')}
                   placeholderTextColor={colors.inputPlaceholder}
-                  secureTextEntry
                   autoCapitalize="none"
                 />
               </View>
@@ -738,14 +737,13 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               </Text>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{t('WEBIRC Password')}</Text>
-                <TextInput
+                <PasswordInput
                   style={[styles.input, !webircEnabled && styles.inputDisabled]}
                   value={webircPassword}
                   editable={webircEnabled}
                   onChangeText={setWebircPassword}
                   placeholder={t('shared WEBIRC password')}
                   placeholderTextColor={colors.inputPlaceholder}
-                  secureTextEntry
                   autoCapitalize="none"
                 />
               </View>

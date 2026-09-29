@@ -1494,7 +1494,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       paddingHorizontal: 12,
       paddingVertical: 8,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     presetText: {
@@ -1510,7 +1510,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     partText: {
@@ -1522,7 +1522,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderStyle: 'dashed',
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     addChipText: {
@@ -1562,7 +1562,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       paddingVertical: 8,
       alignItems: 'center',
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     toggleText: {
@@ -1578,7 +1578,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     tokenText: {
@@ -1603,7 +1603,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 8,
+      marginEnd: 8,
     },
     styleButtonText: {
       fontSize: 13,
@@ -1615,7 +1615,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 10,
       paddingVertical: 8,
       borderRadius: 8,
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     colorSwatch: {
@@ -1623,7 +1623,7 @@ const createStyles = (colors: ThemeColors) =>
       height: 18,
       borderWidth: 1,
       borderRadius: 4,
-      marginRight: 8,
+      marginEnd: 8,
     },
     colorButtonText: {
       fontSize: 13,
@@ -1634,7 +1634,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: 10,
       borderRadius: 8,
       alignItems: 'center',
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     secondaryButtonText: {
@@ -1646,7 +1646,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: 10,
       borderRadius: 8,
       alignItems: 'center',
-      marginRight: 8,
+      marginEnd: 8,
       marginBottom: 8,
     },
     primaryButtonText: {

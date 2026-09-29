@@ -203,6 +203,12 @@ jest.mock('../../src/services/ai/AIService', () => ({
 }));
 
 const { scriptingService } = require('../../src/services/ScriptingService');
+const {
+  addonIALService,
+} = require('../../src/services/scripting/AddonIALService');
+const {
+  addonTableStore,
+} = require('../../src/services/scripting/AddonTableStore');
 const { useUIStore } = require('../../src/stores/uiStore');
 const { Alert, Linking } = require('react-native');
 
@@ -2488,6 +2494,822 @@ describe('ScriptingService', () => {
       removeHealthy();
       scriptingService.handleDisconnect('net1', 'bye');
       expect(healthy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('the action helpers a script writes instead of raw commands', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('turns each helper into the command it stands for', async () => {
+      const api = await apiOf();
+
+      api.join('#chat', 'net1');
+      api.part('#chat', 'bye', 'net1');
+      api.part('#chat', undefined, 'net1');
+      api.kick('#chat', 'fred', 'spam', 'net1');
+      api.kick('#chat', 'fred', undefined, 'net1');
+      api.mode('#chat', '+m', 'net1');
+      api.op('#chat', 'fred', 'net1');
+      api.deop('#chat', 'fred', 'net1');
+      api.voice('#chat', 'fred', 'net1');
+      api.devoice('#chat', 'fred', 'net1');
+      api.ban('#chat', '*!*@bad', 'net1');
+      api.unban('#chat', '*!*@bad', 'net1');
+      api.setTopic('#chat', 'new topic', 'net1');
+      api.changeNick('other', 'net1');
+      api.setAway('back later', 'net1');
+      api.setAway(undefined, 'net1');
+      api.back('net1');
+      api.whois('fred', 'net1');
+
+      const sent = mockIrcService.sendCommand.mock.calls.map(call => call[0]);
+      expect(sent).toEqual([
+        '/join #chat',
+        '/part #chat bye',
+        '/part #chat',
+        '/kick #chat fred spam',
+        '/kick #chat fred',
+        '/mode #chat +m',
+        '/mode #chat +o fred',
+        '/mode #chat -o fred',
+        '/mode #chat +v fred',
+        '/mode #chat -v fred',
+        '/mode #chat +b *!*@bad',
+        '/mode #chat -b *!*@bad',
+        '/topic #chat new topic',
+        '/nick other',
+        '/away back later',
+        '/away',
+        '/away',
+        '/whois fred',
+      ]);
+    });
+
+    it('sends an action as a CTCP ACTION, and refuses a nameless target', async () => {
+      const api = await apiOf();
+
+      api.action('#chat', 'waves', 'net1');
+      expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+        '#chat',
+        '\u0001ACTION waves\u0001',
+      );
+
+      mockIrcService.sendMessage.mockClear();
+      api.action('', 'waves', 'net1');
+      api.action('#chat', 42 as any, 'net1');
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it('sends nothing at all when the network is unknown', async () => {
+      const api = await apiOf();
+      mockConnectionManager.getActiveNetworkId.mockReturnValueOnce(
+        undefined as any,
+      );
+
+      api.join('#chat', '');
+
+      expect(mockIrcService.sendCommand).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ban masks and the types behind them', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('falls back to the default ban type when none is given', async () => {
+      const api = await apiOf();
+      mockConnection.userManagementService.getWHOIS.mockReturnValue({
+        nick: 'troll',
+        username: 'bob',
+        hostname: 'some.host.example',
+      });
+
+      expect(typeof (await api.banMask('troll', undefined, 'net1'))).toBe(
+        'string',
+      );
+    });
+
+    it('returns null for an empty nick or an unknown network', async () => {
+      const api = await apiOf();
+      expect(await api.banMask('', 2, 'net1')).toBeNull();
+      mockConnectionManager.getActiveNetworkId.mockReturnValueOnce(
+        undefined as any,
+      );
+      expect(await api.banMask('troll', 2, '')).toBeNull();
+    });
+
+    it('offers the same mask types the ban dialog does', async () => {
+      const api = await apiOf();
+      expect(api.getBanTypes().length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('favourites, from a script', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('adds, reads back and removes a saved channel', async () => {
+      const api = await apiOf();
+
+      await api.addFavorite('#chat', 'net1');
+      expect(api.isFavorite('#chat', 'net1')).toBe(true);
+      expect(api.getFavorites('net1').map((e: any) => e.name)).toContain(
+        '#chat',
+      );
+
+      await api.setAutoJoin('#chat', true, 'net1');
+      expect(
+        api
+          .getAutoJoinChannels('net1')
+          .map((entry: any) =>
+            typeof entry === 'string' ? entry : entry.name,
+          ),
+      ).toContain('#chat');
+
+      await api.removeFavorite('#chat', 'net1');
+      expect(api.isFavorite('#chat', 'net1')).toBe(false);
+    });
+
+    it('does nothing without a channel or a network', async () => {
+      const api = await apiOf();
+
+      await api.addFavorite('', 'net1');
+      await api.removeFavorite('', 'net1');
+      await api.setAutoJoin('', true, 'net1');
+      expect(api.isFavorite('', 'net1')).toBe(false);
+
+      mockConnectionManager.getActiveNetworkId.mockReturnValue(
+        undefined as any,
+      );
+      expect(api.getFavorites('')).toEqual([]);
+      expect(api.getAutoJoinChannels('')).toEqual([]);
+      expect(api.isFavorite('#chat', '')).toBe(false);
+      mockConnectionManager.getActiveNetworkId.mockReturnValue('net1');
+    });
+  });
+
+  describe('reactions', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('needs a message id, and an emoji, before it does anything', async () => {
+      const api = await apiOf();
+
+      expect(api.getReactions('')).toEqual([]);
+      expect(() => api.getReactions('msg-1')).not.toThrow();
+      // Nothing to react to, and nothing to react with: both are no-ops
+      // rather than errors inside a hook.
+      await expect(api.react('', 'x')).resolves.toBeUndefined();
+      await expect(api.react('msg-1', '')).resolves.toBeUndefined();
+      await expect(api.react('msg-1', '❤')).resolves.toBeUndefined();
+    });
+  });
+
+  describe('asking, opening and copying', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('treats an empty question as a no without showing a dialog', async () => {
+      const api = await apiOf();
+      (Alert.alert as jest.Mock).mockClear();
+
+      expect(await api.confirm('')).toBe(false);
+      expect(await api.ask('', ['a'])).toBeNull();
+      expect(await api.ask('which?', [])).toBeNull();
+      expect(Alert.alert).not.toHaveBeenCalled();
+    });
+
+    it('copies to the clipboard, truncated', async () => {
+      const Clipboard = require('@react-native-clipboard/clipboard');
+      const api = await apiOf();
+
+      api.copyToClipboard('x'.repeat(6000));
+
+      const copied = (Clipboard.default ?? Clipboard).setString.mock
+        .calls[0][0];
+      expect(copied).toHaveLength(5000);
+    });
+
+    it('asks before opening a link, and opens it only on yes', async () => {
+      const api = await apiOf();
+      (scriptingService as any).lastLinkAt = 0;
+      (Alert.alert as jest.Mock).mockImplementation((_t, _m, buttons) =>
+        buttons[1].onPress(),
+      );
+      (Linking.openURL as jest.Mock).mockResolvedValue(undefined);
+
+      api.openLink('https://example.com');
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com');
+    });
+
+    it('opens at most one link every three seconds', async () => {
+      const api = await apiOf();
+      (scriptingService as any).lastLinkAt = Date.now();
+      (Linking.openURL as jest.Mock).mockClear();
+      await scriptingService.setLoggingEnabled(true);
+
+      api.openLink('https://example.com');
+
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(
+        scriptingService
+          .getLogs()
+          .map((entry: any) => entry.message)
+          .join(' '),
+      ).toMatch(/rate-limited/i);
+    });
+
+    it('refuses something that is not an http URL', async () => {
+      const api = await apiOf();
+      (Linking.openURL as jest.Mock).mockClear();
+      (scriptingService as any).lastLinkAt = 0;
+
+      // eslint-disable-next-line no-script-url -- the point of the test
+      api.openLink('javascript:alert(1)');
+
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('refuses api.http for something that is not a URL at all', async () => {
+      const api = await apiOf();
+      await scriptingService.setLoggingEnabled(true);
+
+      expect(await api.http('not a url')).toBeNull();
+      expect(
+        scriptingService
+          .getLogs()
+          .map((entry: any) => entry.message)
+          .join(' '),
+      ).toMatch(/only http and https/i);
+    });
+  });
+
+  describe('small helpers', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('formats colour with and without a background', async () => {
+      const api = await apiOf();
+
+      expect(api.colour('hi', 4)).toBe('\u00034hi\u0003');
+      expect(api.colour('hi', 4, 1)).toBe('\u00034,1hi\u0003');
+      // Out-of-range colours are clamped rather than sent as nonsense.
+      expect(api.colour('hi', 500)).toBe('\u000399hi\u0003');
+      expect(api.italic('hi')).toBe('\u001dhi\u001d');
+      expect(api.underline('hi')).toBe('\u001fhi\u001f');
+    });
+
+    it('picks a number in range, in either argument order', async () => {
+      const api = await apiOf();
+
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        expect(api.rand(1, 6)).toBeGreaterThanOrEqual(1);
+        expect(api.rand(1, 6)).toBeLessThanOrEqual(6);
+        expect(api.rand(6, 1)).toBeGreaterThanOrEqual(1);
+      }
+      expect(api.rand('a' as any, 6)).toBe(0);
+    });
+
+    it('keeps a named list per script', async () => {
+      const api = await apiOf();
+      const quotes = api.list('quotes');
+
+      expect(await quotes.all()).toEqual([]);
+      expect(await quotes.random()).toBeNull();
+
+      await quotes.add('first');
+      await quotes.add('second');
+      expect(await quotes.all()).toEqual(['first', 'second']);
+      expect(['first', 'second']).toContain(await quotes.random());
+
+      await quotes.clear();
+      expect(await quotes.all()).toEqual([]);
+    });
+  });
+
+  describe('looking around the network', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('lists the channels a nick shares with you', async () => {
+      const api = await apiOf();
+      mockIrcService.getChannels.mockReturnValue(['#chat', '#help']);
+      mockIrcService.getChannelUsers.mockImplementation((channel: string) =>
+        channel === '#chat' ? [{ nick: '@alice' }] : [{ nick: 'bob' }],
+      );
+
+      expect(api.getSharedChannels('alice', 'net1')).toEqual(['#chat']);
+      expect(api.getSharedChannels('', 'net1')).toEqual([]);
+    });
+
+    it('returns nothing rather than throwing when the lookup fails', async () => {
+      const api = await apiOf();
+      mockIrcService.getChannels.mockImplementation(() => {
+        throw new Error('gone');
+      });
+
+      expect(api.getSharedChannels('alice', 'net1')).toEqual([]);
+      mockIrcService.getChannels.mockReturnValue(['#chat', '#help']);
+    });
+
+    it('returns nothing when the network is not connected', async () => {
+      const api = await apiOf();
+      mockConnectionManager.getConnection.mockReturnValueOnce(undefined as any);
+
+      expect(api.getSharedChannels('alice', 'net1')).toEqual([]);
+    });
+
+    it('hands back an empty history when the store fails', async () => {
+      const api = await apiOf();
+      mockMessageHistoryService.loadMessages.mockRejectedValueOnce(
+        new Error('disk'),
+      );
+
+      expect(await api.getRecentMessages('#chat', 10, 'net1')).toEqual([]);
+    });
+  });
+
+  describe('theme, away and activity', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('changes the theme only after the user agrees', async () => {
+      const api = await apiOf();
+      (Alert.alert as jest.Mock).mockImplementation((_t, _m, buttons) =>
+        buttons[1].onPress(),
+      );
+
+      expect(await api.setTheme('IRcap')).toBe(true);
+      expect(mockThemeService.setTheme).toHaveBeenCalledWith('ircap');
+    });
+
+    it('leaves the theme alone when they say no', async () => {
+      const api = await apiOf();
+      (Alert.alert as jest.Mock).mockImplementation((_t, _m, buttons) =>
+        buttons[0].onPress(),
+      );
+
+      expect(await api.setTheme('IRcap')).toBe(false);
+      expect(mockThemeService.setTheme).not.toHaveBeenCalled();
+    });
+
+    it('refuses a theme that does not exist, and an empty name', async () => {
+      const api = await apiOf();
+      (Alert.alert as jest.Mock).mockClear();
+
+      expect(await api.setTheme('  ')).toBe(false);
+      expect(await api.setTheme('Neon Nightmare')).toBe(false);
+      expect(Alert.alert).not.toHaveBeenCalled();
+    });
+
+    it('answers the away and activity questions without throwing', async () => {
+      const api = await apiOf();
+
+      expect(typeof api.isAnyAway()).toBe('boolean');
+      expect(api.getUserActivity('')).toBeUndefined();
+      expect(() => api.getUserActivity('alice', 'net1')).not.toThrow();
+    });
+
+    it('caps the spam log at the number asked for', async () => {
+      const api = await apiOf();
+
+      expect(await api.getSpamLog('lots' as any)).toEqual(expect.any(Array));
+    });
+  });
+
+  describe('storage failures stay inside the script', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('lists nothing and clears nothing when the store throws', async () => {
+      const api = await apiOf();
+      jest
+        .spyOn(AsyncStorage, 'getAllKeys')
+        .mockRejectedValue(new Error('disk'));
+
+      expect(await api.listStorage()).toEqual([]);
+      expect(await api.clearStorage()).toBe(0);
+      (AsyncStorage.getAllKeys as jest.Mock).mockRestore();
+    });
+
+    it('clears nothing when this script stored nothing', async () => {
+      const api = await apiOf();
+      expect(await api.clearStorage('never-used:')).toBe(0);
+    });
+
+    it('ignores a key that is too long to be one of ours', async () => {
+      const api = await apiOf();
+      await expect(api.removeStorage('k'.repeat(200))).resolves.toBeUndefined();
+    });
+  });
+
+  describe('running a script command', () => {
+    const addCommandScript = async (body: string) => {
+      await scriptingService.add({
+        id: 'cmd',
+        name: 'Cmd',
+        enabled: true,
+        code: `module.exports = {};
+${body}`,
+      });
+    };
+
+    it('lets a command replace the line that is sent', async () => {
+      await addCommandScript(
+        "api.registerCommand('shout', args => '/say ' + args.join(' ').toUpperCase());",
+      );
+
+      expect(
+        scriptingService.processOutgoingCommand('/shout hello there', {
+          networkId: 'net1',
+        }),
+      ).toBe('/say HELLO THERE');
+    });
+
+    it('lets a command cancel the line, or rewrite it as an object', async () => {
+      await addCommandScript(
+        "api.registerCommand('stop', () => ({ cancel: true })); api.registerCommand('go', () => ({ command: '/join #a' }));",
+      );
+
+      expect(
+        scriptingService.processOutgoingCommand('/stop', { networkId: 'net1' }),
+      ).toBeNull();
+      expect(
+        scriptingService.processOutgoingCommand('/go', { networkId: 'net1' }),
+      ).toBe('/join #a');
+    });
+
+    it('logs a command that throws instead of letting it reach the server', async () => {
+      startCollecting();
+      await addCommandScript(
+        "api.registerCommand('boom', () => { throw new Error('nope'); });",
+      );
+
+      expect(
+        scriptingService.processOutgoingCommand('/boom', { networkId: 'net1' }),
+      ).toBeNull();
+      expect(
+        scriptingService
+          .getLogs()
+          .some((entry: any) => /Command \/boom failed/.test(entry.message)),
+      ).toBe(true);
+    });
+
+    it('says why a known command did nothing when the time is gone', async () => {
+      await addCommandScript("api.registerCommand('hello', () => '/say hi');");
+      mockAdRewardService.hasAvailableTime.mockReturnValue(false);
+      mockIrcService.addMessage.mockClear();
+
+      expect(
+        scriptingService.processOutgoingCommand('/hello', {
+          networkId: 'net1',
+        }),
+      ).toBeNull();
+      expect(mockIrcService.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error' }),
+      );
+    });
+  });
+
+  describe('menu items', () => {
+    const addMenuScript = async () => {
+      await scriptingService.add({
+        id: 'menu',
+        name: 'Menu',
+        enabled: true,
+        code: `
+          module.exports = {};
+          api.addMenuItem({
+            menu: 'nick',
+            label: 'Greet',
+            onSelect: target => api.log('greeted ' + target),
+          });
+          api.addMenuItem({
+            menu: 'channel',
+            label: 'Boom',
+            onSelect: () => { throw new Error('nope'); },
+          });
+        `,
+      });
+    };
+
+    it('runs the item the user tapped', async () => {
+      startCollecting();
+      await addMenuScript();
+      const item = scriptingService
+        .getScriptMenuItems('nick')
+        .find(
+          (entry: any) => entry.label === 'Greet' && entry.scriptId === 'menu',
+        );
+
+      scriptingService.triggerScriptMenuItem(item.id, 'alice', {
+        networkId: 'net1',
+      });
+
+      expect(loggedByScripts('menu').join(' ')).toContain('greeted alice');
+    });
+
+    it('logs an item that throws rather than losing it', async () => {
+      startCollecting();
+      await addMenuScript();
+      const item = scriptingService
+        .getScriptMenuItems('channel')
+        .find(
+          (entry: any) => entry.label === 'Boom' && entry.scriptId === 'menu',
+        );
+
+      scriptingService.triggerScriptMenuItem(item.id, '#chat', {
+        networkId: 'net1',
+      });
+
+      expect(
+        scriptingService
+          .getLogs()
+          .some((entry: any) => /Boom" failed/.test(entry.message)),
+      ).toBe(true);
+    });
+
+    it('does nothing for an id that is not there', async () => {
+      await addMenuScript();
+      expect(() =>
+        scriptingService.triggerScriptMenuItem('nope:1', 'alice', {}),
+      ).not.toThrow();
+    });
+
+    it('says why the item did nothing when the time is gone', async () => {
+      await addMenuScript();
+      const item = scriptingService
+        .getScriptMenuItems('nick')
+        .find(
+          (entry: any) => entry.label === 'Greet' && entry.scriptId === 'menu',
+        );
+      mockAdRewardService.hasAvailableTime.mockReturnValue(false);
+      mockIrcService.addMessage.mockClear();
+
+      scriptingService.triggerScriptMenuItem(item.id, 'alice', {
+        networkId: 'net1',
+      });
+
+      expect(mockIrcService.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error' }),
+      );
+    });
+  });
+
+  describe('firing a hook from the editor', () => {
+    const HOOKS = [
+      'onConnect',
+      'onDisconnect',
+      'onMessage',
+      'onNotice',
+      'onJoin',
+      'onPart',
+      'onQuit',
+      'onNickChange',
+      'onKick',
+      'onMode',
+      'onBan',
+      'onUnban',
+      'onOp',
+      'onDeop',
+      'onVoice',
+      'onDevoice',
+      'onHelp',
+      'onDehelp',
+      'onUserMode',
+      'onServerMode',
+      'onServerNotice',
+      'onWallops',
+      'onServerError',
+      'onPing',
+      'onPong',
+      'onNotifyOnline',
+      'onNotifyOffline',
+      'onTopic',
+      'onInvite',
+      'onCTCP',
+      'onRaw',
+      'onNumeric',
+      'onTabOpen',
+      'onTabClose',
+      'onTabActivate',
+      'onFileSent',
+      'onFileReceived',
+      'onDccSendFailed',
+      'onDccReceiveFailed',
+      'onAppStateChange',
+      'onLoad',
+      'onStart',
+      'onCommand',
+      'onInput',
+      'onTabComplete',
+      'onTimer',
+    ];
+
+    it('calls every hook the editor offers, with a sample of its arguments', async () => {
+      startCollecting();
+      const body = HOOKS.map(
+        hook => `${hook}: () => api.log('fired ${hook}')`,
+      ).join(',\n');
+      await scriptingService.add({
+        id: 'hooked',
+        name: 'Hooked',
+        enabled: true,
+        code: `module.exports = { ${body} };`,
+      });
+
+      for (const hook of HOOKS) scriptingService.testHook('hooked', hook);
+
+      const fired = loggedByScripts('hooked').join(' ');
+      for (const hook of HOOKS) expect(fired).toContain(`fired ${hook}`);
+    });
+
+    it('does nothing for a script that is not there', () => {
+      expect(() =>
+        scriptingService.testHook('absent', 'onMessage'),
+      ).not.toThrow();
+    });
+  });
+
+  describe('the cached views a script reads instead of asking the server', () => {
+    const apiOf = async () => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id: 's1', name: 'S' });
+    };
+
+    it('reads a user out of the address list, and refuses a nameless one', async () => {
+      const api = await apiOf();
+      addonIALService.resetForTests();
+      addonIALService.observe('net1', 'alice', { host: 'h.example' }, 'whois');
+
+      expect(api.users.get('alice', 'net1')?.host).toBe('h.example');
+      expect(api.users.get('', 'net1')).toBeNull();
+      expect(api.users.get('nobody', 'net1')).toBeNull();
+    });
+
+    it('finds by mask, lists a channel and the channels shared with someone', async () => {
+      const api = await apiOf();
+      addonIALService.resetForTests();
+      addonIALService.syncChannel('net1', '#chat', [{ nick: 'alice' }]);
+
+      expect(Array.isArray(api.users.find('*'))).toBe(true);
+      expect(api.users.find(42 as any)).toEqual([]);
+      expect(
+        api.users.onChannel('#chat', 'net1').map((u: any) => u.nick),
+      ).toEqual(['alice']);
+      expect(api.users.onChannel('', 'net1')).toEqual([]);
+      expect(api.users.sharedChannels('alice', 'net1')).toContain('#chat');
+      expect(api.users.sharedChannels('', 'net1')).toEqual([]);
+    });
+
+    it('matches a hostmask the way the app does', async () => {
+      const api = await apiOf();
+
+      expect(
+        api.users.matchesMask(
+          { nick: 'alice', ident: 'ali', host: 'h.example' },
+          '*!*@h.example',
+        ),
+      ).toBe(true);
+      expect(
+        api.users.matchesMask({ nick: 'alice' }, '*!*@somewhere.else'),
+      ).toBe(false);
+      expect(api.users.matchesMask(null as any, '*')).toBe(false);
+    });
+
+    it('reads channel state and its mask lists', async () => {
+      const api = await apiOf();
+
+      expect(api.channelState.get('', 'net1')).toBeNull();
+      expect(api.channelState.get('#chat', 'net1')).toBeDefined();
+
+      const unknown = api.channelState.getList(
+        '#chat',
+        'nonsense' as any,
+        'net1',
+      );
+      expect(unknown.status).toBe('unknown');
+      expect(unknown.entries).toEqual([]);
+      expect(api.channelState.getList('#chat', 'ban', 'net1')).toBeDefined();
+    });
+
+    it('reads what the server said about itself', async () => {
+      const api = await apiOf();
+
+      expect(api.server.get('net1')).toBeDefined();
+      expect(api.server.token(42 as any, 'net1')).toBeNull();
+      expect(typeof api.server.hasCapability('sasl', 'net1')).toBe('boolean');
+      expect(api.server.hasCapability(42 as any, 'net1')).toBe(false);
+      expect(typeof api.server.isChannel('#chat', 'net1')).toBe('boolean');
+      expect(api.server.isChannel(42 as any, 'net1')).toBe(false);
+    });
+
+    it('gives nothing back when no network is connected', async () => {
+      const api = await apiOf();
+      mockConnectionManager.getActiveNetworkId.mockReturnValue(
+        undefined as any,
+      );
+
+      expect(api.users.get('alice', '')).toBeNull();
+      expect(api.users.find('*')).toEqual([]);
+      expect(api.users.onChannel('#chat', '')).toEqual([]);
+      expect(api.users.sharedChannels('alice', '')).toEqual([]);
+      expect(api.channelState.get('#chat', '')).toBeNull();
+      expect(api.channelState.getList('#chat', 'ban', '').status).toBe(
+        'unknown',
+      );
+      expect(api.server.get('')).toBeNull();
+      expect(api.server.token('CHANTYPES', '')).toBeNull();
+      expect(api.server.hasCapability('sasl', '')).toBe(false);
+      expect(api.server.isChannel('#chat', '')).toBe(false);
+
+      mockConnectionManager.getActiveNetworkId.mockReturnValue('net1');
+    });
+  });
+
+  describe('a script’s own hash tables', () => {
+    const apiOf = async (id = 's1') => {
+      await scriptingService.initialize();
+      return (scriptingService as any).makeApi({ id, name: id });
+    };
+
+    it('stores, counts and drops rows under a table of its own', async () => {
+      addonTableStore.resetForTests();
+      const api = await apiOf();
+      const seen = api.store.table('seen');
+
+      await seen.set('alice', 1);
+      expect(seen.get('alice')).toBe(1);
+      expect(seen.has('alice')).toBe(true);
+      expect(seen.keys()).toEqual(['alice']);
+      await seen.increment('alice', 2);
+      expect(seen.get('alice')).toBe(3);
+      expect(Array.isArray(seen.query())).toBe(true);
+      expect(api.store.tables()).toContain('seen');
+      expect(api.store.usedBytes()).toBeGreaterThan(0);
+
+      await seen.delete('alice');
+      expect(seen.has('alice')).toBe(false);
+      await seen.drop();
+      expect(api.store.tables()).not.toContain('seen');
+    });
+
+    it('sets a value only when it is still what the script last saw', async () => {
+      addonTableStore.resetForTests();
+      const api = await apiOf();
+      const table = api.store.table('locks');
+
+      await table.set('key', 'first');
+      await table.compareAndSet('key', 'first', 'second');
+      expect(table.get('key')).toBe('second');
+      await table.compareAndSet('key', 'first', 'third');
+      expect(table.get('key')).toBe('second');
+    });
+
+    it('applies a batch, and refuses a table with no name', async () => {
+      addonTableStore.resetForTests();
+      const api = await apiOf();
+      const table = api.store.table('batched');
+
+      await table.batch([
+        { op: 'set', key: 'a', value: 1 },
+        { op: 'set', key: 'b', value: 2 },
+      ] as any);
+      expect(table.keys().sort()).toEqual(['a', 'b']);
+
+      expect(() => api.store.table('')).toThrow('Table name is required.');
+      expect(() => api.store.table(42 as any)).toThrow();
+    });
+
+    it('never shows one script another script’s table', async () => {
+      addonTableStore.resetForTests();
+      const mine = await apiOf('s1');
+      const theirs = await apiOf('s2');
+      await mine.store.table('secrets').set('k', 'v');
+
+      // Same table name, different script: the name is all they share.
+      expect(theirs.store.table('secrets').get('k')).toBeUndefined();
+      expect(theirs.store.table('secrets').keys()).toEqual([]);
     });
   });
 });

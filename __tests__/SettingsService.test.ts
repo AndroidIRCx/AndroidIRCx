@@ -281,4 +281,184 @@ describe('SettingsService', () => {
     expect(cfg.host).toBe('127.0.0.1');
     expect(cfg.port).toBe(9050);
   });
+
+  /**
+   * Passwords never go into the network list itself: each one is written to
+   * the keychain and put back on the way out. Every field here is optional, so
+   * both a network carrying all of them and one carrying none have to survive
+   * the round trip — and the stripped copy that reaches storage must contain
+   * no password at all.
+   */
+  describe('network secrets', () => {
+    const fullNetwork = (): IRCNetworkConfig =>
+      ({
+        id: 'net-secrets',
+        name: 'Secretive',
+        nickservPassword: 'nickserv-pw',
+        operPassword: 'oper-pw',
+        sasl: { account: 'alice', password: 'sasl-pw' },
+        clientCert: 'CERT',
+        clientKey: 'KEY',
+        proxy: {
+          type: 'socks5',
+          host: 'proxy.example',
+          port: 1080,
+          username: 'p',
+          password: 'proxy-pw',
+        },
+        webirc: {
+          host: 'gw.example',
+          address: '1.2.3.4',
+          password: 'webirc-pw',
+        },
+        servers: [
+          {
+            id: 'srv-1',
+            hostname: 'irc.example',
+            port: 6697,
+            ssl: true,
+            password: 'srv-pw',
+          },
+        ],
+      }) as any;
+
+    const SECRETS = [
+      'nickserv-pw',
+      'oper-pw',
+      'sasl-pw',
+      'CERT',
+      'KEY',
+      'proxy-pw',
+      'webirc-pw',
+      'srv-pw',
+    ];
+
+    it('writes no password into the stored network list', async () => {
+      await settingsService.saveNetworks([fullNetwork()]);
+      await storageCache.flush();
+
+      const stored = String(
+        await AsyncStorage.getItem('@AndroidIRCX:networks'),
+      );
+      for (const secret of SECRETS) {
+        expect(stored).not.toContain(secret);
+      }
+      // What is left is still a usable network, just without its passwords.
+      expect(stored).toContain('Secretive');
+      expect(stored).toContain('irc.example');
+      // The SASL account is not a secret and stays where it was.
+      expect(stored).toContain('alice');
+    });
+
+    it('puts every one of them back when the list is hydrated', async () => {
+      await settingsService.saveNetworks([fullNetwork()]);
+      await storageCache.flush();
+
+      const [hydrated] = await (settingsService as any).applySecrets([
+        {
+          id: 'net-secrets',
+          name: 'Secretive',
+          sasl: { account: 'alice' },
+          proxy: { type: 'socks5', host: 'proxy.example', port: 1080 },
+          webirc: { host: 'gw.example', address: '1.2.3.4' },
+          servers: [{ id: 'srv-1', hostname: 'irc.example', port: 6697 }],
+        },
+      ]);
+
+      expect(hydrated.nickservPassword).toBe('nickserv-pw');
+      expect(hydrated.operPassword).toBe('oper-pw');
+      expect(hydrated.sasl.password).toBe('sasl-pw');
+      expect(hydrated.clientCert).toBe('CERT');
+      expect(hydrated.clientKey).toBe('KEY');
+      expect(hydrated.proxy.password).toBe('proxy-pw');
+      expect(hydrated.webirc.password).toBe('webirc-pw');
+      expect(hydrated.servers[0].password).toBe('srv-pw');
+    });
+
+    it('hydrates a network that has no secrets at all without inventing any', async () => {
+      const [hydrated] = await (settingsService as any).applySecrets([
+        {
+          id: 'net-bare',
+          name: 'Plain',
+          servers: [{ id: 'srv-b', hostname: 'irc.example', port: 6667 }],
+        },
+      ]);
+
+      expect(hydrated.name).toBe('Plain');
+      expect(hydrated.nickservPassword).toBeUndefined();
+      expect(hydrated.operPassword).toBeUndefined();
+      expect(hydrated.sasl).toBeUndefined();
+      expect(hydrated.proxy).toBeUndefined();
+      expect(hydrated.webirc).toBeUndefined();
+      expect(hydrated.servers[0].password).toBeUndefined();
+    });
+
+    it('copes with a network that lists no servers', async () => {
+      await settingsService.saveNetworks([
+        { id: 'net-empty', name: 'Empty' } as any,
+      ]);
+      await storageCache.flush();
+
+      const [hydrated] = await (settingsService as any).applySecrets([
+        { id: 'net-empty', name: 'Empty' },
+      ]);
+      expect(hydrated.servers).toEqual([]);
+    });
+
+    it('keys a network with no id on its name instead', async () => {
+      await settingsService.saveNetworks([
+        { name: 'NoId', nickservPassword: 'byname-pw', servers: [] } as any,
+      ]);
+      await storageCache.flush();
+
+      const [hydrated] = await (settingsService as any).applySecrets([
+        { name: 'NoId', servers: [] },
+      ]);
+      expect(hydrated.nickservPassword).toBe('byname-pw');
+    });
+
+    /**
+     * `loadNetworks` hydrates the passwords and then, when it also writes the
+     * list back — which it does whenever `ensureDefaults` changed anything —
+     * used to return the STRIPPED copy `saveNetworks` had just put in
+     * `this.networks`. A connection attempted straight after such a load had no
+     * NickServ, SASL or server password. This is that exact path.
+     */
+    it('returns the passwords from a load that also rewrites the list', async () => {
+      await settingsService.loadNetworks();
+      await storageCache.flush();
+      const existing = await settingsService.loadNetworks();
+
+      await settingsService.saveNetworks([...existing, fullNetwork()]);
+      await storageCache.flush();
+      (settingsService as any).networks = [];
+
+      const loaded = (await settingsService.loadNetworks()).find(
+        n => n.id === 'net-secrets',
+      )!;
+      expect(loaded.nickservPassword).toBe('nickserv-pw');
+      expect(loaded.sasl.password).toBe('sasl-pw');
+      expect(loaded.servers[0].password).toBe('srv-pw');
+    });
+
+    it('still writes no password to storage on that path', async () => {
+      await settingsService.loadNetworks();
+      await storageCache.flush();
+      const existing = await settingsService.loadNetworks();
+
+      await settingsService.saveNetworks([...existing, fullNetwork()]);
+      await storageCache.flush();
+      (settingsService as any).networks = [];
+      await settingsService.loadNetworks();
+      await storageCache.flush();
+
+      // Handing the caller the hydrated list must not put secrets on disk.
+      const stored = String(
+        await AsyncStorage.getItem('@AndroidIRCX:networks'),
+      );
+      for (const secret of SECRETS) {
+        expect(stored).not.toContain(secret);
+      }
+    });
+  });
 });

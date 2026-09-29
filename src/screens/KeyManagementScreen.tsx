@@ -23,6 +23,7 @@ import { useT } from '../i18n/localization';
 import { encryptedDMService, StoredKey } from '../services/EncryptedDMService';
 import { biometricAuthService } from '../services/BiometricAuthService';
 import { connectionManager } from '../services/ConnectionManager';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface KeyManagementScreenProps {
   visible: boolean;
@@ -793,13 +794,12 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
                 )}
               </Text>
 
-              <TextInput
+              <PasswordInput
                 style={styles.passwordInput}
                 placeholder={t('Backup password (min 6 characters)')}
                 placeholderTextColor={colors.textSecondary}
                 value={exportPassword}
                 onChangeText={setExportPassword}
-                secureTextEntry
                 autoCapitalize="none"
               />
 
@@ -860,13 +860,12 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
                 textAlignVertical="top"
               />
 
-              <TextInput
+              <PasswordInput
                 style={styles.passwordInput}
                 placeholder={t('Backup password')}
                 placeholderTextColor={colors.textSecondary}
                 value={importPassword}
                 onChangeText={setImportPassword}
-                secureTextEntry
                 autoCapitalize="none"
               />
 
@@ -1197,7 +1196,7 @@ const createStyles = (colors: any) =>
       padding: 14,
       backgroundColor: colors.primary,
       borderRadius: 8,
-      marginLeft: 8,
+      marginStart: 8,
     },
     dialogConfirmText: {
       fontSize: 14,

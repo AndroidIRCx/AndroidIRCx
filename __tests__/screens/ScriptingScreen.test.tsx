@@ -137,6 +137,88 @@ jest.mock('../../src/services/scripting/AddonSafetyService', () => ({
   },
 }));
 
+// The addon side of this screen talks to a handful of services and hands the
+// review and manager off to screens of their own; stubbing those two keeps the
+// test about what ScriptingScreen does with their callbacks.
+jest.mock('../../src/services/scripting/AddonFileImportService', () => {
+  class AddonImportCancelledError extends Error {}
+  return {
+    AddonImportCancelledError,
+    pickAddonPackageBytes: jest.fn(async () => new Uint8Array([1])),
+  };
+});
+
+jest.mock('../../src/services/scripting/AddonInstallerService', () => ({
+  addonInstallerService: {
+    prepare: jest.fn(async () => ({ review: { name: 'Demo Addon' } })),
+    confirm: jest.fn(async () => ({
+      manifest: { id: 'rs.androidircx.demo', name: 'Demo Addon' },
+    })),
+  },
+}));
+
+jest.mock('../../src/services/scripting/AddonManagementService', () => ({
+  addonManagementService: {
+    initialize: jest.fn(async () => undefined),
+    list: jest.fn(() => []),
+    setEnabled: jest.fn(async () => undefined),
+    uninstall: jest.fn(async () => undefined),
+    rollback: jest.fn(async () => undefined),
+    readSource: jest.fn(async () => 'module.exports = {};'),
+  },
+}));
+
+jest.mock('../../src/services/scripting/AddonLifecycleService', () => ({
+  addonLifecycleService: { stop: jest.fn(async () => undefined) },
+}));
+
+jest.mock('../../src/services/scripting/AddonExportService', () => {
+  class AddonExportCancelledError extends Error {}
+  return {
+    AddonExportCancelledError,
+    addonExportService: {
+      shareSource: jest.fn(async () => undefined),
+      shareDiagnostics: jest.fn(async () => undefined),
+    },
+  };
+});
+
+jest.mock('../../src/screens/AddonInstallReviewScreen', () => {
+  const { Text } = require('react-native');
+  return {
+    AddonInstallReviewScreen: ({ onConfirm }: any) => (
+      <Text onPress={onConfirm}>confirm install</Text>
+    ),
+  };
+});
+
+jest.mock('../../src/screens/AddonPermissionManagerScreen', () => {
+  const { Text, View } = require('react-native');
+  return {
+    AddonPermissionManagerScreen: ({
+      manifest,
+      onSetEnabled,
+      onUninstall,
+      onRollback,
+      onReviewSource,
+      onExportSource,
+      onExportDiagnostics,
+    }: any) => (
+      <View>
+        <Text>{`manager: ${manifest.name}`}</Text>
+        <Text onPress={() => onSetEnabled(true)}>manager: enable</Text>
+        <Text onPress={onUninstall}>manager: uninstall</Text>
+        {onRollback ? (
+          <Text onPress={onRollback}>manager: rollback</Text>
+        ) : null}
+        <Text onPress={onReviewSource}>manager: source</Text>
+        <Text onPress={onExportSource}>manager: export source</Text>
+        <Text onPress={onExportDiagnostics}>manager: export diagnostics</Text>
+      </View>
+    ),
+  };
+});
+
 const { scriptingService } = require('../../src/services/ScriptingService');
 const { adRewardService } = require('../../src/services/AdRewardService');
 const {
@@ -145,6 +227,23 @@ const {
 const {
   addonSafetyService,
 } = require('../../src/services/scripting/AddonSafetyService');
+const {
+  AddonImportCancelledError,
+  pickAddonPackageBytes,
+} = require('../../src/services/scripting/AddonFileImportService');
+const {
+  addonInstallerService,
+} = require('../../src/services/scripting/AddonInstallerService');
+const {
+  addonManagementService,
+} = require('../../src/services/scripting/AddonManagementService');
+const {
+  addonLifecycleService,
+} = require('../../src/services/scripting/AddonLifecycleService');
+const {
+  AddonExportCancelledError,
+  addonExportService,
+} = require('../../src/services/scripting/AddonExportService');
 
 describe('ScriptingScreen', () => {
   beforeEach(async () => {
@@ -187,6 +286,26 @@ describe('ScriptingScreen', () => {
     });
 
     inAppPurchaseService.hasUnlimitedScripting.mockReturnValue(false);
+    addonSafetyService.getSnapshot.mockReturnValue({
+      safeMode: false,
+      disabled: new Map(),
+    });
+    addonSafetyService.setSafeMode.mockResolvedValue(undefined);
+    addonSafetyService.disable = jest.fn(async () => undefined);
+    addonManagementService.list.mockReturnValue([]);
+    addonManagementService.setEnabled.mockResolvedValue(undefined);
+    addonManagementService.uninstall.mockResolvedValue(undefined);
+    addonManagementService.rollback.mockResolvedValue(undefined);
+    addonManagementService.readSource.mockResolvedValue('module.exports = {};');
+    addonInstallerService.prepare.mockResolvedValue({
+      review: { name: 'Demo Addon' },
+    });
+    addonInstallerService.confirm.mockResolvedValue({
+      manifest: { id: 'rs.androidircx.demo', name: 'Demo Addon' },
+    });
+    addonExportService.shareSource.mockResolvedValue(undefined);
+    addonExportService.shareDiagnostics.mockResolvedValue(undefined);
+    pickAddonPackageBytes.mockResolvedValue(new Uint8Array([1]));
   });
 
   afterEach(async () => {
@@ -1255,6 +1374,548 @@ describe('ScriptingScreen', () => {
       // Hiding a button the user configured would be a disappearing act;
       // the modal's banner explains what is missing instead.
       await findByLabelText('Generate with AI');
+    });
+  });
+
+  describe('imported addon packages', () => {
+    const addon = {
+      manifest: {
+        id: 'rs.androidircx.demo',
+        name: 'Demo Addon',
+        version: '1.0.0',
+        permissions: ['irc.read'],
+      },
+      enabled: false,
+      activeChecksum: 'a'.repeat(64),
+    };
+
+    const openManager = async () => {
+      const utils = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+      await utils.findByText('Demo Addon');
+      await fireEvent.press(utils.getByText('Demo Addon'));
+      await utils.findByText('manager: Demo Addon');
+      return utils;
+    };
+
+    beforeEach(() => {
+      addonManagementService.list.mockReturnValue([addon]);
+    });
+
+    it('says so when nothing is installed', async () => {
+      addonManagementService.list.mockReturnValue([]);
+      const { findByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+
+      expect(await findByText('No addon packages installed.')).toBeTruthy();
+    });
+
+    it('lists an installed package with its state', async () => {
+      const { findByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+
+      expect(await findByText('Demo Addon')).toBeTruthy();
+      expect(await findByText('DISABLED')).toBeTruthy();
+    });
+
+    it('reviews a package before installing it, and installs it disabled', async () => {
+      const { findByText, getByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+      await findByText('Import addon');
+
+      await fireEvent.press(getByText('Import addon'));
+      await waitFor(() =>
+        expect(addonInstallerService.prepare).toHaveBeenCalled(),
+      );
+      await fireEvent.press(await findByText('confirm install'));
+
+      await waitFor(() =>
+        expect(addonInstallerService.confirm).toHaveBeenCalled(),
+      );
+      // Installing is never the same as running it.
+      expect(addonLifecycleService.stop).toHaveBeenCalledWith(
+        'rs.androidircx.demo',
+      );
+      expect(addonSafetyService.disable).toHaveBeenCalledWith(
+        'rs.androidircx.demo',
+      );
+    });
+
+    it('says why a package could not be read', async () => {
+      pickAddonPackageBytes.mockRejectedValueOnce(new Error('not a zip'));
+      const { findByText, getByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+      await findByText('Import addon');
+
+      await fireEvent.press(getByText('Import addon'));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Import Addon',
+          'not a zip',
+        ),
+      );
+    });
+
+    it('stays quiet when the user cancelled the file picker', async () => {
+      pickAddonPackageBytes.mockRejectedValueOnce(
+        new AddonImportCancelledError(),
+      );
+      const { findByText, getByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+      await findByText('Import addon');
+
+      await fireEvent.press(getByText('Import addon'));
+
+      await waitFor(() => expect(pickAddonPackageBytes).toHaveBeenCalled());
+      expect(Alert.alert).not.toHaveBeenCalled();
+    });
+
+    it('says why an install failed', async () => {
+      addonInstallerService.confirm.mockRejectedValueOnce(
+        new Error('signature does not match'),
+      );
+      const { findByText, getByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+      await findByText('Import addon');
+
+      await fireEvent.press(getByText('Import addon'));
+      await fireEvent.press(await findByText('confirm install'));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Install Addon',
+          'signature does not match',
+        ),
+      );
+    });
+
+    it('enables one from its manager, and reports a refusal', async () => {
+      const { getByText } = await openManager();
+
+      await fireEvent.press(getByText('manager: enable'));
+      await waitFor(() =>
+        expect(addonManagementService.setEnabled).toHaveBeenCalledWith(
+          'rs.androidircx.demo',
+          true,
+        ),
+      );
+
+      addonManagementService.setEnabled.mockRejectedValueOnce(
+        new Error('Safe Mode is on'),
+      );
+      await fireEvent.press(getByText('manager: enable'));
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Update Addon',
+          'Safe Mode is on',
+        ),
+      );
+    });
+
+    it('uninstalls one, and reports a failure', async () => {
+      const { getByText } = await openManager();
+
+      addonManagementService.uninstall.mockRejectedValueOnce(
+        new Error('still running'),
+      );
+      await fireEvent.press(getByText('manager: uninstall'));
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Uninstall Addon',
+          'still running',
+        ),
+      );
+
+      await fireEvent.press(getByText('manager: uninstall'));
+      await waitFor(() =>
+        expect(addonManagementService.uninstall).toHaveBeenCalledWith(
+          'rs.androidircx.demo',
+        ),
+      );
+    });
+
+    it('offers a rollback only when there is something to roll back to', async () => {
+      const { queryByText } = await openManager();
+      expect(queryByText('manager: rollback')).toBeNull();
+    });
+
+    it('rolls back to the previous package, and reports a failure', async () => {
+      addonManagementService.list.mockReturnValue([
+        { ...addon, previousChecksum: 'b'.repeat(64) },
+      ]);
+      const { getByText } = await openManager();
+
+      addonManagementService.rollback.mockRejectedValueOnce(
+        new Error('nothing to roll back to'),
+      );
+      await fireEvent.press(getByText('manager: rollback'));
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Roll Back Addon',
+          'nothing to roll back to',
+        ),
+      );
+
+      await fireEvent.press(getByText('manager: rollback'));
+      await waitFor(() =>
+        expect(addonManagementService.rollback).toHaveBeenCalledWith(
+          'rs.androidircx.demo',
+        ),
+      );
+    });
+
+    it('shows the source, truncating a very large file', async () => {
+      addonManagementService.readSource.mockResolvedValue(
+        'x'.repeat(200 * 1024),
+      );
+      const { getByText, findByText } = await openManager();
+
+      await fireEvent.press(getByText('manager: source'));
+
+      expect(await findByText(/Preview truncated/)).toBeTruthy();
+    });
+
+    it('says why the source could not be read', async () => {
+      addonManagementService.readSource.mockRejectedValueOnce(
+        new Error('blob is gone'),
+      );
+      const { getByText } = await openManager();
+
+      await fireEvent.press(getByText('manager: source'));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Read Addon Source',
+          'blob is gone',
+        ),
+      );
+    });
+
+    it('exports the source and the diagnostics', async () => {
+      const { getByText } = await openManager();
+
+      await fireEvent.press(getByText('manager: export source'));
+      expect(addonExportService.shareSource).toHaveBeenCalledWith(
+        'rs.androidircx.demo',
+      );
+
+      await fireEvent.press(getByText('manager: export diagnostics'));
+      expect(addonExportService.shareDiagnostics).toHaveBeenCalledWith(
+        'rs.androidircx.demo',
+      );
+    });
+
+    it('says why an export failed, but not when it was cancelled', async () => {
+      addonExportService.shareSource.mockRejectedValueOnce(
+        new Error('no room on the card'),
+      );
+      const { getByText } = await openManager();
+
+      await fireEvent.press(getByText('manager: export source'));
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Cannot Export Addon',
+          'no room on the card',
+        ),
+      );
+
+      (Alert.alert as jest.Mock).mockClear();
+      addonExportService.shareSource.mockRejectedValueOnce(
+        new AddonExportCancelledError(),
+      );
+      await fireEvent.press(getByText('manager: export source'));
+      await waitFor(() =>
+        expect(addonExportService.shareSource).toHaveBeenCalledTimes(2),
+      );
+      expect(Alert.alert).not.toHaveBeenCalled();
+    });
+
+    it('puts Safe Mode back when it could not be changed', async () => {
+      addonSafetyService.setSafeMode.mockRejectedValueOnce(
+        new Error('storage is full'),
+      );
+      const { getByLabelText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent(
+        getByLabelText('Third-party addon Safe Mode'),
+        'valueChange',
+        true,
+      );
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Could not update Safe Mode',
+          'storage is full',
+        ),
+      );
+    });
+
+    it('turns Safe Mode on', async () => {
+      const { getByLabelText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent(
+        getByLabelText('Third-party addon Safe Mode'),
+        'valueChange',
+        true,
+      );
+
+      expect(addonSafetyService.setSafeMode).toHaveBeenCalledWith(true);
+    });
+
+    it('warns while Developer Mode is on', async () => {
+      const { getByLabelText, findByText } = await render(
+        <ScriptingScreen visible onClose={jest.fn()} />,
+      );
+
+      await fireEvent(
+        getByLabelText('Addon Developer Mode'),
+        'valueChange',
+        true,
+      );
+
+      expect(
+        await findByText(/Developer Mode allows unsigned addon packages/),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('autocomplete in the editor', () => {
+    const DEFAULT_CODE =
+      '// module.exports = { onMessage: (msg) => { /* ... */ } };';
+
+    /** Open the editor and put `code` in it, with the caret at its end. */
+    const typeCode = async (code: string) => {
+      const utils = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+      await fireEvent.press(await utils.findByText('New Script'));
+      const codeInput = utils.getAllByDisplayValue(DEFAULT_CODE)[0];
+      await fireEvent(codeInput, 'focus');
+      await fireEvent.changeText(codeInput, code);
+      await fireEvent(codeInput, 'selectionChange', {
+        nativeEvent: { selection: { start: code.length, end: code.length } },
+      });
+      return { ...utils, codeInput };
+    };
+
+    it('offers api members after a dot', async () => {
+      const { findByText } = await typeCode('api.se');
+
+      // The list shows signatures, so match on the name inside one.
+      expect(await findByText(/sendMessage/)).toBeTruthy();
+    });
+
+    it('offers the ai members after api.ai., not the api ones', async () => {
+      const { findAllByText, queryByText } = await typeCode('api.ai.');
+
+      expect((await findAllByText(/ask/)).length).toBeGreaterThan(0);
+      expect(queryByText(/sendMessage/)).toBeNull();
+    });
+
+    it('offers hook names for a bare word of two characters or more', async () => {
+      const { findByText } = await typeCode('onMe');
+
+      expect(await findByText(/onMessage/)).toBeTruthy();
+    });
+
+    it('offers nothing for a single character', async () => {
+      const { queryByText } = await typeCode('o');
+
+      expect(queryByText(/onMessage/)).toBeNull();
+    });
+
+    it('offers nothing where no word is being typed', async () => {
+      const { queryByText } = await typeCode('api.sendMessage(); ');
+
+      expect(queryByText(/sendMessage\(/)).toBeNull();
+    });
+
+    it('inserts the chosen member in place of what was typed', async () => {
+      const { findByText, getAllByDisplayValue } = await typeCode('api.sendM');
+
+      await fireEvent.press(await findByText(/sendMessage/));
+
+      expect(getAllByDisplayValue(/api\.sendMessage/).length).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('accepts the first suggestion on Tab', async () => {
+      const { codeInput, getAllByDisplayValue } = await typeCode('api.sendM');
+
+      await fireEvent(codeInput, 'keyPress', {
+        nativeEvent: { key: 'Tab' },
+      });
+
+      expect(getAllByDisplayValue(/api\.sendMessage/).length).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('ignores Tab when there is nothing to accept', async () => {
+      const { codeInput, getAllByDisplayValue } =
+        await typeCode('const x = 1;');
+
+      await fireEvent(codeInput, 'keyPress', { nativeEvent: { key: 'Tab' } });
+
+      expect(getAllByDisplayValue('const x = 1;').length).toBeGreaterThan(0);
+    });
+
+    it('hides the list once the editor loses focus', async () => {
+      const { codeInput, queryByText, findByText } = await typeCode('api.se');
+      await findByText(/sendMessage/);
+
+      await fireEvent(codeInput, 'blur');
+      await act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(queryByText(/sendMessage\(/)).toBeNull();
+    });
+  });
+
+  /**
+   * The generator writes code into the editor. It never saves and never
+   * enables — the user still reads it and taps Save. The branch that matters
+   * most is the one guarding against it quietly overwriting a script somebody
+   * already wrote.
+   */
+  describe('generating a script with AI', () => {
+    const {
+      scriptGenerator,
+    } = require('../../src/services/ai/ScriptGenerator');
+
+    const openGenerator = async (existingCode?: string) => {
+      aiService.diagnose.mockResolvedValue({
+        code: 'ok',
+        ready: true,
+        reason: '',
+        where: '',
+      });
+
+      const utils = await render(
+        <ScriptingScreen
+          visible
+          onClose={jest.fn()}
+          onShowPurchaseScreen={jest.fn()}
+        />,
+      );
+
+      if (existingCode === undefined) {
+        await fireEvent.press(await utils.findByText('New Script'));
+      } else {
+        scriptingService.list.mockReturnValue([
+          { ...mockScripts[0], code: existingCode },
+        ]);
+        await fireEvent.press(await utils.findByText('New Script'));
+        const codeInput = utils.getAllByDisplayValue(
+          '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+        )[0];
+        await fireEvent.changeText(codeInput, existingCode);
+      }
+
+      await utils.findByText('Edit Script');
+      await fireEvent.press(await utils.findByLabelText('Generate with AI'));
+      await utils.findByText('Generate with AI');
+      return utils;
+    };
+
+    const promptWith = async (utils: any, text: string) => {
+      const input = utils.getByPlaceholderText(/^e\.g\./);
+      await fireEvent.changeText(input, text);
+      return input;
+    };
+
+    // "Generate" for an empty script, "Apply the change" when there is code to
+    // change — a new script starts with a comment, so it is usually the latter.
+    const generateButton = (utils: any) =>
+      utils.getByText(/^(Generate|Apply the change)$/);
+
+    it('does nothing without a prompt', async () => {
+      const utils = await openGenerator();
+      scriptGenerator.generate.mockClear();
+
+      await fireEvent.press(generateButton(utils));
+
+      expect(scriptGenerator.generate).not.toHaveBeenCalled();
+    });
+
+    it('generates from a prompt and shows the code', async () => {
+      scriptGenerator.generate.mockResolvedValue({
+        code: 'module.exports = { onMessage() {} };',
+        lint: { ok: true, message: '' },
+      });
+      const utils = await openGenerator();
+
+      await promptWith(utils, 'log every message');
+      await fireEvent.press(generateButton(utils));
+
+      // A new script already carries its placeholder comment, so the generator
+      // is asked to CHANGE that rather than to write from nothing.
+      await waitFor(() =>
+        expect(scriptGenerator.generate).toHaveBeenCalledWith(
+          'log every message',
+          expect.stringContaining('module.exports'),
+        ),
+      );
+    });
+
+    it('says when the generated code does not compile', async () => {
+      scriptGenerator.generate.mockResolvedValue({
+        code: 'module.exports = {',
+        lint: { ok: false, message: 'Unexpected end of input' },
+      });
+      const utils = await openGenerator();
+
+      await promptWith(utils, 'something broken');
+      await fireEvent.press(generateButton(utils));
+
+      // Better to show the verdict than to quietly trust the model.
+      expect(await utils.findByText(/Unexpected end of input/)).toBeTruthy();
+    });
+
+    it('reports a generator that fails', async () => {
+      scriptGenerator.generate.mockRejectedValue(new Error('rate limited'));
+      const utils = await openGenerator();
+
+      await promptWith(utils, 'anything');
+      await fireEvent.press(generateButton(utils));
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Could not generate',
+          'rate limited',
+        ),
+      );
+    });
+
+    it('closes again without keeping anything', async () => {
+      const utils = await openGenerator();
+
+      // The generator's own Close is the last one on screen; the editor's sits
+      // behind it.
+      const closes = utils.getAllByText('Close');
+      await fireEvent.press(closes[closes.length - 1]);
+
+      await waitFor(() =>
+        expect(utils.queryByPlaceholderText(/^e\.g\./)).toBeNull(),
+      );
     });
   });
 });

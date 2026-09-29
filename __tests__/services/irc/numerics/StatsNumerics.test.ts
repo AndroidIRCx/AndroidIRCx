@@ -11,8 +11,6 @@ import {
   handle261,
   handle262,
   handle263,
-  handle364,
-  handle365,
   handle392,
   handle393,
   handle394,
@@ -51,7 +49,6 @@ describe('StatsNumerics', () => {
     expect(statsHandlers.get(211)).toBeDefined();
     expect(statsHandlers.get(219)).toBe(handle219);
     expect(statsHandlers.get(221)).toBe(handle221);
-    expect(statsHandlers.get(365)).toBe(handle365);
   });
 
   it('formats representative stats and links numerics', () => {
@@ -62,13 +59,8 @@ describe('StatsNumerics', () => {
     handle261(ctx, 'server', ['nick', ':trace details'], 304);
     handle262(ctx, 'server', ['nick', ':End of TRACE'], 305);
     handle263(ctx, 'server', ['nick', 'WHO', ':Please wait'], 306);
-    handle364(
-      ctx,
-      'server',
-      ['nick', '*.example', 'irc.example.org', ':0 server info'],
-      307,
-    );
-    handle365(ctx, 'server', ['nick', '*.example', ':End of LINKS'], 308);
+    // 364/365 (RPL_LINKS) belong to ChannelNumerics; the copies that used to
+    // sit in this module were unreachable and are gone.
     handle392(ctx, 'server', ['nick', ':Users start'], 309);
     handle393(ctx, 'server', ['nick', ':alice tty1'], 310);
     handle394(ctx, 'server', ['nick', ':End of users'], 311);
@@ -108,28 +100,18 @@ describe('StatsNumerics', () => {
     });
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       8,
-      expect.objectContaining({
-        text: '*** *.example -> irc.example.org 0 server info',
-      }),
-    );
-    expect(ctx.addMessage).toHaveBeenNthCalledWith(
-      9,
-      expect.objectContaining({ text: '*** *.example: End of LINKS' }),
-    );
-    expect(ctx.addMessage).toHaveBeenNthCalledWith(
-      10,
       expect.objectContaining({ text: '*** Users start' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
-      11,
+      9,
       expect.objectContaining({ text: '*** alice tty1' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
-      12,
+      10,
       expect.objectContaining({ text: '*** End of users' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
-      13,
+      11,
       expect.objectContaining({ text: '*** Nobody logged in' }),
     );
   });

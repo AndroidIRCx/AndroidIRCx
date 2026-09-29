@@ -137,7 +137,14 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
     private fun buildServer(tools: ReadableArray, allowWrites: Boolean): Server {
         val server = Server(
             Implementation(name = "androidircx", version = "1.0.0"),
-            ServerOptions(capabilities = ServerCapabilities()),
+            // The tools capability has to be declared: addTool() throws when
+            // it is null, and that happened inside the per-request factory, so
+            // every initialize came back as a bare 500 after the token check.
+            ServerOptions(
+                capabilities = ServerCapabilities(
+                    tools = ServerCapabilities.Tools(listChanged = false),
+                ),
+            ),
         )
 
         for (index in 0 until tools.size()) {

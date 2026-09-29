@@ -8,18 +8,20 @@ import { Linking } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AboutScreen } from '../../src/screens/AboutScreen';
 
+const mockThemeValue: { colors: Record<string, string | undefined> } = {
+  colors: {
+    background: '#fff',
+    surface: '#eee',
+    text: '#111',
+    textSecondary: '#666',
+    border: '#ddd',
+    buttonPrimary: '#09f',
+    primary: '#09f',
+  },
+};
+
 jest.mock('../../src/hooks/useTheme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: '#fff',
-      surface: '#eee',
-      text: '#111',
-      textSecondary: '#666',
-      border: '#ddd',
-      buttonPrimary: '#09f',
-      primary: '#09f',
-    },
-  }),
+  useTheme: () => mockThemeValue,
 }));
 
 jest.mock('../../src/i18n/localization', () => ({
@@ -197,5 +199,25 @@ describe('AboutScreen', () => {
     });
 
     errorSpy.mockRestore();
+  });
+});
+
+/**
+ * Every colour this screen uses is read as `colors.x || '#hex'`. A theme that
+ * predates a colour — a user's own imported theme, or one carried over from an
+ * older version — leaves that key undefined, and the fallback is what keeps
+ * the screen readable instead of rendering with undefined styles.
+ */
+describe('with a theme that names no colours', () => {
+  it('still renders, on its built-in fallbacks', async () => {
+    const original = { ...mockThemeValue.colors };
+    mockThemeValue.colors = {};
+
+    try {
+      const view = await render(<AboutScreen visible onClose={jest.fn()} />);
+      expect(view.toJSON()).toBeTruthy();
+    } finally {
+      mockThemeValue.colors = original;
+    }
   });
 });

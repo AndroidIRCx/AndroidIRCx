@@ -28,7 +28,7 @@ export const SettingSwitch: React.FC<SettingSwitchProps> = ({
               size={16}
               color={item.disabled ? colors.textSecondary : colors.primary}
               solid={itemIcon.solid}
-              style={{ marginRight: 8 }}
+              style={{ marginEnd: 8 }}
             />
           )}
           <Text

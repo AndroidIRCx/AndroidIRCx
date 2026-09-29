@@ -272,4 +272,151 @@ describe('UserListsScreen', () => {
     });
     expect(getByText('No matching entries')).toBeTruthy();
   });
+
+  /**
+   * Editing an ignore entry is a remove-then-add, because an ignore is keyed on
+   * its mask. Getting that pair wrong either leaves the old mask ignoring
+   * someone forever or drops the entry entirely, and neither is visible until
+   * the wrong person is silenced.
+   */
+  describe('editing an ignore entry', () => {
+    const openIgnoreTab = async () => {
+      const view = await render(
+        <UserListsScreen visible network="net1" onClose={jest.fn()} />,
+      );
+      await view.findByText('nick!*@*');
+      await fireEvent.press(view.getByText('Ignore'));
+      await view.findByText('badguy!*@evil.host');
+      return view;
+    };
+
+    it('removes the old mask before adding the new one', async () => {
+      const view = await openIgnoreTab();
+
+      await fireEvent.press(view.getByText('Edit'));
+      await fireEvent.changeText(
+        await view.findByPlaceholderText('nick or mask'),
+        'worse!*@evil.host',
+      );
+      await fireEvent.press(view.getByText('Save'));
+
+      await waitFor(() => {
+        expect(
+          mockConnectionScopedUserManagementService.unignoreUser,
+        ).toHaveBeenCalledWith('badguy!*@evil.host', expect.anything());
+        expect(
+          mockConnectionScopedUserManagementService.ignoreUser,
+        ).toHaveBeenCalledWith(
+          'worse!*@evil.host',
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('adds without removing anything when nothing was being edited', async () => {
+      const view = await openIgnoreTab();
+      mockConnectionScopedUserManagementService.unignoreUser.mockClear();
+
+      await fireEvent.press(view.getByText('+ Add'));
+      await fireEvent.changeText(
+        await view.findByPlaceholderText('nick or mask'),
+        'fresh!*@host',
+      );
+      await fireEvent.press(view.getAllByText('Add').at(-1)!);
+
+      await waitFor(() =>
+        expect(
+          mockConnectionScopedUserManagementService.ignoreUser,
+        ).toHaveBeenCalledWith('fresh!*@host', undefined, 'net1'),
+      );
+      expect(
+        mockConnectionScopedUserManagementService.unignoreUser,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('what the form refuses to save', () => {
+    const openForm = async () => {
+      const view = await render(
+        <UserListsScreen visible network="net1" onClose={jest.fn()} />,
+      );
+      await view.findByText('nick!*@*');
+      await fireEvent.press(view.getByText('+ Add'));
+      await view.findByPlaceholderText('nick or mask');
+      return view;
+    };
+
+    it('saves nothing for an empty mask', async () => {
+      const view = await openForm();
+      mockConnectionScopedUserManagementService.addUserListEntry.mockClear();
+
+      await fireEvent.press(view.getAllByText('Add').at(-1)!);
+
+      expect(
+        mockConnectionScopedUserManagementService.addUserListEntry,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('saves nothing for a mask of only spaces', async () => {
+      const view = await openForm();
+      mockConnectionScopedUserManagementService.addUserListEntry.mockClear();
+
+      await fireEvent.changeText(
+        view.getByPlaceholderText('nick or mask'),
+        '   ',
+      );
+      await fireEvent.press(view.getAllByText('Add').at(-1)!);
+
+      expect(
+        mockConnectionScopedUserManagementService.addUserListEntry,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('stores no channel list when the field is left empty', async () => {
+      const view = await openForm();
+      mockConnectionScopedUserManagementService.addUserListEntry.mockClear();
+
+      await fireEvent.changeText(
+        view.getByPlaceholderText('nick or mask'),
+        'someone!*@*',
+      );
+      await fireEvent.press(view.getAllByText('Add').at(-1)!);
+
+      await waitFor(() =>
+        expect(
+          mockConnectionScopedUserManagementService.addUserListEntry,
+        ).toHaveBeenCalledWith(
+          expect.anything(),
+          'someone!*@*',
+          expect.objectContaining({ channels: undefined }),
+        ),
+      );
+    });
+
+    it('splits a channel list and drops the blanks between commas', async () => {
+      const view = await openForm();
+      mockConnectionScopedUserManagementService.addUserListEntry.mockClear();
+
+      await fireEvent.changeText(
+        view.getByPlaceholderText('nick or mask'),
+        'someone!*@*',
+      );
+      const channels = view.queryByPlaceholderText(/#chan/i);
+      if (channels) {
+        await fireEvent.changeText(channels, ' #one , , #two ,');
+        await fireEvent.press(view.getAllByText('Add').at(-1)!);
+
+        await waitFor(() =>
+          expect(
+            mockConnectionScopedUserManagementService.addUserListEntry,
+          ).toHaveBeenCalledWith(
+            expect.anything(),
+            'someone!*@*',
+            expect.objectContaining({ channels: ['#one', '#two'] }),
+          ),
+        );
+      }
+    });
+  });
 });

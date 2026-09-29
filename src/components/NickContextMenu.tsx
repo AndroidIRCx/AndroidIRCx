@@ -364,7 +364,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
         },
         contextHeaderText: {
           flex: 1,
-          marginRight: 12,
+          marginEnd: 12,
         },
         contextBanner: {
           marginHorizontal: 12,
@@ -441,7 +441,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           width: 16,
         },
         contextSubGroup: {
-          paddingLeft: 12,
+          paddingStart: 12,
         },
         contextDanger: {
           color: '#EF5350',

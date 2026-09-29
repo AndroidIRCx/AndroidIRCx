@@ -133,8 +133,8 @@ const createStyles = (colors: any) =>
     blocker: {
       padding: 12,
       borderRadius: 8,
-      borderLeftWidth: 4,
-      borderLeftColor: colors.error,
+      borderStartWidth: 4,
+      borderStartColor: colors.error,
       backgroundColor: colors.surface,
     },
     blockerText: { color: colors.error, fontWeight: '600' },

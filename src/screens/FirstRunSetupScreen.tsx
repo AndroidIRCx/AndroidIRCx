@@ -970,7 +970,7 @@ const createStyles = (colors: any) =>
     featureBullet: {
       fontSize: 20,
       color: colors.primary || '#2196F3',
-      marginRight: 12,
+      marginEnd: 12,
       marginTop: -2,
     },
     featureText: {
@@ -1028,7 +1028,7 @@ const createStyles = (colors: any) =>
       borderRadius: 10,
       borderWidth: 2,
       borderColor: colors.border || '#333333',
-      marginRight: 12,
+      marginEnd: 12,
       marginTop: 2,
       justifyContent: 'center',
       alignItems: 'center',
@@ -1074,7 +1074,7 @@ const createStyles = (colors: any) =>
       borderWidth: 2,
       borderColor: colors.border || '#333333',
       borderRadius: 4,
-      marginRight: 8,
+      marginEnd: 8,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -1192,7 +1192,7 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.textSecondary || '#B0B0B0',
       lineHeight: 22,
-      marginLeft: 8,
+      marginStart: 8,
     },
     consentButton: {
       backgroundColor: colors.buttonPrimary || colors.primary || '#2196F3',
@@ -1213,7 +1213,7 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     consentButtonIcon: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     consentButtonText: {
       color: colors.buttonPrimaryText || '#FFFFFF',
@@ -1244,7 +1244,7 @@ const createStyles = (colors: any) =>
       marginBottom: 8,
     },
     privacyInfoIcon: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     privacyInfoTitle: {
       fontSize: 15,
@@ -1270,8 +1270,8 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.surface || '#1E1E1E',
       borderRadius: 8,
       padding: 12,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.primary || '#2196F3',
+      borderStartWidth: 3,
+      borderStartColor: colors.primary || '#2196F3',
     },
     complianceText: {
       fontSize: 12,
@@ -1324,7 +1324,7 @@ const createStyles = (colors: any) =>
       padding: 12,
     },
     infoIcon: {
-      marginRight: 8,
+      marginEnd: 8,
       marginTop: 2,
     },
     infoText: {

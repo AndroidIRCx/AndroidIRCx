@@ -144,37 +144,11 @@ export const handle264: NumericHandler = (ctx, prefix, params, timestamp) => {
   });
 };
 
-/** 364 RPL_LINKS - Links entry */
-export const handle364: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const linkMask = params[1] || '';
-  const linkServer = params[2] || '';
-  const linkInfo = params.slice(3).join(' ').replace(/^:/, '') || '';
-  ctx.addMessage({
-    type: 'raw',
-    text: t('*** {mask} -> {server} {info}', {
-      mask: linkMask,
-      server: linkServer,
-      info: linkInfo,
-    }),
-    timestamp,
-    isRaw: true,
-    rawCategory: 'server',
-  });
-};
-
-/** 365 RPL_ENDOFLINKS - End of links */
-export const handle365: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const linkMask = params[1] || '';
-  const message =
-    params.slice(2).join(' ').replace(/^:/, '') || t('End of LINKS');
-  ctx.addMessage({
-    type: 'raw',
-    text: t('*** {mask}: {message}', { mask: linkMask, message }),
-    timestamp,
-    isRaw: true,
-    rawCategory: 'server',
-  });
-};
+// 364 RPL_LINKS and 365 RPL_ENDOFLINKS are handled in ChannelNumerics.
+// They were written here too, but `IRCNumericHandlers` merges the channel map
+// after this one, so these versions could never run. Two handlers for one
+// numeric is a silent coin toss decided by merge order, so the unreachable
+// pair is gone rather than left to look alive.
 
 /** 392 RPL_USERSSTART - Users start */
 export const handle392: NumericHandler = (ctx, prefix, params, timestamp) => {
@@ -234,8 +208,6 @@ export const statsHandlers: Map<number, NumericHandler> = new Map([
   // 211-218: Generic stats
   [211, createNumericStatsHandler(211)],
   [263, handle263],
-  [364, handle364],
-  [365, handle365],
   [392, handle392],
   [393, handle393],
   [394, handle394],

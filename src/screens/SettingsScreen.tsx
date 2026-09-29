@@ -17,9 +17,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import type { TextStyle, ViewStyle } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
-import RNFS from 'react-native-fs';
+import type { ViewStyle } from 'react-native';
 import {
   notificationService,
   NotificationPreferences,
@@ -208,6 +206,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const languageLabels = useMemo(
     () => ({
       en: 'English',
+      cs: 'Čeština',
+      pl: 'Polski',
+      tr: 'Türkçe',
+      nl: 'Nederlands',
+      hu: 'Magyar',
+      el: 'Ελληνικά',
+      sk: 'Slovenčina',
+      sv: 'Svenska',
+      nb: 'Norsk (Bokmål)',
+      da: 'Dansk',
+      fi: 'Suomi',
+      bg: 'Български',
+      nn: 'Norsk (Nynorsk)',
+      'zh-CN': '简体中文',
+      'zh-TW': '繁體中文',
+      ja: '日本語',
+      ko: '한국어',
+      hi: 'हिन्दी',
       fr: 'Français',
       de: 'Deutsch',
       it: 'Italiano',
@@ -256,11 +272,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showCredits, setShowCredits] = useState(false);
   const [showPrivacyAds, setShowPrivacyAds] = useState(false);
   const [showDataPrivacy, setShowDataPrivacy] = useState(false);
-  const [backupData, setBackupData] = useState('');
-  const [showBackupModal, setShowBackupModal] = useState(false);
-  const [backupOperation, setBackupOperation] = useState<
-    'idle' | 'export' | 'import' | 'save' | 'copy'
-  >('idle');
   const [showBackupScreen, setShowBackupScreen] = useState(false);
   const [showHistoryViewer, setShowHistoryViewer] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
@@ -336,14 +347,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [, setBiometricAvailable] = useState(false);
   const [, setPasswordsUnlocked] = useState(true);
   const [, setPinLockEnabled] = useState(false);
-  const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [pinModalMode, setPinModalMode] = useState<
-    'unlock' | 'setup' | 'confirm'
-  >('unlock');
-  const [pinEntry, setPinEntry] = useState('');
-  const [pinSetupValue, setPinSetupValue] = useState('');
-  const [pinError, setPinError] = useState('');
-  const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
   const [consoleEnabled, setConsoleEnabled] = useState(
     __DEV__ ? consoleManager.getEnabled() : false,
@@ -409,9 +412,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      const resolve = pinResolveRef.current;
-      pinResolveRef.current = null;
-      if (resolve) resolve(false);
     };
   }, []);
 
@@ -1088,72 +1088,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const backupBusy = backupOperation !== 'idle';
-  const backupOperationLabel =
-    backupOperation === 'export'
-      ? t('Generating backup...', { _tags: tags })
-      : backupOperation === 'import'
-        ? t('Restoring backup...', { _tags: tags })
-        : backupOperation === 'save'
-          ? t('Saving backup file...', { _tags: tags })
-          : backupOperation === 'copy'
-            ? t('Copying backup data...', { _tags: tags })
-            : '';
-
-  const handleBackupImport = async () => {
-    if (backupBusy) return;
-    if (!backupData.trim()) {
-      Alert.alert(
-        t('Restore Error', { _tags: tags }),
-        t('Please paste backup data first', { _tags: tags }),
-      );
-      return;
-    }
-    setBackupOperation('import');
-    try {
-      await dataBackupService.importAll(backupData);
-      Alert.alert(
-        t('Restore Complete', { _tags: tags }),
-        t('Backup restored. Restart app to ensure all data reloads.', {
-          _tags: tags,
-        }),
-      );
-      setStorageStats(await dataBackupService.getStorageStats());
-      setShowBackupModal(false);
-      loadSettings();
-    } catch (error) {
-      Alert.alert(
-        t('Restore Error', { _tags: tags }),
-        error instanceof Error
-          ? error.message
-          : t('Invalid backup data', { _tags: tags }),
-      );
-    } finally {
-      setBackupOperation('idle');
-    }
-  };
-
-  const handleBackupCopyToClipboard = () => {
-    if (backupBusy) return;
-    setBackupOperation('copy');
-    try {
-      Clipboard.setString(backupData);
-      Alert.alert(
-        t('Success', { _tags: tags }),
-        t('Backup data copied to clipboard', { _tags: tags }),
-      );
-    } catch (error) {
-      Alert.alert(
-        t('Error', { _tags: tags }),
-        error instanceof Error
-          ? error.message
-          : t('Failed to copy to clipboard', { _tags: tags }),
-      );
-    } finally {
-      setBackupOperation('idle');
-    }
-  };
-
   const handleMigration = async () => {
     try {
       if (!migrationNetwork) {
@@ -1193,162 +1127,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const handleBackupSaveToFile = async () => {
-    if (backupBusy) return;
-    if (!backupData.trim()) {
-      Alert.alert(
-        t('Error', { _tags: tags }),
-        t('No backup data to save', { _tags: tags }),
-      );
-      return;
-    }
-    setBackupOperation('save');
-    try {
-      // Generate filename with timestamp
-      const now = new Date();
-      const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-      const filename = `androidircx_backup_${timestamp}.json`;
-
-      // For Android, use DownloadDirectoryPath (works without permission on Android 10+)
-      // For Android 10+ (API 29+), scoped storage allows writing to Downloads without permission
-      let savePath: string;
-
-      if (Platform.OS === 'android') {
-        // Use app's external storage directory - no permissions needed on any Android version
-        // This directory is accessible via File Manager under Android/data/com.androidircx/files/
-        const externalDir = RNFS.ExternalDirectoryPath;
-
-        if (!externalDir) {
-          // Fallback to internal storage if external is not available
-          savePath = `${RNFS.DocumentDirectoryPath}/${filename}`;
-        } else {
-          savePath = `${externalDir}/${filename}`;
-        }
-      } else {
-        // iOS
-        savePath = `${RNFS.DocumentDirectoryPath}/${filename}`;
-      }
-
-      // Write file
-      await RNFS.writeFile(savePath, backupData, 'utf8');
-
-      Alert.alert(
-        t('Success', { _tags: tags }),
-        t('Backup saved to:\n{path}', { path: savePath, _tags: tags }),
-        [{ text: t('OK', { _tags: tags }) }],
-      );
-    } catch (error) {
-      Alert.alert(
-        t('Error', { _tags: tags }),
-        error instanceof Error
-          ? error.message
-          : t('Failed to save backup file', { _tags: tags }),
-      );
-    } finally {
-      setBackupOperation('idle');
-    }
-  };
-
-  const closePinModal = useCallback((ok: boolean) => {
-    setPinModalVisible(false);
-    setPinEntry('');
-    setPinSetupValue('');
-    setPinError('');
-    const resolve = pinResolveRef.current;
-    pinResolveRef.current = null;
-    if (resolve) resolve(ok);
-  }, []);
-
-  const handlePinSubmit = useCallback(async () => {
-    const trimmed = pinEntry.trim();
-    if (pinModalMode === 'unlock') {
-      const stored = await secureStorageService.getSecret(PIN_STORAGE_KEY);
-      if (!stored) {
-        setPinError(t('No PIN is set.', { _tags: tags }));
-        return;
-      }
-      if (trimmed === stored) {
-        setPasswordsUnlocked(true);
-        closePinModal(true);
-        return;
-      }
-      setPinError(t('Incorrect PIN.', { _tags: tags }));
-      return;
-    }
-
-    if (pinModalMode === 'setup') {
-      if (trimmed.length < 4) {
-        setPinError(t('PIN must be at least 4 digits.', { _tags: tags }));
-        return;
-      }
-      setPinSetupValue(trimmed);
-      setPinEntry('');
-      setPinError('');
-      setPinModalMode('confirm');
-      return;
-    }
-
-    if (trimmed !== pinSetupValue) {
-      setPinError(t('PINs do not match.', { _tags: tags }));
-      setPinEntry('');
-      setPinSetupValue('');
-      setPinModalMode('setup');
-      return;
-    }
-
-    await secureStorageService.setSecret(PIN_STORAGE_KEY, trimmed);
-    await settingsService.setSetting('pinPasswordLock', true);
-    setPinLockEnabled(true);
-    setPasswordsUnlocked(false);
-    closePinModal(true);
-  }, [
-    PIN_STORAGE_KEY,
-    closePinModal,
-    pinEntry,
-    pinModalMode,
-    pinSetupValue,
-    t,
-  ]);
-
   // App lock functions now handled by SecuritySection component
 
   // App lock functions now handled by SecuritySection component
 
   const lastSearchTermRef = useRef('');
-  // Icon mapping now handled by utility function
-  const pinModalContainerStyle: ViewStyle = { maxHeight: '60%' };
   const backupModalContainerStyle: ViewStyle = { maxHeight: '80%' };
-  const modalSectionPaddingStyle: ViewStyle = {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  };
-  const modalActionRowStyle: ViewStyle = {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    padding: 16,
-    paddingTop: 0,
-  };
-  const backupBusyRowStyle: ViewStyle = {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 8,
-  };
-  const backupBusyLabelStyle: TextStyle = { marginLeft: 8 };
-  const backupInputStyle: TextStyle = {
-    minHeight: 200,
-    textAlignVertical: 'top',
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderColor: colors.border,
-  };
-  const backupActionRowStyle: ViewStyle = {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 12,
-    flexWrap: 'wrap',
-  };
   const channelNotifSectionPaddingStyle: ViewStyle = {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -3262,24 +3046,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }));
   }, [filteredSections, expandedSections, searchTerm]);
 
-  const pinModalTitle =
-    pinModalMode === 'unlock'
-      ? t('Enter PIN', { _tags: tags })
-      : pinModalMode === 'setup'
-        ? t('Set PIN', { _tags: tags })
-        : t('Confirm PIN', { _tags: tags });
-  const pinModalDescription =
-    pinModalMode === 'unlock'
-      ? t('Enter your PIN to unlock passwords.', { _tags: tags })
-      : pinModalMode === 'setup'
-        ? t('Create a 4+ digit PIN to protect passwords.', { _tags: tags })
-        : t('Re-enter your PIN to confirm.', { _tags: tags });
-  const pinModalActionLabel =
-    pinModalMode === 'unlock'
-      ? t('Unlock', { _tags: tags })
-      : pinModalMode === 'setup'
-        ? t('Next', { _tags: tags })
-        : t('Save', { _tags: tags });
   // App lock modal now handled by SecuritySection component
 
   if (!visible) return null;
@@ -3460,169 +3226,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </View>
           </View>
         </Modal>
-        <Modal
-          visible={pinModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => closePinModal(false)}
-        >
-          <View style={styles.submenuOverlay}>
-            <View style={[styles.submenuContainer, pinModalContainerStyle]}>
-              <View style={styles.submenuHeader}>
-                <Text style={styles.submenuTitle}>{pinModalTitle}</Text>
-                <TouchableOpacity onPress={() => closePinModal(false)}>
-                  <Text style={styles.closeButtonText}>
-                    {t('Close', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={modalSectionPaddingStyle}>
-                <Text style={styles.submenuItemDescription}>
-                  {pinModalDescription}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.submenuInput,
-                    {
-                      backgroundColor: colors.surface,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  value={pinEntry}
-                  onChangeText={text => {
-                    const sanitized = text.replace(/[^0-9]/g, '');
-                    setPinEntry(sanitized);
-                    if (pinError) setPinError('');
-                  }}
-                  placeholder={t('PIN', { _tags: tags })}
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="numeric"
-                  secureTextEntry
-                />
-                {!!pinError && (
-                  <Text
-                    style={[
-                      styles.submenuItemDescription,
-                      { color: colors.error },
-                    ]}
-                  >
-                    {pinError}
-                  </Text>
-                )}
-              </View>
-              <View style={modalActionRowStyle}>
-                <TouchableOpacity onPress={() => closePinModal(false)}>
-                  <Text style={styles.closeButtonText}>
-                    {t('Cancel', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handlePinSubmit}>
-                  <Text
-                    style={[styles.closeButtonText, { color: colors.primary }]}
-                  >
-                    {pinModalActionLabel}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
         {/* App lock modal now handled by SecuritySection component */}
-        <Modal
-          visible={showBackupModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => {
-            if (!backupBusy) setShowBackupModal(false);
-          }}
-        >
-          <View style={styles.submenuOverlay}>
-            <View style={[styles.submenuContainer, backupModalContainerStyle]}>
-              <View style={styles.submenuHeader}>
-                <Text style={styles.submenuTitle}>
-                  {t('Backup / Restore', { _tags: tags })}
-                </Text>
-                <TouchableOpacity
-                  disabled={backupBusy}
-                  onPress={() => setShowBackupModal(false)}
-                >
-                  <Text style={styles.closeButtonText}>
-                    {t('Close', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView>
-                <Text style={styles.submenuItemDescription}>
-                  {t(
-                    'Copy this JSON to back up. To restore, paste backup JSON and tap Restore.',
-                    { _tags: tags },
-                  )}
-                </Text>
-                <TextInput
-                  style={[styles.submenuInput, backupInputStyle]}
-                  multiline
-                  value={backupData}
-                  onChangeText={setBackupData}
-                  placeholder={t('Backup JSON appears here', { _tags: tags })}
-                  placeholderTextColor={colors.textSecondary}
-                  editable={!backupBusy}
-                />
-              </ScrollView>
-              {backupBusy && (
-                <View style={backupBusyRowStyle}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text
-                    style={[
-                      styles.submenuItemDescription,
-                      backupBusyLabelStyle,
-                    ]}
-                  >
-                    {backupOperationLabel}
-                  </Text>
-                </View>
-              )}
-              <View style={backupActionRowStyle}>
-                <TouchableOpacity
-                  disabled={backupBusy}
-                  onPress={() => setShowBackupModal(false)}
-                >
-                  <Text style={styles.closeButtonText}>
-                    {t('Cancel', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={backupBusy}
-                  onPress={handleBackupCopyToClipboard}
-                >
-                  <Text
-                    style={[styles.closeButtonText, { color: colors.primary }]}
-                  >
-                    {t('Copy to Clipboard', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={backupBusy}
-                  onPress={handleBackupSaveToFile}
-                >
-                  <Text
-                    style={[styles.closeButtonText, { color: colors.primary }]}
-                  >
-                    {t('Save to File', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={backupBusy}
-                  onPress={handleBackupImport}
-                >
-                  <Text style={styles.closeButtonText}>
-                    {t('Restore', { _tags: tags })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
         <Modal
           visible={showChannelNotifModal}
           transparent

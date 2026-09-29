@@ -187,4 +187,119 @@ describe('ChannelManagementService', () => {
     expect(service.getModeString('#fmt')).toBe('+psitnmklb(2)e(1)I(1)');
     expect(service.getModeString('#none')).toBe('');
   });
+
+  describe('numerics that arrive incomplete', () => {
+    /**
+     * Each branch of this listener checks the channel, and most check a mask
+     * too, before touching a buffer. A reply with the field missing is what a
+     * server sends on an empty list or a malformed line, and acting on it
+     * would key a buffer on the empty string and leak into the next channel.
+     */
+    const INCOMPLETE: Array<[string, number, string[]]> = [
+      ['a mode reply with no channel', 324, ['me', '', '+nt']],
+      ['a mode reply with no modes', 324, ['me', '#chan', '']],
+      ['a topic-setter reply with no channel', 333, ['me', '', 'alice', '1']],
+      ['a topic-setter reply with no setter', 333, ['me', '#chan', '', '1']],
+      ['a ban entry with no channel', 367, ['me', '', '*!*@ban']],
+      ['a ban entry with no mask', 367, ['me', '#chan', '']],
+      ['an end-of-bans with no channel', 368, ['me', '']],
+      ['an exception entry with no channel', 348, ['me', '', '*!*@exc']],
+      ['an exception entry with no mask', 348, ['me', '#chan', '']],
+      ['an end-of-exceptions with no channel', 349, ['me', '']],
+      ['an invite entry with no channel', 346, ['me', '', '*!*@inv']],
+      ['an invite entry with no mask', 346, ['me', '#chan', '']],
+      ['an end-of-invites with no channel', 347, ['me', '']],
+    ];
+
+    it.each(INCOMPLETE)('ignores %s', (_label, numeric, params) => {
+      service.initialize();
+      const onNumeric = events.get('numeric')!;
+      const listener = jest.fn();
+      service.onChannelInfoChange(listener);
+
+      onNumeric(numeric, 'srv', params, Date.now());
+
+      expect(service.getChannelInfo('')).toBeUndefined();
+    });
+
+    it('ignores a numeric it has no interest in', () => {
+      service.initialize();
+      const onNumeric = events.get('numeric')!;
+
+      expect(() =>
+        onNumeric(999, 'srv', ['me', '#chan', 'whatever'], Date.now()),
+      ).not.toThrow();
+      expect(service.getChannelInfo('#chan')).toBeUndefined();
+    });
+
+    it('reads a topic reply that carries no topic as an empty one', () => {
+      service.initialize();
+      const onNumeric = events.get('numeric')!;
+
+      onNumeric(332, 'srv', ['me', '#chan'], Date.now());
+
+      expect(service.getChannelInfo('#chan')?.topic).toBe('');
+    });
+
+    it('leaves the set-at time out when the server does not send one', () => {
+      service.initialize();
+      const onNumeric = events.get('numeric')!;
+
+      onNumeric(333, 'srv', ['me', '#chan', 'alice'], Date.now());
+
+      const info = service.getChannelInfo('#chan')!;
+      expect(info.topicSetBy).toBe('alice');
+      expect(info.topicSetAt).toBeUndefined();
+    });
+
+    it('ends a list that never had an entry with an empty one', () => {
+      service.initialize();
+      const onNumeric = events.get('numeric')!;
+
+      onNumeric(368, 'srv', ['me', '#quiet'], Date.now());
+      onNumeric(349, 'srv', ['me', '#quiet'], Date.now());
+      onNumeric(347, 'srv', ['me', '#quiet'], Date.now());
+
+      const modes = service.getChannelInfo('#quiet')!.modes;
+      // Empty is not the same as unknown: the channel really has no bans.
+      expect(modes.banList).toEqual([]);
+      expect(modes.exceptionList).toEqual([]);
+      expect(modes.inviteList).toEqual([]);
+    });
+  });
+
+  describe('the mode string', () => {
+    it('leaves out every flag that is off', () => {
+      service.updateChannelInfo('#plain', {
+        modes: {
+          private: false,
+          secret: false,
+          inviteOnly: false,
+          topicProtected: false,
+          noExternalMessages: false,
+          moderated: false,
+          key: '',
+          limit: 0,
+          banList: [],
+          exceptionList: [],
+          inviteList: [],
+        },
+      });
+
+      expect(service.getModeString('#plain')).toBe('');
+    });
+
+    it('is empty for a channel whose modes were never read', () => {
+      service.updateChannelInfo('#nomodes', { topic: 'x' });
+      expect(service.getModeString('#nomodes')).toBe('');
+    });
+
+    it('counts only the lists that have something in them', () => {
+      service.updateChannelInfo('#some', {
+        modes: { moderated: true, banList: ['a'], exceptionList: [] },
+      });
+
+      expect(service.getModeString('#some')).toBe('+mb(1)');
+    });
+  });
 });

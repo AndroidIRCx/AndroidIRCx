@@ -192,6 +192,8 @@ describe('useTabContextMenu', () => {
         sendSilentMode: jest.fn(),
         addMessage: jest.fn(),
         isServerOper: jest.fn().mockReturnValue(false),
+        partChannel: jest.fn(),
+        ignoreUser: jest.fn(),
       },
     });
   });
@@ -1768,5 +1770,158 @@ describe('useTabContextMenu', () => {
     const close = findByText(options, 'Close');
     close.onPress();
     expect(mockUIStore.setShowTabOptionsModal).toHaveBeenCalledWith(false);
+  });
+
+  /**
+   * The long-press menu is built fresh for each kind of tab, and most of its
+   * entries open a submenu that is built the same way. Nothing that opens a
+   * submenu was being exercised, so those inner builders — the IRCop list, the
+   * services list, the moderation entries — had never run at all.
+   *
+   * These walk every entry rather than naming them: an entry added later is
+   * covered the moment it is pushed onto the list, and one that throws on a
+   * plain tap is caught here rather than in front of a user.
+   */
+  describe('every entry in the long-press menu', () => {
+    const TABS = [
+      {
+        label: 'a server tab',
+        tab: {
+          id: 'server-freenode',
+          name: 'Freenode',
+          type: 'server' as const,
+          networkId: 'freenode',
+          messages: [],
+          unreadCount: 0,
+        },
+      },
+      {
+        label: 'a channel tab',
+        tab: {
+          id: 'chan-general',
+          name: '#general',
+          type: 'channel' as const,
+          networkId: 'freenode',
+          messages: [],
+          unreadCount: 0,
+        },
+      },
+      {
+        label: 'a query tab',
+        tab: {
+          id: 'query-alice',
+          name: 'alice',
+          type: 'query' as const,
+          networkId: 'freenode',
+          messages: [],
+          unreadCount: 0,
+        },
+      },
+    ];
+
+    const lastOptions = () =>
+      (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0]?.[0] ??
+      [];
+
+    /** Every method the menu can reach, so a tap fails on logic, not on a gap. */
+    const fullIrcService = () => ({
+      getConnectionStatus: jest.fn().mockReturnValue(true),
+      getCurrentNick: jest.fn().mockReturnValue('TestNick'),
+      sendCommand: jest.fn(),
+      sendMessage: jest.fn(),
+      sendRaw: jest.fn(),
+      sendSilentMode: jest.fn(),
+      addMessage: jest.fn(),
+      isServerOper: jest.fn().mockReturnValue(false),
+      partChannel: jest.fn(),
+      ignoreUser: jest.fn(),
+    });
+
+    const openFor = async (tab: any) => {
+      // Earlier tests leave their own partial mocks behind; these walk every
+      // entry, so both the per-network service and the active one need every
+      // method the menu can reach.
+      (connectionManager.getConnection as jest.Mock).mockReturnValue({
+        ircService: fullIrcService(),
+      });
+      mockGetActiveIRCService.mockReturnValue(fullIrcService());
+
+      const { result } = await renderHook(() =>
+        useTabContextMenu(defaultParams),
+      );
+      await act(async () => {
+        await result.current.handleTabLongPress(tab);
+      });
+      return lastOptions();
+    };
+
+    it.each(TABS)('offers something for $label', async ({ tab }) => {
+      const options = await openFor(tab);
+
+      expect(options.length).toBeGreaterThan(0);
+      for (const option of options) {
+        expect(typeof option.text).toBe('string');
+        expect(option.text.length).toBeGreaterThan(0);
+      }
+    });
+
+    it.each(TABS)(
+      'survives a tap on every entry for $label',
+      async ({ tab }) => {
+        const options = await openFor(tab);
+
+        for (const option of options) {
+          // Each of these either acts or opens a submenu, and a submenu is
+          // built by the same code path. Nothing here may throw.
+          await act(async () => {
+            await option.onPress?.();
+          });
+        }
+
+        expect(options.length).toBeGreaterThan(0);
+      },
+    );
+
+    it.each(TABS)(
+      'survives a tap on everything a submenu then offers for $label',
+      async ({ tab }) => {
+        const top = await openFor(tab);
+
+        for (const option of top) {
+          await act(async () => {
+            await option.onPress?.();
+          });
+
+          const inner = lastOptions();
+          if (inner === top) continue;
+
+          for (const entry of inner) {
+            await act(async () => {
+              await entry.onPress?.();
+            });
+          }
+        }
+
+        expect(top.length).toBeGreaterThan(0);
+      },
+    );
+
+    it('builds a different menu for a server with no connection', async () => {
+      const { result } = await renderHook(() =>
+        useTabContextMenu(defaultParams),
+      );
+      (connectionManager.getConnection as jest.Mock).mockReturnValue(null);
+      await act(async () => {
+        await result.current.handleTabLongPress(TABS[0].tab);
+      });
+      const options = lastOptions();
+
+      expect(options.length).toBeGreaterThan(0);
+      for (const option of options) {
+        await act(async () => {
+          await option.onPress?.();
+        });
+      }
+    });
   });
 });

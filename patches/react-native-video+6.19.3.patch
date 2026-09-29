@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
-index e16ac96..bd992a6 100644
+index 623d90c..90d6362 100644
 --- a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
 +++ b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
-@@ -2502,9 +2502,11 @@ public class ReactExoplayerView extends FrameLayout implements
+@@ -2591,9 +2591,11 @@ public class ReactExoplayerView extends FrameLayout implements
          } else {
              rootView.removeView(exoPlayerView);
              if (!rootViewChildrenOriginalVisibility.isEmpty()) {
@@ -15,7 +15,7 @@ index e16ac96..bd992a6 100644
                  addView(exoPlayerView, 0, layoutParams);
                  reLayoutControls();
              }
-@@ -2532,8 +2534,9 @@ public class ReactExoplayerView extends FrameLayout implements
+@@ -2621,8 +2623,9 @@ public class ReactExoplayerView extends FrameLayout implements
          ViewGroup rootView = decorView.findViewById(android.R.id.content);
  
          if (!rootViewChildrenOriginalVisibility.isEmpty()) {

@@ -77,7 +77,7 @@ export const createStyles = (colors: any, theme: Theme) => {
       alignItems: 'center',
     },
     sectionIcon: {
-      marginRight: 10,
+      marginEnd: 10,
     },
     sectionTitle: {
       fontSize: 16,
@@ -103,7 +103,7 @@ export const createStyles = (colors: any, theme: Theme) => {
     },
     settingContent: {
       flex: 1,
-      marginRight: 16,
+      marginEnd: 16,
     },
     settingTitle: {
       fontSize: 16,
@@ -116,7 +116,7 @@ export const createStyles = (colors: any, theme: Theme) => {
     },
     settingIcon: {
       fontSize: 16,
-      marginRight: 8,
+      marginEnd: 8,
     },
     settingDescription: {
       fontSize: 12,
@@ -155,8 +155,8 @@ export const createStyles = (colors: any, theme: Theme) => {
     },
     submenuContainer: {
       backgroundColor: colors.surface,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
+      borderTopStartRadius: 16,
+      borderTopEndRadius: 16,
       maxHeight: '80%',
     },
     submenuHeader: {

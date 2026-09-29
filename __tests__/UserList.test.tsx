@@ -82,6 +82,20 @@ jest.mock('../src/services/SettingsService', () => ({
   },
 }));
 
+// Every colour in this list is read as `colors.x || '#hex'`. Flipping this
+// flag renders the list against a theme that names none of them, which is what
+// an imported theme written before a colour existed looks like.
+const mockBareTheme = { on: false };
+
+jest.mock('../src/hooks/useTheme', () => ({
+  useTheme: () => {
+    const { themeService } =
+      require('../src/services/ThemeService') as typeof import('../src/services/ThemeService');
+    const theme = themeService.getCurrentTheme();
+    return { theme, colors: mockBareTheme.on ? ({} as any) : theme.colors };
+  },
+}));
+
 jest.mock('../src/hooks/useDebounce', () => ({
   useDebounce: (value: string) => value,
 }));
@@ -3504,5 +3518,32 @@ describe('UserList', () => {
       });
       timeoutSpy.mockRestore();
     });
+  });
+});
+
+describe('with a theme that names no colours', () => {
+  it('still renders the list on its built-in fallbacks', () => {
+    mockBareTheme.on = true;
+    let tree: TestRenderer.ReactTestRenderer | undefined;
+    try {
+      act(() => {
+        tree = TestRenderer.create(
+          <UserList
+            users={
+              [
+                { nick: 'Alice', modes: ['o'] },
+                { nick: 'Bob', modes: [] },
+              ] as ChannelUser[]
+            }
+          />,
+        );
+      });
+      // The list paints once its stored settings arrive; what matters here is
+      // that building its styles from an empty palette did not throw.
+      expect(tree!.root).toBeTruthy();
+    } finally {
+      act(() => tree?.unmount());
+      mockBareTheme.on = false;
+    }
   });
 });

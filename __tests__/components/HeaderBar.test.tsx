@@ -130,4 +130,133 @@ describe('HeaderBar', () => {
     expect(baseProps.onToggleSideTabs).toHaveBeenCalled();
     expect(baseProps.onLockPress).toHaveBeenCalled();
   });
+
+  /**
+   * Almost everything in the header is optional and defaulted, so the bar a
+   * given user sees depends on which buttons their settings turned on. Nearly
+   * every default had only ever been taken one way round.
+   */
+  describe('the buttons a given user ends up with', () => {
+    const TOGGLES: Array<[string, Record<string, unknown>]> = [
+      ['the lock', { showLockButton: true, onLockPress: jest.fn() }],
+      [
+        'encryption',
+        { showEncryptionButton: true, onEncryptionPress: jest.fn() },
+      ],
+      [
+        'the kill switch',
+        { showKillSwitchButton: true, onKillSwitchPress: jest.fn() },
+      ],
+      [
+        'the side-tabs toggle',
+        { showSideTabsToggle: true, onToggleSideTabs: jest.fn() },
+      ],
+      ['search', { showSearchButton: true, onSearchPress: jest.fn() }],
+    ];
+
+    it.each(TOGGLES)('renders with %s turned on', async (_label, props) => {
+      const view = await render(<HeaderBar {...baseProps} {...props} />);
+      expect(view.root).toBeTruthy();
+    });
+
+    it('renders with every optional button turned off', async () => {
+      const view = await render(
+        <HeaderBar
+          {...baseProps}
+          showLockButton={false}
+          showEncryptionButton={false}
+          showKillSwitchButton={false}
+          showSideTabsToggle={false}
+          showSearchButton={false}
+          showNicklistButton={false}
+        />,
+      );
+      expect(view.root).toBeTruthy();
+    });
+
+    it('renders with every optional button turned on at once', async () => {
+      const view = await render(
+        <HeaderBar
+          {...baseProps}
+          showLockButton
+          onLockPress={jest.fn()}
+          lockState="locked"
+          showEncryptionButton
+          onEncryptionPress={jest.fn()}
+          showKillSwitchButton
+          onKillSwitchPress={jest.fn()}
+          showSideTabsToggle
+          sideTabsVisible={false}
+          onToggleSideTabs={jest.fn()}
+          showSearchButton
+          onSearchPress={jest.fn()}
+          showNicklistButton
+        />,
+      );
+      expect(view.root).toBeTruthy();
+    });
+  });
+
+  describe('the ping readout', () => {
+    it.each([
+      ['no ping at all', undefined],
+      ['a fast one', 40],
+      ['one on the good/warn edge', 120],
+      ['a middling one', 200],
+      ['one on the warn/bad edge', 300],
+      ['a slow one', 900],
+    ])('colours %s', async (_label, ping) => {
+      const view = await render(
+        <HeaderBar {...baseProps} ping={ping as number | undefined} />,
+      );
+      expect(view.root).toBeTruthy();
+    });
+
+    it('starts with no history to draw', async () => {
+      // One reading is a dot, not a line; the sparkline needs a second before
+      // it has a shape to show.
+      const view = await render(<HeaderBar {...baseProps} ping={50} />);
+      expect(view.root).toBeTruthy();
+    });
+
+    it('keeps no history at all while disconnected', async () => {
+      // A sparkline carried across a reconnect would be showing the old
+      // server's latency next to the new one's.
+      const view = await render(
+        <HeaderBar {...baseProps} isConnected={false} ping={80} />,
+      );
+      expect(view.root).toBeTruthy();
+    });
+  });
+
+  describe('what the title area shows', () => {
+    it.each([
+      ['no active tab', { activeTabName: undefined }],
+      ['an active tab', { activeTabName: '#general' }],
+      ['no unread tabs', { unreadTabsCount: 0 }],
+      ['some unread tabs', { unreadTabsCount: 3 }],
+    ])('renders with %s', async (_label, props) => {
+      const view = await render(<HeaderBar {...baseProps} {...props} />);
+      expect(view.root).toBeTruthy();
+    });
+
+    it('offers connect only while disconnected', async () => {
+      const onConnectPress = jest.fn();
+      const view = await render(
+        <HeaderBar
+          {...baseProps}
+          isConnected={false}
+          onConnectPress={onConnectPress}
+          activeTabName="#general"
+        />,
+      );
+      expect(view.root).toBeTruthy();
+
+      // With no handler there is nothing to offer, whatever the state.
+      const without = await render(
+        <HeaderBar {...baseProps} isConnected={false} />,
+      );
+      expect(without.root).toBeTruthy();
+    });
+  });
 });

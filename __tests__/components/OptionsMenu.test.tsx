@@ -15,10 +15,12 @@ jest.mock('../../src/i18n/localization', () => ({
   },
 }));
 
+const mockThemeValue: { colors: Record<string, string | undefined> } = {
+  colors: { text: '#fff', surface: '#111', border: '#222', error: '#f33' },
+};
+
 jest.mock('../../src/hooks/useTheme', () => ({
-  useTheme: () => ({
-    colors: { text: '#fff', surface: '#111', border: '#222', error: '#f33' },
-  }),
+  useTheme: () => mockThemeValue,
 }));
 
 jest.mock('../../src/stores/uiStore', () => ({
@@ -137,5 +139,25 @@ describe('OptionsMenu', () => {
       { id: 'a', networkId: 'net-1', type: 'channel' },
       { id: 'c', networkId: 'net-2', type: 'channel' },
     ]);
+  });
+});
+
+/**
+ * Every colour this screen uses is read as `colors.x || '#hex'`. A theme that
+ * predates a colour — a user's own imported theme, or one carried over from an
+ * older version — leaves that key undefined, and the fallback is what keeps
+ * the screen readable instead of rendering with undefined styles.
+ */
+describe('with a theme that names no colours', () => {
+  it('still renders, on its built-in fallbacks', async () => {
+    const original = { ...mockThemeValue.colors };
+    mockThemeValue.colors = {};
+
+    try {
+      const view = await render(<OptionsMenu {...baseProps} />);
+      expect(view.toJSON()).toBeTruthy();
+    } finally {
+      mockThemeValue.colors = original;
+    }
   });
 });

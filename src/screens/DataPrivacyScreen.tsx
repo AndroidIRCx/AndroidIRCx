@@ -644,7 +644,7 @@ const createStyles = (colors: any) =>
     },
     controlTextContainer: {
       flex: 1,
-      marginRight: 12,
+      marginEnd: 12,
     },
     controlTitle: {
       fontSize: 15,
@@ -676,7 +676,7 @@ const createStyles = (colors: any) =>
       borderColor: '#FF0000',
     },
     actionButtonIcon: {
-      marginRight: 16,
+      marginEnd: 16,
     },
     actionButtonTextContainer: {
       flex: 1,
@@ -702,8 +702,8 @@ const createStyles = (colors: any) =>
       borderRadius: 8,
       padding: 16,
       marginBottom: 12,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.primary,
+      borderStartWidth: 3,
+      borderStartColor: colors.primary,
     },
     infoTitleRow: {
       flexDirection: 'row',
@@ -711,7 +711,7 @@ const createStyles = (colors: any) =>
       marginBottom: 8,
     },
     infoTitleIcon: {
-      marginRight: 8,
+      marginEnd: 8,
     },
     infoTitle: {
       fontSize: 14,

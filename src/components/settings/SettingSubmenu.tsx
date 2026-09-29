@@ -32,7 +32,7 @@ export const SettingSubmenu: React.FC<SettingSubmenuProps> = ({
               size={16}
               color={colors.primary}
               solid={itemIcon.solid}
-              style={{ marginRight: 8 }}
+              style={{ marginEnd: 8 }}
             />
           )}
           <Text style={styles.settingTitle}>{item.title}</Text>

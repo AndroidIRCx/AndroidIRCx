@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   dotsContainer: {
     flexDirection: 'row',
-    marginRight: 8,
+    marginEnd: 8,
     gap: 3,
   },
   dot: {

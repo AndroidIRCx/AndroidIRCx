@@ -521,7 +521,7 @@ const createStyles = (colors: any) =>
       borderRadius: 12,
     },
     encryptionIcon: {
-      marginRight: 4,
+      marginEnd: 4,
     },
     encryptionText: {
       fontSize: 12,
@@ -597,7 +597,7 @@ const createStyles = (colors: any) =>
     },
     captionCounter: {
       fontSize: 12,
-      textAlign: 'right',
+      textAlign: 'end',
       marginTop: 4,
     },
     errorContainer: {
@@ -619,7 +619,7 @@ const createStyles = (colors: any) =>
     },
     progressText: {
       fontSize: 13,
-      marginLeft: 8,
+      marginStart: 8,
     },
     progressBar: {
       height: 6,

@@ -4091,4 +4091,212 @@ describe('MessageArea', () => {
       expect(getByText('Camera not available')).toBeTruthy();
     });
   });
+
+  /**
+   * A message row reads almost every field it prints through a fallback, and
+   * picks its colour from a switch on the type. Both sides of every one of
+   * those matter: a real buffer mixes types freely, and a message that arrives
+   * without a channel, an account or a hostname is ordinary — servers differ,
+   * and IRCv3 tags are optional.
+   */
+  describe('every kind of line the buffer can hold', () => {
+    const TYPES = [
+      'message',
+      'notice',
+      'join',
+      'part',
+      'quit',
+      'kick',
+      'nick',
+      'invite',
+      'monitor',
+      'topic',
+      'mode',
+      'raw',
+      'ctcp',
+      'error',
+      'action',
+      'system',
+      'media',
+    ];
+
+    it('renders one of each type, with every optional field missing', async () => {
+      // Only what the type system demands: no channel, no network, no account,
+      // no hostname, no reason. Every `|| ''` in the row takes its other side.
+      const messages = TYPES.map((type, index) => ({
+        id: `bare-${index}`,
+        type,
+        text: `bare ${type}`,
+        timestamp: 1700000000000 + index,
+      }));
+
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages as any} />,
+      );
+
+      for (const type of TYPES) {
+        expect(view.queryByText(new RegExp(`bare ${type}`))).toBeTruthy();
+      }
+    });
+
+    it('renders one of each type with every field populated', async () => {
+      const messages = TYPES.map((type, index) => ({
+        id: `full-${index}`,
+        type,
+        text: `full ${type}`,
+        from: 'Alice',
+        timestamp: 1700000000000 + index,
+        network: 'TestNet',
+        channel: '#general',
+        target: '#general',
+        account: 'alice',
+        username: 'ali',
+        hostname: 'host.example',
+        oldNick: 'Alicia',
+        newNick: 'Alice',
+        mode: '+o',
+        topic: 'a topic',
+        reason: 'a reason',
+        numeric: '001',
+        command: 'PRIVMSG',
+        msgid: `id-${index}`,
+      }));
+
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages as any} />,
+      );
+
+      for (const type of TYPES) {
+        expect(view.queryByText(new RegExp(`full ${type}`))).toBeTruthy();
+      }
+    });
+
+    it('falls back to a generic colour when the theme names no colour for a type', async () => {
+      // Several types read `colors.xMessage || colors.y`. A theme written
+      // before those keys existed leaves the first half undefined, and the row
+      // must still come out readable rather than uncoloured.
+      const { useTheme } = require('../../src/hooks/useTheme');
+      const themeHook = useTheme as jest.Mock;
+      const original = themeHook.getMockImplementation();
+      const base = themeHook();
+      themeHook.mockImplementation(() => ({
+        ...base,
+        colors: {
+          ...base.colors,
+          noticeMessage: undefined,
+          kickMessage: undefined,
+          nickMessage: undefined,
+          modeMessage: undefined,
+          rawMessage: undefined,
+          ctcpMessage: undefined,
+        },
+      }));
+
+      const messages = ['notice', 'kick', 'nick', 'mode', 'raw', 'ctcp'].map(
+        (type, index) => ({
+          id: `nocolour-${index}`,
+          type,
+          text: `nocolour ${type}`,
+          from: 'Alice',
+          timestamp: 1700000000000 + index,
+        }),
+      );
+
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages as any} />,
+      );
+
+      expect(view.queryByText(/nocolour notice/)).toBeTruthy();
+      expect(view.queryByText(/nocolour ctcp/)).toBeTruthy();
+      themeHook.mockImplementation(original);
+    });
+  });
+
+  describe('lines an addon styled itself', () => {
+    const ROLES = [
+      'notice',
+      'error',
+      'warning',
+      'success',
+      'info',
+      'accent',
+      'muted',
+      'message',
+    ];
+
+    it('colours a line by the role the addon asked for', async () => {
+      const messages = ROLES.map((role, index) => ({
+        id: `role-${index}`,
+        type: 'message',
+        text: `role ${role}`,
+        from: 'Addon',
+        timestamp: 1700000000000 + index,
+        addonDisplayStyle: { role },
+      }));
+
+      const view = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages as any} />,
+      );
+
+      for (const role of ROLES) {
+        expect(view.queryByText(new RegExp(`role ${role}`))).toBeTruthy();
+      }
+    });
+
+    it('leaves a line alone when the role means nothing', async () => {
+      const view = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={
+            [
+              {
+                id: 'role-unknown',
+                type: 'message',
+                text: 'role invented',
+                from: 'Addon',
+                timestamp: 1700000000000,
+                addonDisplayStyle: { role: 'invented' },
+              },
+              {
+                id: 'role-none',
+                type: 'message',
+                text: 'role absent',
+                from: 'Addon',
+                timestamp: 1700000000001,
+                addonDisplayStyle: {},
+              },
+            ] as any
+          }
+        />,
+      );
+
+      expect(view.queryByText(/role invented/)).toBeTruthy();
+      expect(view.queryByText(/role absent/)).toBeTruthy();
+    });
+  });
+
+  describe('an action', () => {
+    const ctcpAction = (text: string) => `\u0001ACTION ${text}\u0001`;
+
+    it('is shown as one, and a near-miss is not', async () => {
+      const view = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={
+            [
+              makeMsg({ id: 'a1', text: ctcpAction('waves'), from: 'Alice' }),
+              // Opening marker only: not an action, and must print as typed.
+              makeMsg({ id: 'a2', text: '\u0001ACTION unterminated' }),
+              // Too short to be anything.
+              makeMsg({ id: 'a3', text: '\u0001' }),
+              makeMsg({ id: 'a4', text: '' }),
+            ] as any
+          }
+        />,
+      );
+
+      expect(view.queryByText(/waves/)).toBeTruthy();
+      expect(view.queryByText(/unterminated/)).toBeTruthy();
+    });
+  });
 });

@@ -835,7 +835,7 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 14,
       color: colors.textSecondary,
       fontWeight: '500',
-      marginRight: 8,
+      marginEnd: 8,
       minWidth: 80,
     },
     infoValue: {

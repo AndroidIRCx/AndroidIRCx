@@ -2059,12 +2059,12 @@ const createStyles = (
       backgroundColor: colors.surface || '#FFFFFF',
     },
     containerLeft: {
-      borderRightWidth: 1,
-      borderRightColor: colors.border || '#E0E0E0',
+      borderEndWidth: 1,
+      borderEndColor: colors.border || '#E0E0E0',
     },
     containerRight: {
-      borderLeftWidth: 1,
-      borderLeftColor: colors.border || '#E0E0E0',
+      borderStartWidth: 1,
+      borderStartColor: colors.border || '#E0E0E0',
     },
     containerTop: {
       width: '100%',
@@ -2110,7 +2110,7 @@ const createStyles = (
       color: colors.text || '#212121',
     },
     clearButton: {
-      marginLeft: 4,
+      marginStart: 4,
       padding: 4,
     },
     clearButtonText: {
@@ -2300,7 +2300,7 @@ const createStyles = (
       color: colors.error || '#F44336', // Dangerous actions (ban, kick+ban)
     },
     subGroup: {
-      paddingLeft: 12,
+      paddingStart: 12,
     },
     contextMenuSubHeader: {
       marginTop: 8,

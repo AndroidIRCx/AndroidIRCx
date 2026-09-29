@@ -176,7 +176,7 @@ const createStyles = (colors: any) => {
     modalClose: {
       position: 'absolute',
       top: 40,
-      right: 20,
+      end: 20,
       zIndex: 10,
       padding: 10,
       backgroundColor: colors.surfaceAlt,
