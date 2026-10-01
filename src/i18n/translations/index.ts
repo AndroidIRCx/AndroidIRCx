@@ -32,6 +32,29 @@ import srJson from './sr.json';
 import srCyrlJson from './sr@Cyrl.json';
 import esJson from './es.json';
 import idJson from './id.json';
+import afJson from './af.json';
+import amJson from './am.json';
+import azJson from './az.json';
+import beJson from './be.json';
+import bnJson from './bn.json';
+import etJson from './et.json';
+import hyJson from './hy.json';
+import kaJson from './ka.json';
+import kkJson from './kk.json';
+import kyJson from './ky.json';
+import ltJson from './lt.json';
+import lvJson from './lv.json';
+import mnJson from './mn.json';
+import msJson from './ms.json';
+import saJson from './sa.json';
+import swJson from './sw.json';
+import taJson from './ta.json';
+import teJson from './te.json';
+import tgJson from './tg.json';
+import thJson from './th.json';
+import tlJson from './tl.json';
+import uzJson from './uz.json';
+import viJson from './vi.json';
 
 export const bundledTranslations: Record<string, Record<string, unknown>> = {
   en: enJson,
@@ -63,4 +86,27 @@ export const bundledTranslations: Record<string, Record<string, unknown>> = {
   'sr@Cyrl': srCyrlJson,
   es: esJson,
   id: idJson,
+  af: afJson,
+  am: amJson,
+  az: azJson,
+  be: beJson,
+  bn: bnJson,
+  et: etJson,
+  hy: hyJson,
+  ka: kaJson,
+  kk: kkJson,
+  ky: kyJson,
+  lt: ltJson,
+  lv: lvJson,
+  mn: mnJson,
+  ms: msJson,
+  sa: saJson,
+  sw: swJson,
+  ta: taJson,
+  te: teJson,
+  tg: tgJson,
+  th: thJson,
+  tl: tlJson,
+  uz: uzJson,
+  vi: viJson,
 };
