@@ -116,6 +116,7 @@ import {
   toggleSectionExpansion,
 } from '../utils/settingsHelpers';
 import type { ZncAccount } from '../types/znc';
+import { findSubscriptionOffer } from '../utils/subscriptionOffers';
 
 const FALLBACK_DEBUG_LOG_CATEGORIES: DebugLogCategory[] = [
   'appInitialization',
@@ -708,20 +709,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (!isMountedRef.current) return;
       setZncDisplayPrice(subscription.displayPrice || null);
       if (Platform.OS === 'android') {
-        const offers =
-          (
-            subscription as ProductSubscription & {
-              subscriptionOfferDetailsAndroid?: Array<{
-                basePlanId?: string;
-                offerToken?: string;
-              }>;
-            }
-          ).subscriptionOfferDetailsAndroid || [];
-        const matchedOffer =
-          offers.find(
-            (offer: { basePlanId?: string; offerToken?: string }) =>
-              offer.basePlanId === zncBasePlanId,
-          ) || offers[0];
+        const matchedOffer = findSubscriptionOffer(
+          subscription,
+          zncBasePlanId,
+          { fallbackToFirst: true },
+        );
         setZncOfferToken(matchedOffer?.offerToken || null);
       }
     } catch {

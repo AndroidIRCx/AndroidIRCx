@@ -39,6 +39,7 @@ import {
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import type { PrivacyRelayTurnCredentials } from '../types/privacyRelay';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
+import { getSubscriptionOffers } from '../utils/subscriptionOffers';
 
 interface PrivacyRelayScreenProps {
   visible: boolean;
@@ -93,33 +94,10 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
         return emptyOffers;
       }
 
-      // react-native-iap 16 replaced `subscriptionOfferDetailsAndroid` with
-      // the cross-platform `subscriptionOffers`, whose Android fields carry an
-      // `Android` suffix. Reading only the old name found no offers at all,
-      // so both plan buttons stayed disabled and a tap did nothing. The old
-      // shape is still read, in case a store hands one back.
-      const standardOffers = (sub as any).subscriptionOffers;
-      const legacyOffers =
-        (sub as any).subscriptionOfferDetailsAndroid ||
-        (sub as any).subscriptionOfferDetails;
-      const rawOffers =
-        Array.isArray(standardOffers) && standardOffers.length
-          ? standardOffers
-          : legacyOffers;
-
-      if (!Array.isArray(rawOffers)) {
-        return emptyOffers;
-      }
-
-      return rawOffers.map((offer: any) => ({
-        basePlanId: offer.basePlanIdAndroid || offer.basePlanId || 'unknown',
-        offerToken: offer.offerTokenAndroid || offer.offerToken || null,
-        price:
-          offer.pricingPhasesAndroid?.pricingPhaseList?.[0]?.formattedPrice ||
-          offer.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice ||
-          offer.displayPrice ||
-          sub.displayPrice ||
-          t('Unavailable'),
+      return getSubscriptionOffers(sub).map(offer => ({
+        basePlanId: offer.basePlanId || 'unknown',
+        offerToken: offer.offerToken,
+        price: offer.formattedPrice || sub.displayPrice || t('Unavailable'),
       }));
     },
     [t],
