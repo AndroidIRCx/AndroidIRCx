@@ -46,7 +46,10 @@ const {
   mcpClientService,
   MCP_TOOL_PREFIX,
   namespacedToolName,
+  BUILT_IN_MCP_SERVERS,
 } = require('../../src/services/ai/McpClientService');
+
+const builtInIds = BUILT_IN_MCP_SERVERS.map((s: any) => s.id);
 
 const remoteTool = (overrides = {}) => ({
   name: 'search',
@@ -214,7 +217,69 @@ describe('McpClientService', () => {
 
     expect(mockSecrets[`ai:mcpclient:${server.id}`]).toBeUndefined();
     expect(mcpClientService.toolSchemas()).toEqual([]);
-    expect(await mcpClientService.list()).toEqual([]);
+    // Only the shipped servers are left.
+    expect((await mcpClientService.list()).map((s: any) => s.id)).toEqual(
+      builtInIds,
+    );
+  });
+
+  describe('the servers that ship with the app', () => {
+    it('offers the MemPalace switched off, read-only and trusted', async () => {
+      const [palace] = await mcpClientService.list();
+
+      expect(palace).toMatchObject({
+        id: 'builtin_mempalace',
+        url: 'https://mempalace-mcp.dbase.in.rs/mcp',
+        enabled: false,
+        builtIn: true,
+        readOnly: true,
+        trustReadOnlyHints: true,
+      });
+    });
+
+    it('connects nothing until the user turns it on', async () => {
+      expect(await mcpClientService.connectAll()).toEqual([]);
+      expect(mockNative.connect).not.toHaveBeenCalled();
+
+      await mcpClientService.update('builtin_mempalace', { enabled: true });
+      await mcpClientService.connectAll();
+
+      expect(mockNative.connect).toHaveBeenCalledWith(
+        'builtin_mempalace',
+        'https://mempalace-mcp.dbase.in.rs/mcp',
+        null,
+      );
+    });
+
+    it('stays removed once the user removes it', async () => {
+      await mcpClientService.remove('builtin_mempalace');
+
+      // A fresh start, as after the app restarts.
+      mcpClientService.resetForTests();
+
+      expect(await mcpClientService.list()).toEqual([]);
+    });
+
+    it('is added once to a list saved before it shipped', async () => {
+      mockStorage['@AndroidIRCX:mcpClients'] = JSON.stringify([
+        {
+          id: 'mine',
+          name: 'Mine',
+          url: 'https://mine.example/mcp',
+          hasToken: false,
+          enabled: true,
+          trustReadOnlyHints: false,
+        },
+      ]);
+
+      const ids = (await mcpClientService.list()).map((s: any) => s.id);
+
+      expect(ids).toEqual(['mine', 'builtin_mempalace']);
+      mcpClientService.resetForTests();
+      expect((await mcpClientService.list()).map((s: any) => s.id)).toEqual(
+        ids,
+      );
+    });
   });
   describe('namespacedToolName', () => {
     it('keeps a name a provider will accept', () => {

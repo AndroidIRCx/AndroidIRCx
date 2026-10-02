@@ -111,6 +111,10 @@ jest.mock('../../src/services/ai/WebAccessService', () => ({
     listHosts: jest.fn(() => []),
     isDefaultHost: jest.fn(() => false),
     forgetHost: jest.fn(async () => undefined),
+    allowHost: jest.fn(async () => undefined),
+    parseHostInput: jest.fn((input: string) =>
+      /^[a-z0-9.-]+\.[a-z]{2,}$/.test(input) ? input : null,
+    ),
   },
 }));
 
@@ -636,10 +640,43 @@ describe('AISettingsScreen', () => {
       const { findByText, getAllByText } = await renderScreen();
 
       expect(await findByText('built in')).toBeTruthy();
-      // The provider cards further down have a Remove of their own.
+      // A built-in host can be removed too: it is the user's list.
       await fireEvent.press(getAllByText('Remove')[0]);
+      expect(webAccessService.forgetHost).toHaveBeenCalledWith('github.com');
 
+      // The provider cards further down have a Remove of their own.
+      await fireEvent.press(getAllByText('Remove')[1]);
       expect(webAccessService.forgetHost).toHaveBeenCalledWith('example.com');
+    });
+
+    it('adds a site the user types', async () => {
+      const { findByPlaceholderText, getByText } = await renderScreen();
+
+      await fireEvent.changeText(
+        await findByPlaceholderText('example.com'),
+        'docs.example.org',
+      );
+      await fireEvent.press(getByText('Add site'));
+
+      expect(webAccessService.allowHost).toHaveBeenCalledWith(
+        'docs.example.org',
+      );
+    });
+
+    it('refuses something that is not a site', async () => {
+      const { findByPlaceholderText, getByText, findByText } =
+        await renderScreen();
+
+      await fireEvent.changeText(
+        await findByPlaceholderText('example.com'),
+        'not a host',
+      );
+      await fireEvent.press(getByText('Add site'));
+
+      expect(
+        await findByText('Enter a site such as example.com.'),
+      ).toBeTruthy();
+      expect(webAccessService.allowHost).not.toHaveBeenCalled();
     });
   });
 
@@ -656,6 +693,15 @@ describe('AISettingsScreen', () => {
     beforeEach(() => {
       mcpClientService.isSupported.mockReturnValue(true);
       mcpClientService.list.mockResolvedValue([server]);
+    });
+
+    it('marks a shipped server as built in and read-only', async () => {
+      mcpClientService.list.mockResolvedValue([
+        { ...server, builtIn: true, readOnly: true },
+      ]);
+      const { findByText } = await renderScreen();
+
+      expect(await findByText('built in \u00b7 read-only')).toBeTruthy();
     });
 
     it('lists a configured server with its token marker', async () => {
