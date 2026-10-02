@@ -118,6 +118,23 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [userListNickFontError, setUserListNickFontError] = useState('');
   const [nicklistTongueEnabled, setNicklistTongueEnabled] = useState(true);
   const [nicklistTongueSizeInput, setNicklistTongueSizeInput] = useState('56');
+
+  const applyLanguagePreference = useCallback(
+    async (locale: string) => {
+      await setAppLanguageFromHook(locale);
+      const needsRestart = await applyLocale(locale);
+      if (needsRestart) {
+        Alert.alert(
+          t('Restart required', { _tags: tags }),
+          t(
+            'AndroidIRCX needs to restart before the new text direction is fully applied.',
+            { _tags: tags },
+          ),
+        );
+      }
+    },
+    [setAppLanguageFromHook, t],
+  );
   const [nicklistTongueSizeError, setNicklistTongueSizeError] = useState('');
 
   useEffect(() => {
@@ -641,8 +658,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             description: t('Use device language', { _tags: tags }),
             type: 'button' as const,
             onPress: async () => {
-              await setAppLanguageFromHook('system');
-              await applyLocale('system');
+              await applyLanguagePreference('system');
             },
           },
           ...SUPPORTED_LOCALES.map(locale => ({
@@ -651,8 +667,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             description: locale,
             type: 'button' as const,
             onPress: async () => {
-              await setAppLanguageFromHook(locale);
-              await applyLocale(locale);
+              await applyLanguagePreference(locale);
             },
           })),
         ],
@@ -1268,7 +1283,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     t,
     tags,
     refreshThemes,
-    setAppLanguageFromHook,
+    applyLanguagePreference,
     updateLayoutConfig,
     onShowThemeEditor,
     showHeaderSearchButton,

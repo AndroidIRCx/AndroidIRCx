@@ -57,4 +57,8 @@ export const SUPPORTED_LOCALES = [
   'tl',
   'uz',
   'vi',
+  'ar',
+  'fa',
+  'ur',
+  'he',
 ];

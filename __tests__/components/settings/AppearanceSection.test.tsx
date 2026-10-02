@@ -827,6 +827,41 @@ describe('AppearanceSection', () => {
         .onPress();
 
       expect(mockSetAppLanguage).toHaveBeenCalledWith('fr');
+      // Neither changes the text direction, so nobody is told to restart.
+      expect(Alert.alert).not.toHaveBeenCalled();
+    });
+
+    it('asks for a restart when the language flips the text direction', async () => {
+      const { applyLocale } = require('../../../src/i18n/localization');
+      (applyLocale as jest.Mock).mockResolvedValueOnce(true);
+
+      await render(
+        <AppearanceSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          onShowThemeEditor={jest.fn()}
+          languageLabels={{ en: 'English', sr: 'Serbian' }}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(mockCapturedItems.has('app-language')).toBe(true),
+      );
+
+      await mockCapturedItems
+        .get('app-language')
+        .submenuItems.find((x: any) => x.id === 'language-sr')
+        .onPress();
+
+      // The locale list is mocked; what matters is that applyLocale reported
+      // a direction change.
+      expect(mockSetAppLanguage).toHaveBeenCalledWith('sr');
+      expect(applyLocale).toHaveBeenCalledWith('sr');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Restart required',
+        expect.stringContaining('restart'),
+      );
     });
   });
 

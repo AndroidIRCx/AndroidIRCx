@@ -55,6 +55,10 @@ import thJson from './th.json';
 import tlJson from './tl.json';
 import uzJson from './uz.json';
 import viJson from './vi.json';
+import arJson from './ar.json';
+import faJson from './fa.json';
+import urJson from './ur.json';
+import heJson from './he.json';
 
 export const bundledTranslations: Record<string, Record<string, unknown>> = {
   en: enJson,
@@ -109,4 +113,8 @@ export const bundledTranslations: Record<string, Record<string, unknown>> = {
   tl: tlJson,
   uz: uzJson,
   vi: viJson,
+  ar: arJson,
+  fa: faJson,
+  ur: urJson,
+  he: heJson,
 };

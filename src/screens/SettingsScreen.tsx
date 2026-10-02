@@ -257,6 +257,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       tl: 'Filipino',
       uz: 'Oʻzbekcha',
       vi: 'Tiếng Việt',
+      ar: 'العربية',
+      fa: 'فارسی',
+      ur: 'اردو',
+      he: 'עברית',
     }),
     [],
   );
