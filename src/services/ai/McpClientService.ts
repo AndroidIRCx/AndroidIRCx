@@ -133,6 +133,28 @@ export const BUILT_IN_MCP_SERVERS: readonly McpClientServer[] = Object.freeze([
   },
 ]);
 
+/**
+ * Tokens for the built-in servers, by id.
+ *
+ * Shipped in the open on purpose: the MemPalace token is a shared, read-only
+ * key that lets anyone read the published AndroidIRCX knowledge and change
+ * none of it. It is kept out of storage so a removed server leaves nothing
+ * behind and an updated token reaches everyone with the next release.
+ */
+const BUILT_IN_MCP_TOKENS: Readonly<Record<string, string>> = Object.freeze({
+  builtin_mempalace:
+    '8RPYC7vdtatC4nAMnWwqYndQwzX8iin0AmLSQ3dWtj7x4OfHCBwaP6np5TsBBJuP',
+});
+
+/**
+ * True for a server this app ships and documents as read-only.
+ *
+ * Looked up in the shipped list rather than read from the stored entry, so a
+ * stored flag can never make a user's own server skip confirmation.
+ */
+const isShippedReadOnly = (id: string): boolean =>
+  BUILT_IN_MCP_SERVERS.some(server => server.id === id && server.readOnly);
+
 interface ConnectedTool {
   serverId: string;
   remoteName: string;
@@ -315,7 +337,10 @@ class McpClientService {
     try {
       const token = server.hasToken
         ? await secureStorageService.getSecret(this.secretKey(server.id))
-        : null;
+        : (BUILT_IN_MCP_TOKENS[server.id] ?? null);
+      // The MemPalace serves only reads but marks none of them readOnlyHint,
+      // so trusting its hints alone would still confirm every lookup.
+      const shippedReadOnly = isShippedReadOnly(server.id);
       const result = await McpClient.connect(server.id, server.url, token);
       for (const remote of result.tools) {
         const name = namespacedToolName(server.name, remote.name, taken);
@@ -336,7 +361,10 @@ class McpClientService {
             inputSchema,
             // readOnlyHint is the server's claim about itself, so it only
             // skips confirmation when the user has said they trust it.
-            mutates: !(server.trustReadOnlyHints && remote.readOnly),
+            mutates: !(
+              server.trustReadOnlyHints &&
+              (remote.readOnly || shippedReadOnly)
+            ),
           },
         });
       }

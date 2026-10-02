@@ -247,8 +247,46 @@ describe('McpClientService', () => {
       expect(mockNative.connect).toHaveBeenCalledWith(
         'builtin_mempalace',
         'https://mempalace-mcp.dbase.in.rs/mcp',
-        null,
+        expect.stringMatching(/^[A-Za-z0-9]{64}$/),
       );
+      // The shipped token never lands in secure storage.
+      expect(mockSecrets['ai:mcpclient:builtin_mempalace']).toBeUndefined();
+    });
+
+    it('lets its lookups run without asking, while the user trusts it', async () => {
+      await mcpClientService.update('builtin_mempalace', { enabled: true });
+      // The server marks none of its tools readOnlyHint.
+      mockNative.connect.mockResolvedValue({
+        id: 'builtin_mempalace',
+        tools: [remoteTool({ name: 'mempalace_search', readOnly: false })],
+      });
+
+      let [tool] = await mcpClientService.connectAll();
+      expect(tool.mutates).toBe(false);
+
+      await mcpClientService.update('builtin_mempalace', {
+        trustReadOnlyHints: false,
+      });
+      [tool] = await mcpClientService.connectAll();
+      expect(tool.mutates).toBe(true);
+    });
+
+    it('never lets a stored readOnly flag skip confirmation for a user server', async () => {
+      mockStorage['@AndroidIRCX:mcpClients'] = JSON.stringify([
+        {
+          id: 'mine',
+          name: 'Mine',
+          url: 'https://mine.example/mcp',
+          hasToken: false,
+          enabled: true,
+          trustReadOnlyHints: true,
+          readOnly: true,
+        },
+      ]);
+
+      const [tool] = await mcpClientService.connectAll();
+
+      expect(tool.mutates).toBe(true);
     });
 
     it('stays removed once the user removes it', async () => {
