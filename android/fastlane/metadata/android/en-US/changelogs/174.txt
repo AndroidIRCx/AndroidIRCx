@@ -1,6 +1,7 @@
 What's new in v1.10.3:
 - 27 new languages, including the first right-to-left ones: Arabic, Persian, Urdu and Hebrew. AndroidIRCX now speaks 56.
-- Right-to-left languages mirror the whole interface after a restart, and the app tells you when one is needed.
-- MCP servers over https connect again.
+- Right-to-left languages mirror the interface after a restart.
+- Privacy Relay can be subscribed to again.
+- MCP servers over https now connect.
 - Add or remove any site the assistant may read, built-in ones too.
 - The project's read-only MemPalace ships as an MCP server, off until you turn it on.

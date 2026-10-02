@@ -370,8 +370,9 @@ describe('PrivacyRelayScreen', () => {
   });
 
   /**
-   * Google Play has renamed this field once already — `subscriptionOfferDetails`
-   * became `subscriptionOfferDetailsAndroid` — and a store that answers with
+   * This field has been renamed twice already — `subscriptionOfferDetails`
+   * became `subscriptionOfferDetailsAndroid`, and react-native-iap 16 replaced
+   * both with `subscriptionOffers` — and a store that answers with
    * neither, or with a price missing, is an ordinary bad day rather than an
    * impossible one. None of those may leave the screen blank or show the word
    * "undefined" where a price belongs.
@@ -391,6 +392,65 @@ describe('PrivacyRelayScreen', () => {
       );
       return view;
     };
+
+    it('buys with the offers react-native-iap 16 actually sends', async () => {
+      // The shape OpenIAP returns on Android since react-native-iap 16. Only
+      // the old field names were read before, so no offer was found, both
+      // Subscribe buttons were disabled and a tap did nothing at all.
+      const { Platform } = require('react-native');
+      const RNIap = require('react-native-iap');
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      try {
+        withProducts({
+          id: 'privacy_relay',
+          type: 'subs',
+          platform: 'android',
+          displayPrice: '$3.99',
+          subscriptionOffers: [
+            {
+              id: 'monthly-base',
+              basePlanIdAndroid: 'monthly',
+              offerTokenAndroid: 'monthly-token',
+              displayPrice: '$3.99',
+              price: 3.99,
+              pricingPhasesAndroid: {
+                pricingPhaseList: [{ formattedPrice: '$4.49' }],
+              },
+            },
+            {
+              id: 'yearly-base',
+              basePlanIdAndroid: 'yearly',
+              offerTokenAndroid: 'yearly-token',
+              displayPrice: '$39.99',
+              price: 39.99,
+            },
+          ],
+        });
+
+        const view = await renderScreen();
+        expect((await view.findAllByText(/\$4\.49/)).length).toBeGreaterThan(0);
+        expect(view.getAllByText(/\$39\.99/).length).toBeGreaterThan(0);
+
+        await fireEvent.press(view.getAllByText('Subscribe')[1]);
+
+        await waitFor(() =>
+          expect(RNIap.requestPurchase).toHaveBeenCalledWith({
+            request: {
+              google: {
+                skus: ['privacy_relay'],
+                subscriptionOffers: [
+                  { sku: 'privacy_relay', offerToken: 'yearly-token' },
+                ],
+              },
+            },
+            type: 'subs',
+          }),
+        );
+      } finally {
+        Platform.OS = originalOS;
+      }
+    });
 
     it('reads the Android-suffixed field when that is the one sent', async () => {
       withProducts({
