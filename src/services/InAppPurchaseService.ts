@@ -82,6 +82,19 @@ class InAppPurchaseService {
   };
   private listeners: Set<PurchaseListener> = new Set();
   private initialized: boolean = false;
+  /**
+   * An active Monthly Supporter subscription. It grants what Supporter Pro
+   * grants, for as long as it lasts, so it is kept apart from the one-time
+   * purchases above and never written to their storage.
+   */
+  private subscriptionSupporter = false;
+
+  /** Called by SupporterSubscriptionService whenever the store answers. */
+  setSubscriptionSupporter(active: boolean) {
+    if (this.subscriptionSupporter === active) return;
+    this.subscriptionSupporter = active;
+    this.notifyListeners();
+  }
 
   async initialize() {
     if (this.initialized) {
@@ -146,7 +159,8 @@ class InAppPurchaseService {
     return (
       this.purchases[PRODUCT_REMOVE_ADS] ||
       this.purchases[PRODUCT_PRO_UNLIMITED] ||
-      this.purchases[PRODUCT_SUPPORTER_PRO]
+      this.purchases[PRODUCT_SUPPORTER_PRO] ||
+      this.subscriptionSupporter
     );
   }
 
@@ -157,7 +171,8 @@ class InAppPurchaseService {
   hasUnlimitedScripting(): boolean {
     return (
       this.purchases[PRODUCT_PRO_UNLIMITED] ||
-      this.purchases[PRODUCT_SUPPORTER_PRO]
+      this.purchases[PRODUCT_SUPPORTER_PRO] ||
+      this.subscriptionSupporter
     );
   }
 
@@ -166,14 +181,15 @@ class InAppPurchaseService {
    * Only supporter_pro tier
    */
   isSupporter(): boolean {
-    return this.purchases[PRODUCT_SUPPORTER_PRO];
+    return this.purchases[PRODUCT_SUPPORTER_PRO] || this.subscriptionSupporter;
   }
 
   /**
    * Get the user's highest tier
    */
   getHighestTier(): 'free' | 'remove_ads' | 'pro_unlimited' | 'supporter_pro' {
-    if (this.purchases[PRODUCT_SUPPORTER_PRO]) return 'supporter_pro';
+    if (this.purchases[PRODUCT_SUPPORTER_PRO] || this.subscriptionSupporter)
+      return 'supporter_pro';
     if (this.purchases[PRODUCT_PRO_UNLIMITED]) return 'pro_unlimited';
     if (this.purchases[PRODUCT_REMOVE_ADS]) return 'remove_ads';
     return 'free';

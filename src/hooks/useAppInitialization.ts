@@ -12,6 +12,7 @@ import { consentService } from '../services/ConsentService';
 import { settingsService } from '../services/SettingsService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
+import { supporterSubscriptionService } from '../services/SupporterSubscriptionService';
 import { bannerAdService } from '../services/BannerAdService';
 import { errorReportingService } from '../services/ErrorReportingService';
 import { soundService } from '../services/SoundService';
@@ -200,6 +201,9 @@ export function useAppInitialization() {
           'appInitialization',
           'InAppPurchaseService initialized successfully',
         );
+        // A Monthly Supporter subscription grants on top of the one-time
+        // purchases; this also asks the store whether it is still running.
+        await supporterSubscriptionService.initialize();
 
         // Step 6: Initialize BannerAdService
         debugLogger.debug('appInitialization', 'Initializing BannerAdService');

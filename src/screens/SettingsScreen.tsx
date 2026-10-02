@@ -67,6 +67,7 @@ import { KeyManagementScreen } from './KeyManagementScreen';
 import { FirstRunSetupScreen } from './FirstRunSetupScreen';
 import { ZncSubscriptionScreen } from './ZncSubscriptionScreen';
 import { PrivacyRelayScreen } from './PrivacyRelayScreen';
+import { SupportProjectScreen } from './SupportProjectScreen';
 import { PrivacyAdsScreen } from './PrivacyAdsScreen';
 import { DataPrivacyScreen } from './DataPrivacyScreen';
 import {
@@ -305,6 +306,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showKeyManagement, setShowKeyManagement] = useState(false);
   const [showZncSubscription, setShowZncSubscription] = useState(false);
   const [showPrivacyRelayScreen, setShowPrivacyRelayScreen] = useState(false);
+  const [showSupportProjectScreen, setShowSupportProjectScreen] =
+    useState(false);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationNetwork, setMigrationNetwork] = useState('');
   const [storageStats, setStorageStats] = useState<{
@@ -1193,6 +1196,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             'scripting',
             'purchase',
             'buy',
+          ],
+        },
+        {
+          id: 'support-project',
+          title: t('Support the project', { _tags: tags }),
+          description: t(
+            'A monthly subscription that keeps AndroidIRCX going, with supporter benefits',
+            { _tags: tags },
+          ),
+          type: 'button' as const,
+          icon: { name: 'heart', solid: true },
+          onPress: () => setShowSupportProjectScreen(true),
+          searchKeywords: [
+            'support',
+            'supporter',
+            'donate',
+            'donation',
+            'monthly',
+            'subscription',
+            'emoji',
+            'badge',
+            'supporters list',
           ],
         },
         {
@@ -3466,6 +3491,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <ZncSubscriptionScreen
         visible={showZncSubscription}
         onClose={() => setShowZncSubscription(false)}
+      />
+      <SupportProjectScreen
+        visible={showSupportProjectScreen}
+        onClose={() => setShowSupportProjectScreen(false)}
       />
       <PrivacyRelayScreen
         visible={showPrivacyRelayScreen}

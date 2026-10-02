@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
+import { supporterSubscriptionService } from '../services/SupporterSubscriptionService';
 import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 
 // Compact latency sparkline: map a ping (ms) to a block glyph.
@@ -123,6 +124,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const [isSupporter, setIsSupporter] = useState(false);
+  const [supporterBadge, setSupporterBadge] = useState('❤️');
   const { killSwitchCustomIcon, killSwitchCustomColor } = useSettingsSecurity();
 
   const styles = createStyles(colors);
@@ -151,11 +153,23 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   useEffect(() => {
     const updateSupporterStatus = () => {
       setIsSupporter(inAppPurchaseService.isSupporter());
+      // A Monthly Supporter picks their own badge; Supporter Pro keeps the heart.
+      setSupporterBadge(
+        supporterSubscriptionService.isActive()
+          ? supporterSubscriptionService.getEmoji()
+          : '❤️',
+      );
     };
 
     updateSupporterStatus();
     const unsubscribe = inAppPurchaseService.addListener(updateSupporterStatus);
-    return unsubscribe;
+    const unsubscribeSupporter = supporterSubscriptionService.addListener(
+      updateSupporterStatus,
+    );
+    return () => {
+      unsubscribe();
+      unsubscribeSupporter();
+    };
   }, []);
 
   return (
@@ -190,7 +204,9 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               ●
             </Text>
             <Text style={styles.networkName}>{networkName}</Text>
-            {isSupporter && <Text style={styles.supporterBadge}>❤️</Text>}
+            {isSupporter && (
+              <Text style={styles.supporterBadge}>{supporterBadge}</Text>
+            )}
             {isConnected && !!activeTabName && (
               <>
                 <Text style={styles.tabAt}>@</Text>
