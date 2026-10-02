@@ -1,5 +1,6 @@
 package com.androidircx
 
+import android.net.http.X509TrustManagerExtensions
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -13,7 +14,12 @@ import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.mcpSse
 import io.modelcontextprotocol.kotlin.sdk.client.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
+import java.net.URI
+import java.security.KeyStore
+import java.security.cert.X509Certificate
 import java.util.concurrent.ConcurrentHashMap
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +66,41 @@ class McpClientModule(reactContext: ReactApplicationContext) :
     private val clients = ConcurrentHashMap<String, Pair<HttpClient, Client>>()
 
     override fun getName(): String = "McpClient"
+
+    /**
+     * The platform's trust manager, asked the hostname-aware way.
+     *
+     * CIO checks a certificate chain with the two-argument
+     * `checkServerTrusted(chain, authType)` and verifies the host name itself
+     * afterwards. Android refuses that call outright whenever the network
+     * security config has a `<domain-config>` — ours does, for localhost — with
+     * "Domain specific configurations require that hostname aware
+     * checkServerTrusted(X509Certificate[], String, String) is used". So every
+     * https MCP server failed, while plain http to 127.0.0.1 worked.
+     *
+     * The client is built per connection, so the host is known here and can
+     * be handed to `X509TrustManagerExtensions`, which applies the full
+     * network security config for it. Trust itself is unchanged: the same
+     * system anchors decide, and CIO still checks the name on the certificate.
+     */
+    private fun hostnameAwareTrustManager(url: String): X509TrustManager {
+        val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        factory.init(null as KeyStore?)
+        val platform = factory.trustManagers.filterIsInstance<X509TrustManager>().first()
+        val extensions = X509TrustManagerExtensions(platform)
+        val host = runCatching { URI(url).host }.getOrNull().orEmpty()
+
+        return object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) =
+                platform.checkClientTrusted(chain, authType)
+
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                extensions.checkServerTrusted(chain, authType, host)
+            }
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> = platform.acceptedIssuers
+        }
+    }
 
     /**
      * Connect with whichever HTTP transport the server actually speaks.
@@ -118,6 +159,7 @@ class McpClientModule(reactContext: ReactApplicationContext) :
                         // the connect timeout still applies, and connectAll()
                         // has its own.
                         requestTimeout = 0
+                        https { trustManager = hostnameAwareTrustManager(url) }
                     }
                 }
                 http = opened

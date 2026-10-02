@@ -39,6 +39,7 @@ import {
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import type { PrivacyRelayTurnCredentials } from '../types/privacyRelay';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
+import { getSubscriptionOffers } from '../utils/subscriptionOffers';
 
 interface PrivacyRelayScreenProps {
   visible: boolean;
@@ -93,22 +94,10 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
         return emptyOffers;
       }
 
-      const rawOffers =
-        (sub as any).subscriptionOfferDetails ||
-        (sub as any).subscriptionOfferDetailsAndroid ||
-        [];
-
-      if (!Array.isArray(rawOffers)) {
-        return emptyOffers;
-      }
-
-      return rawOffers.map((offer: any) => ({
+      return getSubscriptionOffers(sub).map(offer => ({
         basePlanId: offer.basePlanId || 'unknown',
-        offerToken: offer.offerToken || null,
-        price:
-          offer.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice ||
-          sub.displayPrice ||
-          t('Unavailable'),
+        offerToken: offer.offerToken,
+        price: offer.formattedPrice || sub.displayPrice || t('Unavailable'),
       }));
     },
     [t],

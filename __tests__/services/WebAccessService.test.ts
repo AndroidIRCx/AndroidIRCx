@@ -31,6 +31,7 @@ describe('WebAccessService', () => {
     it("ships with this project's own documentation allowed", () => {
       // A question about how the app works should be answerable without a
       // permission dance.
+      expect(DEFAULT_ALLOWED_HOSTS).toContain('mempalace-mcp.dbase.in.rs');
       for (const host of DEFAULT_ALLOWED_HOSTS) {
         expect(webAccessService.isAllowed(host)).toBe(true);
       }
@@ -39,6 +40,53 @@ describe('WebAccessService', () => {
           call('https://github.com/AndroidIRCx/AndroidIRCx/wiki'),
         ),
       ).toBe(false);
+    });
+
+    it('lets the user remove a built-in host, and keeps it removed', async () => {
+      await webAccessService.forgetHost('mempalace-mcp.dbase.in.rs');
+      expect(webAccessService.listHosts()).not.toContain(
+        'mempalace-mcp.dbase.in.rs',
+      );
+
+      // A restart must not quietly bring it back.
+      webAccessService.resetForTests();
+      await webAccessService.load();
+      expect(webAccessService.isAllowed('mempalace-mcp.dbase.in.rs')).toBe(
+        false,
+      );
+      expect(webAccessService.isAllowed('github.com')).toBe(true);
+
+      // Adding it back undoes the removal.
+      await webAccessService.allowHost('mempalace-mcp.dbase.in.rs');
+      webAccessService.resetForTests();
+      await webAccessService.load();
+      expect(webAccessService.isAllowed('mempalace-mcp.dbase.in.rs')).toBe(
+        true,
+      );
+    });
+
+    it('keeps a site the user added across a restart', async () => {
+      await webAccessService.allowHost('pornhub.com');
+      webAccessService.resetForTests();
+      await webAccessService.load();
+
+      expect(webAccessService.isAllowed('pornhub.com')).toBe(true);
+    });
+
+    it('turns what a person typed into a host, or refuses it', () => {
+      expect(webAccessService.parseHostInput('Example.COM')).toBe(
+        'example.com',
+      );
+      expect(
+        webAccessService.parseHostInput('https://www.docs.example.org/a?b'),
+      ).toBe('docs.example.org');
+      expect(webAccessService.parseHostInput('example.com/path')).toBe(
+        'example.com',
+      );
+      expect(webAccessService.parseHostInput('  ')).toBeNull();
+      expect(webAccessService.parseHostInput('not a host')).toBeNull();
+      expect(webAccessService.parseHostInput('localhost')).toBeNull();
+      expect(webAccessService.parseHostInput('ftp://example.com')).toBeNull();
     });
 
     it('asks before reading anywhere else', () => {

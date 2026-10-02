@@ -26,6 +26,15 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
   },
 }));
 
+const mockSupporterActive = jest.fn(() => false);
+jest.mock('../../src/services/SupporterSubscriptionService', () => ({
+  supporterSubscriptionService: {
+    isActive: () => mockSupporterActive(),
+    getEmoji: () => '🦄',
+    addListener: () => () => {},
+  },
+}));
+
 jest.mock('../../src/hooks/useSettingsSecurity', () => ({
   useSettingsSecurity: () => mockUseSettingsSecurity(),
 }));
@@ -117,6 +126,18 @@ describe('HeaderBar', () => {
     });
 
     expect(queryByText('❤️')).toBeTruthy();
+  });
+
+  it('shows a monthly supporter the badge they picked', async () => {
+    mockAddListener.mockImplementation(() => () => {});
+    mockIsSupporter.mockReturnValue(true);
+    mockSupporterActive.mockReturnValue(true);
+
+    const { queryByText } = await render(<HeaderBar {...baseProps} />);
+
+    expect(queryByText('🦄')).toBeTruthy();
+    expect(queryByText('❤️')).toBeNull();
+    mockSupporterActive.mockReturnValue(false);
   });
 
   it('supports hidden side tabs icon state and locked icon variant', async () => {

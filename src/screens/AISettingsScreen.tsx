@@ -141,6 +141,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [modelFilter, setModelFilter] = useState('');
   const [preset, setPreset] = useState<AIProviderPreset | null>(null);
   const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
+  const [newHost, setNewHost] = useState('');
+  const [newHostError, setNewHostError] = useState('');
   const [memories, setMemories] = useState<AIMemory[]>([]);
   const [memoryOn, setMemoryOn] = useState(true);
 
@@ -306,6 +308,18 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     await webAccessService.forgetHost(host);
     setAllowedHosts(webAccessService.listHosts());
   }, []);
+
+  const addHost = useCallback(async () => {
+    const host = webAccessService.parseHostInput(newHost);
+    if (!host) {
+      setNewHostError(t('Enter a site such as example.com.'));
+      return;
+    }
+    await webAccessService.allowHost(host);
+    setAllowedHosts(webAccessService.listHosts());
+    setNewHost('');
+    setNewHostError('');
+  }, [newHost, t]);
 
   const setChannel = useCallback(
     async (channel: string, network: string, allowed: boolean) => {
@@ -875,15 +889,38 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
           {allowedHosts.map(host => (
             <View key={host} style={styles.channelRow}>
               <Text style={styles.channelText}>{host}</Text>
-              {webAccessService.isDefaultHost(host) ? (
-                <Text style={styles.subtle}>{t('built in')}</Text>
-              ) : (
-                <TouchableOpacity onPress={() => forgetHost(host)}>
-                  <Text style={styles.actionDanger}>{t('Remove')}</Text>
-                </TouchableOpacity>
+              {webAccessService.isDefaultHost(host) && (
+                <Text style={[styles.subtle, styles.hostBadge]}>
+                  {t('built in')}
+                </Text>
               )}
+              <TouchableOpacity onPress={() => forgetHost(host)}>
+                <Text style={styles.actionDanger}>{t('Remove')}</Text>
+              </TouchableOpacity>
             </View>
           ))}
+          <View style={styles.hostAddRow}>
+            <TextInput
+              style={[styles.input, styles.hostAddInput]}
+              value={newHost}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              placeholder="example.com"
+              placeholderTextColor={colors.textSecondary}
+              onChangeText={value => {
+                setNewHost(value);
+                setNewHostError('');
+              }}
+              onSubmitEditing={addHost}
+            />
+            <TouchableOpacity style={styles.action} onPress={addHost}>
+              <Text style={styles.actionText}>{t('Add site')}</Text>
+            </TouchableOpacity>
+          </View>
+          {!!newHostError && (
+            <Text style={styles.statusBad}>{newHostError}</Text>
+          )}
 
           {mcpClientService.isSupported() && (
             <>
@@ -905,6 +942,16 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                         {server.url}
                         {server.hasToken ? ' \u00b7 token' : ''}
                       </Text>
+                      {(server.builtIn || server.readOnly) && (
+                        <Text style={styles.subtle}>
+                          {[
+                            server.builtIn ? t('built in') : null,
+                            server.readOnly ? t('read-only') : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' \u00b7 ')}
+                        </Text>
+                      )}
                     </View>
                     <Switch
                       value={server.enabled}
@@ -1624,6 +1671,13 @@ const createStyles = (colors: any) =>
       flex: 1,
       marginEnd: 12,
     },
+    hostBadge: { marginEnd: 12 },
+    hostAddRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    hostAddInput: { flex: 1, marginEnd: 12 },
     masterTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
     actionDisabled: { opacity: 0.4 },
     channelNetwork: {

@@ -24,15 +24,30 @@ import { AIToolCall } from './types';
  * The list is per **host**, not per URL: a person deciding about
  * "github.com" is making a decision they can actually reason about, where one
  * about a path is not.
+ *
+ * Only the user changes it — by adding a site here, by answering "always
+ * allow" when the assistant asks, or by removing one. The assistant has no
+ * tool that touches the list, so it can never reach past what shipped plus
+ * what the user chose.
  */
 
 const STORAGE_HOSTS_KEY = '@AndroidIRCX:aiAllowedHosts';
+/** Built-in hosts the user removed, so they stay removed after an update. */
+const STORAGE_REMOVED_DEFAULTS_KEY = '@AndroidIRCX:aiRemovedDefaultHosts';
 
-/** Allowed out of the box: the app's own repository and wiki. */
+/**
+ * Allowed out of the box: the app's own repository and wiki, and the
+ * project's public, read-only MemPalace knowledge base.
+ */
 export const DEFAULT_ALLOWED_HOSTS = [
   'github.com',
   'raw.githubusercontent.com',
+  'mempalace-mcp.dbase.in.rs',
 ];
+
+/** A bare host name: letters, digits, hyphens and dots, at least one dot. */
+const HOST_PATTERN =
+  /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9-]{2,63}$/;
 
 /** Fetched pages are truncated to this, so one page cannot eat the prompt. */
 export const MAX_PAGE_CHARS = 40000;
@@ -81,6 +96,7 @@ function isPrintable(code: number): boolean {
 
 class WebAccessService {
   private hosts: string[] = [...DEFAULT_ALLOWED_HOSTS];
+  private removedDefaults: string[] = [];
   private loaded = false;
   /** Tool call ids the user approved for a single run. */
   private oneOff = new Set<string>();
@@ -89,26 +105,40 @@ class WebAccessService {
     if (this.loaded) return;
     this.loaded = true;
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_HOSTS_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const saved = parsed.filter(
-          (host: unknown): host is string =>
-            typeof host === 'string' && host.length > 0,
-        );
-        // The defaults are re-added rather than assumed present, so a list
-        // saved by an older build still documents the app's own wiki.
-        this.hosts = Array.from(new Set([...DEFAULT_ALLOWED_HOSTS, ...saved]));
-      }
+      this.removedDefaults = this.readList(
+        await AsyncStorage.getItem(STORAGE_REMOVED_DEFAULTS_KEY),
+      ).filter(host => DEFAULT_ALLOWED_HOSTS.includes(host));
+      const saved = this.readList(
+        await AsyncStorage.getItem(STORAGE_HOSTS_KEY),
+      );
+      // The defaults are re-added rather than assumed present, so a list saved
+      // by an older build still gets a host shipped after it. One the user
+      // removed stays removed: that was their decision, not an old list.
+      this.hosts = Array.from(
+        new Set([...DEFAULT_ALLOWED_HOSTS, ...saved]),
+      ).filter(host => !this.removedDefaults.includes(host));
     } catch (error) {
       logger.warn('ai', `Failed to load allowed hosts: ${String(error)}`);
     }
   }
 
+  private readList(raw: string | null): string[] {
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (host: unknown): host is string =>
+        typeof host === 'string' && host.length > 0,
+    );
+  }
+
   private async persist(): Promise<void> {
     try {
       await AsyncStorage.setItem(STORAGE_HOSTS_KEY, JSON.stringify(this.hosts));
+      await AsyncStorage.setItem(
+        STORAGE_REMOVED_DEFAULTS_KEY,
+        JSON.stringify(this.removedDefaults),
+      );
     } catch (error) {
       logger.warn('ai', `Failed to save allowed hosts: ${String(error)}`);
     }
@@ -129,11 +159,30 @@ class WebAccessService {
       .replace(/^www\./, '');
   }
 
+  /**
+   * The host a person typed into the "add a site" box, or null when it is not
+   * one. A full URL is accepted and reduced to its host, because that is what
+   * people paste.
+   */
+  parseHostInput(input: string): string | null {
+    const raw = String(input || '').trim();
+    if (!raw) return null;
+    const host = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw)
+      ? this.hostOf(raw)
+      : raw.split(/[/?#:]/)[0];
+    const clean = this.normalizeHost(host || '');
+    return HOST_PATTERN.test(clean) ? clean : null;
+  }
+
   async allowHost(host: string): Promise<void> {
     await this.load();
     const clean = this.normalizeHost(host);
-    if (!clean || this.hosts.includes(clean)) return;
-    this.hosts.push(clean);
+    if (!clean) return;
+    // Adding a built-in host back undoes having removed it.
+    this.removedDefaults = this.removedDefaults.filter(
+      entry => entry !== clean,
+    );
+    if (!this.hosts.includes(clean)) this.hosts.push(clean);
     await this.persist();
   }
 
@@ -141,6 +190,12 @@ class WebAccessService {
     await this.load();
     const clean = this.normalizeHost(host);
     this.hosts = this.hosts.filter(entry => entry !== clean);
+    if (
+      DEFAULT_ALLOWED_HOSTS.includes(clean) &&
+      !this.removedDefaults.includes(clean)
+    ) {
+      this.removedDefaults.push(clean);
+    }
     await this.persist();
   }
 
@@ -353,6 +408,7 @@ class WebAccessService {
   /** Test hook. */
   resetForTests(): void {
     this.hosts = [...DEFAULT_ALLOWED_HOSTS];
+    this.removedDefaults = [];
     this.loaded = false;
     this.oneOff.clear();
   }

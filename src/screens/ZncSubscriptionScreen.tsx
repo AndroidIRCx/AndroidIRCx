@@ -53,6 +53,10 @@ import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
 import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 import { PasswordInput } from '../components/PasswordInput';
+import {
+  findSubscriptionOffer,
+  getSubscriptionOffers,
+} from '../utils/subscriptionOffers';
 
 interface ZncSubscriptionScreenProps {
   visible: boolean;
@@ -402,59 +406,13 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           // Wait a bit to ensure offer details are fully loaded
           await new Promise(resolve => setTimeout(resolve, 1500));
 
-          // Try multiple possible property names for subscription offers on Android
-          let offers = (sub as any).subscriptionOfferDetails || [];
-          if (!offers || offers.length === 0) {
-            offers = (sub as any).subscriptionOfferDetailsAndroid || [];
-          }
-          if (!offers || offers.length === 0) {
-            // Sometimes the offers are nested differently
-            const rawDetails = (sub as any).oneTimePurchaseOfferDetailsAndroid;
-            if (rawDetails?.recurrenceMode) {
-              // If there's a one-time purchase offer, we might need to handle differently
-              console.log(
-                'Found one-time purchase details instead of subscription offers:',
-                rawDetails,
-              );
-            }
-            console.log('Checking for offers in different properties...');
-          }
-
-          console.log('Subscription offers:', offers); // Debug logging
-
-          // Look for the specific base plan, or use the first available offer
-          let offer = offers.find(
-            (o: any) => o.basePlanId === ZNC_BASE_PLAN_ID,
-          );
-          if (!offer && offers.length > 0) {
-            // Use the first offer as fallback if specific base plan not found
-            offer = offers[0];
-            console.log('Using fallback offer:', offer);
-          }
-
-          console.log('Selected offer:', offer); // Debug logging
-
+          // The specific base plan, or the first offer when it is missing.
+          const offer = findSubscriptionOffer(sub, ZNC_BASE_PLAN_ID, {
+            fallbackToFirst: true,
+          });
           if (offer?.offerToken) {
             if (!isMountedRef.current) return;
             setOfferToken(offer.offerToken);
-            console.log('Set offer token:', offer.offerToken); // Debug logging
-          } else if (offers.length > 0) {
-            // If there are offers but no offerToken, try to get it from pricing phases
-            for (const o of offers) {
-              if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                if (firstPhase?.offerId) {
-                  // Some implementations put the offer token in the offerId
-                  if (!isMountedRef.current) return;
-                  setOfferToken(firstPhase.offerId);
-                  console.log(
-                    'Set offer token from pricing phase:',
-                    firstPhase.offerId,
-                  );
-                  break;
-                }
-              }
-            }
           }
 
           console.log('Offer token resolution complete');
@@ -601,38 +559,13 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           // Wait a bit to ensure offer details are fully loaded
           await new Promise(resolve => setTimeout(resolve, 1500));
 
-          // Try multiple possible property names for subscription offers on Android
-          let offers = (subscription as any).subscriptionOfferDetails || [];
-          if (!offers || offers.length === 0) {
-            offers =
-              (subscription as any).subscriptionOfferDetailsAndroid || [];
-          }
-
-          // Look for the specific base plan, or use the first available offer
-          let offer = offers.find(
-            (o: any) => o.basePlanId === ZNC_BASE_PLAN_ID,
-          );
-          if (!offer && offers.length > 0) {
-            // Use the first offer as fallback if specific base plan not found
-            offer = offers[0];
-          }
-
+          // The specific base plan, or the first offer when it is missing.
+          const offer = findSubscriptionOffer(subscription, ZNC_BASE_PLAN_ID, {
+            fallbackToFirst: true,
+          });
           if (offer?.offerToken) {
             if (!isMountedRef.current) return;
             setOfferToken(offer.offerToken);
-          } else if (offers.length > 0) {
-            // If there are offers but no offerToken, try to get it from pricing phases
-            for (const o of offers) {
-              if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                if (firstPhase?.offerId) {
-                  // Some implementations put the offer token in the offerId
-                  if (!isMountedRef.current) return;
-                  setOfferToken(firstPhase.offerId);
-                  break;
-                }
-              }
-            }
           }
         } catch (error) {
           console.error('Error loading subscription offers:', error);
@@ -668,28 +601,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const extractOfferToken = (
     sub: ProductSubscription | null,
   ): string | null => {
-    if (!sub) {
-      return null;
-    }
-    const offers =
-      (sub as any).subscriptionOfferDetails ||
-      (sub as any).subscriptionOfferDetailsAndroid ||
-      [];
-    if (!offers.length) {
-      return null;
-    }
-    const selectedOffer =
-      offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID) || offers[0];
-    if (selectedOffer?.offerToken) {
-      return selectedOffer.offerToken as string;
-    }
-    if (selectedOffer?.pricingPhases?.pricingPhaseList?.length > 0) {
-      const firstPhase = selectedOffer.pricingPhases.pricingPhaseList[0];
-      if (firstPhase?.offerId) {
-        return firstPhase.offerId as string;
-      }
-    }
-    return null;
+    return (
+      findSubscriptionOffer(sub, ZNC_BASE_PLAN_ID, { fallbackToFirst: true })
+        ?.offerToken ?? null
+    );
   };
 
   const resolveAndroidOfferToken = async (): Promise<string | null> => {
@@ -1571,8 +1486,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
   const displayPrice =
     subscription?.displayPrice ||
-    (subscription as any)?.subscriptionOfferDetails?.[0]?.pricingPhases
-      ?.pricingPhaseList?.[0]?.formattedPrice ||
+    getSubscriptionOffers(subscription)[0]?.formattedPrice ||
     t('Monthly subscription');
 
   const styles = createStyles(colors);

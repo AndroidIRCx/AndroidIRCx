@@ -24,11 +24,11 @@ describe('knowing which way a language runs', () => {
     expect(isRtlLocale('FA')).toBe(true);
   });
 
-  it('treats everything this app ships today as left to right', () => {
-    // All 29 shipped languages are LTR; the day that stops being true, this
-    // fails and whoever added the language is told to check the layout.
+  it('keeps shipped LTR and RTL languages classified explicitly', () => {
+    const shippedRtlLocales = new Set(['ar', 'fa', 'ur', 'he']);
+
     for (const locale of SUPPORTED_LOCALES) {
-      expect(isRtlLocale(locale)).toBe(false);
+      expect(isRtlLocale(locale)).toBe(shippedRtlLocales.has(locale));
     }
   });
 
@@ -41,20 +41,18 @@ describe('knowing which way a language runs', () => {
 describe('pointing React Native at a direction', () => {
   let allowRTL: jest.SpyInstance;
   let forceRTL: jest.SpyInstance;
-  let isRTL = false;
+  // The direction this process launched with. Like the real I18nManager, it
+  // does not move when forceRTL is called; only a restart would change it.
+  let launchedRtl = false;
 
   beforeEach(() => {
-    isRTL = false;
+    launchedRtl = false;
     clearLayoutRestartPending();
     allowRTL = jest.spyOn(I18nManager, 'allowRTL').mockImplementation(() => {});
-    forceRTL = jest
-      .spyOn(I18nManager, 'forceRTL')
-      .mockImplementation((next: boolean) => {
-        isRTL = next;
-      });
+    forceRTL = jest.spyOn(I18nManager, 'forceRTL').mockImplementation(() => {});
     Object.defineProperty(I18nManager, 'isRTL', {
       configurable: true,
-      get: () => isRTL,
+      get: () => launchedRtl,
     });
   });
 
@@ -79,24 +77,31 @@ describe('pointing React Native at a direction', () => {
   });
 
   it('turns it back for a left-to-right one', () => {
-    applyLayoutDirection('ar');
-    clearLayoutRestartPending();
-    forceRTL.mockClear();
+    launchedRtl = true;
 
     expect(applyLayoutDirection('en')).toBe(true);
     expect(forceRTL).toHaveBeenCalledWith(false);
   });
 
-  it('does nothing when the direction is already right', () => {
-    applyLayoutDirection('en');
-    forceRTL.mockClear();
-    clearLayoutRestartPending();
-
-    // Re-applying the same language must not ask for a restart again, or the
-    // prompt would come back on every language-menu visit.
+  it('does not ask for a restart when the direction is already right', () => {
+    // Re-applying a language must not ask for a restart again, or the prompt
+    // would come back on every language-menu visit.
     expect(applyLayoutDirection('en')).toBe(false);
     expect(applyLayoutDirection('de')).toBe(false);
-    expect(forceRTL).not.toHaveBeenCalled();
+    expect(isLayoutRestartPending()).toBe(false);
+
+    launchedRtl = true;
+    expect(applyLayoutDirection('he')).toBe(false);
+    expect(isLayoutRestartPending()).toBe(false);
+  });
+
+  it('undoes a flip that was chosen and then taken back before restarting', () => {
+    // Arabic, then English again, all in one LTR session: the stored flip has
+    // to be reverted, or the next launch comes up right-to-left in English.
+    expect(applyLayoutDirection('ar')).toBe(true);
+    expect(applyLayoutDirection('en')).toBe(false);
+
+    expect(forceRTL).toHaveBeenLastCalledWith(false);
     expect(isLayoutRestartPending()).toBe(false);
   });
 

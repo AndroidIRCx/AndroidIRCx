@@ -48,23 +48,25 @@ let restartPending = false;
 /**
  * Point React Native at the direction this locale needs.
  *
- * Returns true when the direction actually changed, which is the moment a
- * restart becomes necessary. Calling it again with the same locale returns
- * false, so a caller that prompts on `true` does not nag on every render.
+ * Returns true when the screen is running the other way round from what this
+ * locale needs, i.e. a restart is owed. A locale that already matches the
+ * running direction returns false, so a caller that prompts on `true` does not
+ * nag on every language-menu visit.
+ *
+ * `I18nManager.isRTL` is the direction this process started with; it does not
+ * change until the restart. So the choice is always written, even when it
+ * matches: picking Arabic and then English before restarting has to undo the
+ * stored flip, or the app would come back right-to-left in English.
  */
 export const applyLayoutDirection = (locale?: string): boolean => {
   const shouldBeRtl = isRtlLocale(locale);
 
   // Without this, forceRTL is ignored on a build that has never opted in.
   I18nManager.allowRTL(true);
-
-  if (I18nManager.isRTL === shouldBeRtl) {
-    return false;
-  }
-
   I18nManager.forceRTL(shouldBeRtl);
-  restartPending = true;
-  return true;
+
+  restartPending = I18nManager.isRTL !== shouldBeRtl;
+  return restartPending;
 };
 
 /**

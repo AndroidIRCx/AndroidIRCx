@@ -48,6 +48,8 @@ const { McpClient } = NativeModules as {
 };
 
 const STORAGE_KEY = '@AndroidIRCX:mcpClients';
+/** Ids of built-in servers already offered once, so a removed one stays gone. */
+const SEEDED_KEY = '@AndroidIRCX:mcpClientsSeeded';
 const SECRET_PREFIX = 'ai:mcpclient:';
 export const MCP_TOOL_PREFIX = 'mcp__';
 
@@ -103,7 +105,55 @@ export interface McpClientServer {
   enabled: boolean;
   /** Trust the server's own readOnlyHint instead of confirming every call. */
   trustReadOnlyHints: boolean;
+  /** Shipped with the app rather than added by the user. */
+  builtIn?: boolean;
+  /** The server only ever reads: it is documented as read-only. */
+  readOnly?: boolean;
 }
+
+/**
+ * Servers that ship with the app, switched **off**.
+ *
+ * The project's MemPalace is a public, read-only knowledge base about
+ * AndroidIRCX — architecture, conventions, the scripting API — useful to anyone
+ * writing a script or working on the app with an assistant. It is offered, not
+ * imposed: nothing connects until the user turns it on, and removing it keeps
+ * it removed.
+ */
+export const BUILT_IN_MCP_SERVERS: readonly McpClientServer[] = Object.freeze([
+  {
+    id: 'builtin_mempalace',
+    name: 'AndroidIRCX MemPalace',
+    url: 'https://mempalace-mcp.dbase.in.rs/mcp',
+    hasToken: false,
+    enabled: false,
+    trustReadOnlyHints: true,
+    builtIn: true,
+    readOnly: true,
+  },
+]);
+
+/**
+ * Tokens for the built-in servers, by id.
+ *
+ * Shipped in the open on purpose: the MemPalace token is a shared, read-only
+ * key that lets anyone read the published AndroidIRCX knowledge and change
+ * none of it. It is kept out of storage so a removed server leaves nothing
+ * behind and an updated token reaches everyone with the next release.
+ */
+const BUILT_IN_MCP_TOKENS: Readonly<Record<string, string>> = Object.freeze({
+  builtin_mempalace:
+    '8RPYC7vdtatC4nAMnWwqYndQwzX8iin0AmLSQ3dWtj7x4OfHCBwaP6np5TsBBJuP',
+});
+
+/**
+ * True for a server this app ships and documents as read-only.
+ *
+ * Looked up in the shipped list rather than read from the stored entry, so a
+ * stored flag can never make a user's own server skip confirmation.
+ */
+const isShippedReadOnly = (id: string): boolean =>
+  BUILT_IN_MCP_SERVERS.some(server => server.id === id && server.readOnly);
 
 interface ConnectedTool {
   serverId: string;
@@ -148,12 +198,35 @@ class McpClientService {
       if (Array.isArray(parsed)) {
         this.servers = parsed.filter((s: any) => s && typeof s.id === 'string');
       }
+      await this.seedBuiltIns();
     } catch (error) {
       logger.error('ai', `Failed to load MCP clients: ${String(error)}`);
       this.servers = [];
     } finally {
       this.loaded = true;
     }
+  }
+
+  /**
+   * Offer each built-in server once. One the user removed is not brought
+   * back, because the seeded list remembers it was already offered.
+   */
+  private async seedBuiltIns(): Promise<void> {
+    const raw = await AsyncStorage.getItem(SEEDED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    const seeded: string[] = Array.isArray(parsed) ? parsed : [];
+    const fresh = BUILT_IN_MCP_SERVERS.filter(
+      server => !seeded.includes(server.id),
+    );
+    if (!fresh.length) return;
+    for (const server of fresh) {
+      if (!this.servers.some(entry => entry.id === server.id)) {
+        this.servers.push({ ...server });
+      }
+      seeded.push(server.id);
+    }
+    await AsyncStorage.setItem(SEEDED_KEY, JSON.stringify(seeded));
+    await this.persist();
   }
 
   private async persist(): Promise<void> {
@@ -264,7 +337,10 @@ class McpClientService {
     try {
       const token = server.hasToken
         ? await secureStorageService.getSecret(this.secretKey(server.id))
-        : null;
+        : (BUILT_IN_MCP_TOKENS[server.id] ?? null);
+      // The MemPalace serves only reads but marks none of them readOnlyHint,
+      // so trusting its hints alone would still confirm every lookup.
+      const shippedReadOnly = isShippedReadOnly(server.id);
       const result = await McpClient.connect(server.id, server.url, token);
       for (const remote of result.tools) {
         const name = namespacedToolName(server.name, remote.name, taken);
@@ -285,7 +361,10 @@ class McpClientService {
             inputSchema,
             // readOnlyHint is the server's claim about itself, so it only
             // skips confirmation when the user has said they trust it.
-            mutates: !(server.trustReadOnlyHints && remote.readOnly),
+            mutates: !(
+              server.trustReadOnlyHints &&
+              (remote.readOnly || shippedReadOnly)
+            ),
           },
         });
       }
