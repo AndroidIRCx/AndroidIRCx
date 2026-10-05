@@ -24,6 +24,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'layout-font-size': { name: 'font', solid: false },
   'header-search-button': { name: 'search', solid: false },
   'message-area-search-button': { name: 'search', solid: false },
+  'message-area-assistant-button': { name: 'robot', solid: false },
   'layout-message-spacing': { name: 'text-height', solid: false },
   'layout-message-padding': { name: 'expand', solid: false },
 
@@ -130,6 +131,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'ai-enabled': { name: 'robot', solid: false },
   'ai-providers': { name: 'key', solid: false },
   'ai-agent': { name: 'comments', solid: false },
+  'ai-assistant-button': { name: 'robot', solid: false },
   'advanced-scripts': { name: 'code', solid: false },
   'advanced-scripts-help': { name: 'question-circle', solid: false },
   'watch-ad-button': { name: 'play-circle', solid: false },

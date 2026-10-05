@@ -2974,7 +2974,19 @@ describe('MessageArea', () => {
     });
 
     // ── the assistant's floating button ──────────────────────────────────────
+    it('shows no assistant button until the user turns it on', async () => {
+      const { queryByTestId } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+      expect(queryByTestId('fab-assistant')).toBeNull();
+    });
+
     it('opens the assistant from its floating button', async () => {
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaAssistantButton'
+          ? Promise.resolve(true)
+          : Promise.resolve(fallback),
+      );
       const { useUIStore } = require('../../src/stores/uiStore');
       const store = {
         setAIAgentMinimized: jest.fn(),
@@ -3028,12 +3040,16 @@ describe('MessageArea', () => {
       const { queryByTestId } = await renderAndSettle(
         <MessageArea channel="#general" network="TestNet" messages={[]} />,
       );
+      expect(queryByTestId('fab-assistant')).toBeNull();
+
+      await act(async () => {
+        handlers.showMessageAreaAssistantButton(true);
+      });
       expect(queryByTestId('fab-assistant')).toBeTruthy();
 
       await act(async () => {
         handlers.showMessageAreaAssistantButton(false);
       });
-
       expect(queryByTestId('fab-assistant')).toBeNull();
     });
 

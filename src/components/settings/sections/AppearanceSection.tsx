@@ -111,7 +111,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] =
     useState(true);
-  const [showAssistantButton, setShowAssistantButton] = useState(true);
+  const [showAssistantButton, setShowAssistantButton] = useState(false);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [userListSizeInput, setUserListSizeInput] = useState('150');
   const [userListSizeError, setUserListSizeError] = useState('');
@@ -200,7 +200,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       setShowAssistantButton(
         await settingsService.getSetting(
           'showMessageAreaAssistantButton',
-          true,
+          false,
         ),
       );
     };

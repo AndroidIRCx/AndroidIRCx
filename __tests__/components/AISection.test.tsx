@@ -171,4 +171,81 @@ describe('AISection', () => {
 
     expect(aiService.setEnabled).toHaveBeenCalledWith(false);
   });
+
+  describe('the floating assistant button', () => {
+    const { settingsService } = require('../../src/services/SettingsService');
+    const { Switch } = require('react-native');
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('is offered here, off by default', async () => {
+      jest.spyOn(settingsService, 'getSetting').mockResolvedValue(false);
+      const { findByText, UNSAFE_getAllByType } = await renderSection();
+
+      expect(await findByText('Show Assistant Button')).toBeTruthy();
+      // The kill switch, then this one.
+      expect(UNSAFE_getAllByType(Switch)[1].props.value).toBe(false);
+    });
+
+    it('saves the choice to the setting Appearance shares', async () => {
+      jest.spyOn(settingsService, 'getSetting').mockResolvedValue(false);
+      const set = jest
+        .spyOn(settingsService, 'setSetting')
+        .mockResolvedValue(undefined);
+      const { findByText, UNSAFE_getAllByType } = await renderSection();
+      await findByText('Show Assistant Button');
+
+      await fireEvent(UNSAFE_getAllByType(Switch)[1], 'valueChange', true);
+
+      expect(set).toHaveBeenCalledWith('showMessageAreaAssistantButton', true);
+      await waitFor(() =>
+        expect(UNSAFE_getAllByType(Switch)[1].props.value).toBe(true),
+      );
+    });
+
+    it('follows a change made in Appearance', async () => {
+      let notify: (value: boolean) => void = () => undefined;
+      jest.spyOn(settingsService, 'getSetting').mockResolvedValue(false);
+      jest
+        .spyOn(settingsService, 'onSettingChange')
+        .mockImplementation((_key: any, handler: any) => {
+          notify = handler;
+          return () => undefined;
+        });
+      const { findByText, UNSAFE_getAllByType } = await renderSection();
+      await findByText('Show Assistant Button');
+
+      await waitFor(() => notify(true));
+
+      await waitFor(() =>
+        expect(UNSAFE_getAllByType(Switch)[1].props.value).toBe(true),
+      );
+    });
+
+    it('ignores a value that arrives after the section is gone', async () => {
+      let resolve: (value: boolean) => void = () => undefined;
+      jest.spyOn(settingsService, 'getSetting').mockReturnValue(
+        new Promise(done => {
+          resolve = done;
+        }),
+      );
+      const { unmount } = await renderSection();
+
+      await unmount();
+      // Would set state on an unmounted component without the guard.
+      await waitFor(() => resolve(true));
+    });
+
+    it('stays off when the setting cannot be read', async () => {
+      jest
+        .spyOn(settingsService, 'getSetting')
+        .mockRejectedValue(new Error('gone'));
+      const { findByText, UNSAFE_getAllByType } = await renderSection();
+      await findByText('Show Assistant Button');
+
+      expect(UNSAFE_getAllByType(Switch)[1].props.value).toBe(false);
+    });
+  });
 });

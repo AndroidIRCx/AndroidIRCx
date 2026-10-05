@@ -1391,7 +1391,7 @@ describe('AppearanceSection', () => {
       );
     });
 
-    it('turns the floating assistant button off and on', async () => {
+    it('turns the floating assistant button on, from off by default', async () => {
       await render(
         <AppearanceSection
           colors={colors}
@@ -1408,18 +1408,18 @@ describe('AppearanceSection', () => {
         ),
       );
       const item = mockCapturedItems.get('message-area-assistant-button');
-      expect(item.value).toBe(true);
+      expect(item.value).toBe(false);
 
-      await item.onValueChange(false);
+      await item.onValueChange(true);
 
       expect(mockSettingsSet).toHaveBeenCalledWith(
         'showMessageAreaAssistantButton',
-        false,
+        true,
       );
       await waitFor(() =>
         expect(
           mockCapturedItems.get('message-area-assistant-button').value,
-        ).toBe(false),
+        ).toBe(true),
       );
     });
   });

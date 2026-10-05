@@ -1295,6 +1295,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             'message',
             'button',
             'floating',
+            'assistant',
             'appearance',
             'ui',
             'language',

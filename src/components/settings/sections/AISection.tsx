@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/localization';
 import { aiService } from '../../../services/ai/AIService';
+import { settingsService } from '../../../services/SettingsService';
 import { aiProviderStore } from '../../../services/ai/AIProviderStore';
 import { AIReadiness } from '../../../services/ai/types';
 import {
@@ -53,6 +54,27 @@ export const AISection: React.FC<AISectionProps> = ({
   const [providerCount, setProviderCount] = useState(0);
   const [usable, setUsable] = useState(false);
   const [blocker, setBlocker] = useState<AIReadiness | null>(null);
+  const [assistantButton, setAssistantButton] = useState(false);
+
+  // Shared with Appearance, which shows the same switch: either place changes
+  // it, both follow.
+  useEffect(() => {
+    let alive = true;
+    settingsService
+      .getSetting('showMessageAreaAssistantButton', false)
+      .then(value => {
+        if (alive) setAssistantButton(Boolean(value));
+      })
+      .catch(() => undefined);
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showMessageAreaAssistantButton',
+      value => setAssistantButton(Boolean(value)),
+    );
+    return () => {
+      alive = false;
+      unsubscribe?.();
+    };
+  }, []);
 
   const refresh = useCallback(async () => {
     await aiService.loadSettings();
@@ -144,6 +166,32 @@ export const AISection: React.FC<AISectionProps> = ({
         'help',
       ],
       onPress: onShowAIAgent,
+    },
+    {
+      id: 'ai-assistant-button',
+      title: t('Show Assistant Button', { _tags: tags }),
+      description: t(
+        'A floating button over your messages that opens the assistant. Hold and drag it to move it. Also in Appearance.',
+        { _tags: tags },
+      ),
+      type: 'switch',
+      value: assistantButton,
+      searchKeywords: [
+        'ai',
+        'assistant',
+        'button',
+        'floating',
+        'icon',
+        'shortcut',
+        'robot',
+      ],
+      onValueChange: async (value: boolean | string) => {
+        setAssistantButton(value as boolean);
+        await settingsService.setSetting(
+          'showMessageAreaAssistantButton',
+          value as boolean,
+        );
+      },
     },
   ];
 

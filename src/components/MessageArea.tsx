@@ -1698,12 +1698,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     }
   }, [selectionMode, selectionBarPan]);
 
-  // The assistant's button: on by default, but only while AI itself is on —
-  // a button that opens a switched-off feature is just clutter.
+  // The assistant's button: off until the user turns it on (Appearance, or
+  // the AI section), and never while AI itself is off — a button that opens a
+  // switched-off feature is just clutter.
   useEffect(() => {
     let alive = true;
     settingsService
-      .getSetting('showMessageAreaAssistantButton', true)
+      .getSetting('showMessageAreaAssistantButton', false)
       .then(enabled => {
         if (alive) setShowAssistantButton(enabled && aiService.isEnabled());
       })
