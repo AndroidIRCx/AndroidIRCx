@@ -6,7 +6,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Keychain from 'react-native-keychain';
 import { measureRequest } from '../../src/services/ai/measure';
-import { aiService, MAX_PROMPT_CHARS } from '../../src/services/ai/AIService';
+import {
+  aiService,
+  MAX_PROMPT_CHARS,
+  PROMPT_LIMIT_AUTO,
+  PROMPT_LIMIT_OPTIONS,
+  tokensToChars,
+} from '../../src/services/ai/AIService';
 import { aiProviderStore } from '../../src/services/ai/AIProviderStore';
 
 const jsonResponse = (body: unknown, ok = true, status = 200) =>
@@ -77,6 +83,52 @@ describe('AIService', () => {
       await aiService.loadSettings();
 
       expect(aiService.isEnabled()).toBe(false);
+    });
+
+    it('asks for consent for a "local" provider that points at the cloud', async () => {
+      // Security pass 2026-10-05: kind "local" skipped consent whatever the
+      // address. The store refuses plain http to a public host, so this one
+      // arrives the way an edited or restored entry would: https, public.
+      await aiService.setConsent(false);
+      await addProvider({
+        kind: 'local',
+        baseUrl: 'https://api.openai.com/v1',
+      });
+
+      await expect(aiService.ask('hi')).rejects.toMatchObject({
+        code: 'consent_required',
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('still lets a truly local provider run without consent', async () => {
+      await aiService.setConsent(false);
+      await addProvider({
+        kind: 'local',
+        baseUrl: 'http://127.0.0.1:11434/v1',
+      });
+
+      await aiService.ask('hi');
+
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    it('honours "off" after a restart without anyone opening settings', async () => {
+      // Security pass 2026-10-05: nothing loaded the settings at startup, so
+      // the default "on" stood until the settings screen was opened.
+      await addProvider({
+        kind: 'local',
+        baseUrl: 'http://127.0.0.1:11434/v1',
+      });
+      await aiService.setEnabled(false);
+      aiService.resetForTests();
+
+      await expect(aiService.ask('hi')).rejects.toMatchObject({
+        code: 'disabled',
+      });
+      expect(await aiService.isAvailable()).toBe(false);
+      expect((await aiService.diagnose()).code).toBe('disabled');
+      expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('treats a keyless cloud provider as unavailable', async () => {
@@ -152,6 +204,178 @@ describe('AIService', () => {
           system: 'y'.repeat(50),
         }),
       ).rejects.toMatchObject({ code: 'prompt_too_long' });
+    });
+
+    it('uses the request limit the user picked, and only a listed one', async () => {
+      await addProvider();
+      aiService.setPromptLimit(PROMPT_LIMIT_OPTIONS[2]);
+      aiService.setPromptLimit(123);
+
+      expect(aiService.getPromptLimit()).toBe(PROMPT_LIMIT_OPTIONS[2]);
+      await aiService.ask('x'.repeat(MAX_PROMPT_CHARS + 1));
+      expect(fetchMock).toHaveBeenCalled();
+      expect(
+        await AsyncStorage.getItem('@AndroidIRCX:aiPromptLimitTokens'),
+      ).toBe(String(PROMPT_LIMIT_OPTIONS[2]));
+    });
+
+    it('offers a million tokens and more, for the models that take them', () => {
+      expect(PROMPT_LIMIT_OPTIONS).toContain(1000000);
+      aiService.setPromptLimit(1000000);
+      expect(aiService.getPromptLimit()).toBe(1000000);
+    });
+
+    it('says how big the request was in tokens, and how to get out of it', async () => {
+      await addProvider();
+
+      await expect(
+        aiService.ask('x'.repeat(MAX_PROMPT_CHARS + 3)),
+      ).rejects.toThrow(/about 40001 tokens.*Largest request.*compact/);
+    });
+
+    it('restores the picked size from storage', async () => {
+      aiService.setPromptLimit(PROMPT_LIMIT_OPTIONS[5]);
+      await new Promise(resolve => setImmediate(resolve));
+      aiService.resetForTests();
+      await aiService.loadSettings();
+
+      expect(aiService.getPromptLimit()).toBe(PROMPT_LIMIT_OPTIONS[5]);
+    });
+
+    it('ignores a stored size that is not on the list', async () => {
+      await AsyncStorage.setItem('@AndroidIRCX:aiPromptLimitTokens', '777');
+      aiService.resetForTests();
+      await aiService.loadSettings();
+
+      expect(aiService.getPromptLimit()).toBe(MAX_PROMPT_CHARS / 3);
+    });
+
+    describe('Auto', () => {
+      beforeEach(() => aiService.setPromptLimit(PROMPT_LIMIT_AUTO));
+
+      it('sizes the limit from the window the provider reports, once', async () => {
+        await addProvider({ maxTokens: 1000 });
+        fetchMock.mockImplementation(async (url: string) =>
+          url.endsWith('/models')
+            ? jsonResponse({
+                data: [{ id: 'some-model', context_length: 100000 }],
+              })
+            : reply('answer'),
+        );
+
+        // (100000 - 1000) tokens * 3 chars.
+        expect(await aiService.getEffectivePromptLimit()).toBe(297000);
+        await aiService.ask('x'.repeat(250000), {}, 'script-a');
+        await aiService.ask('hi', {}, 'script-b');
+
+        const lookups = fetchMock.mock.calls.filter(([url]) =>
+          String(url).endsWith('/models'),
+        );
+        expect(lookups).toHaveLength(1);
+      });
+
+      it('keeps a script to the fixed backstop, however big the model', async () => {
+        // Security pass 2026-10-05: Auto lifted the 120k cap for scripts too.
+        await addProvider();
+        fetchMock.mockImplementation(async (url: string) =>
+          url.endsWith('/models')
+            ? jsonResponse({
+                data: [{ id: 'some-model', context_length: 1000000 }],
+              })
+            : reply('answer'),
+        );
+        const big = 'x'.repeat(MAX_PROMPT_CHARS + 1);
+
+        await expect(
+          aiService.ask(big, {}, 'script:runaway'),
+        ).rejects.toMatchObject({ code: 'prompt_too_long' });
+        // The assistant still gets the model's size.
+        await expect(aiService.ask(big, {}, 'agent')).resolves.toBeTruthy();
+      });
+
+      it('lets a script use a size the user picked by hand', async () => {
+        await addProvider();
+        aiService.setPromptLimit(PROMPT_LIMIT_OPTIONS[2]);
+
+        await expect(
+          aiService.ask('x'.repeat(MAX_PROMPT_CHARS + 1), {}, 'script:big'),
+        ).resolves.toBeTruthy();
+      });
+
+      it('uses a known window when the provider lists only ids', async () => {
+        await addProvider({ model: 'deepseek-chat', maxTokens: 1000 });
+        fetchMock.mockImplementation(async (url: string) =>
+          url.endsWith('/models')
+            ? jsonResponse({ data: [{ id: 'deepseek-chat' }] })
+            : reply('answer'),
+        );
+
+        const auto = await aiService.describeAutoLimit();
+
+        expect(auto).toMatchObject({ tokens: 128000, source: 'known' });
+        expect(auto?.chars).toBe((128000 - 1000) * 3);
+      });
+
+      it('falls back to the default when nothing is known', async () => {
+        await addProvider({ model: 'mystery' });
+        fetchMock.mockRejectedValue(new Error('offline'));
+
+        expect(await aiService.describeAutoLimit()).toMatchObject({
+          tokens: null,
+          source: 'default',
+          chars: MAX_PROMPT_CHARS,
+        });
+      });
+
+      it('keeps within the largest size the picker offers', async () => {
+        await addProvider();
+        fetchMock.mockResolvedValue(
+          jsonResponse({
+            data: [{ id: 'some-model', context_length: 50000000 }],
+          }),
+        );
+
+        expect(await aiService.getEffectivePromptLimit()).toBe(
+          tokensToChars(PROMPT_LIMIT_OPTIONS[PROMPT_LIMIT_OPTIONS.length - 1]),
+        );
+      });
+
+      it('remembers a reported window across a restart', async () => {
+        await addProvider();
+        fetchMock.mockResolvedValue(
+          jsonResponse({ data: [{ id: 'some-model', context_length: 64000 }] }),
+        );
+        await aiService.getEffectivePromptLimit();
+        await new Promise(resolve => setImmediate(resolve));
+        fetchMock.mockClear();
+
+        aiService.resetForTests();
+        await aiService.loadSettings();
+        aiService.setPromptLimit(PROMPT_LIMIT_AUTO);
+
+        expect(await aiService.describeAutoLimit()).toMatchObject({
+          tokens: 64000,
+          source: 'provider',
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+      });
+
+      it('has nothing to describe without a provider', async () => {
+        expect(await aiService.describeAutoLimit()).toBeNull();
+        expect(await aiService.getEffectivePromptLimit()).toBe(
+          MAX_PROMPT_CHARS,
+        );
+      });
+
+      it('lets a size the user picked win over the model', async () => {
+        await addProvider({ model: 'gpt-4.1' });
+        aiService.setPromptLimit(PROMPT_LIMIT_OPTIONS[0]);
+
+        expect(await aiService.getEffectivePromptLimit()).toBe(
+          tokensToChars(PROMPT_LIMIT_OPTIONS[0]),
+        );
+        expect(fetchMock).not.toHaveBeenCalled();
+      });
     });
 
     it('clamps maxTokens to the allowed ceiling', async () => {

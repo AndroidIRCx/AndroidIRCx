@@ -100,6 +100,7 @@ import { aiMemoryService } from '../../src/services/ai/AIMemoryService';
 import { webAccessService } from '../../src/services/ai/WebAccessService';
 import {
   agentToolSchemas,
+  DESCRIBE_MAX_CHARS,
   describeCall,
   executeTool,
   findTool,
@@ -203,13 +204,48 @@ describe('the registry', () => {
     );
   });
 
-  it('truncates a long value in the description', () => {
+  it('shows the whole value the user is approving', () => {
+    // Security pass 2026-10-05: values were cut at 120 characters, unmarked.
+    const text = 'thanks! ' + 'x'.repeat(380);
+    const described = describeCall({
+      name: 'send_message',
+      input: { target: '#chat', text },
+    } as any);
+    expect(described).toContain(text);
+  });
+
+  it('says how much it left out of a very long value', () => {
     const described = describeCall({
       name: 'save_script',
-      input: { code: 'x'.repeat(500) },
+      input: { code: 'x'.repeat(DESCRIBE_MAX_CHARS + 25) },
     } as any);
-    expect(described).toContain('code: ' + 'x'.repeat(120));
-    expect(described).not.toContain('x'.repeat(121));
+    expect(described).toContain('x'.repeat(DESCRIBE_MAX_CHARS));
+    expect(described).toContain('(25 more characters not shown)');
+  });
+
+  it('shows line breaks instead of hiding them', () => {
+    expect(
+      describeCall({
+        name: 'send_message',
+        input: { target: '#a', text: 'one\ntwo\r\nthree' },
+      } as any),
+    ).toBe('send_message\ntarget: #a\ntext: one \u23ce two \u23ce three');
+  });
+
+  it('shows nested arguments as JSON, not [object Object]', () => {
+    const described = describeCall({
+      name: 'mcp__X__write',
+      input: { item: { path: '/etc', mode: 7 } },
+    } as any);
+    expect(described).toContain('item: {"path":"/etc","mode":7}');
+  });
+
+  it('copes with a value that cannot be turned into JSON', () => {
+    const loop: any = {};
+    loop.self = loop;
+    expect(
+      describeCall({ name: 'mcp__X__w', input: { loop } } as any),
+    ).toContain('loop: [object Object]');
   });
 });
 
@@ -356,6 +392,24 @@ describe('reading history', () => {
   });
 });
 
+describe('remote callers (security pass 2026-10-05)', () => {
+  const remote = (name: string, input: Record<string, unknown>) =>
+    executeTool({ id: 'r', name, input } as any, { remote: true });
+
+  it('lists the members of a channel only where AI is enabled', async () => {
+    (aiService.isChannelAllowed as jest.Mock).mockReturnValue(false);
+    const refused = await remote('list_users', { channel: '#private' });
+    expect(refused.isError).toBe(true);
+    expect(refused.content).toContain('AI is not enabled for #private');
+  });
+
+  it('never hands a remote agent someone\u2019s host', async () => {
+    const result = await remote('ban_mask', { nick: 'alice' });
+    expect(result.isError).toBe(true);
+    expect(result.content).toContain('not available to remote agents');
+  });
+});
+
 describe('searching history', () => {
   it('needs search text', async () => {
     const result = await run('search_history', { text: '  ' });
@@ -374,7 +428,10 @@ describe('searching history', () => {
     );
     const result = await run('search_history', { text: 'hello' });
     expect(result.content).toContain('[#chat] alice: hello');
-    expect(result.content).toContain('[?] carol: dm');
+    // Security pass 2026-10-05: a message with no channel (DMs, server-tab
+    // text) has no opt-in to stand behind it, so it stays out. It used to
+    // pass — "[?] carol: dm" was in this result.
+    expect(result.content).not.toContain('carol');
     expect(result.content).not.toContain('secret');
   });
 
@@ -442,6 +499,51 @@ describe('sending', () => {
       '#chat',
       'y'.repeat(400),
     );
+  });
+
+  describe('security pass 2026-10-05: a message is a message', () => {
+    it.each([
+      '/msg NickServ DROP',
+      '/quit bye',
+      '/raw MODE #chat +o mallory',
+      '   /sharekey mallory',
+    ])('refuses to run %s as a command', async text => {
+      const result = await run('send_message', { target: '#chat', text });
+
+      expect(result.isError).toBe(true);
+      expect(result.content).toContain('leading "/"');
+      expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it.each(['#a,#b', '#chat key', ':evil', '0', 'a\u0001b', ''])(
+      'refuses the target %j',
+      async target => {
+        const message = await run('send_message', { target, text: 'hi' });
+        const notice = await run('send_notice', { target, text: 'hi' });
+
+        expect(message.isError).toBe(true);
+        expect(notice.isError).toBe(true);
+        expect(mockIrcService.sendMessage).not.toHaveBeenCalled();
+        expect(mockIrcService.sendCommand).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['0', '#a,#b', '#a key', 'nochannelprefix', '#'])(
+      'will not join or leave %j',
+      async channel => {
+        expect((await run('join_channel', { channel })).isError).toBe(true);
+        expect((await run('part_channel', { channel })).isError).toBe(true);
+        expect(mockIrcService.sendCommand).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still sends an ordinary message to a nick or a channel', async () => {
+      await run('send_message', { target: 'alice', text: 'see /help' });
+      expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+        'alice',
+        'see /help',
+      );
+    });
   });
 
   it('needs both a target and text', async () => {
@@ -706,9 +808,10 @@ describe('analysis', () => {
       (channel: string) => channel === '#chat',
     );
     const result = await run('user_activity', { nick: 'alice' });
-    expect(result.content).toContain('3 messages');
+    // The channel-less one no longer counts (security pass 2026-10-05).
+    expect(result.content).toContain('2 messages');
     expect(result.content).toContain('#chat: 2');
-    expect(result.content).toContain('(private): 1');
+    expect(result.content).not.toContain('(private)');
     expect(result.content).not.toContain('#secret');
   });
 

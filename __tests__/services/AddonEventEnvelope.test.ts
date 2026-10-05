@@ -28,6 +28,38 @@ describe('AddonEventEnvelope', () => {
     expect(Object.isFrozen((event.payload as any).nested)).toBe(true);
   });
 
+  describe('what the user typed to services (security pass 2026-10-05)', () => {
+    const echo = (target: string, text: string, from = 'Me') =>
+      addonEventFromIrcMessage(
+        {
+          id: 'e',
+          type: 'message',
+          text,
+          timestamp: 1,
+          network: 'libera',
+          target,
+          channel: target,
+          from,
+        } as any,
+        { selfNick: 'me' },
+      );
+
+    it('never hands an addon the password the user sent to NickServ', () => {
+      const event = echo('NickServ', 'IDENTIFY hunter2');
+      expect((event.payload as any).text).toBe('IDENTIFY [redacted]');
+      expect(JSON.stringify(event)).not.toContain('hunter2');
+    });
+
+    it('leaves ordinary messages, and other people\u2019s, untouched', () => {
+      expect((echo('#chat', 'IDENTIFY x').payload as any).text).toBe(
+        'IDENTIFY x',
+      );
+      expect(
+        (echo('NickServ', 'IDENTIFY x', 'Someone').payload as any).text,
+      ).toBe('IDENTIFY x');
+    });
+  });
+
   it('normalizes IRC identity, references, parsed payload and origin', () => {
     const event = addonEventFromIrcMessage(
       {

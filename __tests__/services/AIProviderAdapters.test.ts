@@ -251,7 +251,7 @@ describe('GeminiProvider', () => {
     (global as any).fetch = fetchMock;
   });
 
-  it('posts to the qualified model endpoint with the key in the query', async () => {
+  it('posts to the qualified model endpoint with the key in a header', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
         candidates: [{ content: { parts: [{ text: 'hello' }] } }],
@@ -268,9 +268,11 @@ describe('GeminiProvider', () => {
     );
 
     const [url, init] = fetchMock.mock.calls[0];
+    // Security pass 2026-10-05: the key travels in a header, never in the URL.
     expect(url).toBe(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent?key=api-key-123',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent',
     );
+    expect(init.headers['x-goog-api-key']).toBe('api-key-123');
     expect(JSON.parse(init.body).generationConfig.maxOutputTokens).toBe(64);
     expect(result).toMatchObject({
       text: 'hello',
@@ -457,5 +459,138 @@ describe('GeminiProvider', () => {
     expect(fetchMock.mock.calls[1][0]).toContain('pageToken=page-2');
     // And the newer one is offered first, rather than alphabetically.
     expect(models).toEqual(['gemini-2.5-pro', 'gemini-1.5-pro']);
+  });
+});
+
+describe('context windows', () => {
+  let fetchMock: jest.Mock;
+
+  beforeEach(() => {
+    fetchMock = jest.fn();
+    (global as any).fetch = fetchMock;
+  });
+
+  it('reads max_input_tokens from the Anthropic model', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ max_input_tokens: 1000000 }));
+
+    const tokens = await anthropicProvider.contextWindow(
+      baseProvider({}),
+      'k',
+      signal(),
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://api.anthropic.com/v1/models/claude-opus-5',
+    );
+    expect(tokens).toBe(1000000);
+  });
+
+  it('reads inputTokenLimit from the Gemini model', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ inputTokenLimit: 1048576 }));
+
+    const tokens = await geminiProvider.contextWindow(
+      baseProvider({ kind: 'gemini', model: 'gemini-flash' }),
+      'k',
+      signal(),
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/models\/gemini-flash$/);
+    expect(fetchMock.mock.calls[0][1].headers['x-goog-api-key']).toBe('k');
+    expect(tokens).toBe(1048576);
+  });
+
+  it('reads whichever field an OpenAI-compatible host uses', async () => {
+    const provider = baseProvider({
+      kind: 'openai-compatible',
+      baseUrl: 'https://openrouter.ai/api/v1',
+      model: 'openai/gpt-4o',
+    });
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        data: [
+          { id: 'other', context_length: 8000 },
+          { id: 'openai/gpt-4o', context_length: 128000 },
+        ],
+      }),
+    );
+
+    expect(
+      await openAICompatProvider.contextWindow(provider, 'k', signal()),
+    ).toBe(128000);
+  });
+
+  it.each([
+    [{ max_model_len: 32768 }, 32768],
+    [{ context_window: 131072 }, 131072],
+    [{ max_context_length: 8192 }, 8192],
+    [{ top_provider: { context_length: 200000 } }, 200000],
+    [{ meta: { n_ctx: 4096, n_ctx_train: 32768 } }, 4096],
+    [{ meta: { n_ctx_train: 32768 } }, 32768],
+  ])('reads %j', async (fields, expected) => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ data: [{ id: 'local-model', ...fields }] }),
+    );
+
+    expect(
+      await openAICompatProvider.contextWindow(
+        baseProvider({
+          kind: 'local',
+          baseUrl: 'http://10.0.0.2:8080/v1',
+          model: 'local-model',
+        }),
+        null,
+        signal(),
+      ),
+    ).toBe(expected);
+  });
+
+  it('reports nothing when the model is not in the list', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ data: [{ id: 'other', context_length: 9 }] }),
+    );
+
+    expect(
+      await openAICompatProvider.contextWindow(
+        baseProvider({
+          kind: 'openai-compatible',
+          baseUrl: 'https://x/v1',
+          model: 'mine',
+        }),
+        'k',
+        signal(),
+      ),
+    ).toBeNull();
+  });
+
+  it('reports nothing when the list is not there at all', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ models: [] }));
+
+    expect(
+      await openAICompatProvider.contextWindow(
+        baseProvider({
+          kind: 'local',
+          baseUrl: 'http://x/v1',
+          model: 'mine',
+        }),
+        null,
+        signal(),
+      ),
+    ).toBeNull();
+  });
+
+  it('reports nothing when the host lists only ids, as OpenAI does', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ data: [{ id: 'gpt-4o' }] }));
+
+    expect(
+      await openAICompatProvider.contextWindow(
+        baseProvider({
+          kind: 'openai-compatible',
+          baseUrl: 'https://api.openai.com/v1',
+          model: 'gpt-4o',
+        }),
+        'k',
+        signal(),
+      ),
+    ).toBeNull();
   });
 });

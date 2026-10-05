@@ -44,6 +44,59 @@ function isSensitiveKey(key: string): boolean {
   );
 }
 
+/**
+ * Keys a restore never writes, whatever the file says.
+ *
+ * Security pass 2026-10-05: `importAll` wrote every key a file named, and
+ * people share backups ("here are my networks"). A crafted one could:
+ * - grant paid features: entitlements are re-derived from Google Play, never
+ *   taken from a file;
+ * - grant an addon permissions, or a folder, the user never granted here;
+ * - carry AI consent and per-channel opt-ins — decisions made on behalf of
+ *   other people in those channels, which belong to the device they were
+ *   made on.
+ */
+export const NEVER_RESTORED_KEYS: ReadonlySet<string> = new Set([
+  '@AndroidIRCX:purchases',
+  '@AndroidIRCX:purchaseTokens',
+  '@AndroidIRCX:supporterSubscription',
+  '@AndroidIRCX:addonPermissionGrants:v1',
+  '@AndroidIRCX:addonSafGrants:v1',
+  '@AndroidIRCX:aiConsent',
+  '@AndroidIRCX:aiChannels',
+]);
+
+/** Scripts come back, but every one of them switched off. */
+const SCRIPTS_KEY = '@AndroidIRCX:scripts';
+
+/**
+ * Left out of a settings-only export: AI conversations hold the channel text
+ * and pages the assistant read, which is history, not settings.
+ */
+export const NOT_SETTINGS_KEYS: ReadonlySet<string> = new Set([
+  '@AndroidIRCX:aiSessions',
+  '@AndroidIRCX:aiMemories',
+]);
+
+/**
+ * A restored script list with every script disabled. An enabled legacy
+ * script runs in the app's own JS engine, which is not a sandbox, so turning
+ * one on is the user's decision on this device — never a file's.
+ */
+function disableRestoredScripts(value: string): string {
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return '[]';
+    return JSON.stringify(
+      parsed
+        .filter(entry => entry && typeof entry === 'object')
+        .map(entry => ({ ...entry, enabled: false })),
+    );
+  } catch {
+    return '[]';
+  }
+}
+
 export interface BackupPayload {
   version: number;
   createdAt: string;
@@ -283,6 +336,9 @@ class DataBackupService {
       // Exclude any other log-related keys
       if (isLogKey(key)) return false;
 
+      // AI conversations and memories are history, not settings.
+      if (NOT_SETTINGS_KEYS.has(key)) return false;
+
       // Include everything else (networks, settings, profiles, etc.)
       return true;
     });
@@ -322,10 +378,22 @@ class DataBackupService {
     // Prevent stale cache/pending writes from overwriting freshly restored values.
     await storageCache.clear(false);
 
-    const entries = Object.entries(parsed.data);
+    const entries = Object.entries(parsed.data).filter(
+      ([key, value]) =>
+        !NEVER_RESTORED_KEYS.has(key) &&
+        (value === null || typeof value === 'string'),
+    );
     const setPairs = entries
       .filter(([, value]) => value !== null)
-      .map(([key, value]) => [key, value as string] as [string, string]);
+      .map(
+        ([key, value]) =>
+          [
+            key,
+            key === SCRIPTS_KEY
+              ? disableRestoredScripts(value as string)
+              : (value as string),
+          ] as [string, string],
+      );
     const removeKeys = entries
       .filter(([, value]) => value === null)
       .map(([key]) => key);
@@ -343,6 +411,16 @@ class DataBackupService {
         securePairs.map(async ([key, value]) => {
           if (!isSecureExportKey(key)) return;
           const secretKey = fromSecureExportKey(key);
+          // What an export never writes, an import never reads: a file must
+          // not plant an AI provider key (pointing the user's conversations
+          // at someone else's account) or an addon's credentials.
+          if (this.isSecretExcludedFromBackup(secretKey)) return;
+          if (
+            value !== null &&
+            value !== undefined &&
+            typeof value !== 'string'
+          )
+            return;
           if (value === null || value === undefined || value === '') {
             await secureStorageService.removeSecret(secretKey);
           } else {

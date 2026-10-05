@@ -223,6 +223,16 @@ jest.mock('../../src/components/settings/sections', () => {
         </TouchableOpacity>
       </View>
     ),
+    AISection: (props: any) => (
+      <View>
+        <TouchableOpacity
+          testID="ai-open-agent"
+          onPress={() => props.onShowAIAgent?.()}
+        >
+          <Text>Open Assistant</Text>
+        </TouchableOpacity>
+      </View>
+    ),
     PrivacyLegalSection: make('PrivacyLegalSection'),
     AboutSection: make('AboutSection'),
     HelpSection: make('HelpSection'),
@@ -303,11 +313,19 @@ jest.mock('../../src/hooks/useIapConnectionLease', () => ({
     releaseIapConnection: jest.fn(),
   }),
 }));
+jest.mock('../../src/components/AIAgentMinimizedIndicator', () => ({
+  AIAgentMinimizedIndicator: () => null,
+}));
+
+const mockSetShowAIAgent = jest.fn();
+const mockSetAIAgentMinimized = jest.fn();
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: jest.fn(() => ({
       setShowSettings: jest.fn(),
       setShowNetworksList: jest.fn(),
+      setShowAIAgent: mockSetShowAIAgent,
+      setAIAgentMinimized: mockSetAIAgentMinimized,
     })),
   },
 }));
@@ -884,6 +902,22 @@ describe('SettingsScreen coverage', () => {
   });
 
   // ================= Migration dialog edge cases =================
+
+  it('opens the assistant at app level, so closing Settings does not end it', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(section => section.id === 'ai'),
+    );
+
+    const view = await render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
+    await fireEvent.press(view.getByText('AI'));
+    await fireEvent.press(view.getByTestId('ai-open-agent'));
+
+    expect(mockSetAIAgentMinimized).toHaveBeenCalledWith(false);
+    expect(mockSetShowAIAgent).toHaveBeenCalledWith(true);
+  });
 
   it('reports when there are no old keys to migrate', async () => {
     jest.spyOn(Alert, 'alert');

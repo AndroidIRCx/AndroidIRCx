@@ -512,6 +512,10 @@ jest.mock('../../src/screens/BackupScreen', () => ({
     ) : null;
   },
 }));
+jest.mock('../../src/components/AIAgentMinimizedIndicator', () => ({
+  AIAgentMinimizedIndicator: () => null,
+}));
+
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: jest.fn(() => ({

@@ -6,6 +6,27 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { secureStorageService } from '../SecureStorageService';
 import { logger } from '../Logger';
+import { isPrivateHost, parseHttpUrl } from '../../utils/safeUrl';
+
+/**
+ * Why a base URL cannot be used, or null when it can.
+ *
+ * Security pass 2026-10-05: plain http to a host on the internet sends the
+ * key — and every prompt — in the clear to anyone on the same Wi-Fi. http is
+ * fine for a server on the user's own machine or network, which is what it
+ * exists for; anything else needs https.
+ */
+export function baseUrlProblem(raw?: string): string | null {
+  const parsed = parseHttpUrl(raw);
+  if (!parsed) return 'A valid http(s) base URL is required for this kind';
+  if (parsed.protocol === 'http:' && !isPrivateHost(parsed.hostname)) {
+    return 'Use https for a provider on the internet. Plain http would send your key and your conversations unencrypted.';
+  }
+  return null;
+}
+
+/** The host a base URL points at, for telling whether it changed. */
+const hostOf = (raw?: string) => parseHttpUrl(raw)?.hostname ?? '';
 import {
   AIMcpServer,
   AIProvider,
@@ -68,12 +89,15 @@ class AIProviderStore {
       .substring(2, 8)}`;
   }
 
-  /** http/https only, trailing slash stripped. Returns null when unusable. */
-  private normalizeBaseUrl(raw?: string): string | null {
-    if (!raw || typeof raw !== 'string') return null;
-    const trimmed = raw.trim();
-    if (!/^https?:\/\/[^\s]+$/i.test(trimmed)) return null;
-    return trimmed.replace(/\/+$/, '');
+  /**
+   * The checked URL with its trailing slash stripped; throws with the reason
+   * when it cannot be used. Rebuilt by the strict parser, so what is stored
+   * is what was checked.
+   */
+  private normalizeBaseUrl(raw?: string): string {
+    const problem = baseUrlProblem(raw);
+    if (problem) throw new Error(problem);
+    return parseHttpUrl(raw)!.href.replace(/\/+$/, '');
   }
 
   private clampMaxTokens(value?: number): number {
@@ -97,9 +121,16 @@ class AIProviderStore {
       if (rawProviders) {
         const parsed = JSON.parse(rawProviders);
         if (Array.isArray(parsed)) {
-          this.providers = parsed.filter(
-            (p: any) => p && typeof p.id === 'string',
-          );
+          this.providers = parsed
+            .filter((p: any) => p && typeof p.id === 'string')
+            // The list also comes back from backups. One whose address would
+            // not be accepted today is kept, but switched off, so it never
+            // sends anything until the user fixes it.
+            .map((p: AIProvider) =>
+              BASE_URL_KINDS.includes(p.kind) && baseUrlProblem(p.baseUrl)
+                ? { ...p, enabled: false }
+                : p,
+            );
         }
       }
       this.defaultProviderId = rawDefault || null;
@@ -183,11 +214,7 @@ class AIProviderStore {
 
     let baseUrl: string | undefined;
     if (BASE_URL_KINDS.includes(input.kind)) {
-      const normalized = this.normalizeBaseUrl(input.baseUrl);
-      if (!normalized) {
-        throw new Error('A valid http(s) base URL is required for this kind');
-      }
-      baseUrl = normalized;
+      baseUrl = this.normalizeBaseUrl(input.baseUrl);
     }
 
     const provider: AIProvider = {
@@ -227,13 +254,7 @@ class AIProviderStore {
     let baseUrl = current.baseUrl;
     if (changes.baseUrl !== undefined || changes.kind !== undefined) {
       if (BASE_URL_KINDS.includes(kind)) {
-        const normalized = this.normalizeBaseUrl(
-          changes.baseUrl ?? current.baseUrl,
-        );
-        if (!normalized) {
-          throw new Error('A valid http(s) base URL is required for this kind');
-        }
-        baseUrl = normalized;
+        baseUrl = this.normalizeBaseUrl(changes.baseUrl ?? current.baseUrl);
       } else {
         baseUrl = undefined;
       }
@@ -254,6 +275,17 @@ class AIProviderStore {
       enabled:
         changes.enabled !== undefined ? changes.enabled : current.enabled,
     };
+
+    // The key was given for one service. Pointing the provider somewhere
+    // else, or making it another kind, must not carry it along: editing an
+    // OpenAI entry into "Local" kept api.openai.com, hid the key field and
+    // went on sending the key (security pass 2026-10-05).
+    const moved =
+      kind !== current.kind || hostOf(baseUrl) !== hostOf(current.baseUrl);
+    if (moved && current.hasKey) {
+      await secureStorageService.removeSecret(this.secretKey(id));
+      next.hasKey = false;
+    }
 
     this.providers[index] = next;
     await this.persist();
@@ -338,7 +370,11 @@ class AIProviderStore {
     const cleaned: AIMcpServer[] = [];
     for (const server of servers) {
       const name = (server.name || '').trim().substring(0, 60);
-      const url = this.normalizeBaseUrl(server.url);
+      // Skipped, like an entry with no tools: one bad row in the list must not
+      // throw away the rest of it.
+      const url = baseUrlProblem(server.url)
+        ? null
+        : this.normalizeBaseUrl(server.url);
       const tools = (server.tools || [])
         .map(tool => String(tool).trim())
         .filter(Boolean);

@@ -1,6 +1,7 @@
 /* Copyright (c) 2025-2026 Velimir Majstorov; SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { ensureReadable } from '../../themes/palette';
+import { isPrivateHost, parseHttpUrl } from '../../utils/safeUrl';
 
 /**
  * The declarative vocabulary an addon may use to contribute interface.
@@ -428,26 +429,11 @@ function tone(
 
 /** Only https, and never a private address — the same rule web access uses. */
 export function isPermittedImageUrl(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return false;
-  }
-  if (url.protocol !== 'https:') return false;
-  const host = url.hostname.toLowerCase();
-  return !(
-    host === 'localhost' ||
-    host.endsWith('.local') ||
-    /^127\./.test(host) ||
-    /^10\./.test(host) ||
-    /^192\.168\./.test(host) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
-    /^169\.254\./.test(host) ||
-    host === '::1' ||
-    host === '0.0.0.0'
-  );
+  // The strict parser, not `new URL()`: React Native's reads a host out of
+  // `https://evil.example/x?@allowed.site` that the request never goes to.
+  const url = parseHttpUrl(value);
+  if (!url || url.protocol !== 'https:') return false;
+  return !isPrivateHost(url.hostname);
 }
 
 // ─────────────────────────────────────────────────────────────── fields ──

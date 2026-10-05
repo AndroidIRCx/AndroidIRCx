@@ -66,6 +66,19 @@ describe('SupporterSubscriptionService', () => {
     global.fetch = jest.fn();
   });
 
+  it('is not active with no purchase token behind it (security pass 2026-10-05)', async () => {
+    // What a crafted backup used to restore: Supporter for ever, unchecked.
+    mockStorage['@AndroidIRCX:supporterSubscription'] = JSON.stringify({
+      active: true,
+      tier: 'big',
+      purchaseToken: null,
+    });
+
+    await supporterSubscriptionService.initialize();
+
+    expect(supporterSubscriptionService.isActive()).toBe(false);
+  });
+
   describe('knowing an emoji when it sees one', () => {
     it.each(['❤️', '🦄', '👍🏽', '👨‍👩‍👧', '🇷🇸', '#️⃣', '⭐'])('accepts %s', e => {
       expect(isSingleEmoji(e)).toBe(true);

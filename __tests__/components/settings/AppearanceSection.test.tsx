@@ -1390,6 +1390,38 @@ describe('AppearanceSection', () => {
         true,
       );
     });
+
+    it('turns the floating assistant button off and on', async () => {
+      await render(
+        <AppearanceSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          onShowThemeEditor={jest.fn()}
+          languageLabels={{ en: 'English' }}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(mockCapturedItems.has('message-area-assistant-button')).toBe(
+          true,
+        ),
+      );
+      const item = mockCapturedItems.get('message-area-assistant-button');
+      expect(item.value).toBe(true);
+
+      await item.onValueChange(false);
+
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'showMessageAreaAssistantButton',
+        false,
+      );
+      await waitFor(() =>
+        expect(
+          mockCapturedItems.get('message-area-assistant-button').value,
+        ).toBe(false),
+      );
+    });
   });
 
   describe('Message Spacing and Padding', () => {

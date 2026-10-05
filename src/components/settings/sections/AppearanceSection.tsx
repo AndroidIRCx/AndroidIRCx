@@ -111,6 +111,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] =
     useState(true);
+  const [showAssistantButton, setShowAssistantButton] = useState(true);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [userListSizeInput, setUserListSizeInput] = useState('150');
   const [userListSizeError, setUserListSizeError] = useState('');
@@ -196,6 +197,12 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         false,
       );
       setShowMessageAreaSearchButton(messageAreaEnabled);
+      setShowAssistantButton(
+        await settingsService.getSetting(
+          'showMessageAreaAssistantButton',
+          true,
+        ),
+      );
     };
     loadSettings();
 
@@ -1202,6 +1209,35 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         },
       },
       {
+        id: 'message-area-assistant-button',
+        title: t('Show Assistant Button', { _tags: tags }),
+        description: showAssistantButton
+          ? t(
+              'Floating assistant button visible in message view. Hold and drag either button to move it.',
+              { _tags: tags },
+            )
+          : t('Floating assistant button hidden', { _tags: tags }),
+        type: 'switch',
+        value: showAssistantButton,
+        searchKeywords: [
+          'assistant',
+          'ai',
+          'button',
+          'floating',
+          'icon',
+          'appearance',
+          'ui',
+        ],
+        onValueChange: async (value: boolean | string) => {
+          const enabled = value as boolean;
+          setShowAssistantButton(enabled);
+          await settingsService.setSetting(
+            'showMessageAreaAssistantButton',
+            enabled,
+          );
+        },
+      },
+      {
         id: 'layout-message-spacing',
         title: t('Message Spacing', { _tags: tags }),
         description: `Spacing: ${layoutConfig?.messageSpacing || 4}px`,
@@ -1288,6 +1324,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     onShowThemeEditor,
     showHeaderSearchButton,
     showMessageAreaSearchButton,
+    showAssistantButton,
     handleExportTheme,
     handleImportTheme,
     handleThemeSelect,

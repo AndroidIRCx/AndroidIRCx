@@ -52,7 +52,6 @@ import { encryptedDMService } from '../services/EncryptedDMService';
 import { connectionManager } from '../services/ConnectionManager';
 import { ScriptingScreen } from './ScriptingScreen';
 import { AISettingsScreen } from './AISettingsScreen';
-import { AIAgentScreen } from './AIAgentScreen';
 import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
 import { MessageHistoryViewerScreen } from './MessageHistoryViewerScreen';
@@ -110,6 +109,7 @@ import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 import { SETTINGS_ICONS } from '../config/settingsIcons';
 import { createStyles } from './SettingsScreen.styles';
 import { useUIStore } from '../stores/uiStore';
+import { AIAgentMinimizedIndicator } from '../components/AIAgentMinimizedIndicator';
 import {
   getSectionIcon,
   filterSettings,
@@ -317,7 +317,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [, setIdentityProfiles] = useState<any[]>([]);
   const [showScripting, setShowScripting] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
-  const [showAIAgent, setShowAIAgent] = useState(false);
   const [showScriptingHelp, setShowScriptingHelp] = useState(false);
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
   const [channelNotifList, setChannelNotifList] = useState<
@@ -2659,7 +2658,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             styles={styles}
             settingIcons={settingIcons}
             onShowAISettings={() => setShowAISettings(true)}
-            onShowAIAgent={() => setShowAIAgent(true)}
+            onShowAIAgent={() => {
+              // App level, not here: closing Settings must not end a
+              // conversation that is still working.
+              const store = useUIStore.getState();
+              store.setAIAgentMinimized(false);
+              store.setShowAIAgent(true);
+            }}
           />
         );
       }
@@ -3433,12 +3438,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           onClose={() => setShowAISettings(false)}
         />
       )}
-      {showAIAgent && (
-        <AIAgentScreen
-          visible={showAIAgent}
-          onClose={() => setShowAIAgent(false)}
-        />
-      )}
+      {/* Settings is its own window; without this the bubble of a minimised
+          assistant would be hidden just when the user came here. */}
+      <AIAgentMinimizedIndicator />
       {showScripting && (
         <ScriptingScreen
           visible={showScripting}

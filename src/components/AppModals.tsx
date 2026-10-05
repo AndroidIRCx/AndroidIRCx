@@ -34,6 +34,8 @@ import { TabOptionsModal } from './TabOptionsModal';
 import { ChannelSettingsScreen } from '../screens/ChannelSettingsScreen';
 import { DccTransfersModal } from './DccTransfersModal';
 import { DccTransfersMinimizedIndicator } from './DccTransfersMinimizedIndicator';
+import { AIAgentMinimizedIndicator } from './AIAgentMinimizedIndicator';
+import { AIAgentScreen } from '../screens/AIAgentScreen';
 import { DccSendModal } from './DccSendModal';
 import { AppUnlockModal } from './AppUnlockModal';
 import { HelpTroubleshootingScreen } from '../screens/help/HelpTroubleshootingScreen';
@@ -159,6 +161,7 @@ export function AppModals({
   const showOptionsMenu = useUIStore(state => state.showOptionsMenu);
   const showSettings = useUIStore(state => state.showSettings);
   const showReviewPrompt = useUIStore(state => state.showReviewPrompt);
+  const showAIAgent = useUIStore(state => state.showAIAgent);
 
   const {
     showFirstRunSetup,
@@ -707,6 +710,21 @@ export function AppModals({
         visible={showReviewPrompt}
         onClose={() => useUIStore.getState().setShowReviewPrompt(false)}
       />
+
+      {/* The assistant. Mounted for the life of the app rather than inside
+          Settings, so hiding it never ends a conversation mid-answer. Not in
+          the one-modal-at-a-time order above: it opens over Settings, which
+          is where it is usually asked for. */}
+      <AIAgentScreen
+        visible={showAIAgent}
+        onClose={() => useUIStore.getState().setShowAIAgent(false)}
+        onMinimize={() => {
+          const store = useUIStore.getState();
+          store.setShowAIAgent(false);
+          store.setAIAgentMinimized(true);
+        }}
+      />
+      <AIAgentMinimizedIndicator />
 
       {/* DCC Transfers Minimized Indicator */}
       <DccTransfersMinimizedIndicator

@@ -85,6 +85,8 @@ import { MessageSearchBar, MessageSearchFilters } from './MessageSearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { NickContextMenu } from './NickContextMenu';
 import { settingsService } from '../services/SettingsService';
+import { aiService } from '../services/ai/AIService';
+import { DraggableFab } from './DraggableFab';
 import {
   MessageFormatPart,
   MessageFormatStyle,
@@ -1615,6 +1617,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   );
   const [copyStatus, setCopyStatus] = useState('');
   const selectionMode = selectedMessageIds.size > 0;
+  const [showAssistantButton, setShowAssistantButton] = useState(false);
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] =
     useState(false);
   const [chatHistoryLoading, setChatHistoryLoading] = useState(false);
@@ -1694,6 +1697,26 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       selectionBarPan.setOffset({ x: 0, y: 0 });
     }
   }, [selectionMode, selectionBarPan]);
+
+  // The assistant's button: on by default, but only while AI itself is on —
+  // a button that opens a switched-off feature is just clutter.
+  useEffect(() => {
+    let alive = true;
+    settingsService
+      .getSetting('showMessageAreaAssistantButton', true)
+      .then(enabled => {
+        if (alive) setShowAssistantButton(enabled && aiService.isEnabled());
+      })
+      .catch(() => undefined);
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showMessageAreaAssistantButton',
+      value => setShowAssistantButton(Boolean(value) && aiService.isEnabled()),
+    );
+    return () => {
+      alive = false;
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const loadSetting = async () => {
@@ -3764,6 +3787,45 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     </>
   );
 
+  /**
+   * The floating buttons. Both can be held and dragged anywhere on the
+   * message area, and each remembers where it was left.
+   */
+  const renderFloatingButtons = (hidden: boolean) =>
+    hidden ? null : (
+      <>
+        {showMessageAreaSearchButton && (
+          <DraggableFab
+            id="search"
+            defaultPosition={{ end: 16, bottom: 80 }}
+            style={styles.searchButton}
+            onPress={() => handleSearchVisibleChange(true)}
+            accessibilityLabel={t('Search messages')}
+          >
+            <Icon name="search" size={20} color={colors.buttonPrimaryText} />
+          </DraggableFab>
+        )}
+        {showAssistantButton && (
+          <DraggableFab
+            id="assistant"
+            defaultPosition={{
+              end: 16,
+              bottom: showMessageAreaSearchButton ? 148 : 80,
+            }}
+            style={styles.searchButton}
+            onPress={() => {
+              const store = useUIStore.getState();
+              store.setAIAgentMinimized(false);
+              store.setShowAIAgent(true);
+            }}
+            accessibilityLabel={t('Assistant')}
+          >
+            <Icon name="robot" size={20} color={colors.buttonPrimaryText} />
+          </DraggableFab>
+        )}
+      </>
+    );
+
   if (displayMessages.length === 0) {
     return (
       <View style={styles.wrapper} onLayout={handleContainerLayout}>
@@ -3779,15 +3841,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             {chatHistoryFooter}
           </View>
         </View>
-        {!searchVisible && showMessageAreaSearchButton && (
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={() => handleSearchVisibleChange(true)}
-            activeOpacity={0.7}
-          >
-            <Icon name="search" size={20} color={colors.buttonPrimaryText} />
-          </TouchableOpacity>
-        )}
+        {renderFloatingButtons(searchVisible)}
       </View>
     );
   }
@@ -3825,16 +3879,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           contentContainerStyle={styles.contentContainer}
           ListFooterComponent={chatHistoryFooter ?? undefined}
         />
-        {/* Search Button (Floating) */}
-        {!searchVisible && !selectionMode && showMessageAreaSearchButton && (
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={() => handleSearchVisibleChange(true)}
-            activeOpacity={0.7}
-          >
-            <Icon name="search" size={20} color={colors.buttonPrimaryText} />
-          </TouchableOpacity>
-        )}
+        {/* Search and assistant buttons (floating, movable) */}
+        {renderFloatingButtons(searchVisible || selectionMode)}
         <NickContextMenu
           visible={isMessageModalVisible('context')}
           nick={contextNick}
@@ -3979,15 +4025,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         onEndReachedThreshold={0.5}
         ListFooterComponent={chatHistoryFooter ?? undefined}
       />
-      {/* Search Button (Floating) */}
-      {!searchVisible && !selectionMode && showMessageAreaSearchButton && (
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => handleSearchVisibleChange(true)}
-        >
-          <Icon name="search" size={20} color={colors.buttonPrimaryText} />
-        </TouchableOpacity>
-      )}
+      {/* Search and assistant buttons (floating, movable) */}
+      {renderFloatingButtons(searchVisible || selectionMode)}
       {selectionMode && (
         <Animated.View
           style={[

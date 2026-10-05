@@ -8,6 +8,7 @@ import { NativeModules } from 'react-native';
 import { logger } from '../Logger';
 import { secureStorageService } from '../SecureStorageService';
 import { AITool, AIToolCall } from './types';
+import { isPrivateHost, parseHttpUrl } from '../../utils/safeUrl';
 
 /**
  * Remote MCP servers the app itself connects to.
@@ -54,6 +55,17 @@ const SECRET_PREFIX = 'ai:mcpclient:';
 export const MCP_TOOL_PREFIX = 'mcp__';
 
 /**
+ * What one MCP server may put in front of the model. A hostile or broken
+ * server could otherwise hand over thousands of tools, essay-length
+ * descriptions (instructions the model reads as part of its tool list) or a
+ * result big enough to fill the request on its own (security pass
+ * 2026-10-05).
+ */
+export const MCP_MAX_TOOLS_PER_SERVER = 128;
+export const MCP_MAX_DESCRIPTION_CHARS = 1024;
+export const MCP_MAX_RESULT_CHARS = 40000;
+
+/**
  * What a provider accepts as a tool name: `^[a-zA-Z0-9_-]{1,64}$`.
  *
  * The server name is free text the user typed, so it cannot go into a tool
@@ -95,6 +107,22 @@ export function namespacedToolName(
     name = `${base.substring(0, MAX_TOOL_NAME - suffix.length)}${suffix}`;
   }
   return name;
+}
+
+/** A connected remote tool, with the server it belongs to. */
+export interface McpRemoteTool {
+  /** The namespaced name the model sees, and execute() takes. */
+  name: string;
+  serverId: string;
+  serverName: string;
+  /** The server was shipped read-only; nothing is ever written to it. */
+  serverReadOnly: boolean;
+  /** The user turned on "Trust this server" for it. */
+  serverTrusted: boolean;
+  /** The tool's own name on its server. */
+  remoteName: string;
+  description?: string;
+  inputSchema: Record<string, unknown>;
 }
 
 export interface McpClientServer {
@@ -155,6 +183,37 @@ const BUILT_IN_MCP_TOKENS: Readonly<Record<string, string>> = Object.freeze({
 const isShippedReadOnly = (id: string): boolean =>
   BUILT_IN_MCP_SERVERS.some(server => server.id === id && server.readOnly);
 
+/**
+ * The shipped server this entry really is — same id AND same address — or
+ * undefined.
+ *
+ * Security pass 2026-10-05: the shipped token and the shipped trust used to
+ * follow the id alone. A restored backup holding
+ * `{id: 'builtin_mempalace', url: 'https://evil/…'}` got the shipped token
+ * sent to it and every one of its tools run without asking. An entry earns
+ * what the app ships only by being what the app ships.
+ */
+const shippedServer = (
+  server: Pick<McpClientServer, 'id' | 'url'>,
+): McpClientServer | undefined =>
+  BUILT_IN_MCP_SERVERS.find(
+    entry => entry.id === server.id && entry.url === server.url,
+  );
+
+/**
+ * Why an MCP server address cannot be used, or null. Plain http is for a
+ * server on this phone or the local network; anywhere else it would carry
+ * the token, and everything the tools return, unencrypted.
+ */
+export function mcpUrlProblem(raw: string): string | null {
+  const parsed = parseHttpUrl(raw);
+  if (!parsed) return 'A valid http(s) URL is required';
+  if (parsed.protocol === 'http:' && !isPrivateHost(parsed.hostname)) {
+    return 'Use https for a server on the internet. Plain http would send its token and everything it returns unencrypted.';
+  }
+  return null;
+}
+
 interface ConnectedTool {
   serverId: string;
   remoteName: string;
@@ -196,7 +255,15 @@ class McpClientService {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const parsed = raw ? JSON.parse(raw) : [];
       if (Array.isArray(parsed)) {
-        this.servers = parsed.filter((s: any) => s && typeof s.id === 'string');
+        this.servers = parsed
+          .filter((s: any) => s && typeof s.id === 'string')
+          // The list also comes back from backups: an address that would not
+          // be accepted today stays listed but switched off.
+          .map((s: McpClientServer) =>
+            typeof s.url !== 'string' || mcpUrlProblem(s.url)
+              ? { ...s, enabled: false }
+              : s,
+          );
       }
       await this.seedBuiltIns();
     } catch (error) {
@@ -250,11 +317,10 @@ class McpClientService {
   }): Promise<McpClientServer> {
     await this.load();
     const name = (input.name || '').trim().substring(0, 60);
-    const url = (input.url || '').trim().replace(/\/+$/, '');
     if (!name) throw new Error('A name is required');
-    if (!/^https?:\/\/[^\s]+$/i.test(url)) {
-      throw new Error('A valid http(s) URL is required');
-    }
+    const problem = mcpUrlProblem(input.url || '');
+    if (problem) throw new Error(problem);
+    const url = parseHttpUrl(input.url)!.href.replace(/\/+$/, '');
 
     const server: McpClientServer = {
       id: `mcp_${Date.now().toString(36)}_${Math.random()
@@ -335,14 +401,17 @@ class McpClientService {
     // collision gets a suffix instead of quietly replacing someone's tool.
     const taken = new Set(this.tools.keys());
     try {
+      const shipped = shippedServer(server);
       const token = server.hasToken
         ? await secureStorageService.getSecret(this.secretKey(server.id))
-        : (BUILT_IN_MCP_TOKENS[server.id] ?? null);
+        : shipped
+          ? (BUILT_IN_MCP_TOKENS[shipped.id] ?? null)
+          : null;
       // The MemPalace serves only reads but marks none of them readOnlyHint,
       // so trusting its hints alone would still confirm every lookup.
-      const shippedReadOnly = isShippedReadOnly(server.id);
+      const shippedReadOnly = !!shipped?.readOnly;
       const result = await McpClient.connect(server.id, server.url, token);
-      for (const remote of result.tools) {
+      for (const remote of result.tools.slice(0, MCP_MAX_TOOLS_PER_SERVER)) {
         const name = namespacedToolName(server.name, remote.name, taken);
         taken.add(name);
         let inputSchema: Record<string, unknown> = { type: 'object' };
@@ -357,7 +426,10 @@ class McpClientService {
           remoteName: remote.name,
           tool: {
             name,
-            description: remote.description,
+            description: String(remote.description ?? '').substring(
+              0,
+              MCP_MAX_DESCRIPTION_CHARS,
+            ),
             inputSchema,
             // readOnlyHint is the server's claim about itself, so it only
             // skips confirmation when the user has said they trust it.
@@ -415,6 +487,30 @@ class McpClientService {
     return Array.from(this.tools.values()).map(entry => entry.tool);
   }
 
+  /**
+   * Every connected remote tool with where it came from, for code that looks
+   * for a tool by what it does rather than by the name the model sees — the
+   * memory a compacted conversation is saved to, for one.
+   */
+  remoteTools(): McpRemoteTool[] {
+    return Array.from(this.tools.entries()).map(([name, entry]) => {
+      const server = this.servers.find(item => item.id === entry.serverId);
+      return {
+        name,
+        serverId: entry.serverId,
+        serverName: server?.name ?? entry.serverId,
+        // By id as well as by the stored flag: a list saved before the flag
+        // shipped has the built-in MemPalace without it, and that server
+        // must never be written to whatever the stored record says.
+        serverReadOnly: isShippedReadOnly(entry.serverId) || !!server?.readOnly,
+        serverTrusted: !!server?.trustReadOnlyHints,
+        remoteName: entry.remoteName,
+        description: entry.tool.description,
+        inputSchema: entry.tool.inputSchema,
+      };
+    });
+  }
+
   /** True when this call belongs to a remote server rather than a built-in. */
   owns(name: string): boolean {
     return this.tools.has(name);
@@ -433,7 +529,16 @@ class McpClientService {
         entry.remoteName,
         JSON.stringify(call.input ?? {}),
       );
-      return { content: result.content, isError: result.isError };
+      const content = String(result.content ?? '');
+      return {
+        content:
+          content.length > MCP_MAX_RESULT_CHARS
+            ? `${content.substring(0, MCP_MAX_RESULT_CHARS)}\n[\u2026 ${
+                content.length - MCP_MAX_RESULT_CHARS
+              } more characters from the server not shown]`
+            : content,
+        isError: result.isError,
+      };
     } catch (error) {
       return { content: String(error), isError: true };
     }

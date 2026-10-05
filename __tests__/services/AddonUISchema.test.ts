@@ -159,6 +159,12 @@ describe('AddonUISchema', () => {
       'https://172.16.0.1/a.png',
       'https://169.254.1.1/a.png',
       'https://printer.local/a.png',
+      // Security pass 2026-10-05: spellings the old string checks missed.
+      'https://[::1]/a.png',
+      'https://[fd00::1]/a.png',
+      'https://2130706433/a.png',
+      'https://100.64.0.1/a.png',
+      'https://user@example.com/a.png',
     ])('refuses the private address %s', url => {
       // Otherwise a panel image is a way to probe the user's own network.
       expect(isPermittedImageUrl(url)).toBe(false);

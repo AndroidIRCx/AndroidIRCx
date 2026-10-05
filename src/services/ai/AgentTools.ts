@@ -31,7 +31,19 @@ export interface ToolOutcome {
   isError?: boolean;
 }
 
-type Executor = (input: Record<string, unknown>) => Promise<ToolOutcome>;
+/**
+ * Who is calling. `remote` is an agent outside the app, through the app's
+ * own MCP server: nobody is watching it the way the user watches the in-app
+ * assistant, so a few tools hold it to more.
+ */
+export interface ToolContext {
+  remote?: boolean;
+}
+
+type Executor = (
+  input: Record<string, unknown>,
+  context: ToolContext,
+) => Promise<ToolOutcome>;
 
 interface AgentToolDefinition extends AITool {
   execute: Executor;
@@ -49,6 +61,22 @@ function resolveNetwork(input: Record<string, unknown>): string | null {
   if (!network) return null;
   return connectionManager.getConnection(network) ? network : null;
 }
+
+/**
+ * One nick or one channel, and nothing the server would read as more: no
+ * comma list (`#a,#b`), no space that starts a key or a second argument, no
+ * leading `:`, no control characters. Security pass 2026-10-05: a target of
+ * `#a,#b` or `0` did something very different from what the approval card
+ * said.
+ */
+// eslint-disable-next-line no-control-regex -- refusing control bytes is the point
+const IRC_TARGET = /^[^\s,:\x00-\x1f][^\s,\x00-\x1f]{0,199}$/;
+/** A channel name, prefix included. */
+// eslint-disable-next-line no-control-regex -- refusing control bytes is the point
+const IRC_CHANNEL = /^[#&+!][^\s,\x00-\x1f]{1,199}$/;
+
+const isTarget = (value: string) => IRC_TARGET.test(value) && value !== '0';
+const isChannel = (value: string) => IRC_CHANNEL.test(value);
 
 const noArgs = { type: 'object', properties: {}, required: [] as string[] };
 
@@ -124,11 +152,16 @@ const DEFINITIONS: AgentToolDefinition[] = [
       required: ['channel'],
     },
     mutates: false,
-    execute: async input => {
+    execute: async (input, context) => {
       const channel = str(input.channel);
       if (!channel) return fail('A channel is required.');
       const network = resolveNetwork(input);
       if (!network) return fail('Not connected to that network.');
+      // A remote agent sees a channel's members only where the user opted the
+      // channel in: the people in it never agreed to be listed to it.
+      if (context.remote && !aiService.isChannelAllowed(channel, network)) {
+        return fail(`AI is not enabled for ${channel}.`);
+      }
       const users =
         connectionManager
           .getConnection(network)
@@ -226,13 +259,16 @@ const DEFINITIONS: AgentToolDefinition[] = [
         });
         // Without a channel filter the search spans every channel, including
         // ones with no opt-in, so drop those rather than leak them.
+        // A message with no channel is server-tab text — private notices,
+        // service replies, WHOIS with other people's hosts. No opt-in covers
+        // it, so it stays out (security pass 2026-10-05; it used to pass).
         const permitted = results.filter(message =>
           message.channel
             ? aiService.isChannelAllowed(
                 message.channel,
                 message.network ?? network ?? undefined,
               )
-            : true,
+            : false,
         );
         if (!permitted.length) return ok('No matches in channels AI may read.');
         return ok(
@@ -269,6 +305,17 @@ const DEFINITIONS: AgentToolDefinition[] = [
       const target = str(input.target);
       const text = str(input.text);
       if (!target || !text) return fail('A target and text are required.');
+      if (!isTarget(target)) {
+        return fail('The target must be one nick or one channel.');
+      }
+      // sendMessage treats a leading "/" as a command, and an unknown one goes
+      // out as a raw IRC line: "/msg NickServ DROP", "/quit", "/raw MODE…".
+      // The tool is for saying things, and the user approved a message.
+      if (text.trimStart().startsWith('/')) {
+        return fail(
+          'Messages are sent as written; a leading "/" would run an IRC command instead. Rephrase without it.',
+        );
+      }
       const network = resolveNetwork(input);
       if (!network) return fail('Not connected to that network.');
       connectionManager
@@ -294,6 +341,9 @@ const DEFINITIONS: AgentToolDefinition[] = [
       const target = str(input.target);
       const text = str(input.text);
       if (!target || !text) return fail('A target and text are required.');
+      if (!isTarget(target)) {
+        return fail('The target must be one nick or one channel.');
+      }
       const network = resolveNetwork(input);
       if (!network) return fail('Not connected to that network.');
       connectionManager
@@ -317,6 +367,10 @@ const DEFINITIONS: AgentToolDefinition[] = [
     execute: async input => {
       const channel = str(input.channel);
       if (!channel) return fail('A channel is required.');
+      // "JOIN 0" leaves every channel, and "#a,#b key" joins several.
+      if (!isChannel(channel)) {
+        return fail('That is not one channel name, like #example.');
+      }
       const network = resolveNetwork(input);
       if (!network) return fail('Not connected to that network.');
       connectionManager
@@ -341,6 +395,9 @@ const DEFINITIONS: AgentToolDefinition[] = [
     execute: async input => {
       const channel = str(input.channel);
       if (!channel) return fail('A channel is required.');
+      if (!isChannel(channel)) {
+        return fail('That is not one channel name, like #example.');
+      }
       const network = resolveNetwork(input);
       if (!network) return fail('Not connected to that network.');
       const reason = str(input.reason);
@@ -601,11 +658,11 @@ const DEFINITIONS: AgentToolDefinition[] = [
         const permitted = (results ?? []).filter(
           message =>
             (message.timestamp ?? 0) >= since &&
-            (!message.channel ||
-              aiService.isChannelAllowed(
-                message.channel,
-                message.network ?? network ?? undefined,
-              )),
+            !!message.channel &&
+            aiService.isChannelAllowed(
+              message.channel,
+              message.network ?? network ?? undefined,
+            ),
         );
         if (!permitted.length) {
           return ok(
@@ -687,9 +744,14 @@ const DEFINITIONS: AgentToolDefinition[] = [
     // A calculation, not an action: it changes nothing, so it does not wait
     // for approval even though an actual ban would.
     mutates: false,
-    execute: async input => {
+    execute: async (input, context) => {
       const nick = str(input.nick);
       if (!nick) return fail('A nick is required.');
+      // The mask carries the person's ident and host — for most people, their
+      // address. Fine for the user deciding on a ban, not for a remote agent.
+      if (context.remote) {
+        return fail('ban_mask is not available to remote agents.');
+      }
       const network = resolveNetwork(input);
       if (!network) return fail('No network is connected.');
       const info = connectionManager
@@ -787,7 +849,9 @@ const DEFINITIONS: AgentToolDefinition[] = [
       },
       required: ['id'],
     },
-    mutates: false,
+    // Deleting what the user chose to keep is theirs to approve, not
+    // something an instruction hidden in a page can do quietly.
+    mutates: true,
     execute: async input => {
       const id = str(input.id);
       const gone = await aiMemoryService.forget(id);
@@ -850,20 +914,53 @@ export function toolMutates(call: AIToolCall): boolean {
   return findTool(call.name)?.mutates ?? true;
 }
 
-export async function executeTool(call: AIToolCall): Promise<ToolOutcome> {
+export async function executeTool(
+  call: AIToolCall,
+  context: ToolContext = {},
+): Promise<ToolOutcome> {
   const tool = findTool(call.name);
   if (!tool) return fail(`No such tool: ${call.name}`);
   try {
-    return await tool.execute(call.input ?? {});
+    return await tool.execute(call.input ?? {}, context);
   } catch (error) {
     return fail(`Tool failed: ${String(error)}`);
   }
 }
 
-/** A short, human-readable rendering of a call, for the confirmation card. */
+/** How much of one value the confirmation card shows before it says so. */
+export const DESCRIBE_MAX_CHARS = 4000;
+
+/**
+ * One argument as the user will judge it.
+ *
+ * Security pass 2026-10-05: this used to cut every value at 120 characters
+ * with no mark, print nested MCP arguments as "[object Object]" and pass line
+ * breaks through untouched. A reply that read "thanks!" on the card could
+ * carry 280 more characters of someone else's channel; a saved script showed
+ * its first line and hid the rest. What the user approves has to be what is
+ * sent, so: the whole value, objects as JSON, line breaks shown as ⏎, and a
+ * stated count for anything past the generous limit.
+ */
+function describeValue(value: unknown): string {
+  const text =
+    typeof value === 'string'
+      ? value
+      : (() => {
+          try {
+            return JSON.stringify(value);
+          } catch {
+            return String(value);
+          }
+        })();
+  const shown = text.replace(/\r\n|\r|\n/g, ' \u23ce ');
+  if (shown.length <= DESCRIBE_MAX_CHARS) return shown;
+  return `${shown.substring(0, DESCRIBE_MAX_CHARS)}\u2026 (${shown.length - DESCRIBE_MAX_CHARS} more characters not shown)`;
+}
+
+/** A human-readable rendering of a call, for the confirmation card. */
 export function describeCall(call: AIToolCall): string {
   const entries = Object.entries(call.input ?? {})
     .filter(([, value]) => value !== undefined && value !== '')
-    .map(([key, value]) => `${key}: ${String(value).substring(0, 120)}`);
+    .map(([key, value]) => `${key}: ${describeValue(value)}`);
   return entries.length ? `${call.name}\n${entries.join('\n')}` : call.name;
 }

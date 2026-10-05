@@ -7,6 +7,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import { logger } from '../Logger';
 import { agentToolSchemas, executeTool } from './AgentTools';
+import { aiService } from './AIService';
+
+/**
+ * Tools that change nothing on IRC but still change something the user owns:
+ * what the in-app assistant remembers about them. To a remote agent they are
+ * writes, and they wait for "Allow actions" like every other write.
+ * Security pass 2026-10-05: with actions off, a remote agent could still
+ * plant facts that steer the in-app assistant, or wipe what the user saved.
+ */
+export const REMOTE_WRITE_TOOLS: ReadonlySet<string> = new Set([
+  'remember',
+  'forget_memory',
+]);
+
+/** Calls in flight at once, and per minute, from all remote agents together. */
+export const REMOTE_MAX_CONCURRENT = 2;
+export const REMOTE_MAX_PER_MINUTE = 60;
 import { AIToolCall } from './types';
 
 /**
@@ -89,6 +106,11 @@ const STOPPED: McpServerStatus = {
 
 class McpServerService {
   private subscription: { remove: () => void } | null = null;
+  /** Tool names this run of the server offers; see refuse(). */
+  private exposed: Set<string> = new Set();
+  private inFlight = 0;
+  /** Start times of recent remote calls, for the per-minute cap. */
+  private recent: number[] = [];
   private config: Required<McpServerConfig> = { ...DEFAULT_CONFIG };
   private configLoaded = false;
 
@@ -170,8 +192,15 @@ class McpServerService {
           input = {};
         }
         const call: AIToolCall = { id: event.id, name: event.name, input };
+        const refusal = this.refuse(call.name);
+        if (refusal) {
+          McpServer?.resolveToolCall(event.id, refusal, true);
+          return;
+        }
+        this.inFlight += 1;
+        this.recent.push(Date.now());
         try {
-          const outcome = await executeTool(call);
+          const outcome = await executeTool(call, { remote: true });
           McpServer?.resolveToolCall(
             event.id,
             outcome.content,
@@ -181,9 +210,35 @@ class McpServerService {
           // Native is waiting on this id; failing to answer would hold the
           // remote request open until its own timeout.
           McpServer?.resolveToolCall(event.id, String(error), true);
+        } finally {
+          this.inFlight -= 1;
         }
       },
     );
+  }
+
+  /**
+   * Why a remote call is refused before it runs, or null to run it.
+   *
+   * Checked here, in the app, and not only by which tools native registered:
+   * AI switched off means off for remote agents too, a tool that was not
+   * exposed stays unexposed whatever name arrives, and a loop of calls must
+   * not freeze the app or starve the IRC connection of the JS thread.
+   */
+  refuse(name: string): string | null {
+    if (!aiService.isEnabled()) {
+      return 'AI is switched off in AndroidIRCX.';
+    }
+    if (!this.exposed.has(name)) return `No such tool: ${name}`;
+    const now = Date.now();
+    this.recent = this.recent.filter(at => now - at < 60000);
+    if (this.inFlight >= REMOTE_MAX_CONCURRENT) {
+      return 'Busy with other calls; try again in a moment.';
+    }
+    if (this.recent.length >= REMOTE_MAX_PER_MINUTE) {
+      return 'Too many calls this minute; slow down.';
+    }
+    return null;
   }
 
   private stopListening(): void {
@@ -208,8 +263,17 @@ class McpServerService {
       // Native reads this as a JSON string and splits it into properties
       // and required, which is the shape the SDK's ToolSchema wants.
       inputSchema: JSON.stringify(tool.inputSchema),
-      mutates: tool.mutates,
+      mutates: !!tool.mutates || REMOTE_WRITE_TOOLS.has(tool.name),
     }));
+    // A fresh run starts with a fresh allowance.
+    this.recent = [];
+    // The same filter native applies, kept here so the listener can refuse
+    // anything else that arrives.
+    this.exposed = new Set(
+      tools
+        .filter(tool => effective.allowWrites || !tool.mutates)
+        .map(tool => tool.name),
+    );
 
     try {
       const status = await McpServer.start({
@@ -256,9 +320,9 @@ class McpServerService {
   describeBindMode(mode: McpBindMode): string {
     switch (mode) {
       case 'lan':
-        return 'Reachable from your network, on this phone’s current address only.';
+        return 'Reachable from your network, on this phone’s current address only. Unencrypted: anyone on the same Wi-Fi who can watch the traffic sees the token and everything the tools return.';
       case 'any':
-        return 'Reachable on every connection this phone has, including mobile data and tethering.';
+        return 'Reachable on every connection this phone has, including mobile data and tethering. Unencrypted: the token and everything the tools return cross the network in the clear.';
       default:
         return 'Reachable only from this phone, for example from Termux.';
     }

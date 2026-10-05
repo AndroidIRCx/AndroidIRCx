@@ -17,6 +17,7 @@ import {
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
+import { isPrivateHost, parseHttpUrl } from '../utils/safeUrl';
 
 interface LinkPreviewProps {
   url: string;
@@ -47,6 +48,22 @@ const safeParseUrl = (rawUrl: string): URL | null => {
   } catch {
     return null;
   }
+};
+
+/**
+ * Whether a link someone posted may be fetched for a preview.
+ *
+ * A preview fetches on its own, for everyone who sees the message: a link to
+ * `http://192.168.1.1/apply.cgi?reboot=1` would otherwise make every reader's
+ * phone send that request into their own network. Private addresses, and any
+ * URL the strict parser refuses (a hidden `@` host among them), get the plain
+ * link and nothing fetched.
+ */
+export const isPreviewableUrl = (rawUrl: string | undefined): boolean => {
+  if (!rawUrl) return false;
+  const normalized = rawUrl.includes('://') ? rawUrl : `https://${rawUrl}`;
+  const parsed = parseHttpUrl(normalized);
+  return !!parsed && !isPrivateHost(parsed.hostname);
 };
 
 const getYouTubeVideoId = (rawUrl: string): string | null => {
@@ -355,6 +372,10 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
     };
 
     const fetchMetadata = async () => {
+      if (!isPreviewableUrl(url)) {
+        if (isMounted) setMetadata(defaultMetadata);
+        return;
+      }
       if (isYouTubeUrl(url)) {
         await maybeFetchYouTube();
         return;
@@ -388,6 +409,9 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
         imageUrl = fallbackFaviconUrl;
         console.log(`[LinkPreview] Using fallback favicon: ${imageUrl}`);
       }
+
+      // The page chose its own image URL; it gets the same check the link did.
+      if (!isPreviewableUrl(imageUrl)) imageUrl = undefined;
 
       const merged: LinkMetadata = {
         ...defaultMetadata,
