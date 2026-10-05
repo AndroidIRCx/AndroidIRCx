@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { getJson, postJson } from './httpJson';
 import { sortModelIds } from './modelSort';
+import { tokenCount } from '../contextWindows';
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -31,7 +32,19 @@ interface ChatCompletionResponse {
 }
 
 interface ModelsResponse {
-  data?: Array<{ id?: string }>;
+  /**
+   * Plain OpenAI and DeepSeek send only `id`. The rest are how other hosts
+   * report the context window, each under its own name.
+   */
+  data?: Array<{
+    id?: string;
+    context_length?: unknown; // OpenRouter, Together
+    context_window?: unknown; // Groq
+    max_model_len?: unknown; // vLLM
+    max_context_length?: unknown; // LM Studio
+    top_provider?: { context_length?: unknown };
+    meta?: { n_ctx_train?: unknown; n_ctx?: unknown }; // llama.cpp
+  }>;
   /** Ollama's native /api/tags shape, tolerated so a stray URL still works. */
   models?: Array<{ name?: string }>;
 }
@@ -215,6 +228,32 @@ class OpenAICompatProvider implements AIProviderAdapter {
       .map(entry => entry?.name)
       .filter((name): name is string => typeof name === 'string' && !!name);
     return sortModelIds(names);
+  }
+
+  async contextWindow(
+    provider: AIProvider,
+    apiKey: string | null,
+    signal: AbortSignal,
+  ): Promise<number | null> {
+    const response = await getJson<ModelsResponse>(
+      this.endpoint(provider, '/models'),
+      this.headers(apiKey),
+      signal,
+    );
+    const entry = (response.data ?? []).find(
+      item => item?.id === provider.model,
+    );
+    if (!entry) return null;
+    return (
+      tokenCount(entry.context_length) ??
+      tokenCount(entry.context_window) ??
+      tokenCount(entry.max_model_len) ??
+      tokenCount(entry.max_context_length) ??
+      tokenCount(entry.top_provider?.context_length) ??
+      // The window the server was started with, not what the model could do.
+      tokenCount(entry.meta?.n_ctx) ??
+      tokenCount(entry.meta?.n_ctx_train)
+    );
   }
 }
 

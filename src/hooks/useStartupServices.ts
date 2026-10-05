@@ -27,6 +27,7 @@ import { commandService } from '../services/CommandService';
 import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
 import { scriptingService } from '../services/ScriptingService';
+import { aiService } from '../services/ai/AIService';
 import { addonSafetyService } from '../services/scripting/AddonSafetyService';
 import { installAddonGroupWiring } from '../services/scripting/AddonGroupWiring';
 import { addonLifecycleService } from '../services/scripting/AddonLifecycleService';
@@ -87,6 +88,12 @@ export const useStartupServices = () => {
     // Delay initialization slightly to ensure React Native is ready
     const timeout = setTimeout(init, 100);
     return () => clearTimeout(timeout);
+  }, []);
+
+  // The AI switches are read at startup, not when Settings first opens: a
+  // screen asking aiService.isEnabled() before then saw the default, "on".
+  useEffect(() => {
+    aiService.loadSettings().catch(() => undefined);
   }, []);
 
   useEffect(() => {

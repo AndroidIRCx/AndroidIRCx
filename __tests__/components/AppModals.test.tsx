@@ -20,6 +20,7 @@ const mockTabOptionsModal = jest.fn(() => null);
 const mockChannelSettingsScreen = jest.fn(() => null);
 const mockDccTransfersModal = jest.fn(() => null);
 const mockDccTransfersMinimizedIndicator = jest.fn(() => null);
+const mockAIAgentScreen = jest.fn((_props: any) => null);
 const mockDccSendModal = jest.fn(() => null);
 const mockAppUnlockModal = jest.fn(() => null);
 const mockWebRTCCallModal = jest.fn(() => null);
@@ -145,6 +146,14 @@ jest.mock('../../src/screens/ChannelSettingsScreen', () => ({
 jest.mock('../../src/components/DccTransfersModal', () => ({
   DccTransfersModal: (p: any) => mockDccTransfersModal(p),
 }));
+// The assistant drags the whole AI and IRC stack in behind it.
+jest.mock('../../src/screens/AIAgentScreen', () => ({
+  AIAgentScreen: (p: any) => mockAIAgentScreen(p),
+}));
+jest.mock('../../src/components/AIAgentMinimizedIndicator', () => ({
+  AIAgentMinimizedIndicator: () => null,
+}));
+
 jest.mock('../../src/components/DccTransfersMinimizedIndicator', () => ({
   DccTransfersMinimizedIndicator: (p: any) =>
     mockDccTransfersMinimizedIndicator(p),
@@ -473,6 +482,28 @@ describe('AppModals', () => {
 
     expect(uiStoreState.setDccTransfersMinimized).toHaveBeenCalledWith(false);
     expect(uiStoreState.setShowDccTransfers).toHaveBeenCalledWith(true);
+  });
+
+  it('keeps the assistant mounted, and minimising leaves its bubble', async () => {
+    const uiStoreState = {
+      ...createUIStoreState(),
+      setShowAIAgent: jest.fn(),
+      setAIAgentMinimized: jest.fn(),
+    };
+    mockUseUIStore.getState = jest.fn(() => uiStoreState);
+    mockUseUIState.mockReturnValue(createUIState({}));
+
+    await render(<AppModals {...baseProps} />);
+
+    // Mounted even while hidden, so a conversation in progress survives.
+    const props = mockAIAgentScreen.mock.calls[0][0];
+    props.onMinimize();
+    expect(uiStoreState.setShowAIAgent).toHaveBeenCalledWith(false);
+    expect(uiStoreState.setAIAgentMinimized).toHaveBeenCalledWith(true);
+
+    uiStoreState.setShowAIAgent.mockClear();
+    props.onClose();
+    expect(uiStoreState.setShowAIAgent).toHaveBeenCalledWith(false);
   });
 
   it('handles first-run setup callbacks and settings launcher callbacks', async () => {

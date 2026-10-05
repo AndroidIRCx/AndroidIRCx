@@ -10,9 +10,12 @@ import { openAICompatProvider } from './providers/OpenAICompatProvider';
 import { anthropicProvider } from './providers/AnthropicProvider';
 import { geminiProvider } from './providers/GeminiProvider';
 import { measureRequest } from './measure';
+import { knownContextWindow } from './contextWindows';
+import { isPrivateHost, parseHttpUrl } from '../../utils/safeUrl';
 import {
   AIError,
   AIMessage,
+  AIProvider,
   AIProviderAdapter,
   AIProviderInfo,
   AIProviderKind,
@@ -25,6 +28,8 @@ const STORAGE_ENABLED_KEY = '@AndroidIRCX:aiEnabled';
 const STORAGE_CONSENT_KEY = '@AndroidIRCX:aiConsent';
 const STORAGE_CHANNELS_KEY = '@AndroidIRCX:aiChannels';
 const STORAGE_REDACTION_KEY = '@AndroidIRCX:aiRedaction';
+const STORAGE_PROMPT_LIMIT_KEY = '@AndroidIRCX:aiPromptLimitTokens';
+const STORAGE_WINDOWS_KEY = '@AndroidIRCX:aiContextWindows';
 
 /**
  * The hard ceiling on one request, in characters.
@@ -40,6 +45,42 @@ const STORAGE_REDACTION_KEY = '@AndroidIRCX:aiRedaction';
  * current model comfortably exceeds.
  */
 export const MAX_PROMPT_CHARS = 120000;
+/**
+ * The request sizes the user can pick from in Settings › AI, in **tokens**,
+ * because that is the unit every provider states its context window in. A
+ * DeepSeek or Gemini model that takes a million tokens is "1M" here, not a
+ * character count the user has to convert. The top step is past what any
+ * current model takes, so the picker is never what stops a request.
+ */
+export const PROMPT_LIMIT_OPTIONS = [
+  32000, 64000, 128000, 200000, 400000, 1000000, 2000000,
+];
+/**
+ * "Size it from the model": the default. The limit follows the context window
+ * the provider reports for the configured model, or a known one, and only
+ * falls back to MAX_PROMPT_CHARS when neither is available.
+ */
+export const PROMPT_LIMIT_AUTO = 0;
+/**
+ * Characters per token when turning a window into a character limit. Prose
+ * runs nearer four; JSON tool output and non-English text run lower, so this
+ * errs towards sending less than the model could take, never more.
+ */
+export const CHARS_PER_TOKEN = 3;
+/** Tokens to the character limit the request is actually measured against. */
+export const tokensToChars = (tokens: number): number =>
+  Math.round(tokens * CHARS_PER_TOKEN);
+/** How long a context-window lookup may hold up a request. */
+const WINDOW_LOOKUP_TIMEOUT_MS = 8000;
+
+/** What "Auto" resolved to, for the settings screen. */
+export interface AutoPromptLimit {
+  model: string;
+  /** The window in tokens; null when nothing reported or matched one. */
+  tokens: number | null;
+  source: 'provider' | 'known' | 'default';
+  chars: number;
+}
 export const DEFAULT_TIMEOUT_MS = 30000;
 /** Minimum gap between two calls from the same caller. */
 export const DEFAULT_COOLDOWN_MS = 5000;
@@ -114,6 +155,14 @@ class AIService {
    * lands with the rest of the privacy work in phase 6.
    */
   private redactionEnabled = true;
+  /** The user's pick in tokens, or PROMPT_LIMIT_AUTO. */
+  private promptLimit = PROMPT_LIMIT_AUTO;
+  /**
+   * Context windows the providers reported, by kind|baseUrl|model. A null
+   * entry means "asked, got nothing" and lives only in memory, so a provider
+   * that was briefly unreachable is asked again next launch.
+   */
+  private windows = new Map<string, number | null>();
 
   constructor() {
     // `local` servers speak the OpenAI wire format, so they share the adapter.
@@ -128,12 +177,29 @@ class AIService {
   async loadSettings(): Promise<void> {
     if (this.enabledLoaded) return;
     try {
-      const [raw, consent, channels, redaction] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_ENABLED_KEY),
-        AsyncStorage.getItem(STORAGE_CONSENT_KEY),
-        AsyncStorage.getItem(STORAGE_CHANNELS_KEY),
-        AsyncStorage.getItem(STORAGE_REDACTION_KEY),
-      ]);
+      const [raw, consent, channels, redaction, promptLimit, windows] =
+        await Promise.all([
+          AsyncStorage.getItem(STORAGE_ENABLED_KEY),
+          AsyncStorage.getItem(STORAGE_CONSENT_KEY),
+          AsyncStorage.getItem(STORAGE_CHANNELS_KEY),
+          AsyncStorage.getItem(STORAGE_REDACTION_KEY),
+          AsyncStorage.getItem(STORAGE_PROMPT_LIMIT_KEY),
+          AsyncStorage.getItem(STORAGE_WINDOWS_KEY),
+        ]);
+      const limit = Number(promptLimit);
+      if (promptLimit !== null && this.isPromptLimitOption(limit)) {
+        this.promptLimit = limit;
+      }
+      if (windows) {
+        const parsed = JSON.parse(windows);
+        if (parsed && typeof parsed === 'object') {
+          for (const [key, value] of Object.entries(parsed)) {
+            if (typeof value === 'number' && value > 0) {
+              this.windows.set(key, value);
+            }
+          }
+        }
+      }
       if (raw !== null) this.enabled = raw === 'true';
       this.consentGranted = consent === 'true';
       if (redaction !== null) this.redactionEnabled = redaction === 'true';
@@ -167,9 +233,18 @@ class AIService {
     }
   }
 
-  /** True when this provider sends content off the device to a third party. */
-  private isThirdParty(kind: AIProviderKind): boolean {
-    return kind !== 'local';
+  /**
+   * True when this provider sends content off the device to a third party.
+   *
+   * "Local" is a claim about where the server is, and the kind alone used to
+   * be taken at its word: a provider marked local but pointed at a cloud host
+   * skipped the consent question entirely. It counts as local only when its
+   * address really is on this machine or the user's own network.
+   */
+  private isThirdParty(provider: AIProvider): boolean {
+    if (provider.kind !== 'local') return true;
+    const host = parseHttpUrl(provider.baseUrl)?.hostname;
+    return !host || !isPrivateHost(host);
   }
 
   // --- Per-channel opt-in -------------------------------------------------
@@ -234,6 +309,24 @@ class AIService {
     );
   }
 
+  /** The user's choice: a size in tokens, or PROMPT_LIMIT_AUTO. */
+  getPromptLimit(): number {
+    return this.promptLimit;
+  }
+
+  private isPromptLimitOption(limit: number): boolean {
+    return limit === PROMPT_LIMIT_AUTO || PROMPT_LIMIT_OPTIONS.includes(limit);
+  }
+
+  /** Ignores anything but PROMPT_LIMIT_AUTO and PROMPT_LIMIT_OPTIONS. */
+  setPromptLimit(limit: number): void {
+    if (!this.isPromptLimitOption(limit)) return;
+    this.promptLimit = limit;
+    AsyncStorage.setItem(STORAGE_PROMPT_LIMIT_KEY, String(limit)).catch(error =>
+      logger.warn('ai', `Failed to save AI prompt limit: ${String(error)}`),
+    );
+  }
+
   setLimits(limits: Partial<AILimits>): void {
     this.limits = { ...this.limits, ...limits };
   }
@@ -262,10 +355,11 @@ class AIService {
 
   /** True when at least one enabled provider is usable right now. */
   async isAvailable(): Promise<boolean> {
+    await this.loadSettings();
     if (!this.enabled) return false;
     const provider = await aiProviderStore.resolve();
     if (!provider) return false;
-    if (this.isThirdParty(provider.kind) && !this.consentGranted) return false;
+    if (this.isThirdParty(provider) && !this.consentGranted) return false;
     if (!aiProviderStore.requiresKey(provider.kind)) return true;
     return provider.hasKey;
   }
@@ -277,6 +371,7 @@ class AIService {
    * is done, so naming them in that order gives the user one thing to do.
    */
   async diagnose(): Promise<AIReadiness> {
+    await this.loadSettings();
     const settingsPath = 'Settings \u203a AI';
     if (!this.enabled) {
       return {
@@ -303,7 +398,7 @@ class AIService {
         where: `${settingsPath} \u203a AI Providers \u203a ${provider.name} \u203a Edit`,
       };
     }
-    if (this.isThirdParty(provider.kind) && !this.consentGranted) {
+    if (this.isThirdParty(provider) && !this.consentGranted) {
       return {
         code: 'consent_required',
         ready: false,
@@ -497,6 +592,12 @@ class AIService {
    * and `testConnection` report identical reasons for identical problems.
    */
   private async prepare(providerId?: string) {
+    // Security pass 2026-10-05: nothing loaded the settings at startup, so
+    // after a restart "Enable AI: off" read as on — scripts with a local
+    // provider kept calling it until someone opened the settings screen.
+    // Every way into a request reads them first; after the first time this
+    // is a no-op.
+    await this.loadSettings();
     if (!this.enabled) {
       throw new AIError('disabled', 'AI is switched off in settings');
     }
@@ -516,7 +617,7 @@ class AIService {
       );
     }
 
-    if (this.isThirdParty(provider.kind) && !this.consentGranted) {
+    if (this.isThirdParty(provider) && !this.consentGranted) {
       throw new AIError(
         'consent_required',
         `Sending conversation content to "${provider.name}" has not been agreed to yet. Turn it on in Settings \u203a AI \u203a Privacy.`,
@@ -560,14 +661,6 @@ class AIService {
       throw new AIError('invalid_request', 'At least one message is required');
     }
 
-    const totalChars = measureRequest(messages, options.system);
-    if (totalChars > MAX_PROMPT_CHARS) {
-      throw new AIError(
-        'prompt_too_long',
-        `Prompt is ${totalChars} characters, limit is ${MAX_PROMPT_CHARS}`,
-      );
-    }
-
     if (
       options.channel &&
       !this.isChannelAllowed(options.channel, options.network)
@@ -579,6 +672,25 @@ class AIService {
     }
 
     const { provider, apiKey, adapter } = await this.prepare(options.provider);
+
+    // After prepare, because on Auto the limit depends on the model. Still
+    // before a slot is booked, so a refused prompt costs the caller nothing.
+    const totalChars = measureRequest(messages, options.system);
+    // Auto sizes the assistant's requests from the model. A script keeps the
+    // fixed backstop unless the user picked a size by hand: a runaway script
+    // on a 1M-token model must not send three million characters a call,
+    // a hundred times a day (security pass 2026-10-05).
+    const modelLimit = await this.limitFor(provider, apiKey, adapter);
+    const limit =
+      callerId.startsWith('script:') && this.promptLimit === PROMPT_LIMIT_AUTO
+        ? Math.min(modelLimit, MAX_PROMPT_CHARS)
+        : modelLimit;
+    if (totalChars > limit) {
+      throw new AIError(
+        'prompt_too_long',
+        `Request is about ${Math.ceil(totalChars / CHARS_PER_TOKEN)} tokens (${totalChars} characters); the limit is about ${Math.floor(limit / CHARS_PER_TOKEN)} tokens. Raise it in Settings \u203a AI \u203a Largest request, or compact the conversation.`,
+      );
+    }
 
     // One map for the whole request, so the same nick keeps the same alias
     // across every message in the conversation. Collect before rewriting.
@@ -648,6 +760,123 @@ class AIService {
     }
   }
 
+  private windowKey(provider: AIProvider): string {
+    return `${provider.kind}|${provider.baseUrl ?? ''}|${provider.model}`;
+  }
+
+  /**
+   * The model's context window: what the provider reports, else a known one.
+   * Asked once per model and remembered, so it costs one request per model
+   * ever, not one per message.
+   */
+  private async windowFor(
+    provider: AIProvider,
+    apiKey: string | null,
+    adapter: AIProviderAdapter,
+  ): Promise<{ tokens: number | null; source: AutoPromptLimit['source'] }> {
+    const key = this.windowKey(provider);
+    if (!this.windows.has(key) && adapter.contextWindow) {
+      const { signal, clear } = this.withTimeout(WINDOW_LOOKUP_TIMEOUT_MS);
+      let tokens: number | null = null;
+      try {
+        tokens = await adapter.contextWindow(provider, apiKey, signal);
+      } catch (error) {
+        logger.warn(
+          'ai',
+          `Could not read the context window of ${provider.model}: ${String(error)}`,
+        );
+      } finally {
+        clear();
+      }
+      this.windows.set(key, tokens);
+      if (tokens) this.saveWindows();
+    }
+    const reported = this.windows.get(key);
+    if (reported) return { tokens: reported, source: 'provider' };
+    const known = knownContextWindow(provider.model);
+    if (known) return { tokens: known, source: 'known' };
+    return { tokens: null, source: 'default' };
+  }
+
+  private saveWindows(): void {
+    const known: Record<string, number> = {};
+    for (const [key, value] of this.windows) if (value) known[key] = value;
+    AsyncStorage.setItem(STORAGE_WINDOWS_KEY, JSON.stringify(known)).catch(
+      error =>
+        logger.warn(
+          'ai',
+          `Failed to save AI context windows: ${String(error)}`,
+        ),
+    );
+  }
+
+  /**
+   * What Auto works out to: the window less the reply's share, in characters,
+   * kept between the smallest and largest sizes the picker offers. The reply
+   * is subtracted here and not for a size picked by hand: a picked size is
+   * already "how big a request may be", not the model's whole window.
+   */
+  private async resolveAutoLimit(
+    provider: AIProvider,
+    apiKey: string | null,
+    adapter: AIProviderAdapter,
+  ): Promise<AutoPromptLimit> {
+    const { tokens, source } = await this.windowFor(provider, apiKey, adapter);
+    if (!tokens) {
+      return { model: provider.model, tokens, source, chars: MAX_PROMPT_CHARS };
+    }
+    const room = Math.max(0, tokens - (provider.maxTokens || 0));
+    const chars = tokensToChars(
+      Math.min(
+        Math.max(room, PROMPT_LIMIT_OPTIONS[0]),
+        PROMPT_LIMIT_OPTIONS[PROMPT_LIMIT_OPTIONS.length - 1],
+      ),
+    );
+    return { model: provider.model, tokens, source, chars };
+  }
+
+  /** The limit for a request to this provider; a size the user picked wins. */
+  private async limitFor(
+    provider: AIProvider,
+    apiKey: string | null,
+    adapter: AIProviderAdapter,
+  ): Promise<number> {
+    if (this.promptLimit !== PROMPT_LIMIT_AUTO) {
+      return tokensToChars(this.promptLimit);
+    }
+    return (await this.resolveAutoLimit(provider, apiKey, adapter)).chars;
+  }
+
+  /**
+   * The character limit a request to this provider is held to right now, for
+   * callers that trim to fit before sending. Falls back to MAX_PROMPT_CHARS
+   * when the provider cannot be resolved; the request itself then fails with
+   * the real reason.
+   */
+  async getEffectivePromptLimit(providerId?: string): Promise<number> {
+    if (this.promptLimit !== PROMPT_LIMIT_AUTO) {
+      return tokensToChars(this.promptLimit);
+    }
+    try {
+      const { provider, apiKey, adapter } = await this.prepare(providerId);
+      return await this.limitFor(provider, apiKey, adapter);
+    } catch {
+      return MAX_PROMPT_CHARS;
+    }
+  }
+
+  /** What Auto works out to for a provider, for display. Null if unusable. */
+  async describeAutoLimit(
+    providerId?: string,
+  ): Promise<AutoPromptLimit | null> {
+    try {
+      const { provider, apiKey, adapter } = await this.prepare(providerId);
+      return await this.resolveAutoLimit(provider, apiKey, adapter);
+    } catch {
+      return null;
+    }
+  }
+
   /**
    * Fetch the models this provider's key can use. Doubles as the Settings
    * "Test connection" probe — it validates the key without spending tokens.
@@ -669,6 +898,10 @@ class AIService {
     this.enabled = true;
     this.enabledLoaded = false;
     this.redactionEnabled = true;
+    // Not AUTO: a fixed limit keeps the suites from seeing an extra model
+    // lookup on every first request. Tests of Auto opt in explicitly.
+    this.promptLimit = MAX_PROMPT_CHARS / CHARS_PER_TOKEN;
+    this.windows.clear();
     this.consentGranted = false;
     this.allowedChannels = {};
     this.limits = {

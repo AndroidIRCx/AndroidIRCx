@@ -2,6 +2,11 @@
 
 import type { IRCMessage } from '../IRCService';
 import { validateAddonJson, type AddonConfigValue } from './AddonConfigStore';
+import { redactCredentialText } from './AddonRawPolicy';
+
+/** A services nick a user identifies to. */
+const SERVICE_NICK =
+  /^(nickserv|ns|chanserv|cs|operserv|os|hostserv|hs|authserv|q|x)(@.*)?$/i;
 
 export const ADDON_EVENT_SCHEMA_VERSION = 1 as const;
 
@@ -118,8 +123,23 @@ export function addonEventFromIrcMessage(
     senderIsOp?: boolean;
   } = {},
 ): Readonly<AddonEventEnvelope> {
+  const self =
+    !!options.selfNick &&
+    !!message.from &&
+    options.selfNick.toLocaleLowerCase('en-US') ===
+      message.from.toLocaleLowerCase('en-US');
+  // What the user typed to a service can be a password ("IDENTIFY hunter2"),
+  // and it comes back to them as an echo. An addon allowed to read the
+  // conversation is not thereby allowed their credentials (security pass
+  // 2026-10-05).
+  const toService = SERVICE_NICK.test(
+    String(message.target ?? message.channel ?? ''),
+  );
   const payload = compact({
-    text: message.text,
+    text:
+      self && toService && typeof message.text === 'string'
+        ? redactCredentialText(message.text)
+        : message.text,
     reason: message.reason,
     mode: message.mode,
     topic: message.topic,
@@ -155,11 +175,7 @@ export function addonEventFromIrcMessage(
     },
     payload,
     origin: {
-      self:
-        !!options.selfNick &&
-        !!message.from &&
-        options.selfNick.toLocaleLowerCase('en-US') ===
-          message.from.toLocaleLowerCase('en-US'),
+      self,
       server: options.serverOrigin === true,
       playback: message.isPlayback === true || message.isScrollback === true,
     },

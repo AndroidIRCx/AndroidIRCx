@@ -63,7 +63,75 @@ export function rawCommandOf(line: string): string {
  * cannot turn an innocent line into `CAP END`.
  */
 export function isTransportCritical(line: string): boolean {
-  return TRANSPORT_CRITICAL_COMMANDS.has(rawCommandOf(line));
+  return (
+    TRANSPORT_CRITICAL_COMMANDS.has(rawCommandOf(line)) ||
+    carriesCredentials(line)
+  );
+}
+
+/** Nicks of the usual services, in the forms people message them by. */
+const SERVICE_TARGET =
+  /^(nickserv|ns|chanserv|cs|operserv|os|hostserv|hs|memoserv|ms|botserv|bs|authserv|q|x|nickserv@services\.[^ ]+|q@cserve\.quakenet\.org)$/i;
+/** Service commands whose arguments are a password. */
+const CREDENTIAL_WORDS =
+  /^(identify|id|register|ghost|recover|release|regain|login|auth|authenticate|set\s+password|setpass|confirm)\b/i;
+/** Raw service aliases servers accept: "NS IDENTIFY pw", "NICKSERV …". */
+const SERVICE_ALIASES = new Set([
+  'NS',
+  'NICKSERV',
+  'CS',
+  'CHANSERV',
+  'OS',
+  'OPERSERV',
+  'HS',
+  'HOSTSERV',
+  'AUTH',
+  'LOGIN',
+  'IDENTIFY',
+]);
+
+/**
+ * Whether a raw line carries a password: OPER, a service alias with a
+ * credential command, or a message to a service that identifies, registers
+ * or recovers a nick.
+ *
+ * Security pass 2026-10-05: only PASS and AUTHENTICATE were held back from
+ * raw modifiers, so an addon with `irc.raw.modify` was handed
+ * `PRIVMSG NickServ :IDENTIFY hunter2` and `OPER admin secret`.
+ */
+export function carriesCredentials(line: string): boolean {
+  const command = rawCommandOf(line);
+  if (command === 'OPER') return true;
+  let rest = line.trimStart();
+  if (rest.startsWith('@'))
+    rest = rest.slice(rest.indexOf(' ') + 1 || rest.length).trimStart();
+  if (rest.startsWith(':'))
+    rest = rest.slice(rest.indexOf(' ') + 1 || rest.length).trimStart();
+  const args = rest.slice(command.length).trimStart();
+  if (SERVICE_ALIASES.has(command)) {
+    return command === 'AUTH' || command === 'LOGIN' || command === 'IDENTIFY'
+      ? true
+      : CREDENTIAL_WORDS.test(args);
+  }
+  if (command !== 'PRIVMSG' && command !== 'NOTICE' && command !== 'SQUERY')
+    return false;
+  const space = args.indexOf(' ');
+  const target = space === -1 ? args : args.slice(0, space);
+  if (!SERVICE_TARGET.test(target)) return false;
+  const text = (space === -1 ? '' : args.slice(space + 1))
+    .replace(/^:/, '')
+    .trimStart();
+  return CREDENTIAL_WORDS.test(text);
+}
+
+/**
+ * Text the user sent, with any password in it replaced, for handing to
+ * addons that only asked to read. Covers what people type to services:
+ * "IDENTIFY pw", "IDENTIFY account pw", "REGISTER pw email", "SET PASSWORD pw".
+ */
+export function redactCredentialText(text: string): string {
+  const match = text.trimStart().match(CREDENTIAL_WORDS);
+  return match ? `${match[0]} [redacted]` : text;
 }
 
 const UTF8 = typeof TextEncoder === 'function' ? new TextEncoder() : undefined;

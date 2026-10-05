@@ -2122,6 +2122,34 @@ describe('ScriptingService', () => {
       }
     });
 
+    it('drafts a smart reply only with the channel opt-in applied', async () => {
+      // Security pass 2026-10-05: it sent the highlighter's words with no
+      // channel named, so AIService never checked the opt-in.
+      const script = aiScripts().find(s2 => s2.id === 'builtin-ai-smartreply');
+      await scriptingService.add({
+        id: 'smart-copy',
+        name: 'Smart reply',
+        code: script!.code,
+        enabled: true,
+      });
+      mockAiService.ask.mockResolvedValueOnce({ text: 'sure!' });
+
+      scriptingService.handleMessage({
+        id: 'h1',
+        type: 'message',
+        channel: '#chat',
+        network: 'net1',
+        from: 'alice',
+        text: 'this is urgent',
+        timestamp: Date.now(),
+      } as any);
+      await new Promise(resolve => setImmediate(resolve));
+
+      const [, options, caller] = mockAiService.ask.mock.calls[0];
+      expect(options).toMatchObject({ channel: '#chat', network: 'net1' });
+      expect(caller).toBe('script:smart-copy');
+    });
+
     it('answers /ai privately, with the channel as context', async () => {
       const script = aiScripts().find(s2 => s2.id === 'builtin-ai-ask');
       (scriptingService as any).compile({ ...script, enabled: true });
@@ -2139,7 +2167,8 @@ describe('ScriptingService', () => {
       // Naming the channel is what makes AIService enforce the opt-in on
       // other people's words.
       expect(options).toMatchObject({ channel: '#chat', network: 'net1' });
-      expect(caller).toBe('builtin-ai-ask');
+      // Metered in the scripts' own namespace (security pass 2026-10-05).
+      expect(caller).toBe('script:builtin-ai-ask');
 
       // The channel must not hear it. The answer is drafted from what other
       // people wrote, so they could have steered it.
@@ -2335,7 +2364,7 @@ describe('ScriptingService', () => {
       expect(mockAiService.ask).toHaveBeenCalledWith(
         'summarize this',
         expect.objectContaining({ maxTokens: 120 }),
-        'script-42',
+        'script:script-42',
       );
     });
 

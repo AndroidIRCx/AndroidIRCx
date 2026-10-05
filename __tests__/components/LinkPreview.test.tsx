@@ -1,7 +1,10 @@
 import React from 'react';
 import { Alert, Linking, Image } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { LinkPreview } from '../../src/components/LinkPreview';
+import {
+  isPreviewableUrl,
+  LinkPreview,
+} from '../../src/components/LinkPreview';
 
 const mockDownloadFile = jest.fn();
 
@@ -357,15 +360,62 @@ describe('LinkPreview', () => {
     });
   });
 
-  it('returns relative og:image untouched when the page url is unparseable', async () => {
-    (global as any).XMLHttpRequest = makeHtmlXHR(
-      '<html><head><meta property="og:image" content="/x.png" /></head></html>',
-    ) as any;
+  it('fetches nothing for a URL it cannot parse', async () => {
+    const opened = jest.fn();
+    (global as any).XMLHttpRequest = class extends MockXHR {
+      open() {
+        opened();
+      }
+    } as any;
 
     const utils = await render(<LinkPreview url="http://" />);
 
-    await waitFor(async () => {
-      expect(imageUri(utils as any)).toBe('/x.png');
+    await waitFor(() => expect(() => utils.UNSAFE_getByType(Image)).toThrow());
+    expect(opened).not.toHaveBeenCalled();
+  });
+
+  describe('security pass 2026-10-05: links into the reader\u2019s own network', () => {
+    it.each([
+      'http://192.168.1.1/apply.cgi?reboot=1',
+      'http://127.0.0.1:8080/',
+      'http://[::1]/',
+      'http://2130706433/',
+      'printer.local/status',
+      'https://user@github.com/',
+    ])('fetches nothing for %s', async url => {
+      const opened = jest.fn();
+      (global as any).XMLHttpRequest = class extends MockXHR {
+        open() {
+          opened();
+        }
+      } as any;
+
+      const utils = await render(<LinkPreview url={url} />);
+
+      await waitFor(() =>
+        expect(() => utils.UNSAFE_getByType(Image)).toThrow(),
+      );
+      expect(opened).not.toHaveBeenCalled();
+    });
+
+    it('drops an og:image that points into a private network', async () => {
+      (global as any).XMLHttpRequest = makeHtmlXHR(
+        '<html><head><meta property="og:image" content="http://10.0.0.1/cam.jpg" /></head></html>',
+      ) as any;
+
+      const utils = await render(
+        <LinkPreview url="https://example.com/page" />,
+      );
+
+      await waitFor(() =>
+        expect(() => utils.UNSAFE_getByType(Image)).toThrow(),
+      );
+    });
+
+    it('still previews an ordinary public link', () => {
+      expect(isPreviewableUrl('https://example.com/page')).toBe(true);
+      expect(isPreviewableUrl('example.com/page')).toBe(true);
+      expect(isPreviewableUrl(undefined)).toBe(false);
     });
   });
 

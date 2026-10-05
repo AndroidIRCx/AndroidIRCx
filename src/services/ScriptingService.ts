@@ -284,6 +284,14 @@ export interface ScriptMenuItem {
   onSelect: (target: string, ctx: ScriptCommandContext) => void;
 }
 
+/**
+ * The id a script's AI calls are metered under. Prefixed so no script can
+ * share a bucket with the app's own callers: a script whose id was "agent"
+ * got the assistant's limits — no cooldown, 500 a day (security pass
+ * 2026-10-05).
+ */
+export const aiCallerIdFor = (scriptId: string) => `script:${scriptId}`;
+
 const STORAGE_KEY = '@AndroidIRCX:scripts';
 const STORAGE_LOG_KEY = '@AndroidIRCX:scriptLog';
 const STORAGE_SETTINGS_KEY = '@AndroidIRCX:scriptSettings';
@@ -2117,11 +2125,16 @@ class ScriptingService {
           module.exports = {
             onHighlight: async (msg) => {
               if (!msg || !msg.text || msg.from === api.userNick) return;
+              // The channel goes with it, so the per-channel AI opt-in
+              // applies: the person who highlighted you never agreed to
+              // their words going to a provider.
               const draft = await api.ai.ask(
                 '<' + (msg.from || '?') + '> ' + msg.text,
                 {
                   system: 'Draft a short, friendly IRC reply in one line. Plain text only.',
                   maxTokens: 150,
+                  channel: msg.channel || msg.target,
+                  network: msg.network,
                 },
               );
               if (!draft) return;
@@ -4116,7 +4129,7 @@ class ScriptingService {
                 channel: options?.channel,
                 network: options?.network,
               },
-              script.id,
+              aiCallerIdFor(script.id),
             );
             return result.text;
           } catch (error) {
@@ -4161,7 +4174,7 @@ class ScriptingService {
                 channel: options?.channel,
                 network: options?.network,
               },
-              script.id,
+              aiCallerIdFor(script.id),
             );
             return result.text;
           } catch (error) {

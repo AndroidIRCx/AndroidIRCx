@@ -56,6 +56,99 @@ describe('AIProviderStore', () => {
     ).rejects.toThrow('base URL');
   });
 
+  describe('security pass 2026-10-05', () => {
+    it('refuses plain http to a host on the internet', async () => {
+      await expect(
+        aiProviderStore.add({
+          ...openAIInput,
+          baseUrl: 'http://api.openai.com/v1',
+        }),
+      ).rejects.toThrow('Use https');
+    });
+
+    it('allows plain http on this machine or the local network', async () => {
+      for (const baseUrl of [
+        'http://127.0.0.1:11434/v1',
+        'http://192.168.1.20:1234/v1',
+        'http://gpu.local:8000/v1',
+      ]) {
+        const provider = await aiProviderStore.add({
+          ...openAIInput,
+          kind: 'local',
+          baseUrl,
+        });
+        expect(provider.baseUrl).toBe(baseUrl);
+      }
+    });
+
+    it('refuses a base URL that hides its host behind an @', async () => {
+      await expect(
+        aiProviderStore.add({
+          ...openAIInput,
+          baseUrl: 'https://api.openai.com@evil.example/v1',
+        }),
+      ).rejects.toThrow('base URL');
+    });
+
+    it('drops the key when the provider is pointed at another host', async () => {
+      const provider = await aiProviderStore.add(openAIInput, 'sk-secret');
+
+      const moved = await aiProviderStore.update(provider.id, {
+        baseUrl: 'https://openrouter.ai/api/v1',
+      });
+
+      expect(moved?.hasKey).toBe(false);
+      expect(await aiProviderStore.getKey(provider.id)).toBeNull();
+    });
+
+    it('drops the key when the provider becomes another kind', async () => {
+      const provider = await aiProviderStore.add(openAIInput, 'sk-secret');
+
+      const changed = await aiProviderStore.update(provider.id, {
+        kind: 'local',
+        baseUrl: 'http://127.0.0.1:11434/v1',
+      });
+
+      expect(changed?.hasKey).toBe(false);
+      expect(await aiProviderStore.getKey(provider.id)).toBeNull();
+    });
+
+    it('keeps the key for an edit that stays on the same service', async () => {
+      const provider = await aiProviderStore.add(openAIInput, 'sk-secret');
+
+      const renamed = await aiProviderStore.update(provider.id, {
+        name: 'Renamed',
+        baseUrl: 'https://api.openai.com/v1/',
+      });
+
+      expect(renamed?.hasKey).toBe(true);
+      expect(await aiProviderStore.getKey(provider.id)).toBe('sk-secret');
+    });
+
+    it('switches off a stored provider whose address is no longer accepted', async () => {
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:aiProviders',
+        JSON.stringify([
+          {
+            id: 'restored',
+            name: 'From a backup',
+            kind: 'openai-compatible',
+            baseUrl: 'http://evil.example/v1',
+            model: 'm',
+            hasKey: false,
+            maxTokens: 512,
+            enabled: true,
+          },
+        ]),
+      );
+
+      const [provider] = await aiProviderStore.list();
+
+      expect(provider.enabled).toBe(false);
+      expect(await aiProviderStore.resolve('restored')).toBeNull();
+    });
+  });
+
   it('normalizes the base URL and clamps maxTokens', async () => {
     const provider = await aiProviderStore.add({
       ...openAIInput,

@@ -1,0 +1,8 @@
+What's new in v1.10.4:
+- Security fixes across the assistant, MCP, backups, irc:// links and link previews.
+- Assistant requests sized from your model, up to 2M tokens.
+- Too long? It summarises and retries instead of stopping.
+- Summaries saved to your own MCP memory, like MemPalace.
+- See which tool the assistant is running.
+- Minimise it: it keeps working, a bubble brings you back.
+- New assistant button; drag it or search anywhere.

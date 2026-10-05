@@ -1,6 +1,8 @@
 /* Copyright (c) 2025-2026 Velimir Majstorov; SPDX-License-Identifier: GPL-3.0-or-later */
 
 import {
+  carriesCredentials,
+  redactCredentialText,
   byteLengthOf,
   fingerprintLine,
   isTransportCritical,
@@ -8,6 +10,49 @@ import {
   rawCommandOf,
   sanitizeOutboundLine,
 } from '../../src/services/scripting/AddonRawPolicy';
+
+describe('credentials (security pass 2026-10-05)', () => {
+  it.each([
+    'OPER admin secret',
+    'PRIVMSG NickServ :IDENTIFY hunter2',
+    'privmsg nickserv :identify account hunter2',
+    'PRIVMSG NS :REGISTER hunter2 me@example.com',
+    'PRIVMSG NickServ :GHOST nick hunter2',
+    'PRIVMSG NickServ :SET PASSWORD newpass',
+    'NOTICE ChanServ :IDENTIFY #chan pw',
+    'PRIVMSG Q@CServe.quakenet.org :AUTH user pw',
+    'NS IDENTIFY hunter2',
+    'NICKSERV identify hunter2',
+    'AUTH user pw',
+    'LOGIN user pw',
+    '@tag=1 :me!u@h PRIVMSG NickServ :IDENTIFY pw',
+  ])('holds back %s', line => {
+    expect(carriesCredentials(line)).toBe(true);
+    // And so no raw modifier ever sees it, or writes one.
+    expect(isTransportCritical(line)).toBe(true);
+  });
+
+  it.each([
+    'PRIVMSG #chan :identify yourself please',
+    'PRIVMSG NickServ :INFO alice',
+    'PRIVMSG alice :IDENTIFY is a command',
+    'NS INFO alice',
+    'JOIN #chan',
+    'PRIVMSG NickServ',
+  ])('lets %s through', line => {
+    expect(carriesCredentials(line)).toBe(false);
+  });
+
+  it('redacts the password and keeps the command', () => {
+    expect(redactCredentialText('IDENTIFY hunter2')).toBe(
+      'IDENTIFY [redacted]',
+    );
+    expect(redactCredentialText('  set password x')).toBe(
+      'set password [redacted]',
+    );
+    expect(redactCredentialText('hello there')).toBe('hello there');
+  });
+});
 
 describe('AddonRawPolicy', () => {
   describe('rawCommandOf', () => {

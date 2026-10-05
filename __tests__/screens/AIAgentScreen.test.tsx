@@ -6,7 +6,7 @@
 import React from 'react';
 import { Alert, Platform, ToastAndroid } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: () => ({
@@ -60,6 +60,12 @@ jest.mock('../../src/services/ai/AgentService', () => ({
     switchTo: jest.fn(async () => undefined),
     deleteSession: jest.fn(async () => undefined),
     clearAllSessions: jest.fn(async () => undefined),
+    compactNow: jest.fn(async () => true),
+    activeSessionId: jest.fn(() => 's1'),
+    currentActivity: jest.fn(() => ({ kind: 'idle' })),
+    isBusy: jest.fn(() => false),
+    lastMemorySave: jest.fn(() => []),
+    onActivity: jest.fn(() => () => undefined),
   },
 }));
 
@@ -107,6 +113,14 @@ beforeEach(() => {
   (agentService.send as jest.Mock).mockResolvedValue(ok());
   (agentService.retry as jest.Mock).mockResolvedValue(ok());
   (agentService.resolvePending as jest.Mock).mockResolvedValue(ok());
+  (agentService.compactNow as jest.Mock).mockResolvedValue(true);
+  (agentService.isBusy as jest.Mock).mockReturnValue(false);
+  (agentService.lastMemorySave as jest.Mock).mockReturnValue([]);
+  (agentService.activeSessionId as jest.Mock).mockReturnValue('s1');
+  (agentService.currentActivity as jest.Mock).mockReturnValue({ kind: 'idle' });
+  (agentService.onActivity as jest.Mock).mockImplementation(
+    () => () => undefined,
+  );
   (aiService.diagnose as jest.Mock).mockResolvedValue({
     ready: true,
     reason: '',
@@ -438,5 +452,297 @@ describe('conversations', () => {
     expect(await findByText('Conversations')).toBeTruthy();
     await fireEvent.press(await findByText('Back'));
     await waitFor(() => expect(queryByText('Conversations')).toBeNull());
+  });
+});
+
+describe('minimising', () => {
+  const renderMinimisable = async () => {
+    const onClose = jest.fn();
+    const onMinimize = jest.fn();
+    const utils = await render(
+      <AIAgentScreen visible onClose={onClose} onMinimize={onMinimize} />,
+    );
+    await waitFor(() => expect(agentService.load).toHaveBeenCalled());
+    return { ...utils, onClose, onMinimize };
+  };
+
+  it('offers Minimize instead of Close, and says the work carries on', async () => {
+    const original = Platform.OS;
+    Platform.OS = 'android';
+    const toast = jest.spyOn(ToastAndroid, 'show').mockImplementation(() => {});
+    (agentService.isBusy as jest.Mock).mockReturnValue(true);
+    try {
+      const { getByText, queryByText, onMinimize, onClose } =
+        await renderMinimisable();
+      expect(queryByText('Close')).toBeNull();
+
+      await fireEvent.press(getByText('Minimize'));
+
+      expect(onMinimize).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
+        'The assistant keeps working. Tap its bubble to come back.',
+        ToastAndroid.SHORT,
+      );
+    } finally {
+      Platform.OS = original;
+      toast.mockRestore();
+    }
+  });
+
+  it('says how to come back when nothing is running', async () => {
+    const original = Platform.OS;
+    Platform.OS = 'android';
+    const toast = jest.spyOn(ToastAndroid, 'show').mockImplementation(() => {});
+    try {
+      const { getByText } = await renderMinimisable();
+      await fireEvent.press(getByText('Minimize'));
+      expect(toast).toHaveBeenCalledWith(
+        'Minimised. Tap the assistant bubble to come back.',
+        ToastAndroid.SHORT,
+      );
+    } finally {
+      Platform.OS = original;
+      toast.mockRestore();
+    }
+  });
+
+  it('keeps the thread as it was when it comes back to the same conversation', async () => {
+    (agentService.send as jest.Mock).mockResolvedValue(
+      ok({ toolsUsed: ['list_channels'] }),
+    );
+    const onMinimize = jest.fn();
+    const { getByPlaceholderText, getByText, findByText, rerender } =
+      await render(
+        <AIAgentScreen visible onClose={jest.fn()} onMinimize={onMinimize} />,
+      );
+    await fireEvent.changeText(getByPlaceholderText('Ask something…'), 'hi');
+    await fireEvent.press(getByText('Send'));
+    expect(await findByText('Used: list_channels')).toBeTruthy();
+
+    await rerender(
+      <AIAgentScreen
+        visible={false}
+        onClose={jest.fn()}
+        onMinimize={onMinimize}
+      />,
+    );
+    await rerender(
+      <AIAgentScreen visible onClose={jest.fn()} onMinimize={onMinimize} />,
+    );
+
+    // A rebuild from history would have lost the note; it is still there.
+    expect(await findByText('Used: list_channels')).toBeTruthy();
+  });
+});
+
+describe('showing the work', () => {
+  it('says which tool is running while it waits', async () => {
+    let listener: ((activity: any) => void) | undefined;
+    (agentService.onActivity as jest.Mock).mockImplementation(fn => {
+      listener = fn;
+      return () => undefined;
+    });
+    let finish: (turn: any) => void = () => undefined;
+    (agentService.send as jest.Mock).mockReturnValue(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    const { getByPlaceholderText, getByText, findByText } =
+      await renderScreen();
+    await fireEvent.changeText(getByPlaceholderText('Ask something…'), 'hi');
+    // Not awaited: the turn is still running, which is the point.
+    fireEvent.press(getByText('Send'));
+
+    expect(await findByText('Thinking\u2026')).toBeTruthy();
+    expect(listener).toBeDefined();
+    await act(async () => {
+      listener!({ kind: 'tool', name: 'x', label: 'MemPalace \u203a search' });
+    });
+    expect(getByText('Running MemPalace \u203a search\u2026')).toBeTruthy();
+    await act(async () => {
+      listener!({ kind: 'compacting' });
+    });
+    expect(getByText('Summarising earlier messages\u2026')).toBeTruthy();
+
+    await act(async () => {
+      finish(ok());
+    });
+    expect(await findByText('an answer')).toBeTruthy();
+  });
+
+  it('lists the tools a turn used, once each with a count', async () => {
+    (agentService.send as jest.Mock).mockResolvedValue(
+      ok({ toolsUsed: ['a', 'b', 'a', 'a'] }),
+    );
+    const { getByPlaceholderText, getByText, findByText } =
+      await renderScreen();
+    await fireEvent.changeText(getByPlaceholderText('Ask something…'), 'hi');
+    await fireEvent.press(getByText('Send'));
+    expect(await findByText('Used: a ×3, b')).toBeTruthy();
+  });
+
+  it('says when it made room by summarising', async () => {
+    (agentService.send as jest.Mock).mockResolvedValue(
+      ok({ recovered: 'compact' }),
+    );
+    const { getByPlaceholderText, getByText, findByText } =
+      await renderScreen();
+    await fireEvent.changeText(getByPlaceholderText('Ask something…'), 'hi');
+    await fireEvent.press(getByText('Send'));
+    expect(
+      await findByText(
+        'That was too much for the model, so the conversation was summarised and sent again.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('says when it had to send the question alone', async () => {
+    (agentService.send as jest.Mock).mockResolvedValue(
+      ok({ recovered: 'question_only' }),
+    );
+    const { getByPlaceholderText, getByText, findByText } =
+      await renderScreen();
+    await fireEvent.changeText(getByPlaceholderText('Ask something…'), 'hi');
+    await fireEvent.press(getByText('Send'));
+    expect(
+      await findByText(
+        'That was too much for the model even summarised, so only your question was sent.',
+      ),
+    ).toBeTruthy();
+  });
+});
+
+describe('when it is too long', () => {
+  const failTooLong = async () => {
+    (agentService.send as jest.Mock).mockResolvedValue({
+      status: 'error',
+      error: 'context window is full',
+      tooLong: true,
+    });
+    const utils = await renderScreen();
+    await fireEvent.changeText(
+      utils.getByPlaceholderText('Ask something…'),
+      'hi',
+    );
+    await fireEvent.press(utils.getByText('Send'));
+    expect(await utils.findByText('context window is full')).toBeTruthy();
+    return utils;
+  };
+
+  it('offers ways out instead of a plain retry', async () => {
+    const { queryByText, findByText } = await failTooLong();
+    expect(await findByText('Summarise and retry')).toBeTruthy();
+    expect(await findByText('Ask just this question')).toBeTruthy();
+    expect(queryByText('Try again')).toBeNull();
+  });
+
+  it('summarises and retries', async () => {
+    const { findByText } = await failTooLong();
+    await fireEvent.press(await findByText('Summarise and retry'));
+    await waitFor(() =>
+      expect(agentService.retry).toHaveBeenCalledWith('compact'),
+    );
+  });
+
+  it('retries with the question alone', async () => {
+    const { findByText } = await failTooLong();
+    await fireEvent.press(await findByText('Ask just this question'));
+    await waitFor(() =>
+      expect(agentService.retry).toHaveBeenCalledWith('question_only'),
+    );
+  });
+});
+
+describe('compacting by hand', () => {
+  const withThread = () =>
+    (agentService.history as jest.Mock).mockReturnValue([
+      { role: 'user', content: 'q' },
+      { role: 'assistant', content: 'a' },
+    ]);
+
+  it('is offered once there is a conversation', async () => {
+    const { queryByText } = await renderScreen();
+    expect(queryByText('Compact')).toBeNull();
+  });
+
+  it('summarises the thread and says so', async () => {
+    withThread();
+    const { findByText } = await renderScreen();
+
+    await fireEvent.press(await findByText('Compact'));
+
+    await waitFor(() => expect(agentService.compactNow).toHaveBeenCalled());
+    expect(
+      await findByText(
+        'The conversation was summarised. Ask the next question.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('says when there was nothing to summarise', async () => {
+    withThread();
+    (agentService.compactNow as jest.Mock).mockResolvedValue(false);
+    const { findByText } = await renderScreen();
+
+    await fireEvent.press(await findByText('Compact'));
+
+    expect(await findByText('There is nothing to summarise yet.')).toBeTruthy();
+  });
+});
+
+describe('saving summaries to memory', () => {
+  const ask = async (turn: Record<string, unknown>) => {
+    (agentService.send as jest.Mock).mockResolvedValue(ok(turn));
+    const utils = await renderScreen();
+    await fireEvent.changeText(
+      utils.getByPlaceholderText('Ask something…'),
+      'hi',
+    );
+    await fireEvent.press(utils.getByText('Send'));
+    return utils;
+  };
+
+  it('says where the summary was saved', async () => {
+    const { findByText } = await ask({
+      compacted: true,
+      memory: [
+        { ok: true, server: 'Palace' },
+        { ok: true, server: 'Notes' },
+      ],
+    });
+    expect(
+      await findByText('The summary was saved to Palace, Notes.'),
+    ).toBeTruthy();
+  });
+
+  it('says why it could not be saved', async () => {
+    const { findByText } = await ask({
+      compacted: true,
+      memory: [
+        { ok: true, server: 'Notes' },
+        { ok: false, server: 'Palace', error: 'no such wing' },
+      ],
+    });
+    expect(await findByText('The summary was saved to Notes.')).toBeTruthy();
+    expect(
+      await findByText('Could not save the summary to Palace: no such wing'),
+    ).toBeTruthy();
+  });
+
+  it('reports the save after a compaction by hand', async () => {
+    (agentService.history as jest.Mock).mockReturnValue([
+      { role: 'user', content: 'q' },
+      { role: 'assistant', content: 'a' },
+    ]);
+    (agentService.lastMemorySave as jest.Mock).mockReturnValue([
+      { ok: true, server: 'Palace' },
+    ]);
+    const { findByText } = await renderScreen();
+
+    await fireEvent.press(await findByText('Compact'));
+
+    expect(await findByText('The summary was saved to Palace.')).toBeTruthy();
   });
 });

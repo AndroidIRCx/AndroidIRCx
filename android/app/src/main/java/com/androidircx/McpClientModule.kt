@@ -9,7 +9,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.sse.SSE
+import io.ktor.http.Url
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.mcpSse
 import io.modelcontextprotocol.kotlin.sdk.client.mcpStreamableHttp
@@ -142,6 +144,35 @@ class McpClientModule(reactContext: ReactApplicationContext) :
         throw failure ?: IllegalStateException("The server did not answer.")
     }
 
+    /**
+     * Refuses any request this client would send to an address other than the
+     * server the user entered — scheme, host and port.
+     *
+     * Security pass 2026-10-05: the legacy HTTP+SSE transport POSTs to
+     * whatever URL the server's `endpoint` event names, absolute ones
+     * included, with the same headers — the user's token among them. A server,
+     * or anyone in the middle of a plain-http connection, could point it at
+     * another host, or at a service on 127.0.0.1. Every request is checked
+     * here before it goes out, so the token only ever reaches where it was
+     * given.
+     */
+    private fun sameOriginOnly(serverUrl: String) =
+        createClientPlugin("McpSameOrigin") {
+            val expected = Url(serverUrl)
+            val expectedHost = expected.host.lowercase()
+            onRequest { request, _ ->
+                val target = request.url.build()
+                if (target.protocol.name != expected.protocol.name ||
+                    target.host.lowercase() != expectedHost ||
+                    target.port != expected.port
+                ) {
+                    throw IllegalStateException(
+                        "The MCP server tried to send the connection to ${target.host}, which is not the server you added.",
+                    )
+                }
+            }
+        }
+
     @ReactMethod
     fun connect(id: String, url: String, token: String?, promise: Promise) {
         scope.launch {
@@ -152,6 +183,7 @@ class McpClientModule(reactContext: ReactApplicationContext) :
                     // SseClientTransport opens the stream through this plugin;
                     // without it the SSE transport fails before it starts.
                     install(SSE)
+                    install(sameOriginOnly(url))
                     engine {
                         // An SSE stream is idle between events by design, and
                         // CIO's fifteen-second request timeout would tear down

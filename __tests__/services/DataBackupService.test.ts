@@ -131,6 +131,18 @@ describe('DataBackupService', () => {
       expect(backup).toContain('server-pass');
     });
 
+    it('leaves AI conversations and memories out of a settings export', async () => {
+      mockStorage['@AndroidIRCX:aiSessions'] = '{"sessions":["#chat text"]}';
+      mockStorage['@AndroidIRCX:aiMemories'] = '[]';
+      mockStorage.settings = 'settings';
+
+      const parsed = JSON.parse(await dataBackupService.exportSettings());
+
+      expect(parsed.data['@AndroidIRCX:aiSessions']).toBeUndefined();
+      expect(parsed.data['@AndroidIRCX:aiMemories']).toBeUndefined();
+      expect(parsed.data.settings).toBe('settings');
+    });
+
     it('drops an AI key even when the caller asks for it by name', async () => {
       mockSecureStorage['ai:key:p1'] = 'sk-live-secret';
 
@@ -230,6 +242,85 @@ describe('DataBackupService', () => {
       expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBe(
         'sasl-pass',
       );
+    });
+  });
+
+  describe('a crafted backup (security pass 2026-10-05)', () => {
+    const restore = (data: Record<string, unknown>, secureData = {}) =>
+      dataBackupService.importAll(
+        JSON.stringify({ version: 1, createdAt: '', data, secureData }),
+      );
+
+    it('grants no paid feature, permission or consent', async () => {
+      await restore({
+        '@AndroidIRCX:supporterSubscription':
+          '{"active":true,"tier":"big","purchaseToken":null}',
+        '@AndroidIRCX:purchases': '{"supporter_pro":true}',
+        '@AndroidIRCX:purchaseTokens': '{"supporter_pro":"x"}',
+        '@AndroidIRCX:addonPermissionGrants:v1': '{"evil":["irc.send"]}',
+        '@AndroidIRCX:addonSafGrants:v1': '{"evil":"content://x"}',
+        '@AndroidIRCX:aiConsent': 'true',
+        '@AndroidIRCX:aiChannels': '{"net::#secret":true}',
+        networks: '[]',
+      });
+
+      for (const key of [
+        '@AndroidIRCX:supporterSubscription',
+        '@AndroidIRCX:purchases',
+        '@AndroidIRCX:purchaseTokens',
+        '@AndroidIRCX:addonPermissionGrants:v1',
+        '@AndroidIRCX:addonSafGrants:v1',
+        '@AndroidIRCX:aiConsent',
+        '@AndroidIRCX:aiChannels',
+      ]) {
+        expect(mockStorage[key]).toBeUndefined();
+      }
+      // Everything else still comes back.
+      expect(mockStorage.networks).toBe('[]');
+    });
+
+    it('brings scripts back switched off', async () => {
+      await restore({
+        '@AndroidIRCX:scripts': JSON.stringify([
+          { id: 'custom-1', name: 'Steal', code: 'x', enabled: true },
+          null,
+          { id: 'custom-2', name: 'Off', code: 'y', enabled: false },
+        ]),
+      });
+
+      const scripts = JSON.parse(mockStorage['@AndroidIRCX:scripts']!);
+      expect(scripts).toHaveLength(2);
+      expect(scripts.every((script: any) => script.enabled === false)).toBe(
+        true,
+      );
+    });
+
+    it('drops a script list it cannot read rather than restoring it', async () => {
+      await restore({ '@AndroidIRCX:scripts': '{not json' });
+      expect(mockStorage['@AndroidIRCX:scripts']).toBe('[]');
+      await restore({ '@AndroidIRCX:scripts': '{"a":1}' });
+      expect(mockStorage['@AndroidIRCX:scripts']).toBe('[]');
+    });
+
+    it('plants no AI provider key and no addon secret', async () => {
+      await restore(
+        {},
+        {
+          '@AndroidIRCX:secure:ai:key:p1': 'sk-attacker',
+          '@AndroidIRCX:secure:ai:mcpclient:x': 'token',
+          '@AndroidIRCX:secure:net1:saslPassword': 'mine',
+        },
+      );
+
+      expect(mockSecureStorage['ai:key:p1']).toBeUndefined();
+      expect(mockSecureStorage['ai:mcpclient:x']).toBeUndefined();
+      expect(mockSecureStorage['net1:saslPassword']).toBe('mine');
+    });
+
+    it('ignores values that are not strings', async () => {
+      await restore({ odd: 42, nested: { a: 1 } });
+      expect(mockStorage.odd).toBeUndefined();
+      expect(mockStorage.nested).toBeUndefined();
     });
   });
 

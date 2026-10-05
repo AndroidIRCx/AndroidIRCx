@@ -103,16 +103,20 @@ class SupporterSubscriptionService {
       const raw = await AsyncStorage.getItem(STATE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        const purchaseToken =
+          typeof parsed?.purchaseToken === 'string' && parsed.purchaseToken
+            ? parsed.purchaseToken
+            : null;
         this.state = {
-          active: parsed?.active === true,
+          // Active only with a purchase token behind it: one without can never
+          // be checked against Play, so it would grant everything forever
+          // (security pass 2026-10-05 — a restored backup did exactly that).
+          active: parsed?.active === true && !!purchaseToken,
           tier:
             parsed?.tier === 'big' || parsed?.tier === 'monthly'
               ? parsed.tier
               : null,
-          purchaseToken:
-            typeof parsed?.purchaseToken === 'string'
-              ? parsed.purchaseToken
-              : null,
+          purchaseToken,
           checkedAt:
             typeof parsed?.checkedAt === 'number' ? parsed.checkedAt : null,
         };

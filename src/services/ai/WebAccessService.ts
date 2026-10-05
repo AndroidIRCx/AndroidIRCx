@@ -6,6 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logger } from '../Logger';
 import { AIToolCall } from './types';
+import { isPrivateHost, parseHttpUrl } from '../../utils/safeUrl';
 
 /**
  * Which sites the assistant may read, and nothing else.
@@ -98,8 +99,15 @@ class WebAccessService {
   private hosts: string[] = [...DEFAULT_ALLOWED_HOSTS];
   private removedDefaults: string[] = [];
   private loaded = false;
-  /** Tool call ids the user approved for a single run. */
-  private oneOff = new Set<string>();
+  /**
+   * URLs the user approved for one fetch each, by their checked `href`.
+   *
+   * Keyed by URL, not by tool call id, and spent on use: Gemini numbers its
+   * call ids by position (`fetch_page_0`, `fetch_page_1`…), so a permit kept
+   * by id let every later first-in-a-reply fetch, to any site, through
+   * without asking.
+   */
+  private permits = new Set<string>();
 
   async load(): Promise<void> {
     if (this.loaded) return;
@@ -122,14 +130,19 @@ class WebAccessService {
     }
   }
 
+  /**
+   * A stored list, keeping only real host names. The list comes back from
+   * backups too, and an entry that is not a plain host — `[`, a wildcard, an
+   * address — has no business widening what may be fetched.
+   */
   private readList(raw: string | null): string[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (host: unknown): host is string =>
-        typeof host === 'string' && host.length > 0,
-    );
+    return parsed
+      .filter((host: unknown): host is string => typeof host === 'string')
+      .map(host => this.normalizeHost(host))
+      .filter(host => HOST_PATTERN.test(host));
   }
 
   private async persist(): Promise<void> {
@@ -177,7 +190,9 @@ class WebAccessService {
   async allowHost(host: string): Promise<void> {
     await this.load();
     const clean = this.normalizeHost(host);
-    if (!clean) return;
+    // Only a plain ASCII host name: never an address, and never a Unicode
+    // lookalike of a real site that the card showed as if it were one.
+    if (!HOST_PATTERN.test(clean)) return;
     // Adding a built-in host back undoes having removed it.
     this.removedDefaults = this.removedDefaults.filter(
       entry => entry !== clean,
@@ -217,57 +232,40 @@ class WebAccessService {
    * not its host is on the list.
    */
   isPrivateAddress(host: string): boolean {
-    const clean = this.normalizeHost(host);
-    if (!clean) return true;
-    if (
-      clean === 'localhost' ||
-      clean.endsWith('.localhost') ||
-      clean.endsWith('.local') ||
-      clean.endsWith('.internal')
-    ) {
-      return true;
-    }
-    // IPv6 loopback and the unique-local / link-local ranges.
-    if (clean === '::1' || /^\[?(f[cd][0-9a-f]{2}|fe80):/i.test(clean)) {
-      return true;
-    }
-    const v4 = clean.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-    if (!v4) return false;
-    const [a, b] = [Number(v4[1]), Number(v4[2])];
-    if (a === 127 || a === 0 || a === 10) return true;
-    if (a === 169 && b === 254) return true; // link-local, incl. cloud metadata
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    return false;
+    return isPrivateHost(host);
   }
 
-  /** The host a fetch call is aimed at, or null when the URL is unusable. */
+  /**
+   * The host a fetch call is aimed at, or null when the URL is unusable.
+   *
+   * Never `new URL()`: on a device that is React Native's regex URL, which
+   * reads `https://evil.example/?x=@github.com` as github.com. See safeUrl.
+   */
   hostOf(url: string): string | null {
-    try {
-      const parsed = new URL(String(url));
-      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        return null;
-      }
-      return parsed.hostname;
-    } catch {
-      return null;
-    }
+    return parseHttpUrl(url)?.hostname ?? null;
   }
 
   /** True when this call is a fetch whose host the user has not allowed. */
   callNeedsPermission(call: AIToolCall): boolean {
     if (call?.name !== 'fetch_page') return false;
-    if (this.oneOff.has(call.id)) return false;
-    const host = this.hostOf(String(call.input?.url ?? ''));
+    const parsed = parseHttpUrl(call.input?.url);
     // A malformed or private URL is refused by the tool itself with a reason,
     // which is more useful than asking the user about something impossible.
-    if (!host || this.isPrivateAddress(host)) return false;
-    return !this.isAllowed(host);
+    if (!parsed || this.isPrivateAddress(parsed.hostname)) return false;
+    if (this.permits.has(parsed.href)) return false;
+    return !this.isAllowed(parsed.hostname);
   }
 
-  /** Approve one call without adding its host to the list. */
+  /** Approve this one fetch, of this one URL, without adding its host. */
   permitOnce(call: AIToolCall): void {
-    if (call?.name === 'fetch_page') this.oneOff.add(call.id);
+    if (call?.name !== 'fetch_page') return;
+    const parsed = parseHttpUrl(call.input?.url);
+    if (parsed) this.permits.add(parsed.href);
+  }
+
+  /** Drop approvals nobody used, so one never outlives its turn. */
+  clearPermits(): void {
+    this.permits.clear();
   }
 
   /**
@@ -279,20 +277,30 @@ class WebAccessService {
    */
   async fetchPage(url: string): Promise<WebFetchResult> {
     await this.load();
-    const host = this.hostOf(url);
-    if (!host) {
-      throw new Error('Only http and https URLs can be fetched.');
+    const parsed = parseHttpUrl(url);
+    if (!parsed) {
+      throw new Error(
+        'Only plain http and https URLs can be fetched (no user@host, no spaces).',
+      );
     }
+    const host = parsed.hostname;
     if (this.isPrivateAddress(host)) {
       throw new Error(
         'That address is on a private network, which this tool never reaches.',
       );
     }
+    // Enforced here, for every caller — the assistant, scripts, addons and
+    // the MCP server — rather than trusted to each of them. A caller with
+    // nobody to ask (a remote agent, an addon) is held to the list.
+    if (!this.isAllowed(host) && !this.permits.delete(parsed.href)) {
+      throw new Error(`${host} is not on your allowed list.`);
+    }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const response = await fetch(url, {
+      // The rebuilt URL, never the raw string: what was checked is what goes.
+      const response = await fetch(parsed.href, {
         method: 'GET',
         headers: { accept: 'text/html,text/plain,text/markdown' },
         signal: controller.signal,
@@ -305,8 +313,11 @@ class WebAccessService {
       // not one. Checked after the fact rather than by refusing to follow,
       // because `redirect: 'manual'` is not reliably honoured on React Native
       // - what matters is that the body never reaches the caller.
-      const finalUrl = typeof response.url === 'string' ? response.url : url;
-      if (finalUrl && finalUrl !== url) {
+      const finalUrl =
+        typeof response.url === 'string' && response.url
+          ? response.url
+          : parsed.href;
+      if (finalUrl !== parsed.href && finalUrl !== url) {
         const finalHost = this.hostOf(finalUrl);
         if (!finalHost)
           throw new Error(
@@ -316,7 +327,8 @@ class WebAccessService {
           throw new Error(
             'That site redirected to a private network address, which this tool never reaches.',
           );
-        if (!this.isAllowed(finalHost))
+        // The same host as the one approved once is that same approval.
+        if (!this.isAllowed(finalHost) && finalHost !== host)
           throw new Error(
             `That site redirected to ${finalHost}, which is not on your allowed list.`,
           );
@@ -410,7 +422,7 @@ class WebAccessService {
     this.hosts = [...DEFAULT_ALLOWED_HOSTS];
     this.removedDefaults = [];
     this.loaded = false;
-    this.oneOff.clear();
+    this.permits.clear();
   }
 }
 

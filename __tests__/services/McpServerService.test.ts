@@ -159,11 +159,11 @@ describe('McpServerService', () => {
       input: '{"network":"net1"}',
     });
 
-    expect(executeTool).toHaveBeenCalledWith({
-      id: 'call-1',
-      name: 'list_channels',
-      input: { network: 'net1' },
-    });
+    expect(executeTool).toHaveBeenCalledWith(
+      { id: 'call-1', name: 'list_channels', input: { network: 'net1' } },
+      // Tools hold a caller outside the app to more than the in-app one.
+      { remote: true },
+    );
     expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
       'call-1',
       '#chat, #dev',
@@ -182,6 +182,7 @@ describe('McpServerService', () => {
 
     expect(executeTool).toHaveBeenCalledWith(
       expect.objectContaining({ input: {} }),
+      { remote: true },
     );
   });
 
@@ -189,7 +190,11 @@ describe('McpServerService', () => {
     executeTool.mockRejectedValue(new Error('boom'));
     await mcpServerService.start();
 
-    await capturedListener?.({ id: 'call-3', name: 'x', input: '{}' });
+    await capturedListener?.({
+      id: 'call-3',
+      name: 'list_channels',
+      input: '{}',
+    });
 
     // Native is blocking on this id; silence would hold the remote request
     // open until its own timeout.
@@ -200,11 +205,134 @@ describe('McpServerService', () => {
     );
   });
 
+  describe('security pass 2026-10-05', () => {
+    const { aiService } = require('../../src/services/ai/AIService');
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('refuses a tool it never offered, whatever name arrives', async () => {
+      await mcpServerService.start({ allowWrites: false });
+
+      for (const name of ['send_message', 'not_a_tool']) {
+        await capturedListener?.({ id: name, name, input: '{}' });
+        expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
+          name,
+          `No such tool: ${name}`,
+          true,
+        );
+      }
+      expect(executeTool).not.toHaveBeenCalled();
+    });
+
+    it('offers the write tools only when actions are allowed', async () => {
+      await mcpServerService.start({ allowWrites: true });
+      await capturedListener?.({
+        id: 'w',
+        name: 'send_message',
+        input: '{"target":"#a"}',
+      });
+      expect(executeTool).toHaveBeenCalled();
+    });
+
+    it('counts what the assistant remembers as a write', async () => {
+      const { agentToolSchemas } = require('../../src/services/ai/AgentTools');
+      agentToolSchemas.mockReturnValueOnce([
+        {
+          name: 'remember',
+          description: 'Remember',
+          inputSchema: { type: 'object' },
+          mutates: false,
+        },
+        {
+          name: 'forget_memory',
+          description: 'Forget',
+          inputSchema: { type: 'object' },
+          mutates: false,
+        },
+      ]);
+      await mcpServerService.start({ allowWrites: false });
+
+      const tools = mockNative.start.mock.calls[0][0].tools;
+      expect(tools.map((tool: any) => tool.mutates)).toEqual([true, true]);
+      await capturedListener?.({ id: 'r', name: 'remember', input: '{}' });
+      expect(executeTool).not.toHaveBeenCalled();
+    });
+
+    it('answers nothing while AI is switched off', async () => {
+      await mcpServerService.start();
+      jest.spyOn(aiService, 'isEnabled').mockReturnValue(false);
+
+      await capturedListener?.({
+        id: 'off',
+        name: 'list_channels',
+        input: '{}',
+      });
+
+      expect(executeTool).not.toHaveBeenCalled();
+      expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
+        'off',
+        'AI is switched off in AndroidIRCX.',
+        true,
+      );
+    });
+
+    it('holds remote callers to two calls at a time', async () => {
+      await mcpServerService.start();
+      const pending: Array<(value: unknown) => void> = [];
+      executeTool.mockImplementation(
+        () => new Promise(resolve => pending.push(resolve)),
+      );
+
+      const calls = ['a', 'b', 'c'].map(id =>
+        capturedListener?.({ id, name: 'list_channels', input: '{}' }),
+      );
+      await Promise.resolve();
+
+      expect(executeTool).toHaveBeenCalledTimes(2);
+      expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
+        'c',
+        'Busy with other calls; try again in a moment.',
+        true,
+      );
+      pending.forEach(resolve => resolve({ content: 'ok' }));
+      await Promise.all(calls);
+    });
+
+    it('holds remote callers to sixty calls a minute', async () => {
+      await mcpServerService.start();
+      for (let i = 0; i < 60; i += 1) {
+        await capturedListener?.({
+          id: `n${i}`,
+          name: 'list_channels',
+          input: '{}',
+        });
+      }
+      await capturedListener?.({
+        id: 'over',
+        name: 'list_channels',
+        input: '{}',
+      });
+
+      expect(executeTool).toHaveBeenCalledTimes(60);
+      expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
+        'over',
+        'Too many calls this minute; slow down.',
+        true,
+      );
+    });
+  });
+
   it('marks a tool error as an error', async () => {
     executeTool.mockResolvedValue({ content: 'not connected', isError: true });
     await mcpServerService.start();
 
-    await capturedListener?.({ id: 'call-4', name: 'x', input: '{}' });
+    await capturedListener?.({
+      id: 'call-4',
+      name: 'list_channels',
+      input: '{}',
+    });
 
     expect(mockNative.resolveToolCall).toHaveBeenCalledWith(
       'call-4',

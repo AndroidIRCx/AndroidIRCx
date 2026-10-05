@@ -2973,6 +2973,70 @@ describe('MessageArea', () => {
       expect(toJSON()).toBeTruthy();
     });
 
+    // ── the assistant's floating button ──────────────────────────────────────
+    it('opens the assistant from its floating button', async () => {
+      const { useUIStore } = require('../../src/stores/uiStore');
+      const store = {
+        setAIAgentMinimized: jest.fn(),
+        setShowAIAgent: jest.fn(),
+      };
+      (useUIStore.getState as jest.Mock).mockReturnValue(store);
+      const { getByTestId } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+
+      await act(async () => {
+        await fireEvent(getByTestId('fab-assistant'), 'accessibilityTap');
+      });
+
+      expect(store.setAIAgentMinimized).toHaveBeenCalledWith(false);
+      expect(store.setShowAIAgent).toHaveBeenCalledWith(true);
+    });
+
+    it('leaves the assistant button off when its setting cannot be read', async () => {
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaAssistantButton'
+          ? Promise.reject(new Error('storage gone'))
+          : Promise.resolve(fallback),
+      );
+      const { queryByTestId } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+      expect(queryByTestId('fab-assistant')).toBeNull();
+    });
+
+    it('hides the assistant button when the user turned it off', async () => {
+      mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+        key === 'showMessageAreaAssistantButton'
+          ? Promise.resolve(false)
+          : Promise.resolve(fallback),
+      );
+      const { queryByTestId } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+      expect(queryByTestId('fab-assistant')).toBeNull();
+    });
+
+    it('follows the assistant button setting as it changes', async () => {
+      const handlers: Record<string, (value: unknown) => void> = {};
+      mockOnSettingChange.mockImplementation(
+        (key: string, handler: (value: unknown) => void) => {
+          handlers[key] = handler;
+          return jest.fn();
+        },
+      );
+      const { queryByTestId } = await renderAndSettle(
+        <MessageArea channel="#general" network="TestNet" messages={[]} />,
+      );
+      expect(queryByTestId('fab-assistant')).toBeTruthy();
+
+      await act(async () => {
+        handlers.showMessageAreaAssistantButton(false);
+      });
+
+      expect(queryByTestId('fab-assistant')).toBeNull();
+    });
+
     // ── empty-state search button (uncontrolled) ──────────────────────────────
     it('shows and toggles the floating search button in the empty state', async () => {
       mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
@@ -2980,12 +3044,12 @@ describe('MessageArea', () => {
           ? Promise.resolve(true)
           : Promise.resolve(fallback),
       );
-      const { getByText } = await renderAndSettle(
+      const { getByTestId } = await renderAndSettle(
         <MessageArea channel="#general" network="TestNet" messages={[]} />,
       );
       // The floating search button is the only element rendering the mocked Icon.
       await act(async () => {
-        await fireEvent.press(getByText('Icon'));
+        await fireEvent(getByTestId('fab-search'), 'accessibilityTap');
       });
       expect(mockMessageSearchBarProps).toBeTruthy();
       // Toggling to visible via the uncontrolled path should surface the bar.
@@ -2998,14 +3062,14 @@ describe('MessageArea', () => {
           ? Promise.resolve(true)
           : Promise.resolve(fallback),
       );
-      const { getByText } = await renderAndSettle(
+      const { getByTestId } = await renderAndSettle(
         <MessageArea
           {...baseProps}
           messages={[makeMsg({ text: 'hi there' })]}
         />,
       );
       await act(async () => {
-        await fireEvent.press(getByText('Icon'));
+        await fireEvent(getByTestId('fab-search'), 'accessibilityTap');
       });
       expect(mockMessageSearchBarProps.visible).toBe(true);
     });
@@ -3899,7 +3963,7 @@ describe('MessageArea', () => {
           : Promise.resolve(fallback),
       );
       const onSearchVisibleChange = jest.fn();
-      const { getByText } = await renderAndSettle(
+      const { getByTestId } = await renderAndSettle(
         <MessageArea
           {...baseProps}
           messages={[makeMsg({ text: 'nv search' })]}
@@ -3908,7 +3972,7 @@ describe('MessageArea', () => {
       );
       // Floating search button (non-virtualized) toggles search visibility.
       await act(async () => {
-        await fireEvent.press(getByText('Icon'));
+        await fireEvent(getByTestId('fab-search'), 'accessibilityTap');
       });
       expect(onSearchVisibleChange).toHaveBeenCalledWith(true);
       // Search bar callbacks in the non-virtualized path.

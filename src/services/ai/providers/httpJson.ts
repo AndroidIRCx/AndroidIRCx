@@ -14,6 +14,24 @@ import { AIError, AIErrorCode } from '../types';
  * provider produced it.
  */
 
+/**
+ * How providers say "this request is bigger than the model takes". Each words
+ * it differently, and all of them send it as a plain 400 (or 413), which on
+ * its own is indistinguishable from a malformed request. Recognising it lets
+ * the assistant compact and try again instead of dead-ending the user.
+ *
+ * OpenAI/DeepSeek: "maximum context length is N tokens", code
+ * context_length_exceeded. Anthropic: "prompt is too long: N tokens > M".
+ * Gemini: "input token count (N) exceeds the maximum number of tokens".
+ * OpenRouter and vLLM relay one of these or say "context window".
+ */
+const CONTEXT_OVERFLOW =
+  /context[ _]length|context window|maximum context|prompt is too long|too many tokens|input token count|exceeds the maximum number of tokens|reduce the length of the messages/i;
+
+export function isContextOverflow(status: number, message: string): boolean {
+  return (status === 400 || status === 413) && CONTEXT_OVERFLOW.test(message);
+}
+
 function statusToCode(status: number): AIErrorCode {
   if (status === 401 || status === 403) return 'auth_failed';
   if (status === 429) return 'rate_limited';
@@ -77,9 +95,19 @@ async function request<T>(
     } catch {
       // Body already consumed or unreadable; the status alone still informs.
     }
+    const message = extractErrorMessage(raw);
+    // Checked against the raw body too: OpenAI puts the telling word in
+    // `error.code` (context_length_exceeded), not in the message.
+    if (isContextOverflow(response.status, `${message} ${raw}`)) {
+      throw new AIError(
+        'prompt_too_long',
+        `The model's context window is full (HTTP ${response.status}: ${message})`,
+        response.status,
+      );
+    }
     throw new AIError(
       statusToCode(response.status),
-      `HTTP ${response.status}: ${extractErrorMessage(raw)}`,
+      `HTTP ${response.status}: ${message}`,
       response.status,
     );
   }

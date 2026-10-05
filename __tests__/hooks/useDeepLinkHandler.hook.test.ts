@@ -111,6 +111,24 @@ describe('useDeepLinkHandler hook', () => {
     return result;
   });
 
+  /**
+   * Press a button on the last alert with this title. Security pass
+   * 2026-10-05: a saved network no longer connects on a link alone, so the
+   * tests that expect a connection first say yes.
+   */
+  const press = async (title: string, index = 1) => {
+    const call = [...safeAlert.mock.calls]
+      .reverse()
+      .find(entry => entry[0] === title);
+    expect(call).toBeDefined();
+    await act(async () => {
+      await call![2][index].onPress();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+  const confirmConnect = () => press('Connect to IRC Server');
+
   beforeEach(async () => {
     jest.clearAllMocks();
     mockInitialUrl = null;
@@ -161,6 +179,9 @@ describe('useDeepLinkHandler hook', () => {
     await new Promise(r => setTimeout(r, 0));
 
     expect(Linking.getInitialURL).toHaveBeenCalled();
+    // Nothing happens until the user agrees.
+    expect(handleConnect).not.toHaveBeenCalled();
+    await confirmConnect();
     expect(handleConnect).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'TestNet' }),
       'srv-1',
@@ -200,6 +221,7 @@ describe('useDeepLinkHandler hook', () => {
       t,
     });
     await new Promise(r => setTimeout(r, 0));
+    await confirmConnect();
 
     expect(handleConnect).toHaveBeenCalled();
   });
@@ -270,6 +292,82 @@ describe('useDeepLinkHandler hook', () => {
     );
   });
 
+  describe('security pass 2026-10-05', () => {
+    const run = async () => {
+      await renderHook(() =>
+        useDeepLinkHandler({
+          handleConnect,
+          handleJoinChannel,
+          isAppLocked: false,
+          isFirstRunComplete: true,
+          activeConnectionId: null,
+          tabs: [],
+          safeAlert,
+          t,
+        }),
+      );
+      await new Promise(r => setTimeout(r, 0));
+    };
+
+    it('keeps the user\u2019s own identity on a saved network', async () => {
+      mockInitialUrl = 'ircs://irc.test.net:6697/#chan?nick=Mallory';
+      mockParseIRCUrl.mockReturnValue(
+        makeParsed({
+          channel: '#chan',
+          nick: 'Mallory',
+          altNick: 'Mallory_',
+          realname: 'Not you',
+          ident: 'evil',
+        }),
+      );
+
+      await run();
+      await confirmConnect();
+
+      expect(handleConnect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Nick',
+          altNick: 'Nick_',
+          realname: 'User',
+          ident: 'ident',
+          autoJoinChannels: ['#chan'],
+        }),
+        'srv-1',
+      );
+    });
+
+    it.each(['#a,#b', '#a key', '0', 'nochannel'])(
+      'joins nothing for the channel %j',
+      async channel => {
+        mockInitialUrl = 'ircs://irc.test.net:6697/x';
+        mockParseIRCUrl.mockReturnValue(makeParsed({ channel }));
+
+        await run();
+        await confirmConnect();
+
+        expect(handleConnect).toHaveBeenCalledWith(
+          expect.objectContaining({ autoJoinChannels: [] }),
+          'srv-1',
+        );
+      },
+    );
+
+    it('connects nothing when the user says no', async () => {
+      mockInitialUrl = 'ircs://irc.test.net:6697';
+
+      await run();
+
+      // The prompt is up; until a button is pressed nothing connects, and
+      // Cancel has nothing to run.
+      expect(safeAlert).toHaveBeenCalledWith(
+        'Connect to IRC Server',
+        expect.any(String),
+        expect.any(Array),
+      );
+      expect(handleConnect).not.toHaveBeenCalled();
+    });
+  });
+
   it('ignores duplicate URL events received within 2 seconds', async () => {
     mockInitialUrl = null;
     const nowSpy = jest.spyOn(Date, 'now');
@@ -295,7 +393,11 @@ describe('useDeepLinkHandler hook', () => {
       await new Promise(r => setTimeout(r, 0));
     });
 
-    expect(handleConnect).toHaveBeenCalledTimes(1);
+    expect(
+      safeAlert.mock.calls.filter(
+        entry => entry[0] === 'Connect to IRC Server',
+      ),
+    ).toHaveLength(1);
     expect(logger.info).toHaveBeenCalledWith(
       'deeplink',
       expect.stringContaining('Ignoring duplicate URL'),
@@ -332,6 +434,7 @@ describe('useDeepLinkHandler hook', () => {
       expect.stringContaining('plain text'),
       expect.any(Array),
     );
+    await confirmConnect();
     expect(handleConnect).toHaveBeenCalled();
   });
 
@@ -544,6 +647,9 @@ describe('useDeepLinkHandler hook', () => {
     );
     await new Promise(r => setTimeout(r, 0));
 
+    // Asked first, like the other already-connected path.
+    expect(handleJoinChannel).not.toHaveBeenCalled();
+    await press('Join Channel');
     expect(handleJoinChannel).toHaveBeenCalledWith('#race', undefined);
     expect(handleConnect).not.toHaveBeenCalled();
   });
@@ -572,6 +678,7 @@ describe('useDeepLinkHandler hook', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    await confirmConnect();
     await act(async () => {
       jest.advanceTimersByTime(2000);
       await Promise.resolve();
@@ -639,6 +746,7 @@ describe('useDeepLinkHandler hook', () => {
       }),
     );
     await new Promise(r => setTimeout(r, 0));
+    await confirmConnect();
 
     expect(logger.error).toHaveBeenCalledWith(
       'deeplink',
@@ -679,11 +787,21 @@ describe('useDeepLinkHandler hook', () => {
       'deeplink',
       'Already processing a URL, queuing',
     );
+    // Say yes, so the pending connect set up above is the one used here and
+    // not left over for the next test.
+    const confirm = safeAlert.mock.calls.find(
+      entry => entry[0] === 'Connect to IRC Server',
+    );
+    await act(async () => {
+      confirm?.[2][1].onPress();
+      await Promise.resolve();
+    });
     resolveConnect?.();
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    expect(handleConnect).toHaveBeenCalled();
   });
 
   it('clears pending keyed-channel timeout on unmount', async () => {
@@ -711,6 +829,7 @@ describe('useDeepLinkHandler hook', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    await confirmConnect();
 
     await unmount();
     expect(clearSpy).toHaveBeenCalled();

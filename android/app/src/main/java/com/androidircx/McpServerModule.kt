@@ -1,5 +1,8 @@
 package com.androidircx
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -76,6 +79,8 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
     private var token: String = ""
     private var port: Int = DEFAULT_PORT
     private var bindMode: String = BIND_LOOPBACK
+    /** The address the running server is actually bound to. */
+    private var boundHost: String = ""
 
     private data class ToolReply(val content: String, val isError: Boolean)
 
@@ -119,19 +124,29 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
         val id = java.util.UUID.randomUUID().toString()
         val deferred = CompletableDeferred<ToolReply>()
         pending[id] = deferred
-
-        val payload = Arguments.createMap().apply {
-            putString("id", id)
-            putString("name", name)
-            putString("input", argumentsJson)
+        // Security pass 2026-10-05: the emit had no try/catch. With the React
+        // instance gone or reloading it throws inside the tool handler, and
+        // the pending entry was never removed. Now the remote caller gets an
+        // answer and nothing is left behind, whatever happens.
+        try {
+            val payload = Arguments.createMap().apply {
+                putString("id", id)
+                putString("name", name)
+                putString("input", argumentsJson)
+            }
+            try {
+                reactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    .emit(EVENT_TOOL_CALL, payload)
+            } catch (e: Throwable) {
+                Log.w(TAG, "Could not hand a tool call to the app: ${e.message}")
+                return ToolReply("The app is not ready to answer right now.", true)
+            }
+            val reply = withTimeoutOrNull(TOOL_TIMEOUT_MS) { deferred.await() }
+            return reply ?: ToolReply("The app did not answer in time.", true)
+        } finally {
+            pending.remove(id)
         }
-        reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(EVENT_TOOL_CALL, payload)
-
-        val reply = withTimeoutOrNull(TOOL_TIMEOUT_MS) { deferred.await() }
-        pending.remove(id)
-        return reply ?: ToolReply("The app did not answer in time.", true)
     }
 
     private fun buildServer(tools: ReadableArray, allowWrites: Boolean): Server {
@@ -224,13 +239,14 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
                 BIND_LAN -> lanAddress() ?: run {
                     promise.reject(
                         "no_lan",
-                        "This phone has no network address right now. Connect to Wi-Fi, or bind to every interface instead.",
+                        "This phone is not on a Wi-Fi network right now. Connect to Wi-Fi, or bind to every interface instead.",
                     )
                     return
                 }
                 else -> "127.0.0.1"
             }
 
+            boundHost = host
             val started = embeddedServer(CIO, port = port, host = host) {
                 // No install(SSE) here: mcpStreamableHttp() installs it itself,
                 // and Ktor throws DuplicatePluginException on the second
@@ -263,6 +279,7 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
         } catch (e: Throwable) {
             Log.e(TAG, "Failed to start MCP server: ${e.message}", e)
             engine = null
+            boundHost = ""
             promise.reject("start_failed", e.message, e)
         }
     }
@@ -273,6 +290,7 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
             engine?.stop(500, 1000)
             engine = null
             token = ""
+            boundHost = ""
             // Release anything still waiting, or those coroutines leak.
             pending.values.forEach { it.complete(ToolReply("Server stopped.", true)) }
             pending.clear()
@@ -295,21 +313,40 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
     }
 
     /**
-     * This phone's own IPv4 address on the network it is attached to.
+     * This phone's own IPv4 address on its Wi-Fi (or Ethernet) network.
+     *
+     * Security pass 2026-10-05: this used to take the first non-loopback
+     * interface in whatever order the system listed them. On a phone with both
+     * Wi-Fi and mobile data that could be the carrier interface — on a carrier
+     * that hands out public IPv4, that put the user's IRC session on the
+     * internet, while the screen promised "mobile data, tethering and a VPN
+     * are left out". Now only a network the system itself says is Wi-Fi or
+     * Ethernet is used; with none, there is no LAN address and "My network"
+     * refuses to start rather than guess.
      *
      * IPv6 is skipped on purpose: the address a person has to type into an MCP
      * client is the one they can read off this screen, and a link-local IPv6
-     * address with a scope id is not that. Null when there is no network.
+     * address with a scope id is not that.
      */
+    @Suppress("DEPRECATION") // allNetworks: the one call that lists them all on API 24+.
     private fun lanAddress(): String? =
         try {
-            java.net.NetworkInterface.getNetworkInterfaces()
-                .toList()
+            val manager = reactContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+                as? ConnectivityManager ?: return null
+            manager.allNetworks
                 .asSequence()
-                .filter { it.isUp && !it.isLoopback }
-                .flatMap { it.inetAddresses.toList().asSequence() }
+                .filter { network ->
+                    val capabilities = manager.getNetworkCapabilities(network)
+                    capabilities != null &&
+                        !capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) &&
+                        (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
+                }
+                .mapNotNull { manager.getLinkProperties(it) }
+                .flatMap { it.linkAddresses.asSequence() }
+                .map { it.address }
                 .filterIsInstance<java.net.Inet4Address>()
-                .firstOrNull { !it.isLoopbackAddress }
+                .firstOrNull { !it.isLoopbackAddress && !it.isLinkLocalAddress }
                 ?.hostAddress
         } catch (e: Throwable) {
             Log.w(TAG, "Could not read this phone's address: ${e.message}")
@@ -324,10 +361,14 @@ class McpServerModule(private val reactContext: ReactApplicationContext) :
         // The address a client should actually be pointed at. For 0.0.0.0 that
         // is not "0.0.0.0" — nobody can connect to that — it is this phone's
         // address on the network, which is what the settings screen shows.
+        // For "My network" this is the address the server is bound to, not a
+        // fresh lookup that may have moved on since — what is shown is what is
+        // listening.
         putString(
             "host",
-            when (bindMode) {
-                BIND_LOOPBACK -> "127.0.0.1"
+            when {
+                bindMode == BIND_LOOPBACK -> "127.0.0.1"
+                bindMode == BIND_LAN && boundHost.isNotEmpty() -> boundHost
                 else -> lanAddress() ?: ""
             },
         )

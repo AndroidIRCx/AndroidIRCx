@@ -29,17 +29,25 @@ import { ModalSafeArea } from '../components/ModalSafeArea';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
 import {
+  AgentActivity,
   agentService,
   AgentSessionSummary,
   AgentTurn,
+  RetryMode,
 } from '../services/ai/AgentService';
 import { aiService } from '../services/ai/AIService';
+import { MemorySaveResult } from '../services/ai/McpMemorySink';
 import { webAccessService } from '../services/ai/WebAccessService';
 import { AIReadiness } from '../services/ai/types';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
+  /**
+   * Hide the screen without ending anything. When given, the header button
+   * and the back gesture minimise instead of closing.
+   */
+  onMinimize?: () => void;
 }
 
 interface Bubble {
@@ -51,7 +59,20 @@ interface Bubble {
 let bubbleSeq = 0;
 const nextId = () => `b${++bubbleSeq}`;
 
-export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
+/** "search ×3, read_channel" — a repeated tool once, with how many times. */
+export function summariseTools(labels: string[]): string {
+  const counts = new Map<string, number>();
+  for (const label of labels) counts.set(label, (counts.get(label) ?? 0) + 1);
+  return Array.from(counts)
+    .map(([label, count]) => (count > 1 ? `${label} \u00d7${count}` : label))
+    .join(', ');
+}
+
+export const AIAgentScreen: React.FC<Props> = ({
+  visible,
+  onClose,
+  onMinimize,
+}) => {
   const { colors } = useTheme();
   const t = useT();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -63,14 +84,23 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [pending, setPending] = useState<AgentTurn['pending']>(undefined);
   /** Set when the last turn failed, so the question can be sent again. */
   const [canRetry, setCanRetry] = useState(false);
+  /** Set when it failed for size, so the retry can make room first. */
+  const [tooLong, setTooLong] = useState(false);
+  const [activity, setActivity] = useState<AgentActivity>({ kind: 'idle' });
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView> | null>(null);
 
   const [mcpTools, setMcpTools] = useState(0);
   const [sessions, setSessions] = useState<AgentSessionSummary[]>([]);
   const [showSessions, setShowSessions] = useState(false);
 
+  /** The session the bubbles on screen belong to. */
+  const shownSessionId = useRef<string | null>(null);
+  const bubbleCount = useRef(0);
+  bubbleCount.current = bubbles.length;
+
   /** Rebuild the thread from the service, which is where it actually lives. */
   const showSession = useCallback(() => {
+    shownSessionId.current = agentService.activeSessionId();
     setBubbles(
       agentService
         .history()
@@ -84,7 +114,18 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     setSessions(agentService.listSessions());
     setPending(undefined);
     setCanRetry(false);
+    setTooLong(false);
   }, []);
+
+  // What the assistant is doing while the spinner turns: which tool, or that
+  // it is summarising. Tools can take a long while, and a bare spinner looks
+  // the same whether it is working or stuck.
+  useEffect(() => {
+    if (!visible) return;
+    // Reopened mid-turn: show the work in progress, not a blank composer.
+    setActivity(agentService.currentActivity());
+    return agentService.onActivity(setActivity);
+  }, [visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -97,34 +138,117 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     // The bubbles are view state and die with the modal, but the conversation
     // is not - it lives in the service. Closing this screen used to look like
     // losing the thread even though the model still had every word of it.
-    agentService.load().then(showSession);
+    //
+    // Coming back from minimised to the same conversation keeps the thread
+    // as it was, notes and all, rather than rebuilding it from the history.
+    agentService.load().then(() => {
+      if (
+        bubbleCount.current > 0 &&
+        shownSessionId.current === agentService.activeSessionId()
+      ) {
+        return;
+      }
+      showSession();
+    });
   }, [visible, showSession]);
+
+  /**
+   * Minimise, and say so: a screen that vanishes mid-answer looks like it
+   * was cancelled. Nothing stops — the bubble brings it back.
+   */
+  const hide = useCallback(() => {
+    if (!onMinimize) {
+      onClose();
+      return;
+    }
+    onMinimize();
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(
+        agentService.isBusy()
+          ? t('The assistant keeps working. Tap its bubble to come back.')
+          : t('Minimised. Tap the assistant bubble to come back.'),
+        ToastAndroid.SHORT,
+      );
+    }
+  }, [onMinimize, onClose, t]);
 
   const append = useCallback((role: Bubble['role'], text: string) => {
     if (!text) return;
     setBubbles(current => [...current, { id: nextId(), role, text }]);
   }, []);
 
+  /** Say where a compaction's summary went, when it went anywhere. */
+  const noteMemory = useCallback(
+    (memory: MemorySaveResult[] | undefined) => {
+      if (!memory?.length) return;
+      // One line for every server that took it, one per server that did not,
+      // so a failure is never lost among the successes.
+      const saved = memory.filter(result => result.ok);
+      if (saved.length) {
+        append(
+          'system',
+          t('The summary was saved to {server}.', {
+            server: saved.map(result => result.server).join(', '),
+          }),
+        );
+      }
+      for (const result of memory.filter(entry => !entry.ok)) {
+        append(
+          'system',
+          t('Could not save the summary to {server}: {error}', {
+            server: result.server,
+            error: result.error ?? '',
+          }),
+        );
+      }
+    },
+    [append, t],
+  );
+
   const applyTurn = useCallback(
     (turn: AgentTurn) => {
-      if (turn.status === 'error') {
-        append('system', turn.error || t('Something went wrong.'));
-        setPending(undefined);
-        setCanRetry(true);
-        return;
-      }
-      setCanRetry(false);
       // Say when the older half of a long conversation was summarised away,
       // rather than letting it quietly stop remembering things.
       if (turn.compacted) {
         append('system', t('Earlier messages were summarised to make room.'));
       }
+      if (turn.recovered === 'compact') {
+        append(
+          'system',
+          t(
+            'That was too much for the model, so the conversation was summarised and sent again.',
+          ),
+        );
+      } else if (turn.recovered === 'question_only') {
+        append(
+          'system',
+          t(
+            'That was too much for the model even summarised, so only your question was sent.',
+          ),
+        );
+      }
+      noteMemory(turn.memory);
+      if (turn.toolsUsed?.length) {
+        append(
+          'system',
+          t('Used: {tools}', { tools: summariseTools(turn.toolsUsed) }),
+        );
+      }
+      if (turn.status === 'error') {
+        append('system', turn.error || t('Something went wrong.'));
+        setPending(undefined);
+        setCanRetry(true);
+        setTooLong(!!turn.tooLong);
+        return;
+      }
+      setCanRetry(false);
+      setTooLong(false);
       if (turn.text) append('assistant', turn.text);
       setPending(
         turn.status === 'needs_confirmation' ? turn.pending : undefined,
       );
     },
-    [append, t],
+    [append, noteMemory, t],
   );
 
   const copy = useCallback(
@@ -137,16 +261,39 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     [t],
   );
 
-  const handleRetry = useCallback(async () => {
+  const handleRetry = useCallback(
+    async (mode?: RetryMode) => {
+      if (busy) return;
+      setCanRetry(false);
+      setTooLong(false);
+      setBusy(true);
+      try {
+        applyTurn(await agentService.retry(mode));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, applyTurn],
+  );
+
+  /** Summarise the thread now, so the next question starts lighter. */
+  const handleCompact = useCallback(async () => {
     if (busy) return;
-    setCanRetry(false);
     setBusy(true);
     try {
-      applyTurn(await agentService.retry());
+      const done = await agentService.compactNow();
+      showSession();
+      append(
+        'system',
+        done
+          ? t('The conversation was summarised. Ask the next question.')
+          : t('There is nothing to summarise yet.'),
+      );
+      if (done) noteMemory(agentService.lastMemorySave());
     } finally {
       setBusy(false);
     }
-  }, [busy, applyTurn]);
+  }, [busy, showSession, append, noteMemory, t]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -209,6 +356,7 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
     setBubbles([]);
     setPending(undefined);
     setCanRetry(false);
+    setTooLong(false);
     setSessions(agentService.listSessions());
     setShowSessions(false);
   }, []);
@@ -246,6 +394,7 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
           setBubbles([]);
           setPending(undefined);
           setCanRetry(false);
+          setTooLong(false);
           setSessions(agentService.listSessions());
           setShowSessions(false);
         },
@@ -261,7 +410,7 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
       animationType="slide"
       statusBarTranslucent
       navigationBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={hide}
     >
       <ModalSafeArea style={styles.container}>
         <KeyboardAvoidingView
@@ -269,8 +418,20 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.headerAction}>{t('Close')}</Text>
+            <TouchableOpacity
+              onPress={hide}
+              accessibilityRole="button"
+              accessibilityHint={
+                onMinimize
+                  ? t(
+                      'Hides the conversation. It keeps running and comes back from the bubble.',
+                    )
+                  : undefined
+              }
+            >
+              <Text style={styles.headerAction}>
+                {onMinimize ? t('Minimize') : t('Close')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setShowSessions(true)}
@@ -289,13 +450,22 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
             </TouchableOpacity>
           </View>
 
-          {mcpTools > 0 && (
-            <Text style={styles.subtleNote}>
-              {t('{count} tools from MCP servers are available.', {
-                count: mcpTools,
-              })}
-            </Text>
-          )}
+          <View style={styles.toolbar}>
+            {mcpTools > 0 ? (
+              <Text style={styles.toolbarNote}>
+                {t('{count} tools from MCP servers are available.', {
+                  count: mcpTools,
+                })}
+              </Text>
+            ) : (
+              <View style={styles.toolbarSpacer} />
+            )}
+            {bubbles.length > 1 && !busy && !pending?.length && (
+              <TouchableOpacity onPress={handleCompact}>
+                <Text style={styles.toolbarAction}>{t('Compact')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           {blocker && (
             <View style={styles.blocker}>
@@ -352,12 +522,47 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
               </TouchableOpacity>
             ))}
             {canRetry && !busy && (
-              <TouchableOpacity style={styles.retry} onPress={handleRetry}>
-                <Text style={styles.retryText}>{t('Try again')}</Text>
-              </TouchableOpacity>
+              <View style={styles.retryRow}>
+                {tooLong ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.retry}
+                      onPress={() => handleRetry('compact')}
+                    >
+                      <Text style={styles.retryText}>
+                        {t('Summarise and retry')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.retry}
+                      onPress={() => handleRetry('question_only')}
+                    >
+                      <Text style={styles.retryText}>
+                        {t('Ask just this question')}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.retry}
+                    onPress={() => handleRetry()}
+                  >
+                    <Text style={styles.retryText}>{t('Try again')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
             {busy && (
-              <ActivityIndicator style={styles.busy} color={colors.primary} />
+              <View style={styles.busyRow}>
+                <ActivityIndicator color={colors.primary} />
+                <Text style={styles.busyText}>
+                  {activity.kind === 'tool'
+                    ? t('Running {tool}\u2026', { tool: activity.label })
+                    : activity.kind === 'compacting'
+                      ? t('Summarising earlier messages\u2026')
+                      : t('Thinking\u2026')}
+                </Text>
+              </View>
             )}
           </ScrollView>
 
@@ -366,11 +571,21 @@ export const AIAgentScreen: React.FC<Props> = ({ visible, onClose }) => {
               <Text style={styles.confirmTitle}>
                 {t('The assistant wants to do this:')}
               </Text>
-              {pending.map(entry => (
-                <Text key={entry.call.id} style={styles.confirmItem}>
-                  {entry.summary}
-                </Text>
-              ))}
+              <ScrollView
+                style={styles.confirmList}
+                nestedScrollEnabled
+                testID="confirm-list"
+              >
+                {pending.map(entry => (
+                  <Text
+                    key={entry.call.id}
+                    style={styles.confirmItem}
+                    selectable
+                  >
+                    {entry.summary}
+                  </Text>
+                ))}
+              </ScrollView>
               {pendingHosts.length > 0 && (
                 <Text style={styles.confirmNote}>
                   {t(
@@ -619,7 +834,24 @@ const createStyles = (colors: any) =>
       marginBottom: 10,
     },
     retryText: { color: colors.primary, fontWeight: '700', fontSize: 13.5 },
-    busy: { marginTop: 8, alignSelf: 'flex-start' },
+    retryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    busyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 8,
+    },
+    busyText: { color: colors.textSecondary, fontSize: 13, flexShrink: 1 },
+    toolbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      gap: 12,
+    },
+    toolbarNote: { flex: 1, color: colors.textSecondary, fontSize: 12 },
+    toolbarSpacer: { flex: 1 },
+    toolbarAction: { color: colors.primary, fontSize: 13, fontWeight: '600' },
     confirm: {
       margin: 12,
       padding: 14,
@@ -633,6 +865,7 @@ const createStyles = (colors: any) =>
       fontWeight: '600',
       marginBottom: 8,
     },
+    confirmList: { maxHeight: 260 },
     confirmItem: {
       color: colors.textSecondary,
       fontFamily: 'monospace',

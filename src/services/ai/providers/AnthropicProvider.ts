@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { getJson, postJson } from './httpJson';
 import { sortModelIds } from './modelSort';
+import { tokenCount } from '../contextWindows';
 
 const DEFAULT_BASE_URL = 'https://api.anthropic.com';
 const MODEL_PAGE_SIZE = 1000;
@@ -255,6 +256,22 @@ class AnthropicProvider implements AIProviderAdapter {
     }
 
     return sortModelIds(ids);
+  }
+
+  async contextWindow(
+    provider: AIProvider,
+    apiKey: string | null,
+    signal: AbortSignal,
+  ): Promise<number | null> {
+    const model = await getJson<{ max_input_tokens?: unknown }>(
+      this.endpoint(
+        provider,
+        `/v1/models/${encodeURIComponent(provider.model)}`,
+      ),
+      this.headers(apiKey),
+      signal,
+    );
+    return tokenCount(model?.max_input_tokens);
   }
 }
 

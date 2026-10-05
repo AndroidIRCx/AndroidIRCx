@@ -17,6 +17,10 @@ import { IRCNetworkConfig, settingsService } from '../services/SettingsService';
 import { logger } from '../services/Logger';
 import type { ChannelTab } from '../types';
 
+/** One channel name, prefix included; no list, no key, no control bytes. */
+// eslint-disable-next-line no-control-regex -- refusing control bytes is the point
+const IRC_LINK_CHANNEL = /^[#&+!][^\s,\x00-\x1f]{1,199}$/;
+
 interface UseDeepLinkHandlerParams {
   handleConnect: (
     network?: IRCNetworkConfig,
@@ -68,8 +72,18 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
    * Process deep link after security warnings (if any)
    */
   const processDeepLinkAfterWarning = useCallback(
-    async (parsed: ReturnType<typeof parseIRCUrl>) => {
-      if (!parsed.isValid) return;
+    async (link: ReturnType<typeof parseIRCUrl>) => {
+      if (!link.isValid) return;
+      // One channel, or none. A link is somebody else's text: `%2C` and
+      // `%20` used to decode into "#a,#b" or "#a key", and a bare "0" into
+      // JOIN 0, which leaves every channel (security pass 2026-10-05).
+      const parsed = {
+        ...link,
+        channel:
+          link.channel && IRC_LINK_CHANNEL.test(link.channel)
+            ? link.channel
+            : undefined,
+      };
 
       try {
         // Check if we're already connected to this server
@@ -191,14 +205,12 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
             `Found matching network: ${matchedNetwork.name}`,
           );
 
-          // Use matched network, but override with URL parameters if provided
+          // The user's saved network, with the user's own identity. A link
+          // used to be able to set the nick, ident and realname a saved
+          // network connects with — somebody else's page choosing who the
+          // user appears to be (security pass 2026-10-05).
           networkToUse = {
             ...matchedNetwork,
-            // Override identity fields if provided in URL query params
-            nick: parsed.nick || matchedNetwork.nick,
-            altNick: parsed.altNick || matchedNetwork.altNick,
-            realname: parsed.realname || matchedNetwork.realname,
-            ident: parsed.ident || matchedNetwork.ident,
             // Add channel to auto-join if specified
             autoJoinChannels: parsed.channel
               ? [...(matchedNetwork.autoJoinChannels || []), parsed.channel]
@@ -247,7 +259,22 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
                   `Already connected to ${parsed.server}:${parsed.port}, joining channel if specified`,
                 );
                 if (parsed.channel) {
-                  handleJoinChannel(parsed.channel, parsed.channelKey);
+                  // The same question the first already-connected check asks.
+                  safeAlert(
+                    t('Join Channel'),
+                    t('A link wants to join you to {channel} on {server}.', {
+                      channel: parsed.channel,
+                      server: parsed.server,
+                    }),
+                    [
+                      { text: t('Cancel'), style: 'cancel' },
+                      {
+                        text: t('Join'),
+                        onPress: () =>
+                          handleJoinChannel(parsed.channel!, parsed.channelKey),
+                      },
+                    ],
+                  );
                 }
                 return; // Already connected, don't create duplicate
               }
@@ -296,24 +323,45 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
             ],
           );
         } else {
-          // Saved network - connect immediately
-          try {
-            await handleConnect(networkToUse, serverToUse?.id);
+          // Saved network: still asked. It connects with the user's saved
+          // credentials — SASL, NickServ — and shows their address to the
+          // server, and any web page or app can fire an irc:// link. It used
+          // to connect at once (security pass 2026-10-05).
+          safeAlert(
+            t('Connect to IRC Server'),
+            t('A link wants to connect you to {network} ({server}).{channel}', {
+              network: networkToUse.name,
+              server: parsed.server,
+              channel: parsed.channel
+                ? `\n${t('Channel: {channel}', { channel: parsed.channel })}`
+                : '',
+            }),
+            [
+              { text: t('Cancel'), style: 'cancel' },
+              {
+                text: t('Connect'),
+                onPress: async () => {
+                  try {
+                    await handleConnect(networkToUse, serverToUse?.id);
 
-            // If channel specified with key, join manually
-            if (parsed.channel && parsed.channelKey) {
-              const timeoutId = setTimeout(() => {
-                timeoutIdsRef.current.delete(timeoutId);
-                handleJoinChannel(parsed.channel!, parsed.channelKey);
-              }, 2000);
-              timeoutIdsRef.current.add(timeoutId);
-            }
-          } catch (error: any) {
-            logger.error(
-              'deeplink',
-              `Connection failed: ${error?.message || String(error)}`,
-            );
-          }
+                    // If channel specified with key, join manually
+                    if (parsed.channel && parsed.channelKey) {
+                      const timeoutId = setTimeout(() => {
+                        timeoutIdsRef.current.delete(timeoutId);
+                        handleJoinChannel(parsed.channel!, parsed.channelKey);
+                      }, 2000);
+                      timeoutIdsRef.current.add(timeoutId);
+                    }
+                  } catch (error: any) {
+                    logger.error(
+                      'deeplink',
+                      `Connection failed: ${error?.message || String(error)}`,
+                    );
+                  }
+                },
+              },
+            ],
+          );
         }
       } catch (error: any) {
         logger.error(

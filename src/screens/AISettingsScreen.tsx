@@ -21,7 +21,13 @@ import { ModalSafeArea } from '../components/ModalSafeArea';
 import { AIProviderPreset, presetsFor } from '../config/aiProviderPresets';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/localization';
-import { aiService } from '../services/ai/AIService';
+import {
+  aiService,
+  AutoPromptLimit,
+  CHARS_PER_TOKEN,
+  PROMPT_LIMIT_AUTO,
+  PROMPT_LIMIT_OPTIONS,
+} from '../services/ai/AIService';
 import {
   aiProviderStore,
   DEFAULT_MAX_TOKENS,
@@ -43,6 +49,11 @@ import {
   McpClientServer,
   McpClientStatus,
 } from '../services/ai/McpClientService';
+import {
+  MemorySinkSettings,
+  MemoryTarget,
+  mcpMemorySink,
+} from '../services/ai/McpMemorySink';
 import { aiMemoryService, AIMemory } from '../services/ai/AIMemoryService';
 import { webAccessService } from '../services/ai/WebAccessService';
 import { useTabStore } from '../stores/tabStore';
@@ -91,6 +102,12 @@ const emptyDraft = (kind: AIProviderKind): Draft => ({
   hasStoredKey: false,
 });
 
+/** 128000 -> "128k", 1000000 -> "1M". */
+const formatTokens = (tokens: number): string =>
+  tokens >= 1000000
+    ? `${Math.round(tokens / 100000) / 10}M`
+    : `${Math.round(tokens / 1000)}k`;
+
 export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const { colors } = useTheme();
   const t = useT();
@@ -108,6 +125,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [enabled, setEnabled] = useState(true);
   const [consent, setConsent] = useState(false);
   const [redaction, setRedaction] = useState(true);
+  const [promptLimit, setPromptLimit] = useState(PROMPT_LIMIT_AUTO);
+  const [autoLimit, setAutoLimit] = useState<AutoPromptLimit | null>(null);
   const [allowedChannels, setAllowedChannels] = useState<string[]>([]);
   const [providers, setProviders] = useState<AIProvider[]>([]);
   const [defaultId, setDefaultId] = useState<string | null>(null);
@@ -137,6 +156,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const [clientUrl, setClientUrl] = useState('');
   const [clientToken, setClientToken] = useState('');
   const [showClientEditor, setShowClientEditor] = useState(false);
+  const [memorySink, setMemorySink] = useState<MemorySinkSettings | null>(null);
+  const [memoryTargets, setMemoryTargets] = useState<MemoryTarget[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [modelFilter, setModelFilter] = useState('');
   const [preset, setPreset] = useState<AIProviderPreset | null>(null);
@@ -157,6 +178,8 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     setEnabled(aiService.isEnabled());
     setConsent(aiService.hasConsent());
     setRedaction(aiService.isRedactionEnabled());
+    setPromptLimit(aiService.getPromptLimit());
+    setAutoLimit(await aiService.describeAutoLimit());
     setAllowedChannels(aiService.listAllowedChannels());
     await webAccessService.load();
     setAllowedHosts(webAccessService.listHosts());
@@ -167,6 +190,9 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     setDefaultId(currentDefault);
     if (mcpClientService.isSupported()) {
       setClientServers(await mcpClientService.list());
+      await mcpMemorySink.load();
+      setMemorySink(mcpMemorySink.getSettings());
+      setMemoryTargets(mcpMemorySink.serverTargets());
     }
     if (mcpServerService.isSupported()) {
       // Read the saved settings, not the running server's: both switches are
@@ -225,6 +251,12 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
     async (value: boolean) => {
       setEnabled(value);
       await aiService.setEnabled(value);
+      // Off means off for agents outside the app too: stop the MCP server
+      // rather than leave it listening. (It refuses every call while AI is
+      // off anyway; this also closes the port.)
+      if (!value && mcpServerService.isSupported()) {
+        await mcpServerService.stop().catch(() => undefined);
+      }
       await refresh();
     },
     [refresh],
@@ -266,6 +298,11 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
   const toggleRedaction = useCallback((value: boolean) => {
     setRedaction(value);
     aiService.setRedactionEnabled(value);
+  }, []);
+
+  const choosePromptLimit = useCallback((value: number) => {
+    setPromptLimit(value);
+    aiService.setPromptLimit(value);
   }, []);
 
   const revokeChannel = useCallback(async (entry: string) => {
@@ -418,12 +455,34 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
    * that offers no tools: both look configured here and both leave the
    * assistant with nothing.
    */
+  /** The same rule as mcpMemorySink.isServerSelected, for the switches. */
+  const isMemoryServerOn = (serverId: string) =>
+    memorySink?.servers[serverId] ??
+    !!clientServers.find(server => server.id === serverId)?.trustReadOnlyHints;
+
+  const toggleMemoryServer = useCallback(
+    async (serverId: string, selected: boolean) => {
+      await mcpMemorySink.setServerSelected(serverId, selected);
+      setMemorySink(mcpMemorySink.getSettings());
+    },
+    [],
+  );
+
+  const changeMemorySink = useCallback(
+    async (changes: Partial<MemorySinkSettings>) => {
+      await mcpMemorySink.update(changes);
+      setMemorySink(mcpMemorySink.getSettings());
+    },
+    [],
+  );
+
   const testClientServer = useCallback(
     async (id: string) => {
       setTestingId(id);
       try {
         const status = await mcpClientService.test(id);
         setClientStatuses(previous => ({ ...previous, [id]: status }));
+        setMemoryTargets(mcpMemorySink.serverTargets());
         if (status.state === 'connected') {
           Alert.alert(
             t('Connection works'),
@@ -791,6 +850,58 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
             <Switch value={redaction} onValueChange={toggleRedaction} />
           </View>
 
+          <Text style={styles.masterTitle}>{t('Largest request')}</Text>
+          <Text style={styles.subtle}>
+            {t(
+              'How much one request to your provider may hold, in tokens. Auto sizes it from the model\u2019s context window. Long conversations are summarised before they reach it, and old tool output is trimmed. If your model takes more than Auto found \u2014 a 1M-token DeepSeek or Gemini, say \u2014 pick it here; if the model then says it is too long, that is its real limit. Larger requests cost more with paid providers.',
+            )}
+          </Text>
+          <View style={styles.kindRow}>
+            {[PROMPT_LIMIT_AUTO, ...PROMPT_LIMIT_OPTIONS].map(option => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.kindChip,
+                  promptLimit === option && styles.kindChipActive,
+                ]}
+                onPress={() => choosePromptLimit(option)}
+              >
+                <Text
+                  style={[
+                    styles.kindChipText,
+                    promptLimit === option && styles.kindChipTextActive,
+                  ]}
+                >
+                  {option === PROMPT_LIMIT_AUTO
+                    ? t('Auto')
+                    : formatTokens(option)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {promptLimit === PROMPT_LIMIT_AUTO && autoLimit && (
+            <Text style={styles.subtle}>
+              {autoLimit.tokens
+                ? t('{model}: {tokens} tokens ({source}).', {
+                    model: autoLimit.model,
+                    tokens: autoLimit.tokens.toLocaleString(),
+                    source:
+                      autoLimit.source === 'provider'
+                        ? t('reported by the provider')
+                        : t('known model'),
+                  })
+                : t(
+                    '{model}: the provider does not say how much it takes, so the default of {tokens} tokens applies. Pick a size if you know better.',
+                    {
+                      model: autoLimit.model,
+                      tokens: formatTokens(
+                        Math.round(autoLimit.chars / CHARS_PER_TOKEN),
+                      ),
+                    },
+                  )}
+            </Text>
+          )}
+
           <Text style={styles.masterTitle}>{t('Channels AI may read')}</Text>
           <Text style={styles.subtle}>
             {t(
@@ -980,6 +1091,33 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                       }
                     />
                   </View>
+                  {memorySink?.enabled &&
+                    memoryTargets.some(
+                      target => target.serverId === server.id,
+                    ) && (
+                      <View style={styles.masterRow}>
+                        <View style={styles.masterText}>
+                          <Text style={styles.masterTitle}>
+                            {t('Save conversation summaries here')}
+                          </Text>
+                          <Text style={styles.subtle}>
+                            {t('With {tool}.', {
+                              tool:
+                                memoryTargets.find(
+                                  target => target.serverId === server.id,
+                                )?.remoteName ?? '',
+                            })}
+                          </Text>
+                        </View>
+                        <Switch
+                          testID={`memory-server-${server.id}`}
+                          value={isMemoryServerOn(server.id)}
+                          onValueChange={value =>
+                            toggleMemoryServer(server.id, value)
+                          }
+                        />
+                      </View>
+                    )}
                   {clientStatuses[server.id] && (
                     <Text
                       style={
@@ -1035,6 +1173,95 @@ export const AISettingsScreen: React.FC<Props> = ({ visible, onClose }) => {
                   {t('Add MCP server')}
                 </Text>
               </TouchableOpacity>
+
+              {memorySink && (
+                <>
+                  <View style={styles.masterRow}>
+                    <View style={styles.masterText}>
+                      <Text style={styles.masterTitle}>
+                        {t('Save conversation summaries')}
+                      </Text>
+                      <Text style={styles.subtle}>
+                        {t(
+                          'When a conversation is summarised to make room, the summary is also saved to your own MCP memory \u2014 a MemPalace, the memory knowledge graph, or any server with a save-memory tool \u2014 so a later conversation can find it. It goes to every server that can keep it; switch one off in its card. The built-in read-only servers are never written to.',
+                        )}
+                      </Text>
+                    </View>
+                    <Switch
+                      testID="memory-sink-switch"
+                      value={memorySink.enabled}
+                      onValueChange={value =>
+                        changeMemorySink({ enabled: value })
+                      }
+                    />
+                  </View>
+                  {memorySink.enabled &&
+                    (memoryTargets.length === 0 ? (
+                      <Text style={styles.empty}>
+                        {t(
+                          'None of your connected servers has a tool for saving memories. Test a server to look again.',
+                        )}
+                      </Text>
+                    ) : (
+                      <>
+                        <Text style={styles.subtle}>
+                          {memoryTargets.some(target =>
+                            isMemoryServerOn(target.serverId),
+                          )
+                            ? t('Saving to: {servers}', {
+                                servers: memoryTargets
+                                  .filter(target =>
+                                    isMemoryServerOn(target.serverId),
+                                  )
+                                  .map(target => target.serverName)
+                                  .join(', '),
+                              })
+                            : t(
+                                'Every memory server is switched off. Turn one on in its card above.',
+                              )}
+                        </Text>
+                        {memoryTargets.some(
+                          target => target.kind === 'mempalace',
+                        ) && (
+                          <>
+                            <Text style={styles.label}>
+                              {t('MemPalace wing')}
+                            </Text>
+                            <TextInput
+                              style={styles.input}
+                              defaultValue={memorySink.wing}
+                              autoCapitalize="none"
+                              autoCorrect={false}
+                              onEndEditing={event =>
+                                changeMemorySink({
+                                  wing:
+                                    event.nativeEvent.text.trim() ||
+                                    memorySink.wing,
+                                })
+                              }
+                            />
+                            <Text style={styles.label}>
+                              {t('MemPalace room')}
+                            </Text>
+                            <TextInput
+                              style={styles.input}
+                              defaultValue={memorySink.room}
+                              autoCapitalize="none"
+                              autoCorrect={false}
+                              onEndEditing={event =>
+                                changeMemorySink({
+                                  room:
+                                    event.nativeEvent.text.trim() ||
+                                    memorySink.room,
+                                })
+                              }
+                            />
+                          </>
+                        )}
+                      </>
+                    ))}
+                </>
+              )}
             </>
           )}
 

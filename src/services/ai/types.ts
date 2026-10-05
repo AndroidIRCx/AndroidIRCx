@@ -246,4 +246,14 @@ export interface AIProviderAdapter {
     apiKey: string | null,
     signal: AbortSignal,
   ): Promise<string[]>;
+  /**
+   * The configured model's context window in input tokens, when the provider
+   * reports one; null when it does not. Optional: AIService falls back to a
+   * table of known models, then to a fixed default.
+   */
+  contextWindow?(
+    provider: AIProvider,
+    apiKey: string | null,
+    signal: AbortSignal,
+  ): Promise<number | null>;
 }

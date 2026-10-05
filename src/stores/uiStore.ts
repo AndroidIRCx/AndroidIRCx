@@ -119,6 +119,13 @@ export interface UIState {
   aiActivity: Record<string, AIActivity>;
   showDccTransfers: boolean;
   dccTransfersMinimized: boolean;
+  /**
+   * The assistant lives at the app level, not inside Settings, so hiding it
+   * does not end what it is doing. "Minimised" keeps a bubble on screen that
+   * brings the conversation back exactly where it was.
+   */
+  showAIAgent: boolean;
+  aiAgentMinimized: boolean;
   showDccSendModal: boolean;
   dccSendTarget: { nick: string; networkId: string } | null;
   dccSendPath: string;
@@ -245,6 +252,8 @@ export interface UIState {
   clearAIActivity: (key: string) => void;
   setShowDccTransfers: (show: boolean) => void;
   setDccTransfersMinimized: (minimized: boolean) => void;
+  setShowAIAgent: (show: boolean) => void;
+  setAIAgentMinimized: (minimized: boolean) => void;
   setShowDccSendModal: (show: boolean) => void;
   setDccSendTarget: (
     target: { nick: string; networkId: string } | null,
@@ -356,6 +365,8 @@ const initialState = {
   aiActivity: {},
   showDccTransfers: false,
   dccTransfersMinimized: false,
+  showAIAgent: false,
+  aiAgentMinimized: false,
   showDccSendModal: false,
   dccSendTarget: null,
   dccSendPath: '',
@@ -430,6 +441,8 @@ const initialState = {
   | 'aiActivity'
   | 'showDccTransfers'
   | 'dccTransfersMinimized'
+  | 'showAIAgent'
+  | 'aiAgentMinimized'
   | 'showDccSendModal'
   | 'dccSendTarget'
   | 'dccSendPath'
@@ -553,6 +566,8 @@ export const useUIStore = create<UIState>()(
       setShowDccTransfers: show => set({ showDccTransfers: show }),
       setDccTransfersMinimized: minimized =>
         set({ dccTransfersMinimized: minimized }),
+      setShowAIAgent: show => set({ showAIAgent: show }),
+      setAIAgentMinimized: minimized => set({ aiAgentMinimized: minimized }),
       setShowDccSendModal: show => set({ showDccSendModal: show }),
       setDccSendTarget: target => set({ dccSendTarget: target }),
       setDccSendPath: path => set({ dccSendPath: path }),

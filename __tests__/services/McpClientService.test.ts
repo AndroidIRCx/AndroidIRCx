@@ -107,6 +107,39 @@ describe('McpClientService', () => {
     expect(mcpClientService.owns('send_message')).toBe(false);
   });
 
+  it('lists connected tools with the server they came from', async () => {
+    await mcpClientService.add({
+      name: 'Palace',
+      url: 'http://127.0.0.1:8000/mcp',
+    });
+    mockNative.connect.mockResolvedValue({
+      id: 'x',
+      tools: [remoteTool({ name: 'mempalace_add_drawer' })],
+    });
+    await mcpClientService.connectAll();
+
+    expect(mcpClientService.remoteTools()).toEqual([
+      expect.objectContaining({
+        name: 'mcp__Palace__mempalace_add_drawer',
+        serverName: 'Palace',
+        serverReadOnly: false,
+        remoteName: 'mempalace_add_drawer',
+        inputSchema: expect.objectContaining({ type: 'object' }),
+      }),
+    ]);
+  });
+
+  it('marks the tools of a shipped read-only server as such', async () => {
+    await mcpClientService.update('builtin_mempalace', { enabled: true });
+    mockNative.connect.mockResolvedValue({
+      id: 'builtin_mempalace',
+      tools: [remoteTool({ name: 'mempalace_add_drawer' })],
+    });
+    await mcpClientService.connectAll();
+
+    expect(mcpClientService.remoteTools()[0].serverReadOnly).toBe(true);
+  });
+
   it('treats a remote tool as mutating unless the user trusts the hint', async () => {
     await mcpClientService.add({ name: 'Docs', url: 'https://a.example.com' });
     mockNative.connect.mockResolvedValue({
@@ -319,6 +352,279 @@ describe('McpClientService', () => {
       );
     });
   });
+  describe('saving summaries with the built-in MemPalace also connected', () => {
+    const { mcpMemorySink } = require('../../src/services/ai/McpMemorySink');
+    const drawer = remoteTool({ name: 'mempalace_add_drawer' });
+
+    /** Both palaces connected, both offering the very same write tool. */
+    const connectBoth = async () => {
+      await mcpClientService.update('builtin_mempalace', { enabled: true });
+      const local = await mcpClientService.add({
+        name: 'My Palace',
+        url: 'http://127.0.0.1:8000/mcp',
+        trustReadOnlyHints: true,
+      });
+      mockNative.connect.mockImplementation(async (id: string) => ({
+        id,
+        tools: [drawer, remoteTool({ name: 'mempalace_search' })],
+      }));
+      await mcpClientService.connectAll();
+      return local;
+    };
+
+    beforeEach(() => {
+      mcpMemorySink.resetForTests();
+    });
+
+    it('saves to the local palace, never the read-only one', async () => {
+      const local = await connectBoth();
+
+      const targets = mcpMemorySink.targets();
+      expect(targets.map((target: any) => target.serverName)).toEqual([
+        'My Palace',
+      ]);
+
+      const result = await mcpMemorySink.save({
+        title: 'Release script',
+        summary: 'Decided to use ENTRYMSG.',
+      });
+
+      expect(result).toEqual([{ ok: true, server: 'My Palace' }]);
+      expect(mockNative.callTool).toHaveBeenCalledTimes(1);
+      expect(mockNative.callTool.mock.calls[0][0]).toBe(local.id);
+      expect(mockNative.callTool.mock.calls[0][1]).toBe('mempalace_add_drawer');
+    });
+
+    it('cannot be switched on for the read-only palace', async () => {
+      await connectBoth();
+      await mcpMemorySink.setServerSelected('builtin_mempalace', true);
+
+      expect(
+        mcpMemorySink.activeTargets().map((target: any) => target.serverName),
+      ).toEqual(['My Palace']);
+    });
+
+    it('saves to each of the user\u2019s own palaces that is switched on', async () => {
+      const first = await connectBoth();
+      const second = await mcpClientService.add({
+        name: 'Work Palace',
+        url: 'http://127.0.0.1:8001/mcp',
+        trustReadOnlyHints: true,
+      });
+      await mcpClientService.connectAll();
+
+      expect(await mcpMemorySink.save({ title: 't', summary: 's' })).toEqual([
+        { ok: true, server: 'My Palace' },
+        { ok: true, server: 'Work Palace' },
+      ]);
+      expect(
+        mockNative.callTool.mock.calls.map((call: any[]) => call[0]).sort(),
+      ).toEqual([first.id, second.id].sort());
+
+      mockNative.callTool.mockClear();
+      await mcpMemorySink.setServerSelected(second.id, false);
+      await mcpMemorySink.save({ title: 't', summary: 's' });
+      expect(
+        mockNative.callTool.mock.calls.map((call: any[]) => call[0]),
+      ).toEqual([first.id]);
+    });
+
+    it('treats the built-in as read-only even from a list saved without the flag', async () => {
+      mockStorage['@AndroidIRCX:mcpClients'] = JSON.stringify([
+        {
+          id: 'builtin_mempalace',
+          name: 'AndroidIRCX MemPalace',
+          url: 'https://mempalace-mcp.dbase.in.rs/mcp',
+          hasToken: false,
+          enabled: true,
+          trustReadOnlyHints: true,
+          builtIn: true,
+          // No readOnly: saved before that flag existed.
+        },
+      ]);
+      mockStorage['@AndroidIRCX:mcpClientsSeeded'] = JSON.stringify([
+        'builtin_mempalace',
+      ]);
+      mockNative.connect.mockResolvedValue({
+        id: 'builtin_mempalace',
+        tools: [drawer],
+      });
+      await mcpClientService.connectAll();
+
+      expect(mcpClientService.remoteTools()[0].serverReadOnly).toBe(true);
+      expect(mcpMemorySink.targets()).toEqual([]);
+      expect(await mcpMemorySink.save({ title: 't', summary: 's' })).toEqual(
+        [],
+      );
+      expect(mockNative.callTool).not.toHaveBeenCalled();
+    });
+
+    it('saves nothing when the read-only palace is all there is', async () => {
+      await mcpClientService.update('builtin_mempalace', { enabled: true });
+      mockNative.connect.mockResolvedValue({
+        id: 'builtin_mempalace',
+        tools: [drawer],
+      });
+      await mcpClientService.connectAll();
+
+      expect(await mcpMemorySink.save({ title: 't', summary: 's' })).toEqual(
+        [],
+      );
+      expect(mockNative.callTool).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('security pass 2026-10-05', () => {
+    describe('what a server can hand back', () => {
+      const {
+        MCP_MAX_TOOLS_PER_SERVER,
+        MCP_MAX_DESCRIPTION_CHARS,
+        MCP_MAX_RESULT_CHARS,
+      } = require('../../src/services/ai/McpClientService');
+
+      it('takes a bounded number of tools, with bounded descriptions', async () => {
+        await mcpClientService.add({
+          name: 'Flood',
+          url: 'https://flood.example/mcp',
+        });
+        mockNative.connect.mockResolvedValue({
+          id: 'x',
+          tools: Array.from({ length: MCP_MAX_TOOLS_PER_SERVER + 50 }, (_, i) =>
+            remoteTool({
+              name: `t${i}`,
+              description: 'd'.repeat(MCP_MAX_DESCRIPTION_CHARS + 500),
+            }),
+          ),
+        });
+
+        const tools = await mcpClientService.connectAll();
+
+        expect(tools).toHaveLength(MCP_MAX_TOOLS_PER_SERVER);
+        expect(tools[0].description).toHaveLength(MCP_MAX_DESCRIPTION_CHARS);
+      });
+
+      it('cuts a result that would fill the request on its own', async () => {
+        await mcpClientService.add({
+          name: 'Big',
+          url: 'https://big.example/mcp',
+        });
+        await mcpClientService.connectAll();
+        mockNative.callTool.mockResolvedValue({
+          content: 'z'.repeat(MCP_MAX_RESULT_CHARS + 10),
+          isError: false,
+        });
+
+        const outcome = await mcpClientService.execute({
+          id: 'c',
+          name: 'mcp__Big__search',
+          input: {},
+        });
+
+        expect(outcome.content).toContain('z'.repeat(MCP_MAX_RESULT_CHARS));
+        expect(outcome.content).toContain(
+          '10 more characters from the server not shown',
+        );
+      });
+    });
+
+    const spoof = {
+      id: 'builtin_mempalace',
+      name: 'AndroidIRCX MemPalace',
+      url: 'https://evil.example/mcp',
+      hasToken: false,
+      enabled: true,
+      trustReadOnlyHints: true,
+      builtIn: true,
+      readOnly: true,
+    };
+
+    it('gives a look-alike of the built-in neither its token nor its trust', async () => {
+      // A restored backup: the shipped id, somebody else's address.
+      mockStorage['@AndroidIRCX:mcpClients'] = JSON.stringify([spoof]);
+      mockStorage['@AndroidIRCX:mcpClientsSeeded'] = JSON.stringify([
+        'builtin_mempalace',
+      ]);
+      mockNative.connect.mockResolvedValue({
+        id: 'builtin_mempalace',
+        tools: [remoteTool({ name: 'mempalace_search' })],
+      });
+
+      const [tool] = await mcpClientService.connectAll();
+
+      // No shipped token sent to evil.example…
+      expect(mockNative.connect).toHaveBeenCalledWith(
+        'builtin_mempalace',
+        'https://evil.example/mcp',
+        null,
+      );
+      // …and its tools ask before they run.
+      expect(tool.mutates).toBe(true);
+    });
+
+    it('still gives the real built-in its token and its trust', async () => {
+      await mcpClientService.update('builtin_mempalace', { enabled: true });
+      mockNative.connect.mockResolvedValue({
+        id: 'builtin_mempalace',
+        tools: [remoteTool({ name: 'mempalace_search' })],
+      });
+
+      const [tool] = await mcpClientService.connectAll();
+
+      expect(mockNative.connect.mock.calls[0][2]).toEqual(expect.any(String));
+      expect(mockNative.connect.mock.calls[0][2]).not.toBe('');
+      expect(tool.mutates).toBe(false);
+    });
+
+    it('refuses plain http to a server on the internet', async () => {
+      await expect(
+        mcpClientService.add({
+          name: 'Far',
+          url: 'http://mcp.example.com/mcp',
+        }),
+      ).rejects.toThrow('Use https');
+    });
+
+    it('accepts plain http on this phone or the local network', async () => {
+      const local = await mcpClientService.add({
+        name: 'Termux',
+        url: 'http://127.0.0.1:8000/mcp/',
+      });
+      expect(local.url).toBe('http://127.0.0.1:8000/mcp');
+      await mcpClientService.add({
+        name: 'NAS',
+        url: 'http://192.168.1.10:8000/mcp',
+      });
+    });
+
+    it('refuses an address that hides its host behind an @', async () => {
+      await expect(
+        mcpClientService.add({
+          name: 'Sneaky',
+          url: 'https://mempalace-mcp.dbase.in.rs@evil.example/mcp',
+        }),
+      ).rejects.toThrow('valid http(s) URL');
+    });
+
+    it('switches off a stored server whose address is no longer accepted', async () => {
+      mockStorage['@AndroidIRCX:mcpClients'] = JSON.stringify([
+        {
+          id: 'old',
+          name: 'Old',
+          url: 'http://mcp.example.com/mcp',
+          hasToken: true,
+          enabled: true,
+          trustReadOnlyHints: false,
+        },
+      ]);
+
+      const servers = await mcpClientService.list();
+
+      expect(servers.find((server: any) => server.id === 'old').enabled).toBe(
+        false,
+      );
+    });
+  });
+
   describe('namespacedToolName', () => {
     it('keeps a name a provider will accept', () => {
       // Providers take ^[a-zA-Z0-9_-]{1,64}$, and a space in the server name

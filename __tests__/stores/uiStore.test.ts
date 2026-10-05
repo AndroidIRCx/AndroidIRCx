@@ -649,6 +649,15 @@ describe('uiStore', () => {
       expect(useUIStore.getState().dccTransfersMinimized).toBe(true);
     });
 
+    it('opens and minimises the assistant', async () => {
+      await act(() => {
+        useUIStore.getState().setShowAIAgent(true);
+        useUIStore.getState().setAIAgentMinimized(true);
+      });
+      expect(useUIStore.getState().showAIAgent).toBe(true);
+      expect(useUIStore.getState().aiAgentMinimized).toBe(true);
+    });
+
     it('should set showDccSendModal', async () => {
       await act(() => {
         useUIStore.getState().setShowDccSendModal(true);

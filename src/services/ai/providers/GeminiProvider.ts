@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { getJson, postJson } from './httpJson';
 import { sortModelIds } from './modelSort';
+import { tokenCount } from '../contextWindows';
 
 const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const MODEL_PAGE_SIZE = 200;
@@ -67,6 +68,16 @@ class GeminiProvider implements AIProviderAdapter {
       throw new AIError('missing_key', 'Gemini requires an API key');
     }
     return apiKey;
+  }
+
+  /**
+   * The key goes in the `x-goog-api-key` header, which Gemini accepts, not
+   * in `?key=`: a URL ends up in places a header does not — error messages,
+   * logs, crash reports — and this one would carry the user's key there
+   * (security pass 2026-10-05).
+   */
+  private keyHeaders(key: string): Record<string, string> {
+    return { 'content-type': 'application/json', 'x-goog-api-key': key };
   }
 
   /** Models come back as "models/gemini-x"; callers store the bare id. */
@@ -178,11 +189,11 @@ class GeminiProvider implements AIProviderAdapter {
 
     const url = `${this.base(provider)}/${this.qualify(
       provider.model,
-    )}:generateContent?key=${encodeURIComponent(key)}`;
+    )}:generateContent`;
 
     const response = await postJson<GenerateContentResponse>(
       url,
-      { 'content-type': 'application/json' },
+      this.keyHeaders(key),
       payload,
       signal,
     );
@@ -224,11 +235,10 @@ class GeminiProvider implements AIProviderAdapter {
     for (let page = 0; page < MAX_MODEL_PAGES; page += 1) {
       const url =
         `${this.base(provider)}/models?pageSize=${MODEL_PAGE_SIZE}` +
-        `&key=${encodeURIComponent(key)}` +
         (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
       const response = await getJson<ModelsResponse>(
         url,
-        { 'content-type': 'application/json' },
+        this.keyHeaders(key),
         signal,
       );
 
@@ -249,6 +259,20 @@ class GeminiProvider implements AIProviderAdapter {
     }
 
     return sortModelIds(ids);
+  }
+
+  async contextWindow(
+    provider: AIProvider,
+    apiKey: string | null,
+    signal: AbortSignal,
+  ): Promise<number | null> {
+    const key = this.requireKey(apiKey);
+    const model = await getJson<{ inputTokenLimit?: unknown }>(
+      `${this.base(provider)}/${this.qualify(provider.model)}`,
+      this.keyHeaders(key),
+      signal,
+    );
+    return tokenCount(model?.inputTokenLimit);
   }
 }
 

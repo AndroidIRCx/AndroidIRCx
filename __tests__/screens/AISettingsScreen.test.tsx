@@ -49,6 +49,9 @@ jest.mock('../../src/services/ai/AIService', () => ({
     setConsent: jest.fn().mockResolvedValue(undefined),
     isRedactionEnabled: jest.fn().mockReturnValue(true),
     setRedactionEnabled: jest.fn(),
+    getPromptLimit: jest.fn().mockReturnValue(0),
+    describeAutoLimit: jest.fn().mockResolvedValue(null),
+    setPromptLimit: jest.fn(),
     listAllowedChannels: jest.fn().mockReturnValue([]),
     setChannelAllowed: jest.fn().mockResolvedValue(undefined),
     supportsMcp: jest.fn((kind: string) => kind === 'anthropic'),
@@ -56,6 +59,11 @@ jest.mock('../../src/services/ai/AIService', () => ({
       .fn()
       .mockResolvedValue({ code: 'ok', ready: true, reason: '', where: '' }),
   },
+  PROMPT_LIMIT_AUTO: 0,
+  CHARS_PER_TOKEN: 3,
+  PROMPT_LIMIT_OPTIONS: [
+    32000, 64000, 128000, 200000, 400000, 1000000, 2000000,
+  ],
 }));
 
 // The MCP server pulls in AgentTools -> ConnectionManager -> IRCService,
@@ -195,6 +203,279 @@ describe('AISettingsScreen', () => {
     aiMemoryService.isEnabled.mockReturnValue(true);
   });
 
+  describe('saving summaries to memory', () => {
+    const { mcpMemorySink } = require('../../src/services/ai/McpMemorySink');
+    const memoryTool = (
+      serverId: string,
+      serverName: string,
+      remoteName: string,
+    ) => ({
+      name: `mcp__${serverName}__${remoteName}`,
+      serverId,
+      serverName,
+      serverReadOnly: false,
+      serverTrusted: true,
+      remoteName,
+      inputSchema: { type: 'object' },
+    });
+    const server = (id: string, name: string, port: number) => ({
+      id,
+      name,
+      url: `http://127.0.0.1:${port}/mcp`,
+      enabled: true,
+      hasToken: false,
+      trustReadOnlyHints: true,
+    });
+
+    beforeEach(async () => {
+      // Settings persist; one test switching it off must not leak into the next.
+      await require('@react-native-async-storage/async-storage').removeItem(
+        '@AndroidIRCX:aiMemorySink',
+      );
+      mcpMemorySink.resetForTests();
+      mcpClientService.isSupported.mockReturnValue(true);
+      mcpClientService.remoteTools = jest.fn(() => []);
+    });
+
+    afterEach(() => {
+      delete mcpClientService.remoteTools;
+    });
+
+    it('says when no server can keep memories', async () => {
+      const { findByText } = await renderScreen();
+      expect(await findByText('Save conversation summaries')).toBeTruthy();
+      expect(
+        await findByText(
+          'None of your connected servers has a tool for saving memories. Test a server to look again.',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('saves to every server that can, each with its own switch', async () => {
+      mcpClientService.list.mockResolvedValue([
+        server('p', 'Palace', 8000),
+        server('n', 'Notes', 8001),
+        server('w', 'Weather', 8002),
+      ]);
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('p', 'Palace', 'mempalace_add_drawer'),
+        memoryTool('n', 'Notes', 'create_entities'),
+      ]);
+      const { findByText, findByTestId, queryByTestId, findAllByText } =
+        await renderScreen();
+
+      expect(await findByText('Saving to: Palace, Notes')).toBeTruthy();
+      // Only servers with a memory tool get the switch.
+      expect(await findByTestId('memory-server-p')).toBeTruthy();
+      expect(await findByTestId('memory-server-n')).toBeTruthy();
+      expect(queryByTestId('memory-server-w')).toBeNull();
+      expect(await findByText('With create_entities.')).toBeTruthy();
+      expect(
+        (await findAllByText('Save conversation summaries here')).length,
+      ).toBe(2);
+    });
+
+    it('leaves an untrusted server off until the user switches it on', async () => {
+      mcpClientService.list.mockResolvedValue([
+        { ...server('s', 'Search', 8003), trustReadOnlyHints: false },
+      ]);
+      mcpClientService.remoteTools = jest.fn(() => [
+        {
+          ...memoryTool('s', 'Search', 'add_note'),
+          serverTrusted: false,
+          inputSchema: { properties: { content: { type: 'string' } } },
+        },
+      ]);
+      const { findByTestId, findByText } = await renderScreen();
+
+      const toggle = await findByTestId('memory-server-s');
+      expect(toggle.props.value).toBe(false);
+      expect(
+        await findByText(
+          'Every memory server is switched off. Turn one on in its card above.',
+        ),
+      ).toBeTruthy();
+
+      await fireEvent(toggle, 'valueChange', true);
+      expect(await findByText('Saving to: Search')).toBeTruthy();
+    });
+
+    it('stops saving to a server switched off in its card', async () => {
+      mcpClientService.list.mockResolvedValue([
+        server('p', 'Palace', 8000),
+        server('n', 'Notes', 8001),
+      ]);
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('p', 'Palace', 'mempalace_add_drawer'),
+        memoryTool('n', 'Notes', 'create_entities'),
+      ]);
+      const { findByText, findByTestId } = await renderScreen();
+
+      await fireEvent(
+        await findByTestId('memory-server-p'),
+        'valueChange',
+        false,
+      );
+
+      expect(mcpMemorySink.isServerSelected('p')).toBe(false);
+      expect(await findByText('Saving to: Notes')).toBeTruthy();
+
+      await fireEvent(
+        await findByTestId('memory-server-n'),
+        'valueChange',
+        false,
+      );
+      expect(
+        await findByText(
+          'Every memory server is switched off. Turn one on in its card above.',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('asks for a wing and room when a MemPalace is among them', async () => {
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('p', 'Palace', 'mempalace_add_drawer'),
+      ]);
+      const { findByDisplayValue, findByText } = await renderScreen();
+      expect(await findByText('MemPalace wing')).toBeTruthy();
+
+      const wing = await findByDisplayValue('androidircx');
+      await fireEvent(wing, 'endEditing', { nativeEvent: { text: 'irc' } });
+      const room = await findByDisplayValue('conversations');
+      await fireEvent(room, 'endEditing', { nativeEvent: { text: '  ' } });
+
+      expect(mcpMemorySink.getSettings()).toMatchObject({
+        wing: 'irc',
+        room: 'conversations',
+      });
+    });
+
+    it('does not ask for a wing without a MemPalace', async () => {
+      mcpClientService.list.mockResolvedValue([server('n', 'Notes', 8001)]);
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('n', 'Notes', 'create_entities'),
+      ]);
+      const { findByText, queryByText } = await renderScreen();
+      expect(await findByText('Saving to: Notes')).toBeTruthy();
+      expect(queryByText('MemPalace wing')).toBeNull();
+    });
+
+    it('can be switched off altogether', async () => {
+      mcpClientService.list.mockResolvedValue([server('p', 'Palace', 8000)]);
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('p', 'Palace', 'mempalace_add_drawer'),
+      ]);
+      const { findByText, queryByText, queryByTestId, getByTestId } =
+        await renderScreen();
+      await findByText('Saving to: Palace');
+
+      await fireEvent(getByTestId('memory-sink-switch'), 'valueChange', false);
+
+      expect(mcpMemorySink.getSettings().enabled).toBe(false);
+      expect(queryByText('Saving to: Palace')).toBeNull();
+      expect(queryByTestId('memory-server-p')).toBeNull();
+    });
+
+    it('looks again after a server is tested', async () => {
+      mcpClientService.list.mockResolvedValue([server('p', 'Palace', 8000)]);
+      mcpClientService.test.mockResolvedValue({
+        state: 'connected',
+        tools: 1,
+      });
+      const { findByText, findAllByText } = await renderScreen();
+      mcpClientService.remoteTools = jest.fn(() => [
+        memoryTool('p', 'Palace', 'mempalace_add_drawer'),
+      ]);
+
+      // Providers have a Test button too; the MCP card's is one of several,
+      // and the card loads after them, so wait for it before collecting.
+      await findByText('http://127.0.0.1:8000/mcp');
+      const tests = await findAllByText('Test');
+      for (const button of tests) await fireEvent.press(button);
+
+      expect(await findByText('Saving to: Palace')).toBeTruthy();
+    });
+  });
+
+  describe('largest request', () => {
+    beforeEach(() => {
+      aiService.getPromptLimit.mockReturnValue(0);
+      aiService.describeAutoLimit.mockResolvedValue(null);
+    });
+
+    it('offers Auto and sizes in tokens, up to 2M', async () => {
+      const { findByText } = await renderScreen();
+      expect(await findByText('Auto')).toBeTruthy();
+      expect(await findByText('128k')).toBeTruthy();
+      expect(await findByText('1M')).toBeTruthy();
+      expect(await findByText('2M')).toBeTruthy();
+    });
+
+    it('stores the size the user picks', async () => {
+      const { findByText } = await renderScreen();
+      await fireEvent.press(await findByText('1M'));
+      expect(aiService.setPromptLimit).toHaveBeenCalledWith(1000000);
+    });
+
+    it('says what Auto found for the model', async () => {
+      aiService.describeAutoLimit.mockResolvedValue({
+        model: 'deepseek-chat',
+        tokens: 128000,
+        source: 'known',
+        chars: 381000,
+      });
+      const { findByText } = await renderScreen();
+      expect(
+        await findByText('deepseek-chat: 128,000 tokens (known model).'),
+      ).toBeTruthy();
+    });
+
+    it('says when the provider itself reported it', async () => {
+      aiService.describeAutoLimit.mockResolvedValue({
+        model: 'claude-opus-5',
+        tokens: 1000000,
+        source: 'provider',
+        chars: 3000000,
+      });
+      const { findByText } = await renderScreen();
+      expect(
+        await findByText(
+          'claude-opus-5: 1,000,000 tokens (reported by the provider).',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('says when nothing is known and the default applies', async () => {
+      aiService.describeAutoLimit.mockResolvedValue({
+        model: 'mystery',
+        tokens: null,
+        source: 'default',
+        chars: 120000,
+      });
+      const { findByText } = await renderScreen();
+      expect(
+        await findByText(
+          'mystery: the provider does not say how much it takes, so the default of 40k tokens applies. Pick a size if you know better.',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('hides the Auto note once a size was picked', async () => {
+      aiService.getPromptLimit.mockReturnValue(128000);
+      aiService.describeAutoLimit.mockResolvedValue({
+        model: 'deepseek-chat',
+        tokens: 128000,
+        source: 'known',
+        chars: 381000,
+      });
+      const { findByText, queryByText } = await renderScreen();
+      expect(await findByText('128k')).toBeTruthy();
+      expect(
+        queryByText('deepseek-chat: 128,000 tokens (known model).'),
+      ).toBeNull();
+    });
+  });
+
   it('tells the user a subscription will not work', async () => {
     const { findByText } = await renderScreen();
 
@@ -249,6 +530,23 @@ describe('AISettingsScreen', () => {
     await fireEvent(masterSwitch, 'valueChange', false);
 
     expect(aiService.setEnabled).toHaveBeenCalledWith(false);
+  });
+
+  it('stops the MCP server when AI is switched off', async () => {
+    mcpServerService.isSupported.mockReturnValue(true);
+    mcpServerService.getStatus.mockResolvedValue({ running: false });
+    mcpServerService.stop.mockResolvedValue({ running: false });
+    try {
+      const { UNSAFE_getAllByType } = await renderScreen();
+      const { Switch } = require('react-native');
+      await waitFor(() => expect(aiProviderStore.list).toHaveBeenCalled());
+
+      await fireEvent(UNSAFE_getAllByType(Switch)[0], 'valueChange', false);
+
+      await waitFor(() => expect(mcpServerService.stop).toHaveBeenCalled());
+    } finally {
+      mcpServerService.isSupported.mockReturnValue(false);
+    }
   });
 
   it('reports a working connection with the model count', async () => {
