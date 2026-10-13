@@ -29,7 +29,6 @@ import {
   OpenOptimizationSettings,
 } from 'react-native-battery-optimization-check';
 import { connectionManager } from './ConnectionManager';
-import { tx } from '../i18n/localization';
 
 // Keep for backward compatibility, but use NotificationService internally
 export interface BackgroundNotificationConfig {
@@ -44,9 +43,6 @@ class BackgroundService {
   private appState: AppStateStatus = 'active';
   private appStateListener: any = null;
   private messageListenerCleanups: Map<string, () => void> = new Map();
-  private notificationQueue: Map<string, IRCMessage[]> = new Map(); // channel -> messages
-  private lastNotificationTime: Map<string, number> = new Map(); // channel -> timestamp
-  private readonly NOTIFICATION_THROTTLE_MS = 5000; // Don't spam notifications
   private backgroundConnectionEnabled: boolean = true;
   private backgroundCheckTimer: ReturnType<typeof setInterval> | null = null;
   private backgroundConnectionListeners: Array<(enabled: boolean) => void> = [];
@@ -90,8 +86,6 @@ class BackgroundService {
     }
     this.unregisterMessageListener();
     this.stopBackgroundPolling();
-    this.notificationQueue.clear();
-    this.lastNotificationTime.clear();
     console.log('BackgroundService: Cleaned up');
   }
 
@@ -158,9 +152,6 @@ class BackgroundService {
    */
   private handleAppForeground(): void {
     console.log('BackgroundService: App came to foreground');
-    // Clear notification queue when app comes to foreground
-    this.notificationQueue.clear();
-    this.lastNotificationTime.clear();
     this.unregisterMessageListener();
     this.stopBackgroundPolling();
   }
@@ -189,6 +180,8 @@ class BackgroundService {
       }
       const cleanup = service.onMessage(async (message: IRCMessage) => {
         if (!this.isAppInBackground()) return;
+        // Bouncer replay is already in history and must not alert again.
+        if (message.isPlayback) return;
         const networkName = message.network || service.getNetworkName();
         const isRawMessage = message.type === 'raw' || message.isRaw;
         if (!isRawMessage || this.showRawCommandsEnabled) {
@@ -254,39 +247,16 @@ class BackgroundService {
     );
   }
 
-  private getNotificationChannelKey(
-    message: IRCMessage,
-    service: IRCService,
-  ): string {
-    const channelName = message.channel || 'unknown';
-    const networkName = message.network || service.getNetworkName();
-    return `${networkName}:${channelName}`;
-  }
-
   /**
-   * Handle message received while app is in background
+   * Handle message received while app is in background. Every message goes
+   * to NotificationService, which keeps one notification per conversation and
+   * limits how often it alerts - so nothing is dropped and nothing spams.
    */
   private async handleBackgroundMessage(
     message: IRCMessage,
     service: IRCService,
   ): Promise<void> {
-    const channelKey = this.getNotificationChannelKey(message, service);
-    const now = Date.now();
-    const lastTime = this.lastNotificationTime.get(channelKey) || 0;
-
-    // Throttle notifications to avoid spam
-    if (now - lastTime < this.NOTIFICATION_THROTTLE_MS) {
-      // Queue message for batch notification
-      if (!this.notificationQueue.has(channelKey)) {
-        this.notificationQueue.set(channelKey, []);
-      }
-      this.notificationQueue.get(channelKey)!.push(message);
-      return;
-    }
-
-    // Send notification
     await this.sendNotification(message, service);
-    this.lastNotificationTime.set(channelKey, now);
   }
 
   /**
@@ -307,42 +277,6 @@ class BackgroundService {
       service.getCurrentNick(),
       service.getNetworkName(),
     );
-  }
-
-  /**
-   * Process queued notifications (called periodically or when app comes to foreground)
-   */
-  async processNotificationQueue(): Promise<void> {
-    const translate = (key: string, params?: Record<string, unknown>) => {
-      const rawTranslator = (tx as any)?.t;
-      return typeof rawTranslator === 'function'
-        ? rawTranslator(key, params)
-        : key;
-    };
-    for (const [channelKey, messages] of this.notificationQueue.entries()) {
-      if (messages.length === 0) continue;
-      const count = messages.length;
-      const lastMessage = messages[messages.length - 1];
-      const channelName = lastMessage.channel || translate('Unknown');
-      const networkName = lastMessage.network || 'unknown';
-      const title = translate('{channel} ({count} new message{suffix})', {
-        channel: channelName,
-        count,
-        suffix: count > 1 ? 's' : '',
-      });
-      const body = lastMessage.text || '';
-
-      await notificationService.showNotification(
-        title,
-        body,
-        channelName,
-        networkName,
-        lastMessage.type,
-      );
-      this.lastNotificationTime.set(channelKey, Date.now());
-    }
-
-    this.notificationQueue.clear();
   }
 
   /**

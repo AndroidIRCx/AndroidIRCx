@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "இந்த சர்வரால் METADATA ஆதரிக்கப்படவில்லை"
+  },
+  "Sort scripts": {
+    "string": "ஸ்கிரிப்டுகளை வரிசைப்படுத்து"
+  },
+  "Enabled first": {
+    "string": "இயக்கியவை முதலில்"
+  },
+  "Slowest first": {
+    "string": "மிக மெதுவானவை முதலில்"
+  },
+  "{ms} ms used this session": {
+    "string": "இந்த அமர்வில் {ms} ms"
   }
 }

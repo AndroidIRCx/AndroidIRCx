@@ -15,6 +15,8 @@ describe('HighlightService', () => {
     highlightService.highlightWords = [];
     // @ts-ignore - reset listeners
     highlightService.listeners = [];
+    // @ts-ignore - reset the compiled pattern
+    highlightService.pattern = undefined;
   });
 
   describe('getHighlightWords', () => {
@@ -176,6 +178,38 @@ describe('HighlightService', () => {
 
       // Should fallback and not throw
       expect(() => highlightService.isHighlighted('test')).not.toThrow();
+    });
+  });
+
+  describe('compiled pattern', () => {
+    it('builds the pattern once and rebuilds it after the words change', async () => {
+      await highlightService.addHighlightWord('alpha');
+      const build = jest.spyOn(highlightService as any, 'buildPattern');
+      expect(highlightService.isHighlighted('say alpha')).toBe(true);
+      expect(highlightService.isHighlighted('say beta')).toBe(false);
+      expect(build).toHaveBeenCalledTimes(1);
+
+      await highlightService.addHighlightWord('beta');
+      expect(highlightService.isHighlighted('say beta')).toBe(true);
+      await highlightService.removeHighlightWord('alpha');
+      expect(highlightService.isHighlighted('say alpha')).toBe(false);
+      expect(build).toHaveBeenCalledTimes(3);
+      build.mockRestore();
+    });
+
+    it('falls back to a plain match if the pattern cannot be built', async () => {
+      await highlightService.addHighlightWord('gamma');
+      const error = jest.spyOn(console, 'error').mockImplementation();
+      const build = jest
+        .spyOn(highlightService as any, 'buildPattern')
+        .mockImplementation(() => {
+          throw new Error('bad');
+        });
+      expect(highlightService.isHighlighted('xGAMMAx')).toBe(true);
+      expect(highlightService.isHighlighted('nothing')).toBe(false);
+      expect(build).toHaveBeenCalledTimes(1);
+      build.mockRestore();
+      error.mockRestore();
     });
   });
 

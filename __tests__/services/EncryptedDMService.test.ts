@@ -18,6 +18,7 @@ const mockGetAllSecretKeys = jest.fn(async () => Array.from(store.keys()));
 jest.mock('../../src/services/SecureStorageService', () => ({
   secureStorageService: {
     getSecret: (...args: any[]) => mockGetSecret(...args),
+    hasSecret: async (key: string) => (await mockGetSecret(key)) !== null,
     setSecret: (...args: any[]) => mockSetSecret(...args),
     removeSecret: (...args: any[]) => mockRemoveSecret(...args),
     getAllSecretKeys: (...args: any[]) => mockGetAllSecretKeys(...args),

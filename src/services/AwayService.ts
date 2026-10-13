@@ -265,6 +265,10 @@ class AwayService {
     if (message.type !== 'message' || !message.from || !message.text) {
       return;
     }
+    // Never auto-answer a replayed line: its sender wrote it hours ago.
+    if (message.isPlayback) {
+      return;
+    }
 
     const awayAutoAnswerEnabled = await settingsService.getSetting(
       'awayAutoAnswerEnabled',

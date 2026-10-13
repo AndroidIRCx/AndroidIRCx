@@ -117,9 +117,10 @@ class ChannelEncryptionService {
   }
 
   // Check if channel has encryption key
+  // Runs for every incoming channel message, so it asks only whether the key
+  // exists (cached) instead of reading and parsing it from the Keychain.
   async hasChannelKey(channel: string, network: string): Promise<boolean> {
-    const key = await this.getChannelKey(channel, network);
-    return key !== null;
+    return secureStorageService.hasSecret(this.getStorageKey(channel, network));
   }
 
   // Remove channel key

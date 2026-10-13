@@ -14,6 +14,20 @@ import { AppState, AppStateStatus } from 'react-native';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { useTabStore } from '../stores/tabStore';
 import { debugLogger } from '../services/DebugLogger';
+import { performanceService } from '../services/PerformanceService';
+import type { IRCMessage } from '../services/IRCService';
+
+/**
+ * Only the most recent part of a stored history goes into the tab: a channel
+ * can hold 10,000 stored lines, and a tab that size is copied and filtered on
+ * every render. Older lines load on demand when scrolling to the top.
+ */
+const recentHistory = (history: IRCMessage[]): IRCMessage[] => {
+  const config = performanceService.getConfig();
+  return config.enableMessageCleanup && history.length > config.messageLimit
+    ? history.slice(-config.messageLimit)
+    : history;
+};
 
 interface UseLazyMessageHistoryParams {
   activeTabId: string | null;
@@ -47,11 +61,13 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
         channelKey,
       );
       if (first.length > 0) {
-        return first;
+        return recentHistory(first);
       }
       // Small retry helps when storage write batching lags behind UI state transitions.
       await new Promise<void>(resolve => setTimeout(resolve, 250));
-      return messageHistoryService.loadMessages(networkId, channelKey);
+      return recentHistory(
+        await messageHistoryService.loadMessages(networkId, channelKey),
+      );
     },
     [],
   );

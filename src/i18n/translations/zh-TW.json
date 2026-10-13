@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "此伺服器不支援 METADATA"
+  },
+  "Sort scripts": {
+    "string": "排序腳本"
+  },
+  "Enabled first": {
+    "string": "已啟用的在前"
+  },
+  "Slowest first": {
+    "string": "最慢的在前"
+  },
+  "{ms} ms used this session": {
+    "string": "本次工作階段用時 {ms} 毫秒"
   }
 }

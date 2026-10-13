@@ -217,22 +217,35 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
     }
   }, [visible]);
 
+  // The menu stays mounted while closed; it only needs the user list (which
+  // can hold thousands of users) while it is open.
   const channelUsers = useMemo(() => {
+    if (!visible) return [];
     if (providedChannelUsers && providedChannelUsers.length > 0) {
       return providedChannelUsers;
     }
     if (!channel || typeof activeIrc.getChannelUsers !== 'function') return [];
     return activeIrc.getChannelUsers(channel) as ChannelUser[];
-  }, [activeIrc, channel, providedChannelUsers]);
+  }, [visible, activeIrc, channel, providedChannelUsers]);
 
   const normalizedNick = nick ? nick.toLowerCase() : '';
   const normalizedActive = activeNick ? activeNick.toLowerCase() : '';
-  const targetUser = normalizedNick
-    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedNick)
-    : undefined;
-  const currentUser = normalizedActive
-    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedActive)
-    : undefined;
+  const targetUser = useMemo(
+    () =>
+      normalizedNick
+        ? channelUsers.find(user => user.nick.toLowerCase() === normalizedNick)
+        : undefined,
+    [channelUsers, normalizedNick],
+  );
+  const currentUser = useMemo(
+    () =>
+      normalizedActive
+        ? channelUsers.find(
+            user => user.nick.toLowerCase() === normalizedActive,
+          )
+        : undefined,
+    [channelUsers, normalizedActive],
+  );
   const resolvedUserHostInfo = useMemo<UserHostInfo | null>(() => {
     if (initialUserHostInfo?.user && initialUserHostInfo.host) {
       return initialUserHostInfo;

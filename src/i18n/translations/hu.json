@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "A METADATA nem támogatott ezen a szerveren"
+  },
+  "Sort scripts": {
+    "string": "Szkriptek rendezése"
+  },
+  "Enabled first": {
+    "string": "Bekapcsoltak elöl"
+  },
+  "Slowest first": {
+    "string": "Leglassabbak elöl"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms ebben a munkamenetben"
   }
 }

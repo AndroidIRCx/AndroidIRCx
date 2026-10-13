@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "เซิร์ฟเวอร์นี้ไม่รองรับ METADATA"
+  },
+  "Sort scripts": {
+    "string": "เรียงสคริปต์"
+  },
+  "Enabled first": {
+    "string": "ที่เปิดใช้ก่อน"
+  },
+  "Slowest first": {
+    "string": "ที่ช้าที่สุดก่อน"
+  },
+  "{ms} ms used this session": {
+    "string": "ใช้ไป {ms} มิลลิวินาทีในเซสชันนี้"
   }
 }

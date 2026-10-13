@@ -99,6 +99,40 @@ describe('useLazyMessageHistory', () => {
     expect(mockStoreState.tabs[0].messages[0].id).toBe('h1');
   });
 
+  it('puts only the most recent part of a long history into the tab', async () => {
+    const setTabs = jest.fn((next: any) => {
+      mockStoreState.tabs = typeof next === 'function' ? next([]) : next;
+    });
+    mockStoreState = {
+      tabs: [
+        {
+          id: 't1',
+          type: 'channel',
+          name: '#a',
+          networkId: 'net',
+          messages: [],
+        },
+      ],
+      setTabs,
+    };
+    useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
+    useTabStore.getState.mockImplementation(() => mockStoreState);
+    const stored = Array.from({ length: 1500 }, (_, i) => ({
+      id: `h${i}`,
+      text: 'x',
+      timestamp: i,
+    }));
+    loadMessages.mockResolvedValueOnce(stored);
+
+    await renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }));
+    await new Promise(r => setTimeout(r, 0));
+
+    const messages = mockStoreState.tabs[0].messages;
+    expect(messages).toHaveLength(1000);
+    expect(messages[0].id).toBe('h500');
+    expect(messages[999].id).toBe('h1499');
+  });
+
   it('skips invalid network', async () => {
     mockStoreState = {
       tabs: [

@@ -13384,5 +13384,17 @@
   },
   "Open a GitHub pull request with changes to the JSON files in src/i18n/translations. Once your translation is included, your name can be added to this credits page.": {
     "string": "Apri una pull request su GitHub con le modifiche ai file JSON in src/i18n/translations. Una volta inclusa la tua traduzione, il tuo nome potrà essere aggiunto a questa pagina dei crediti."
+  },
+  "Sort scripts": {
+    "string": "Ordina script"
+  },
+  "Enabled first": {
+    "string": "Prima quelli attivi"
+  },
+  "Slowest first": {
+    "string": "Prima i più lenti"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms usati in questa sessione"
   }
 }

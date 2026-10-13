@@ -50,12 +50,41 @@ import { ScramAuthService } from './irc/ScramAuth';
 // Pure policy with no service dependencies, so importing it here does not
 // break this file's rule of importing no services.
 import { sanitizeOutboundLine } from './scripting/AddonRawPolicy';
+import { isWireMessageCaptured } from './irc/wireCapture';
 
 /* eslint-disable no-bitwise, no-control-regex, no-useless-escape -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
 // Re-export ChannelTab from types for backward compatibility
 export type { ChannelTab } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
+
+const DEAD_CONNECTION_CODES = new Set([
+  'EPIPE',
+  'ECONNRESET',
+  'ECONNABORTED',
+  'ENOTCONN',
+  'ETIMEDOUT',
+  'ENETUNREACH',
+  'EHOSTUNREACH',
+]);
+
+/**
+ * True when a socket error means the connection is gone for good. Android's
+ * IOException usually arrives without a code, only a message such as
+ * "sendto failed: EPIPE (Broken pipe)" or "Attempted to write to closed socket".
+ */
+/** User-list changes reach listeners at most this often per channel. */
+const USER_LIST_FLUSH_MS = 150;
+
+/** Lines older than live by more than this are treated as bouncer replay. */
+const REPLAY_AGE_MS = 60_000;
+
+export function isDeadConnectionError(code: string, message: string): boolean {
+  if (DEAD_CONNECTION_CODES.has(code)) return true;
+  return /broken pipe|\bEPIPE\b|connection reset|ECONNRESET|software caused connection abort|closed socket|socket closed|socket is closed/i.test(
+    message,
+  );
+}
 
 // All other service imports are removed to break circular dependencies.
 // The functionality will be restored by using an event-based approach.
@@ -345,6 +374,10 @@ export class IRCService {
 
   // IRCv3 features
   private serverTime: boolean = false;
+  // Phone clock minus server clock, as seen on live lines (ms). Lets replayed
+  // bouncer lines be told apart by their old server-time even when the
+  // phone's clock is off. NaN until the first tagged line arrives.
+  private liveServerTimeOffset: number = NaN;
   private accountNotify: boolean = false;
   private extendedJoin: boolean = false;
   private userhostInNames: boolean = false;
@@ -398,6 +431,8 @@ export class IRCService {
 
   // User list tracking
   private channelUsers: Map<string, Map<string, ChannelUser>> = new Map(); // channel -> nick -> user
+  private dirtyUserLists = new Set<string>();
+  private userListFlushTimer: ReturnType<typeof setTimeout> | null = null;
   private userListListeners: ((
     channel: string,
     users: ChannelUser[],
@@ -783,6 +818,11 @@ export class IRCService {
       clearTimeout(this.delayedDestroyTimer);
       this.delayedDestroyTimer = null;
     }
+    if (this.userListFlushTimer) {
+      clearTimeout(this.userListFlushTimer);
+      this.userListFlushTimer = null;
+    }
+    this.dirtyUserLists.clear();
     (this as any)._capTimeout = null;
   }
 
@@ -860,6 +900,7 @@ export class IRCService {
 
         this.config = config;
         this.registered = false;
+        this.liveServerTimeOffset = NaN;
         this.inboundBuffer = Buffer.alloc(0);
 
         this.capNegotiating = false;
@@ -1002,6 +1043,27 @@ export class IRCService {
                     }),
                   ),
                 );
+              } else if (isDeadConnectionError(errorCode, errorMessage)) {
+                // The peer or the network is gone (typically EPIPE after Android
+                // cut the app's network in the background). The socket will
+                // never recover, and without a close event the connection stays
+                // "up": every keepalive PING repeats the same error and
+                // auto-reconnect never starts. Drop it so the close handler
+                // runs and reconnection takes over.
+                this.addMessage({
+                  type: 'error',
+                  text: t('Socket error: {message}', { message: errorMessage }),
+                  timestamp: Date.now(),
+                });
+                this.isConnected = false;
+                this.stopKeepAlive();
+                try {
+                  this.socket?.destroy();
+                } catch (destroyError: any) {
+                  this.logRaw(
+                    `IRCService: Error destroying dead socket: ${destroyError?.message || destroyError}`,
+                  );
+                }
               } else {
                 this.addMessage({
                   type: 'error',
@@ -1591,6 +1653,7 @@ export class IRCService {
         } catch (e) {
           console.error('Error parsing server-time:', e);
         }
+        this.trackServerTimeOffset(messageTimestamp, parsedLine.messageLine);
       }
     }
 
@@ -2442,10 +2505,34 @@ export class IRCService {
     return { nick: nick.trim(), modes, account, host, ident };
   }
 
+  /**
+   * Note that a channel's user list changed. Lists are sent at most once per
+   * USER_LIST_FLUSH_MS per channel: in a 2000-user channel JOIN/PART/QUIT/MODE
+   * arrive several times a second, and each send re-renders the UI with a
+   * fresh copy of the whole list.
+   */
   private updateChannelUserList(channel: string): void {
-    const usersMap = this.channelUsers.get(channel);
-    if (usersMap)
-      this.emitUserListChange(channel, Array.from(usersMap.values()));
+    this.dirtyUserLists.add(channel);
+    if (this.userListFlushTimer) return;
+    this.userListFlushTimer = setTimeout(
+      () => this.flushUserListUpdates(),
+      USER_LIST_FLUSH_MS,
+    );
+  }
+
+  /** Send every pending user-list change now. */
+  flushUserListUpdates(): void {
+    if (this.userListFlushTimer) {
+      clearTimeout(this.userListFlushTimer);
+      this.userListFlushTimer = null;
+    }
+    const channels = Array.from(this.dirtyUserLists);
+    this.dirtyUserLists.clear();
+    for (const channel of channels) {
+      const usersMap = this.channelUsers.get(channel);
+      if (usersMap)
+        this.emitUserListChange(channel, Array.from(usersMap.values()));
+    }
   }
 
   private buildRoleLine(label: string, count: number, total: number): string {
@@ -2500,6 +2587,8 @@ export class IRCService {
   }
 
   private emitUserListChange(channel: string, users: ChannelUser[]): void {
+    // A full list sent now (end of NAMES) supersedes a pending change.
+    this.dirtyUserLists.delete(channel);
     this.userListListeners.forEach(cb => cb(channel, users));
   }
 
@@ -2533,6 +2622,7 @@ export class IRCService {
     const modeString = modeParams[0] || '';
     let paramIndex = 1;
     let adding = true;
+    let userModesChanged = false;
 
     for (let i = 0; i < modeString.length; i++) {
       const char = modeString[i];
@@ -2551,6 +2641,7 @@ export class IRCService {
         if (targetNick) {
           const user = usersMap.get(targetNick.toLowerCase());
           if (user) {
+            userModesChanged = true;
             if (adding) {
               if (!user.modes.includes(char)) user.modes.push(char);
             } else {
@@ -2584,7 +2675,13 @@ export class IRCService {
         }
       }
     }
-    this.updateChannelUserList(channel);
+    // +b, +k, +l and the like leave the user list as it was.
+    if (userModesChanged) this.updateChannelUserList(channel);
+  }
+
+  /** One user of a channel by nick, without copying the whole list. */
+  getChannelUser(channel: string, nick: string): ChannelUser | undefined {
+    return this.channelUsers.get(channel)?.get(nick.toLowerCase());
   }
 
   getChannelUsers(channel: string): ChannelUser[] {
@@ -3718,6 +3815,12 @@ export class IRCService {
       batchTag,
     };
 
+    // Mark replayed lines that arrive outside a history batch too: a ZNC
+    // buffer replay is plain PRIVMSGs carrying their original server-time.
+    if (!fullMessage.isRaw && this.isReplayedTimestamp(fullMessage.timestamp)) {
+      fullMessage.isPlayback = true;
+    }
+
     // Mark playback messages from history batches
     if (batchTag) {
       const batch = this.getBatchLabelManager()
@@ -3741,6 +3844,32 @@ export class IRCService {
     this.emitMessage(fullMessage);
   }
 
+  /**
+   * Keep the live phone-minus-server clock offset current. A PONG answers our
+   * own keepalive, so it is live by definition and resets the reference (which
+   * also follows a phone clock change); any other tagged line can only lower
+   * it, since a replayed line is older and so has a larger offset.
+   */
+  private trackServerTimeOffset(serverTime: number, line: string): void {
+    const offset = Date.now() - serverTime;
+    if (
+      /^(?::\S+\s+)?PONG\b/i.test(line) ||
+      Number.isNaN(this.liveServerTimeOffset)
+    ) {
+      this.liveServerTimeOffset = offset;
+    } else if (offset < this.liveServerTimeOffset) {
+      this.liveServerTimeOffset = offset;
+    }
+  }
+
+  /** A server-time more than a minute older than live means a replayed line. */
+  isReplayedTimestamp(timestamp: number): boolean {
+    if (!this.serverTime || Number.isNaN(this.liveServerTimeOffset)) {
+      return false;
+    }
+    return Date.now() - timestamp - this.liveServerTimeOffset > REPLAY_AGE_MS;
+  }
+
   addRawMessage(
     text: string,
     category: RawMessageCategory = 'debug',
@@ -3760,12 +3889,14 @@ export class IRCService {
     line: string,
     timestamp: number = Date.now(),
   ): void {
-    const arrow = direction === 'in' ? '<--' : '-->';
-    this.addRawMessage(
-      t('*** {arrow} {line}', { arrow, line }),
-      direction === 'in' ? 'trafficIn' : 'trafficOut',
-      timestamp,
-    );
+    if (isWireMessageCaptured(direction)) {
+      const arrow = direction === 'in' ? '<--' : '-->';
+      this.addRawMessage(
+        t('*** {arrow} {line}', { arrow, line }),
+        direction === 'in' ? 'trafficIn' : 'trafficOut',
+        timestamp,
+      );
+    }
     // The one place every wire line passes, in both directions, which is why
     // the event goes here rather than at the half-dozen call sites. Emitted
     // rather than handed to ScriptingService directly: this file deliberately

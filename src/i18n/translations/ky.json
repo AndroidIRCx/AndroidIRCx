@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA бул сервер тарабынан колдоого алынбайт"
+  },
+  "Sort scripts": {
+    "string": "Скрипттерди иреттөө"
+  },
+  "Enabled first": {
+    "string": "Адегенде күйгүзүлгөндөр"
+  },
+  "Slowest first": {
+    "string": "Адегенде эң жайлар"
+  },
+  "{ms} ms used this session": {
+    "string": "Бул сеанста {ms} мс"
   }
 }

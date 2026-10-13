@@ -61,6 +61,45 @@ describe('ChannelTabs', () => {
     );
   });
 
+  it('does not redo encryption lookups when only messages change', async () => {
+    const tab = (id: string, name: string, messages: any[] = []) => ({
+      id,
+      name,
+      type: 'channel',
+      networkId: 'n1',
+      messages,
+    });
+    const props = { activeTabId: '1', onTabPress: jest.fn() };
+    const view = await render(
+      <ChannelTabs {...props} tabs={[tab('1', '#a'), tab('2', '#b')] as any} />,
+    );
+    await act(async () => {});
+    expect(mockGetAlwaysEncrypt).toHaveBeenCalledTimes(2);
+    expect(mockOnAlwaysEncryptChange).toHaveBeenCalledTimes(1);
+
+    // A batch of messages: new array and tab objects, same tabs.
+    await view.rerender(
+      <ChannelTabs
+        {...props}
+        tabs={[tab('1', '#a', [{ id: 'm' }]), tab('2', '#b')] as any}
+      />,
+    );
+    await act(async () => {});
+    expect(mockGetAlwaysEncrypt).toHaveBeenCalledTimes(2);
+    expect(mockOnAlwaysEncryptChange).toHaveBeenCalledTimes(1);
+
+    // A new tab is looked up once.
+    await view.rerender(
+      <ChannelTabs
+        {...props}
+        tabs={[tab('1', '#a'), tab('2', '#b'), tab('3', '#c')] as any}
+      />,
+    );
+    await act(async () => {});
+    expect(mockGetAlwaysEncrypt).toHaveBeenCalledTimes(3);
+    expect(mockGetAlwaysEncrypt).toHaveBeenLastCalledWith('#c', 'n1');
+  });
+
   it('renders tabs and handles press/long press', async () => {
     const onTabPress = jest.fn();
     const onTabLongPress = jest.fn();

@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA tidak disokong oleh pelayan ini"
+  },
+  "Sort scripts": {
+    "string": "Isih skrip"
+  },
+  "Enabled first": {
+    "string": "Yang didayakan dahulu"
+  },
+  "Slowest first": {
+    "string": "Paling perlahan dahulu"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms digunakan dalam sesi ini"
   }
 }

@@ -13384,5 +13384,17 @@
   },
   "NFC timed out. Try again, holding the phones together.": {
     "string": "Délai NFC dépassé. Réessayez en maintenant les téléphones rapprochés."
+  },
+  "Sort scripts": {
+    "string": "Trier les scripts"
+  },
+  "Enabled first": {
+    "string": "Activés d'abord"
+  },
+  "Slowest first": {
+    "string": "Plus lents d'abord"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms utilisées pendant cette session"
   }
 }

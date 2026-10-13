@@ -144,6 +144,7 @@ jest.mock('../../src/stores/tabStore', () => ({
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
+    subscribe: jest.fn(() => jest.fn()),
     getState: jest.fn().mockReturnValue({
       setChannelUsers: jest.fn(),
       setTypingUser: jest.fn(),

@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA nie jest obsługiwana przez ten serwer"
+  },
+  "Sort scripts": {
+    "string": "Sortuj skrypty"
+  },
+  "Enabled first": {
+    "string": "Najpierw włączone"
+  },
+  "Slowest first": {
+    "string": "Najpierw najwolniejsze"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms w tej sesji"
   }
 }

@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA अस्य सेवकेन न समर्थ्यते"
+  },
+  "Sort scripts": {
+    "string": "लिपीनां क्रमः"
+  },
+  "Enabled first": {
+    "string": "सक्रियाः प्रथमम्"
+  },
+  "Slowest first": {
+    "string": "मन्दतमाः प्रथमम्"
+  },
+  "{ms} ms used this session": {
+    "string": "अस्मिन् सत्रे {ms} ms उपयुक्तम्"
   }
 }

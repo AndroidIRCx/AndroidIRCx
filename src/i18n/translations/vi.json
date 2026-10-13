@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA không được máy chủ này hỗ trợ"
+  },
+  "Sort scripts": {
+    "string": "Sắp xếp script"
+  },
+  "Enabled first": {
+    "string": "Đang bật trước"
+  },
+  "Slowest first": {
+    "string": "Chậm nhất trước"
+  },
+  "{ms} ms used this session": {
+    "string": "Đã dùng {ms} ms trong phiên này"
   }
 }

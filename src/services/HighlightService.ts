@@ -10,6 +10,9 @@ const HIGHLIGHT_WORDS_STORAGE_KEY = 'HIGHLIGHT_WORDS';
 class HighlightService {
   private highlightWords: string[] = [];
   private listeners: Array<() => void> = [];
+  // One compiled pattern for all words, rebuilt only when the list changes:
+  // isHighlighted runs for every incoming message. undefined = not built yet.
+  private pattern: RegExp | null | undefined;
 
   constructor() {
     this.loadHighlightWords();
@@ -22,6 +25,7 @@ class HighlightService {
       );
       if (storedWords) {
         this.highlightWords = JSON.parse(storedWords);
+        this.pattern = undefined;
       }
     } catch (error) {
       console.error('Failed to load highlight words:', error);
@@ -29,6 +33,7 @@ class HighlightService {
   }
 
   private async saveHighlightWords() {
+    this.pattern = undefined;
     try {
       await AsyncStorage.setItem(
         HIGHLIGHT_WORDS_STORAGE_KEY,
@@ -57,29 +62,33 @@ class HighlightService {
     await this.saveHighlightWords();
   }
 
+  private buildPattern(): RegExp | null {
+    if (this.highlightWords.length === 0) return null;
+    const alternatives = this.highlightWords.map(word =>
+      // Escape special regex characters in the word
+      word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    );
+    return new RegExp(`\\b(?:${alternatives.join('|')})\\b`, 'i');
+  }
+
   public isHighlighted(text: string): boolean {
     if (!text || this.highlightWords.length === 0) {
       return false;
     }
-
-    for (const word of this.highlightWords) {
+    if (this.pattern === undefined) {
       try {
-        // Escape special regex characters in the word
-        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`\\b${escaped}\\b`, 'i');
-        if (regex.test(text)) {
-          return true;
-        }
+        this.pattern = this.buildPattern();
       } catch (e) {
-        console.error(`Invalid regex for highlight word "${word}":`, e);
-        // Fallback to simple includes
-        if (text.toLowerCase().includes(word.toLowerCase())) {
-          return true;
-        }
+        console.error('Invalid highlight word pattern:', e);
+        this.pattern = null;
       }
     }
-
-    return false;
+    if (this.pattern) {
+      return this.pattern.test(text);
+    }
+    // Fallback to simple includes
+    const lower = text.toLowerCase();
+    return this.highlightWords.some(word => lower.includes(word.toLowerCase()));
   }
 
   public onHighlightWordsChange(callback: () => void): () => void {

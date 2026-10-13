@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "此服务器不支持 METADATA"
+  },
+  "Sort scripts": {
+    "string": "排序脚本"
+  },
+  "Enabled first": {
+    "string": "已启用的在前"
+  },
+  "Slowest first": {
+    "string": "最慢的在前"
+  },
+  "{ms} ms used this session": {
+    "string": "本次会话用时 {ms} 毫秒"
   }
 }

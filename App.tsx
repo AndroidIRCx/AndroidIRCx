@@ -25,7 +25,7 @@ import {
 } from 'react-native-safe-area-context';
 import { AppLayout } from './src/components/AppLayout';
 import { AppModals } from './src/components/AppModals';
-import { ircService, IRCMessage, ChannelUser } from './src/services/IRCService';
+import { ircService, IRCMessage } from './src/services/IRCService';
 import { settingsService } from './src/services/SettingsService';
 import { secureStorageService } from './src/services/SecureStorageService';
 import { useTheme } from './src/hooks/useTheme';
@@ -39,6 +39,7 @@ import {
 
 // Zustand stores and custom hooks
 import { useUIStore } from './src/stores/uiStore';
+import { useChannelUsersStore } from './src/stores/channelUsersStore';
 import { useConnectionManager } from './src/hooks/useConnectionManager';
 import { useTabManager } from './src/hooks/useTabManager';
 import { useAppLock } from './src/hooks/useAppLock';
@@ -83,6 +84,9 @@ import { useAgeCompliance } from './src/hooks/useAgeCompliance';
 import { killSwitchService } from './src/services/KillSwitchService';
 import { screenshotProtectionService } from './src/services/ScreenshotProtectionService';
 import { getActiveTabSafe } from './src/utils/activeTabUtils';
+
+/** Shared empty list, so a tab without messages never looks changed. */
+const NO_MESSAGES: IRCMessage[] = [];
 
 // Suppress noisy pooled synthetic event warnings that can appear in dev logging
 LogBox.ignoreLogs([
@@ -589,9 +593,8 @@ function AppContent() {
     autoConnectFavoriteServerRef.current = autoConnectFavoriteServer;
   }, [autoConnectFavoriteServer]);
 
-  const [channelUsers, setChannelUsers] = useState<Map<string, ChannelUser[]>>(
-    new Map(),
-  );
+  // Kept out of this component's state: see channelUsersStore.
+  const setChannelUsers = useChannelUsersStore(state => state.setChannelUsers);
   const [dccTransfers, setDccTransfers] = useState(dccFileService.list());
   const [motdSignal, setMotdSignal] = useState(0);
 
@@ -606,9 +609,7 @@ function AppContent() {
     primaryNetworkId,
     networkName,
   );
-  const activeMessages = activeTab?.messages || [];
-  const activeUsers =
-    activeTab.type === 'channel' ? channelUsers.get(activeTab.name) || [] : [];
+  const activeMessages = activeTab?.messages || NO_MESSAGES;
 
   const {
     appendServerMessage,
@@ -860,7 +861,6 @@ function AppContent() {
         activeTabId={activeTabId}
         activeTab={activeTab}
         activeMessages={activeMessages}
-        activeUsers={activeUsers}
         isConnected={isConnected}
         networkName={networkName}
         selectedNetworkName={selectedNetworkName}

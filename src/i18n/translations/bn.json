@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "এই সার্ভার দ্বারা METADATA সমর্থিত নয়"
+  },
+  "Sort scripts": {
+    "string": "স্ক্রিপ্ট সাজান"
+  },
+  "Enabled first": {
+    "string": "সক্রিয়গুলো আগে"
+  },
+  "Slowest first": {
+    "string": "সবচেয়ে ধীরগুলো আগে"
+  },
+  "{ms} ms used this session": {
+    "string": "এই সেশনে {ms} ms ব্যবহৃত"
   }
 }

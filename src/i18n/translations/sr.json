@@ -13384,5 +13384,17 @@
   },
   "NFC timed out. Try again, holding the phones together.": {
     "string": "NFC je istekao. Pokušaj ponovo, držeći telefone zajedno."
+  },
+  "Sort scripts": {
+    "string": "Sortiraj skripte"
+  },
+  "Enabled first": {
+    "string": "Prvo omogućene"
+  },
+  "Slowest first": {
+    "string": "Prvo najsporije"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms u ovoj sesiji"
   }
 }

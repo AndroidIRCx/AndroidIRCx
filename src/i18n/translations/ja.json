@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "このサーバーはMETADATAをサポートしていません"
+  },
+  "Sort scripts": {
+    "string": "スクリプトの並べ替え"
+  },
+  "Enabled first": {
+    "string": "有効なものを先頭"
+  },
+  "Slowest first": {
+    "string": "遅いものを先頭"
+  },
+  "{ms} ms used this session": {
+    "string": "このセッションで {ms} ms 使用"
   }
 }

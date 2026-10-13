@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA не падтрымліваецца гэтым серверам"
+  },
+  "Sort scripts": {
+    "string": "Сартаваць скрыпты"
+  },
+  "Enabled first": {
+    "string": "Спачатку ўключаныя"
+  },
+  "Slowest first": {
+    "string": "Спачатку самыя павольныя"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} мс за гэты сеанс"
   }
 }

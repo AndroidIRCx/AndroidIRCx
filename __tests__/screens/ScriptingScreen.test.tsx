@@ -351,6 +351,71 @@ describe('ScriptingScreen', () => {
     );
   });
 
+  it('sorts scripts by enabled, name or time used, and remembers the choice', async () => {
+    const { settingsService } = require('../../src/services/SettingsService');
+    const {
+      addonDiagnostics,
+    } = require('../../src/services/scripting/AddonDiagnostics');
+    jest.spyOn(settingsService, 'getSetting').mockResolvedValue('enabled');
+    const setSetting = jest
+      .spyOn(settingsService, 'setSetting')
+      .mockResolvedValue(undefined);
+    addonDiagnostics.resetForTests();
+    addonDiagnostics.recordExecution('s-zed', 750);
+    scriptingService.list.mockReturnValue([
+      { id: 's-zed', name: 'Zed', code: '', enabled: false },
+      { id: 's-amy', name: 'Amy', code: '', enabled: false },
+      { id: 's-bob', name: 'Bob', code: '', enabled: true },
+    ]);
+    const order = () =>
+      view
+        .getAllByLabelText(/^Toggle /)
+        .map((el: any) => el.props.accessibilityLabel);
+
+    const view = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+    await view.findByText('Zed');
+    expect(order()).toEqual(['Toggle Bob', 'Toggle Amy', 'Toggle Zed']);
+    expect(view.getByText('750 ms used this session')).toBeTruthy();
+
+    await fireEvent.press(view.getByTestId('script-sort-name'));
+    expect(order()).toEqual(['Toggle Amy', 'Toggle Bob', 'Toggle Zed']);
+    expect(setSetting).toHaveBeenCalledWith('scriptsSortOrder', 'name');
+
+    await fireEvent.press(view.getByTestId('script-sort-slowest'));
+    expect(order()).toEqual(['Toggle Zed', 'Toggle Bob', 'Toggle Amy']);
+    addonDiagnostics.resetForTests();
+  });
+
+  it('restores the remembered script order', async () => {
+    const { settingsService } = require('../../src/services/SettingsService');
+    jest.spyOn(settingsService, 'getSetting').mockResolvedValue('name');
+    scriptingService.list.mockReturnValue([
+      { id: 's-bob', name: 'Bob', code: '', enabled: true },
+      { id: 's-amy', name: 'Amy', code: '', enabled: false },
+    ]);
+    const view = await render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+    await view.findByText('Amy');
+    await waitFor(() =>
+      expect(
+        view
+          .getAllByLabelText(/^Toggle /)
+          .map((el: any) => el.props.accessibilityLabel),
+      ).toEqual(['Toggle Amy', 'Toggle Bob']),
+    );
+  });
+
   it('shows and immediately updates third-party addon Safe Mode', async () => {
     const { findByText, getByLabelText } = await render(
       <ScriptingScreen visible onClose={jest.fn()} />,

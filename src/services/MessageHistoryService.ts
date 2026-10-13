@@ -43,6 +43,25 @@ export interface ExportOptions {
   includeMetadata?: boolean;
 }
 
+/**
+ * History is stored oldest-first. New lines almost always come after the
+ * stored ones, so they are appended as they are; the full sort of up to
+ * 10,000 entries per save only runs when something arrives out of order.
+ */
+const appendInTimeOrder = (
+  existing: IRCMessage[],
+  incoming: IRCMessage[],
+): IRCMessage[] => {
+  if (incoming.length === 0) return existing;
+  const byTime = (a: IRCMessage, b: IRCMessage) => a.timestamp - b.timestamp;
+  const batch = [...incoming].sort(byTime);
+  const lastStored = existing[existing.length - 1]?.timestamp;
+  if (lastStored === undefined || batch[0].timestamp >= lastStored) {
+    return existing.concat(batch);
+  }
+  return existing.concat(batch).sort(byTime);
+};
+
 class MessageHistoryService {
   private readonly STORAGE_PREFIX = '@AndroidIRCX:history:';
   private readonly MAX_MESSAGES_PER_CHANNEL = 10000; // Limit to prevent storage issues
@@ -87,12 +106,12 @@ class MessageHistoryService {
       ([channel, msgs]) => {
         const key = this.getStorageKey(network, channel);
         return this.loadMessagesByKey(key).then(existing => {
-          const combined = [...existing, ...msgs];
-          // Limit and sort by timestamp
-          const sorted = combined
-            .sort((a, b) => a.timestamp - b.timestamp)
-            .slice(-this.MAX_MESSAGES_PER_CHANNEL);
-          return storageCache.setItem(key, sorted);
+          return storageCache.setItem(
+            key,
+            appendInTimeOrder(existing, msgs).slice(
+              -this.MAX_MESSAGES_PER_CHANNEL,
+            ),
+          );
         });
       },
     );

@@ -629,6 +629,25 @@ describe('AwayService', () => {
     expect(irc.sendRaw).not.toHaveBeenCalled();
   });
 
+  it('handleIncomingMessage never auto-answers a replayed message', async () => {
+    const irc = makeIrcService();
+    mockGetSetting.mockImplementation(async (key: string, defaultValue: any) =>
+      key === 'awayAutoAnswerEnabled' ? true : defaultValue,
+    );
+    const state = (awayService as any).ensureState('net');
+    state.isAway = true;
+
+    await (awayService as any).handleIncomingMessage('net', irc, {
+      type: 'message',
+      from: 'bob',
+      text: 'hi',
+      channel: 'Tester',
+      isPlayback: true,
+    });
+
+    expect(irc.sendRaw).not.toHaveBeenCalled();
+  });
+
   it('handleIncomingMessage returns early when auto-answer is disabled', async () => {
     const irc = makeIrcService();
     // Default mock returns false for awayAutoAnswerEnabled

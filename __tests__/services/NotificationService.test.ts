@@ -56,6 +56,8 @@ jest.mock('@notifee/react-native', () => ({
     MESSAGE: 'msg',
     CALL: 'call',
   },
+  AndroidGroupAlertBehavior: { ALL: 0, SUMMARY: 1, CHILDREN: 2 },
+  AndroidStyle: { BIGPICTURE: 0, BIGTEXT: 1, INBOX: 2, MESSAGING: 3 },
   EventType: {
     DISMISSED: 2,
     PRESS: 1,
@@ -81,6 +83,8 @@ describe('NotificationService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (AsyncStorage as any).__reset();
+    (notificationService as any).conversations = new Map();
+    (notificationService as any).permissionCache = null;
     // Reset service state
     (notificationService as any).preferences = {
       enabled: true,
@@ -685,6 +689,172 @@ describe('NotificationService', () => {
           title: '#general',
         }),
       );
+    });
+  });
+
+  describe('mentionsNick', () => {
+    beforeEach(() => {
+      (notificationService as any).mentionCache = null;
+    });
+
+    it('matches the nick or @nick case-insensitively', () => {
+      expect(
+        notificationService.mentionsNick('hey TestNick!', 'testnick'),
+      ).toBe(true);
+      expect(
+        notificationService.mentionsNick('@testnick ping', 'TestNick'),
+      ).toBe(true);
+      expect(notificationService.mentionsNick('testnicks', 'TestNick')).toBe(
+        false,
+      );
+      expect(notificationService.mentionsNick('', 'TestNick')).toBe(false);
+      expect(notificationService.mentionsNick('hi', '')).toBe(false);
+    });
+
+    it('builds the pattern once per nick', () => {
+      const spy = jest.spyOn(global, 'RegExp');
+      notificationService.mentionsNick('a TestNick', 'TestNick');
+      notificationService.mentionsNick('b TestNick', 'TestNick');
+      const built = spy.mock.calls.length;
+      notificationService.mentionsNick('c Other', 'Other');
+      expect(spy.mock.calls.length).toBe(built + 1);
+      spy.mockRestore();
+    });
+
+    it('treats regex characters in the nick literally', () => {
+      // Unescaped, [away] would be a character class matching 'away'.
+      expect(notificationService.mentionsNick('hi away', '[away]')).toBe(false);
+      expect(notificationService.mentionsNick('hi a|b ok', 'a|b')).toBe(true);
+    });
+  });
+
+  describe('conversation notifications', () => {
+    const grant = () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
+      return PermissionsAndroid.check as jest.Mock;
+    };
+    const say = (text: string, channel = '#general') =>
+      notificationService.showMessageNotification(
+        { from: 'alice', text, channel },
+        'TestNick',
+        'Libera',
+      );
+    const conversationCalls = () =>
+      (notifee.displayNotification as jest.Mock).mock.calls
+        .map(c => c[0])
+        .filter((n: any) => !n.android?.groupSummary);
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('updates one notification per conversation with a count and last lines', async () => {
+      grant();
+      await say('one');
+      await say('two');
+      await say('three');
+      const calls = conversationCalls();
+      expect(new Set(calls.map((n: any) => n.id)).size).toBe(1);
+      const last = calls[2];
+      expect(last.title).toContain('3');
+      expect(last.body).toBe('alice: three');
+      expect(last.android.style.lines).toEqual([
+        'alice: one',
+        'alice: two',
+        'alice: three',
+      ]);
+      expect(last.android.groupId).toBe('irc_net_libera');
+    });
+
+    it('keeps only the last five lines', async () => {
+      grant();
+      for (let i = 1; i <= 7; i++) await say(`l${i}`);
+      const last = conversationCalls()[6];
+      expect(last.android.style.lines).toHaveLength(5);
+      expect(last.android.style.lines[0]).toBe('alice: l3');
+    });
+
+    it('alerts at most every 30 seconds per conversation', async () => {
+      jest.useFakeTimers();
+      grant();
+      await say('first');
+      await say('second');
+      jest.setSystemTime(Date.now() + 31_000);
+      await say('later');
+      const alerts = conversationCalls().map(
+        (n: any) => n.android.onlyAlertOnce,
+      );
+      expect(alerts).toEqual([false, true, false]);
+    });
+
+    it('gives separate conversations separate notifications', async () => {
+      grant();
+      await say('in general');
+      await say('in query', 'bob');
+      expect(new Set(conversationCalls().map((n: any) => n.id)).size).toBe(2);
+    });
+
+    it('adds a silent group summary per network', async () => {
+      grant();
+      await say('hello');
+      const summary = (notifee.displayNotification as jest.Mock).mock.calls
+        .map(c => c[0])
+        .find((n: any) => n.android?.groupSummary);
+      expect(summary).toMatchObject({
+        id: 'irc_net_libera_summary',
+        android: { groupId: 'irc_net_libera', onlyAlertOnce: true },
+      });
+    });
+
+    it('starts over after the conversation is opened', async () => {
+      grant();
+      await say('one');
+      await say('two');
+      notificationService.clearConversation('#GENERAL', 'libera');
+      expect(notifee.cancelNotification).toHaveBeenCalledWith(
+        'irc_conv_libera::#general',
+      );
+      await say('three');
+      const last = conversationCalls()[2];
+      expect(last.title).toBe('#general');
+      expect(last.android.onlyAlertOnce).toBe(false);
+    });
+
+    it('does nothing when clearing a conversation without a notification', () => {
+      notificationService.clearConversation('#quiet', 'libera');
+      expect(notifee.cancelNotification).not.toHaveBeenCalled();
+    });
+
+    it('checks the permission natively once per minute, not per message', async () => {
+      const check = grant();
+      await say('one');
+      await say('two');
+      expect(check).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips the notification when permission is missing', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.check.mockResolvedValue(false);
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
+      await say('hello');
+      expect(notifee.displayNotification).not.toHaveBeenCalled();
+    });
+
+    it('logs instead of throwing when notifee fails', async () => {
+      grant();
+      const spy = jest.spyOn(console, 'error').mockImplementation();
+      (notifee.displayNotification as jest.Mock).mockRejectedValueOnce(
+        new Error('boom'),
+      );
+      await expect(say('hello')).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
     });
   });
 

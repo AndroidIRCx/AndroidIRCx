@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import {
@@ -23,13 +23,16 @@ export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
   onReactionPress,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
-  const [reactions, setReactions] = useState<MessageReactions | null>(null);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  // Read on first render: every message row mounts this, and loading it in the
+  // effect instead meant a second render per row.
+  const [reactions, setReactions] = useState<MessageReactions | null>(() =>
+    messageReactionsService.getReactions(messageId),
+  );
 
   useEffect(() => {
-    // Load initial reactions
-    const initialReactions = messageReactionsService.getReactions(messageId);
-    setReactions(initialReactions);
+    // Same object as the first render when nothing changed: no re-render.
+    setReactions(messageReactionsService.getReactions(messageId));
 
     // Listen for changes
     const unsubscribe = messageReactionsService.onReactionsChange(

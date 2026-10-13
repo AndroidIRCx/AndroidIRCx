@@ -154,7 +154,8 @@ type MessageAreaModalKey =
 
 interface MessageItemProps {
   message: IRCMessage;
-  channelUsers?: ChannelUser[];
+  /** Display nick for a lowercased nick, if it is in the channel. */
+  nickLookup?: (lowerNick: string) => string | undefined;
   timestampDisplay: 'always' | 'grouped' | 'never';
   timestampFormat: '12h' | '24h';
   colors: any;
@@ -233,6 +234,34 @@ const IRC_FORMATTING_CHARS = [
   String.fromCharCode(0x1e),
   String.fromCharCode(0x1f),
 ];
+// Splits a word into leading punctuation, a possible nick, trailing punctuation.
+// Compiled once: it runs for every word of every rendered message.
+const NICK_TOKEN_RE = new RegExp(
+  '^([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)(@?[A-Za-z0-9_`^\\\\-\\]\\[{}|]+)([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)$',
+);
+
+// Whole-word "is my nick mentioned" patterns, one per nick.
+const nickMentionPatterns = new Map<string, RegExp | null>();
+const mentionsWholeNick = (text: string, nick: string): boolean => {
+  let pattern = nickMentionPatterns.get(nick);
+  if (pattern === undefined) {
+    try {
+      const escaped = nick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      pattern = new RegExp(`\\b${escaped}\\b`, 'i');
+    } catch {
+      pattern = null;
+    }
+    nickMentionPatterns.set(nick, pattern);
+  }
+  // Fallback to simple includes if the pattern could not be built
+  return pattern
+    ? pattern.test(text)
+    : text.toLowerCase().includes(nick.toLowerCase());
+};
+
+/** Older stored lines loaded per scroll to the top. */
+const OLDER_HISTORY_PAGE = 200;
+
 const IRC_BEL = String.fromCharCode(0x07);
 const IRC_NUL = String.fromCharCode(0x00);
 
@@ -240,7 +269,7 @@ const IRC_NUL = String.fromCharCode(0x00);
 const MessageItem = React.memo<MessageItemProps>(
   ({
     message,
-    channelUsers,
+    nickLookup,
     timestampDisplay,
     timestampFormat,
     colors,
@@ -388,11 +417,6 @@ const MessageItem = React.memo<MessageItemProps>(
       [message.text, actionText, renderMessageParts],
     );
 
-    // Escape special regex characters to prevent invalid regex errors
-    const escapeRegExp = useCallback((string: string): string => {
-      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }, []);
-
     const isHighlighted = useMemo(() => {
       if (message.type !== 'message') {
         return false;
@@ -403,17 +427,10 @@ const MessageItem = React.memo<MessageItemProps>(
       }
       // Check if the current user's nick is mentioned as a whole word
       if (currentNick) {
-        try {
-          const escapedNick = escapeRegExp(currentNick);
-          const regex = new RegExp(`\\b${escapedNick}\\b`, 'i');
-          return regex.test(message.text);
-        } catch {
-          // Fallback to simple includes if regex fails
-          return message.text.toLowerCase().includes(currentNick.toLowerCase());
-        }
+        return mentionsWholeNick(message.text, currentNick);
       }
       return false;
-    }, [message.text, message.type, currentNick, escapeRegExp]);
+    }, [message.text, message.type, currentNick]);
 
     const actionMessageColor = isHighlighted
       ? colors.highlightText
@@ -602,15 +619,6 @@ const MessageItem = React.memo<MessageItemProps>(
       };
     }, [inlineBaseStyle, styles.nick]);
 
-    const nickMap = useMemo(() => {
-      const map = new Map<string, string>();
-      (channelUsers || []).forEach(user => {
-        if (!user?.nick) return;
-        map.set(user.nick.toLowerCase(), user.nick);
-      });
-      return map;
-    }, [channelUsers]);
-
     const containsIrcFormatting = useCallback(
       (text: string | undefined | null): boolean => {
         if (!text) return false;
@@ -761,11 +769,7 @@ const MessageItem = React.memo<MessageItemProps>(
               }
 
               // Extract a potential nick while preserving surrounding punctuation.
-              const match = token.match(
-                new RegExp(
-                  '^([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)(@?[A-Za-z0-9_`^\\\\-\\]\\[{}|]+)([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)$',
-                ),
-              );
+              const match = token.match(NICK_TOKEN_RE);
               if (!match) {
                 return (
                   <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
@@ -776,7 +780,7 @@ const MessageItem = React.memo<MessageItemProps>(
 
               const [, leading, core, trailing] = match;
               const coreNick = core.startsWith('@') ? core.slice(1) : core;
-              const resolved = nickMap.get(coreNick.toLowerCase());
+              const resolved = nickLookup?.(coreNick.toLowerCase());
               if (!resolved) {
                 return (
                   <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
@@ -810,7 +814,7 @@ const MessageItem = React.memo<MessageItemProps>(
       },
       [
         containsIrcFormatting,
-        nickMap,
+        nickLookup,
         onNickLongPress,
         onChannelPress,
         handleLinkPress,
@@ -1537,14 +1541,14 @@ const MessageItem = React.memo<MessageItemProps>(
       prevProps.channel === nextProps.channel &&
       prevProps.layoutWidth === nextProps.layoutWidth &&
       prevProps.messageFormats === nextProps.messageFormats &&
-      prevProps.channelUsers === nextProps.channelUsers
+      prevProps.nickLookup === nextProps.nickLookup
     );
   },
 );
 
 MessageItem.displayName = 'MessageItem';
 
-export const MessageArea: React.FC<MessageAreaProps> = ({
+const MessageAreaView: React.FC<MessageAreaProps> = ({
   messages,
   channelUsers,
   showRawCommands = true,
@@ -1564,7 +1568,22 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const { theme, colors } = useTheme();
   const layoutConfig = layoutService.getConfig();
   const totalBottomInset = bottomInset + layoutConfig.navigationBarOffset;
-  const styles = createStyles(colors, layoutConfig, totalBottomInset);
+  // Rebuilt only when something it reads changes: a new styles object on
+  // every render made renderItem new too, so every visible row re-rendered.
+  const styleKey = JSON.stringify([
+    layoutConfig.messageTextDirection,
+    layoutConfig.messageSpacing,
+    layoutConfig.messagePadding,
+    layoutConfig.messageTextAlign,
+    layoutService.getFontSizePixels(),
+    layoutService.getFontFamilyStyle(),
+  ]);
+  const styles = useMemo(
+    () => createStyles(colors, layoutService.getConfig(), totalBottomInset),
+    // styleKey stands for the layout values createStyles reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [colors, totalBottomInset, styleKey],
+  );
   const flatListRef = useRef<FlatList>(null);
   const chatHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -2967,23 +2986,33 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return [...visibleMessages].reverse();
   }, [visibleMessages]);
 
-  // Auto-scroll to bottom when new messages arrive and we're at bottom
+  // Auto-scroll to bottom when new messages arrive and we're near it. The list
+  // is inverted, so at offset 0 new lines already appear in view: scrolling
+  // there again on every batch only fought the list's own positioning.
+  const scrollOffsetRef = useRef(0);
   useEffect(() => {
-    if (isAtBottom && displayMessages.length > 0) {
-      setTimeout(() => {
-        try {
-          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-        } catch (error) {
-          debugLogger.warn('messageArea', 'Failed to scroll to offset', error);
-        }
-      }, 100);
+    if (
+      !isAtBottom ||
+      displayMessages.length === 0 ||
+      scrollOffsetRef.current <= 1
+    ) {
+      return;
     }
+    const timer = setTimeout(() => {
+      try {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      } catch (error) {
+        debugLogger.warn('messageArea', 'Failed to scroll to offset', error);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [displayMessages.length, isAtBottom]);
 
   // Handle scroll events
   const handleScroll = useCallback((event: any) => {
     const { contentOffset } = event.nativeEvent;
     const offsetFromBottom = contentOffset?.y ?? 0;
+    scrollOffsetRef.current = offsetFromBottom;
     const nextIsAtBottom = offsetFromBottom <= 100;
     if (nextIsAtBottom !== isAtBottomRef.current) {
       isAtBottomRef.current = nextIsAtBottom;
@@ -3067,42 +3096,69 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     ],
   );
 
+  // Tabs hold only recent messages; at the top of the list the previous page
+  // comes from this device's stored history.
+  const olderHistoryLoadingRef = useRef(false);
+  const loadOlderFromStorage = useCallback(async () => {
+    if (!tabId || olderHistoryLoadingRef.current) return;
+    const tab = useTabStore.getState().tabs.find(item => item.id === tabId);
+    if (!tab?.networkId) return;
+    olderHistoryLoadingRef.current = true;
+    try {
+      const stored = await messageHistoryService.loadMessages(
+        tab.networkId,
+        tab.type === 'server' ? 'server' : tab.name,
+      );
+      const store = useTabStore.getState();
+      const current = store.tabs.find(item => item.id === tabId);
+      if (!current) return;
+      const oldest = current.messages[0]?.timestamp;
+      const older =
+        oldest === undefined
+          ? stored
+          : stored.filter(message => message.timestamp < oldest);
+      if (older.length === 0) return;
+      const page = older.slice(-OLDER_HISTORY_PAGE);
+      store.setTabs(
+        store.tabs.map(item =>
+          item.id === tabId
+            ? { ...item, messages: page.concat(item.messages) }
+            : item,
+        ),
+      );
+    } catch (err) {
+      console.error('Failed to load message history:', err);
+    } finally {
+      olderHistoryLoadingRef.current = false;
+    }
+  }, [tabId]);
+
   // Handle end reached (top of list) - load more old messages
   const handleEndReached = useCallback(() => {
     if (
       perfConfig.enableLazyLoading &&
       loadedMessageCount < displayMessages.length
     ) {
-      const newCount = Math.min(
-        loadedMessageCount + perfConfig.messageLoadChunk,
-        displayMessages.length,
+      setLoadedMessageCount(
+        Math.min(
+          loadedMessageCount + perfConfig.messageLoadChunk,
+          displayMessages.length,
+        ),
       );
-      setLoadedMessageCount(newCount);
-
-      // Optionally load from history
-      if (channel && network && newCount >= displayMessages.length) {
-        // Load older messages from history
-        messageHistoryService
-          .loadMessages(network, channel)
-          .then(() => {
-            // This would need to be integrated with the message state in App.tsx
-            // For now, we just track that we've loaded all available messages
-          })
-          .catch(err => {
-            console.error('Failed to load message history:', err);
-          });
-      }
       return;
     }
-    requestOlderChatHistory('scroll');
+    // Everything in the tab is shown: ask the server (IRCv3 chathistory) if
+    // it can, otherwise page in older lines from local history.
+    if (!requestOlderChatHistory('scroll')) {
+      loadOlderFromStorage();
+    }
   }, [
     perfConfig.enableLazyLoading,
     perfConfig.messageLoadChunk,
     loadedMessageCount,
     displayMessages.length,
-    channel,
-    network,
     requestOlderChatHistory,
+    loadOlderFromStorage,
   ]);
 
   const handleCopySelected = useCallback(() => {
@@ -3206,13 +3262,29 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     [activeIrc, resolveContextUser],
   );
 
+  // One nick map per user-list change, read through a stable function: rows
+  // need not re-render when someone joins or parts a big channel.
+  const nickMapRef = useRef<Map<string, string>>(new Map());
+  nickMapRef.current = useMemo(() => {
+    const map = new Map<string, string>();
+    (channelUsers || []).forEach(user => {
+      if (!user?.nick) return;
+      map.set(user.nick.toLowerCase(), user.nick);
+    });
+    return map;
+  }, [channelUsers]);
+  const nickLookup = useCallback(
+    (lowerNick: string) => nickMapRef.current.get(lowerNick),
+    [],
+  );
+
   // Render message item
   const renderItem = useCallback(
     ({ item: messageItem }: { item: IRCMessage }) => {
       return (
         <MessageItem
           message={messageItem}
-          channelUsers={channelUsers}
+          nickLookup={nickLookup}
           timestampDisplay={layoutState.timestampDisplay}
           timestampFormat={layoutState.timestampFormat}
           colors={colors}
@@ -3283,7 +3355,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       theme.messageFormats,
       activeIrc,
       tabSortAlphabetical,
-      channelUsers,
+      nickLookup,
     ],
   );
 
@@ -4676,3 +4748,7 @@ const createStyles = (
     },
   });
 };
+
+// Memoized: a message arriving in another tab re-renders the layout but leaves
+// the open conversation's props as they were, so it is skipped.
+export const MessageArea = React.memo(MessageAreaView);

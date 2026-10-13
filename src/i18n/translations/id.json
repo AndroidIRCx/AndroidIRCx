@@ -13384,5 +13384,17 @@
   },
   "NFC timed out. Try again, holding the phones together.": {
     "string": "NFC timeout. Coba lagi sambil menjaga kedua ponsel tetap menempel."
+  },
+  "Sort scripts": {
+    "string": "Urutkan skrip"
+  },
+  "Enabled first": {
+    "string": "Yang aktif dulu"
+  },
+  "Slowest first": {
+    "string": "Paling lambat dulu"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} md dipakai di sesi ini"
   }
 }

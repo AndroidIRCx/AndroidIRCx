@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA understøttes ikke af denne server"
+  },
+  "Sort scripts": {
+    "string": "Sortér scripts"
+  },
+  "Enabled first": {
+    "string": "Aktiverede først"
+  },
+  "Slowest first": {
+    "string": "Langsomste først"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms brugt i denne session"
   }
 }

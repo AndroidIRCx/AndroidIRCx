@@ -24,6 +24,7 @@ const mockIrcService = {
   sendCommand: jest.fn(),
   addMessage: jest.fn(),
   getChannelUsers: jest.fn(() => [{ nick: 'alice' }, { nick: '@bob' }]),
+  getChannelUser: jest.fn((_channel: string, _nick: string): any => undefined),
   getChannels: jest.fn(() => ['#chat', '#help']),
   getCurrentNick: jest.fn(() => 'myNick'),
   getConnectionStatus: jest.fn(() => true),
@@ -2501,6 +2502,34 @@ describe('ScriptingService', () => {
           .getLogs()
           .some(entry => entry.message === 'legacy:hello'),
       ).toBe(true);
+    });
+
+    it('marks the sender as op from a direct user lookup', () => {
+      const listener = jest.fn();
+      const unsubscribe = scriptingService.subscribeAddonEvents(listener);
+      const base = {
+        type: 'message' as const,
+        text: 'hi',
+        timestamp: 1,
+        network: 'net1',
+        channel: '#chat',
+      };
+      mockIrcService.getChannelUser.mockImplementation(
+        (_channel: string, nick: string) =>
+          nick === 'opper' ? { nick: 'opper', modes: ['o'] } : undefined,
+      );
+
+      scriptingService.handleMessage({ ...base, id: 'op-1', from: 'opper' });
+      scriptingService.handleMessage({ ...base, id: 'op-2', from: 'someone' });
+      unsubscribe();
+      mockIrcService.getChannelUser.mockImplementation(() => undefined);
+
+      expect(mockIrcService.getChannelUser).toHaveBeenCalledWith(
+        '#chat',
+        'opper',
+      );
+      expect(listener.mock.calls[0][0].payload.senderIsOp).toBe(true);
+      expect(listener.mock.calls[1][0].payload.senderIsOp).toBe(false);
     });
 
     it('isolates listener errors and stops delivery after unsubscribe', () => {

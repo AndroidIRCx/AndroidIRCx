@@ -116,8 +116,6 @@ describe('BackgroundService', () => {
     (backgroundService as any).appState = 'active';
     (backgroundService as any).appStateListener = null;
     (backgroundService as any).messageListenerCleanups = new Map();
-    (backgroundService as any).notificationQueue = new Map();
-    (backgroundService as any).lastNotificationTime = new Map();
     (backgroundService as any).backgroundConnectionEnabled = true;
     (backgroundService as any).backgroundCheckTimer = null;
     (backgroundService as any).backgroundConnectionListeners = [];
@@ -152,7 +150,35 @@ describe('BackgroundService', () => {
     expect(typeof appStateCb).toBe('function');
   });
 
-  it('attaches listener in background, persists message and throttles notifications', async () => {
+  it('ignores replayed bouncer messages in the background', async () => {
+    let appStateCb: any;
+    mockAppStateAddEventListener.mockImplementation(
+      (_event: string, cb: any) => {
+        appStateCb = cb;
+        return { remove: jest.fn() };
+      },
+    );
+    const irc = makeIrcService();
+    mockGetAllConnections.mockReturnValue([
+      { networkId: 'netA', ircService: irc },
+    ]);
+    await backgroundService.initialize();
+    appStateCb('background');
+
+    await irc.handlers.onMessage({
+      type: 'message',
+      from: 'alice',
+      text: 'from the buffer',
+      channel: '#chat',
+      network: 'NetA',
+      isPlayback: true,
+    });
+
+    expect(mockSaveMessage).not.toHaveBeenCalled();
+    expect(mockShowMessageNotification).not.toHaveBeenCalled();
+  });
+
+  it('attaches listener in background, persists and hands every message to notifications', async () => {
     let appStateCb: any;
     mockAppStateAddEventListener.mockImplementation(
       (_event: string, cb: any) => {
@@ -182,24 +208,13 @@ describe('BackgroundService', () => {
     await irc.handlers.onMessage({ ...msg, text: 'hello again' });
 
     expect(mockSaveMessage).toHaveBeenCalledTimes(2);
-    expect(mockShowMessageNotification).toHaveBeenCalledTimes(1);
-    expect(
-      (backgroundService as any).notificationQueue.get('NetA:#chat')?.length,
-    ).toBe(1);
-  });
-
-  it('flushes queued notifications via processNotificationQueue', async () => {
-    (backgroundService as any).notificationQueue = new Map([
-      [
-        'NetA:#help',
-        [{ type: 'message', text: 'last', channel: '#help', network: 'NetA' }],
-      ],
-    ]);
-
-    await backgroundService.processNotificationQueue();
-
-    expect(mockShowNotification).toHaveBeenCalledTimes(1);
-    expect((backgroundService as any).notificationQueue.size).toBe(0);
+    // NotificationService merges them into one notification per channel.
+    expect(mockShowMessageNotification).toHaveBeenCalledTimes(2);
+    expect(mockShowMessageNotification).toHaveBeenLastCalledWith(
+      expect.objectContaining({ text: 'hello again', channel: '#chat' }),
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it('cleans up listeners and timers on foreground transition and cleanup()', async () => {

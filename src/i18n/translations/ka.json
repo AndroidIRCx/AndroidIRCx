@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA არ არის მხარდაჭერილი ამ სერვერის მიერ"
+  },
+  "Sort scripts": {
+    "string": "სკრიპტების დალაგება"
+  },
+  "Enabled first": {
+    "string": "ჯერ ჩართულები"
+  },
+  "Slowest first": {
+    "string": "ჯერ ყველაზე ნელები"
+  },
+  "{ms} ms used this session": {
+    "string": "ამ სესიაში {ms} მწმ"
   }
 }

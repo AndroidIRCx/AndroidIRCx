@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA аз ҷониби ин сервер дастгирӣ намешавад"
+  },
+  "Sort scripts": {
+    "string": "Ҷудо кардани скриптҳо"
+  },
+  "Enabled first": {
+    "string": "Аввал фаъолҳо"
+  },
+  "Slowest first": {
+    "string": "Аввал сусттаринҳо"
+  },
+  "{ms} ms used this session": {
+    "string": "Дар ин ҷаласа {ms} мс"
   }
 }

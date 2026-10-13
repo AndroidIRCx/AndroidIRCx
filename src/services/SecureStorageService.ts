@@ -19,6 +19,11 @@ const KEY_INDEX = '@AndroidIRCX:keychain_index';
 class SecureStorageService {
   private _fallbackWarningShown = false;
   private _usingFallback = false;
+  // Whether a Keychain entry exists, by key. Never holds a secret value, only
+  // presence, so hot paths (is this channel/query encrypted?) do not make a
+  // native Keychain round-trip for every incoming message. Every write goes
+  // through setSecret/removeSecret, which keep it current.
+  private existence = new Map<string, boolean>();
 
   private isKeychainAvailable(): boolean {
     return Boolean(Keychain && Keychain.setInternetCredentials);
@@ -84,6 +89,7 @@ class SecureStorageService {
     if (this.isKeychainAvailable()) {
       // Use internet credentials to support multiple entries
       await Keychain.setInternetCredentials(key, 'androidircx', value);
+      this.existence.set(key, true);
       // Add to index for listing
       await this.addToIndex(key);
     } else {
@@ -97,20 +103,36 @@ class SecureStorageService {
   async getSecret(key: string): Promise<string | null> {
     if (this.isKeychainAvailable()) {
       const creds = await Keychain.getInternetCredentials(key);
-      return creds?.password || null;
+      const value = creds?.password || null;
+      this.existence.set(key, value !== null);
+      return value;
     }
     const fallback = await AsyncStorage.getItem(`${FALLBACK_PREFIX}${key}`);
     return fallback;
   }
 
+  /**
+   * Whether a secret is stored under the key, without reading it again once
+   * known. Falls back to a plain read when the Keychain is unavailable.
+   */
+  async hasSecret(key: string): Promise<boolean> {
+    if (this.isKeychainAvailable()) {
+      const known = this.existence.get(key);
+      if (known !== undefined) return known;
+    }
+    return (await this.getSecret(key)) !== null;
+  }
+
   async removeSecret(key: string): Promise<void> {
     if (this.isKeychainAvailable()) {
+      this.existence.set(key, false);
       try {
         await Keychain.resetInternetCredentials(key);
         // Remove from index
         await this.removeFromIndex(key);
       } catch {
-        // ignore
+        // The entry may still be there; read it again next time.
+        this.existence.delete(key);
       }
     }
     await AsyncStorage.removeItem(`${FALLBACK_PREFIX}${key}`);

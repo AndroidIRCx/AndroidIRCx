@@ -44,6 +44,13 @@ import 'prismjs/components/prism-javascript';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { deriveSyntaxColors } from '../themes/syntaxColors';
 import { addonSafetyService } from '../services/scripting/AddonSafetyService';
+import { addonDiagnostics } from '../services/scripting/AddonDiagnostics';
+import { settingsService } from '../services/SettingsService';
+import {
+  isScriptSortOrder,
+  sortScripts,
+  ScriptSortOrder,
+} from '../utils/scriptSort';
 import {
   AddonImportCancelledError,
   pickAddonPackageBytes,
@@ -152,6 +159,9 @@ interface Props {
   onShowPurchaseScreen?: () => void;
 }
 
+/** Remembered order of the installed scripts list. */
+const SCRIPT_SORT_SETTING = 'scriptsSortOrder';
+
 export const ScriptingScreen: React.FC<Props> = ({
   visible,
   onClose,
@@ -178,6 +188,9 @@ export const ScriptingScreen: React.FC<Props> = ({
   const accentOrangeBorderStyle = { borderStartColor: '#FF9800' };
   const accentOrangeTextStyle = { color: '#FF9800' };
   const [scripts, setScripts] = useState<ScriptConfig[]>([]);
+  // How the installed scripts are ordered; remembered between visits so a
+  // slow script is easy to find and switch off.
+  const [scriptSort, setScriptSort] = useState<ScriptSortOrder>('enabled');
   const [loggingEnabled, setLoggingEnabled] = useState<boolean>(
     scriptingService.isLoggingEnabled(),
   );
@@ -850,6 +863,48 @@ export const ScriptingScreen: React.FC<Props> = ({
     ? installedAddons.find(addon => addon.manifest.id === managedAddonId)
     : undefined;
 
+  useEffect(() => {
+    let mounted = true;
+    settingsService
+      .getSetting<string>(SCRIPT_SORT_SETTING, 'enabled')
+      .then(value => {
+        if (mounted && isScriptSortOrder(value)) setScriptSort(value);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const changeScriptSort = (order: ScriptSortOrder) => {
+    setScriptSort(order);
+    settingsService.setSetting(SCRIPT_SORT_SETTING, order).catch(() => {});
+  };
+
+  // Time each script has spent in its hooks this session.
+  const scriptCostMs = useMemo(() => {
+    const costs = new Map<string, number>();
+    addonDiagnostics
+      .all()
+      .forEach(health =>
+        costs.set(health.addonId, health.counters.executionMs),
+      );
+    return costs;
+    // Re-read when the list is refreshed or the order is changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scripts, scriptSort]);
+
+  const sortedScripts = useMemo(
+    () => sortScripts(scripts, scriptSort, scriptCostMs),
+    [scripts, scriptSort, scriptCostMs],
+  );
+
+  const scriptSortLabels: Record<ScriptSortOrder, string> = {
+    enabled: t('Enabled first'),
+    name: t('Name'),
+    slowest: t('Slowest first'),
+  };
+
   const renderScript = ({ item }: { item: ScriptConfig }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -858,6 +913,13 @@ export const ScriptingScreen: React.FC<Props> = ({
           <Text style={styles.subtitle}>{item.id}</Text>
           {item.description ? (
             <Text style={styles.subtitle}>{item.description}</Text>
+          ) : null}
+          {(scriptCostMs.get(item.id) ?? 0) >= 1 ? (
+            <Text style={styles.subtitle}>
+              {t('{ms} ms used this session', {
+                ms: Math.round(scriptCostMs.get(item.id) ?? 0),
+              })}
+            </Text>
           ) : null}
         </View>
         <Switch
@@ -1185,11 +1247,38 @@ export const ScriptingScreen: React.FC<Props> = ({
             </Text>
           ) : null}
 
+          {scripts.length > 1 ? (
+            <View style={styles.row}>
+              <Text style={styles.subtitle}>{t('Sort scripts')}</Text>
+              {(['enabled', 'name', 'slowest'] as const).map(order => (
+                <TouchableOpacity
+                  key={order}
+                  testID={`script-sort-${order}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: scriptSort === order }}
+                  style={[
+                    styles.sortChip,
+                    scriptSort === order && styles.sortChipActive,
+                  ]}
+                  onPress={() => changeScriptSort(order)}
+                >
+                  <Text
+                    style={[
+                      styles.sortChipText,
+                      scriptSort === order && styles.sortChipTextActive,
+                    ]}
+                  >
+                    {scriptSortLabels[order]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
           {scripts.length === 0 ? (
             <Text style={styles.subtitle}>{t('No scripts installed.')}</Text>
           ) : (
             <FlatList
-              data={scripts}
+              data={sortedScripts}
               keyExtractor={item => item.id}
               renderItem={renderScript}
               scrollEnabled={false}
@@ -1909,6 +1998,22 @@ const createStyles = (colors: any) => {
       color: colors.buttonText || '#fff',
       fontWeight: '600',
       fontSize: 13,
+    },
+    sortChip: {
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sortChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    sortChipText: { color: colors.text, fontSize: 12 },
+    sortChipTextActive: {
+      color: colors.buttonText || '#fff',
+      fontWeight: '600',
     },
     danger: { backgroundColor: colors.surface },
     dangerText: { color: colors.error },

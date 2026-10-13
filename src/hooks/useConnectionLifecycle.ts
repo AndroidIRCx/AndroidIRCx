@@ -8,6 +8,7 @@ import { Alert } from 'react-native';
 import { IRCMessage, ChannelUser } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { ircService } from '../services/IRCService';
+import { setWireMessageCapture } from '../services/irc/wireCapture';
 import { userManagementService } from '../services/UserManagementService';
 import {
   NEW_FEATURE_DEFAULTS,
@@ -45,6 +46,9 @@ import { useT } from '../i18n/localization';
 import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
 import { debugLogger } from '../services/DebugLogger';
+
+/** Incoming messages reach the UI at most this often (one render per flush). */
+const MESSAGE_FLUSH_INTERVAL_MS = 50;
 
 const normalizePattern = (pattern: string) => pattern.trim().toLowerCase();
 
@@ -157,6 +161,22 @@ export const useConnectionLifecycle = (
     motdCompleteRef,
     t,
   });
+
+  // Turn wire lines into raw chat messages only while the raw view would show
+  // them (same rule as MessageArea's filter).
+  useEffect(() => {
+    const sync = (state: ReturnType<typeof useUIStore.getState>) => {
+      const visible = (category: 'trafficIn' | 'trafficOut') =>
+        state.showRawCommands &&
+        state.rawCategoryVisibility?.[category] !== false;
+      setWireMessageCapture({
+        in: visible('trafficIn'),
+        out: visible('trafficOut'),
+      });
+    };
+    sync(useUIStore.getState());
+    return useUIStore.subscribe(sync);
+  }, []);
 
   useEffect(() => {
     latestRef.current = {
@@ -401,8 +421,11 @@ export const useConnectionLifecycle = (
             }
           }
 
-          // Handle DCC CHAT invites (CTCP)
-          const dccInvite = dccChatService.parseDccChatInvite(message.text);
+          // Handle DCC CHAT invites (CTCP) - live ones only; a replayed offer
+          // points at a listener that closed long ago.
+          const dccInvite = message.isPlayback
+            ? null
+            : dccChatService.parseDccChatInvite(message.text);
           if (dccInvite && message.from) {
             const session = dccChatService.handleIncomingInvite(
               message.from,
@@ -445,7 +468,9 @@ export const useConnectionLifecycle = (
             }
           }
           // Handle DCC SEND offers
-          const dccSend = dccFileService.parseSendOffer(message.text);
+          const dccSend = message.isPlayback
+            ? null
+            : dccFileService.parseSendOffer(message.text);
           if (dccSend && message.from) {
             const transfer = dccFileService.handleOffer(
               message.from,
@@ -736,44 +761,17 @@ export const useConnectionLifecycle = (
           // Play notification sounds for relevant events
           // Only for incoming messages, not local echo (from !== currentNick)
           // Sounds respect per-channel notification preferences (mentions only, etc.)
-          const isLocalEcho =
-            message.from?.toLowerCase() === currentNick.toLowerCase();
-          if (!isLocalEcho && message.type === 'message' && message.text) {
-            // Check per-channel notification preferences before playing sounds
-            const shouldPlaySound = notificationService.shouldNotify(
-              {
-                from: message.from,
-                text: message.text,
-                channel: message.channel,
-                type: message.type,
-              },
-              currentNick,
-              messageNetwork,
-            );
-
-            if (shouldPlaySound) {
-              // Private message sound
-              if (targetTabType === 'query' && message.from) {
-                soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
-              }
-              // Mention sound - fires on current nick OR any custom highlight word
-              else if (targetTabType === 'channel' && currentNick) {
-                const mentionPattern = new RegExp(
-                  `\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
-                  'i',
-                );
-                if (
-                  mentionPattern.test(message.text) ||
-                  highlightService.isHighlighted(message.text)
-                ) {
-                  soundService.playSound(SoundEventType.MENTION);
-                }
-              }
-            }
-          }
-          // Notice sound - also respect notification preferences
-          if (message.type === 'notice' && !isLocalEcho) {
-            const shouldPlayNoticeSound = notificationService.shouldNotify(
+          // Bouncer/history replay is shown but never alerts: a ZNC buffer of a
+          // few hundred lines must not become a few hundred sounds and pop-ups.
+          const isSilent =
+            message.from?.toLowerCase() === currentNick.toLowerCase() ||
+            !!message.isPlayback;
+          // Per-channel/network notification preferences, evaluated once and
+          // shared by the sound and the notification below.
+          const wantsAlert =
+            !isSilent &&
+            (message.type === 'message' || message.type === 'notice') &&
+            notificationService.shouldNotify(
               {
                 from: message.from,
                 text: message.text || '',
@@ -783,57 +781,59 @@ export const useConnectionLifecycle = (
               currentNick,
               messageNetwork,
             );
-            if (shouldPlayNoticeSound) {
-              soundService.playSound(SoundEventType.NOTICE);
+          if (wantsAlert && message.type === 'message' && message.text) {
+            // Private message sound
+            if (targetTabType === 'query' && message.from) {
+              soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
             }
+            // Mention sound - fires on current nick OR any custom highlight word
+            else if (
+              targetTabType === 'channel' &&
+              currentNick &&
+              (notificationService.mentionsNick(message.text, currentNick) ||
+                highlightService.isHighlighted(message.text))
+            ) {
+              soundService.playSound(SoundEventType.MENTION);
+            }
+          }
+          // Notice sound - also respects notification preferences
+          if (wantsAlert && message.type === 'notice') {
+            soundService.playSound(SoundEventType.NOTICE);
           }
           // Foreground system notification: fire when app is visible but the
           // user is on a different tab. BackgroundService owns the background
           // path; gate on isAppInBackground() to avoid duplicate notifications.
           if (
-            !isLocalEcho &&
-            (message.type === 'message' || message.type === 'notice') &&
+            wantsAlert &&
             message.text &&
             !backgroundService.isAppInBackground() &&
             targetTabId &&
             targetTabId !== latest.activeTabId
           ) {
-            const shouldShowNotif = notificationService.shouldNotify(
-              {
-                from: message.from,
-                text: message.text,
-                channel: message.channel,
-                type: message.type,
-              },
-              currentNick,
-              messageNetwork,
-            );
-            if (shouldShowNotif) {
-              notificationService
-                .showMessageNotification(
-                  {
-                    from: message.from,
-                    text: message.text,
-                    channel: message.channel,
-                    type: message.type,
-                  },
-                  currentNick,
-                  messageNetwork,
-                )
-                .catch(err => {
-                  console.error(
-                    'useConnectionLifecycle: Failed to show foreground notification:',
-                    err,
-                  );
-                });
-            }
+            notificationService
+              .showMessageNotification(
+                {
+                  from: message.from,
+                  text: message.text,
+                  channel: message.channel,
+                  type: message.type,
+                },
+                currentNick,
+                messageNetwork,
+              )
+              .catch(err => {
+                console.error(
+                  'useConnectionLifecycle: Failed to show foreground notification:',
+                  err,
+                );
+              });
           }
           // CTCP sound (for DCC and other CTCP requests)
-          if (message.type === 'ctcp' && !isLocalEcho) {
+          if (message.type === 'ctcp' && !isSilent) {
             soundService.playSound(SoundEventType.CTCP);
           }
           // Join sound
-          if (message.type === 'join' && !isLocalEcho) {
+          if (message.type === 'join' && !isSilent) {
             soundService.playSound(SoundEventType.JOIN);
           }
           // Kick sound - play if user was kicked (message.text contains kicked user)
@@ -901,12 +901,15 @@ export const useConnectionLifecycle = (
             //           });
           }
 
-          // Clear existing timeout and set new one
+          // Throttle, not debounce: a flush already scheduled stays scheduled.
+          // Re-arming it on every message let a bouncer replay postpone the
+          // flush until the burst ended, then render everything at once.
           if (latest.messageBatchTimeoutRef.current) {
-            clearTimeout(latest.messageBatchTimeoutRef.current);
+            return;
           }
 
           latest.messageBatchTimeoutRef.current = setTimeout(() => {
+            latest.messageBatchTimeoutRef.current = null;
             if (__DEV__) {
               debugLogger.debug(
                 'connectionLifecycle',
@@ -917,7 +920,7 @@ export const useConnectionLifecycle = (
             latest.safeSetState(() => {
               latest.processBatchedMessages();
             });
-          }, 16);
+          }, MESSAGE_FLUSH_INTERVAL_MS);
         },
       );
 

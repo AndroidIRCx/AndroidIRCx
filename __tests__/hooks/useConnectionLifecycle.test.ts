@@ -128,6 +128,9 @@ jest.mock('../../src/services/SoundService', () => ({
 jest.mock('../../src/services/NotificationService', () => ({
   notificationService: {
     shouldNotify: jest.fn().mockReturnValue(true),
+    mentionsNick: jest.fn((text: string, nick: string) =>
+      text.toLowerCase().includes(nick.toLowerCase()),
+    ),
     showMessageNotification: jest.fn().mockResolvedValue(undefined),
   },
 }));
@@ -250,6 +253,30 @@ describe('useConnectionLifecycle', () => {
 
   it('should render without crashing', async () => {
     await renderHook(() => useConnectionLifecycle(mockParams));
+  });
+
+  it('captures wire lines only while the raw view would show them', async () => {
+    const { useUIStore } = require('../../src/stores/uiStore');
+    const {
+      isWireMessageCaptured,
+    } = require('../../src/services/irc/wireCapture');
+    useUIStore.setState({
+      showRawCommands: true,
+      rawCategoryVisibility: { trafficIn: false, trafficOut: true },
+    });
+    const { unmount } = await renderHook(() =>
+      useConnectionLifecycle(mockParams),
+    );
+    expect(isWireMessageCaptured('in')).toBe(false);
+    expect(isWireMessageCaptured('out')).toBe(true);
+
+    await act(async () => {
+      useUIStore.setState({ showRawCommands: false });
+    });
+    expect(isWireMessageCaptured('out')).toBe(false);
+
+    unmount();
+    useUIStore.setState({ showRawCommands: true, rawCategoryVisibility: {} });
   });
 
   it('should set up connection listeners when mounted', async () => {
@@ -620,7 +647,7 @@ describe('useConnectionLifecycle', () => {
     });
 
     // Advance timers to trigger the setTimeout
-    jest.advanceTimersByTime(20); // Advance past the 16ms timeout
+    jest.advanceTimersByTime(60); // Past the 50 ms flush interval
 
     expect(mockProcessBatchedMessages).toHaveBeenCalled();
 
@@ -1974,6 +2001,40 @@ describe('useConnectionLifecycle', () => {
     expect(SOUND().playSound).toHaveBeenCalledWith(SOUND_TYPES().KICK);
   });
 
+  it('stays silent for replayed bouncer messages', async () => {
+    const {
+      notificationService,
+    } = require('../../src/services/NotificationService');
+    notificationService.shouldNotify.mockReturnValue(true);
+    const params = {
+      ...mockParams,
+      activeTabId: 'active-tab',
+      tabsRef: { current: baseTabs() },
+    };
+    setNoticeTarget('server');
+    await renderHook(() => useConnectionLifecycle(params));
+    const { message } = captureHandlers();
+    for (const type of ['message', 'notice', 'ctcp', 'join'] as const) {
+      await act(async () => {
+        await message({
+          type,
+          from: 'alice',
+          channel: '#test',
+          text: 'hello testuser DCC CHAT chat 2130706433 5000',
+          network: 'test-network',
+          timestamp: Date.now() - 3600_000,
+          isPlayback: true,
+        });
+      });
+    }
+    expect(SOUND().playSound).not.toHaveBeenCalled();
+    expect(notificationService.showMessageNotification).not.toHaveBeenCalled();
+    expect(
+      require('../../src/services/DCCChatService').dccChatService
+        .parseDccChatInvite,
+    ).not.toHaveBeenCalled();
+  });
+
   it('logs when foreground notification fails to show', async () => {
     const {
       notificationService,
@@ -2008,11 +2069,13 @@ describe('useConnectionLifecycle', () => {
     notificationService.showMessageNotification.mockResolvedValue(undefined);
   });
 
-  it('clears the existing batch timeout when a new message arrives', async () => {
+  it('keeps one scheduled flush for a burst instead of postponing it', async () => {
     jest.useFakeTimers();
     const clearSpy = jest.spyOn(global, 'clearTimeout');
+    const processBatchedMessages = jest.fn();
     const params = {
       ...mockParams,
+      processBatchedMessages,
       messageBatchTimeoutRef: { current: null as any },
       tabsRef: { current: baseTabs() },
     };
@@ -2039,7 +2102,12 @@ describe('useConnectionLifecycle', () => {
         timestamp: Date.now(),
       });
     });
-    expect(clearSpy).toHaveBeenCalled();
+    expect(clearSpy).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+    });
+    expect(processBatchedMessages).toHaveBeenCalledTimes(1);
+    expect(params.messageBatchTimeoutRef.current).toBeNull();
     clearSpy.mockRestore();
     jest.useRealTimers();
   });

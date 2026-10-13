@@ -148,9 +148,22 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(
     const lastScrollOffsetRef = useRef(0);
     const lastSwitchAtRef = useRef(0);
     const encryptStatusCacheRef = useRef<Record<string, boolean>>({});
+    // tabs is a new array whenever any tab gets a message. The encryption
+    // lookups below only care which channel/query tabs exist, so they key on
+    // that instead of re-running (and re-rendering) on every batch.
+    const tabsRef = useRef(tabs);
+    tabsRef.current = tabs;
+    const encryptTabsKey = useMemo(
+      () =>
+        tabs
+          .filter(tab => tab.type === 'channel' || tab.type === 'query')
+          .map(tab => `${tab.id}\u0001${tab.name}\u0001${tab.networkId}`)
+          .join('\u0002'),
+      [tabs],
+    );
 
     useEffect(() => {
-      const relevantTabs = tabs.filter(
+      const relevantTabs = tabsRef.current.filter(
         tab => tab.type === 'channel' || tab.type === 'query',
       );
       const cachedStatusById: Record<string, boolean> = {};
@@ -204,7 +217,7 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(
       return () => {
         cancelled = true;
       };
-    }, [tabs]);
+    }, [encryptTabsKey]);
 
     useEffect(() => {
       const unsubscribe =
@@ -217,7 +230,7 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(
               );
             const nextCache = { ...encryptStatusCacheRef.current };
 
-            tabs.forEach(tab => {
+            tabsRef.current.forEach(tab => {
               if (
                 (tab.type === 'channel' || tab.type === 'query') &&
                 tab.name.toLowerCase() === channel.toLowerCase() &&
@@ -230,7 +243,7 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(
             encryptStatusCacheRef.current = nextCache;
             setAlwaysEncryptStatus(prev => {
               const next = { ...prev };
-              tabs.forEach(tab => {
+              tabsRef.current.forEach(tab => {
                 if (
                   (tab.type === 'channel' || tab.type === 'query') &&
                   tab.name.toLowerCase() === channel.toLowerCase() &&
@@ -245,7 +258,7 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(
         );
 
       return () => unsubscribe();
-    }, [tabs]);
+    }, []);
 
     useEffect(() => {
       let mounted = true;

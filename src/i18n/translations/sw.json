@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA haitumiki na seva hii"
+  },
+  "Sort scripts": {
+    "string": "Panga hati"
+  },
+  "Enabled first": {
+    "string": "Zilizowashwa kwanza"
+  },
+  "Slowest first": {
+    "string": "Za polepole zaidi kwanza"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms zimetumika katika kipindi hiki"
   }
 }

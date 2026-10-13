@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "이 서버는 METADATA를 지원하지 않습니다"
+  },
+  "Sort scripts": {
+    "string": "스크립트 정렬"
+  },
+  "Enabled first": {
+    "string": "활성 항목 먼저"
+  },
+  "Slowest first": {
+    "string": "가장 느린 항목 먼저"
+  },
+  "{ms} ms used this session": {
+    "string": "이번 세션에서 {ms}ms 사용"
   }
 }

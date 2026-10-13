@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "Το METADATA δεν υποστηρίζεται από αυτόν τον διακομιστή"
+  },
+  "Sort scripts": {
+    "string": "Ταξινόμηση σεναρίων"
+  },
+  "Enabled first": {
+    "string": "Πρώτα τα ενεργά"
+  },
+  "Slowest first": {
+    "string": "Πρώτα τα πιο αργά"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms σε αυτή τη συνεδρία"
   }
 }

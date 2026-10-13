@@ -43,6 +43,7 @@ interface IRCServiceCommandInterface {
   };
   getNetworkName: () => string;
   currentNick: string;
+  isReplayedTimestamp: (timestamp: number) => boolean;
   getUserManagementService: () => any;
   getProtectionTabContext: (
     target: string,
@@ -385,7 +386,12 @@ export class IRCCommandHandlers {
         (svc as any)
           .getUserManagementService()
           .isUserProtected(nick, username, hostname, network),
+      isReplayedTimestamp: (timestamp: number) =>
+        svc.isReplayedTimestamp(timestamp),
       evaluateProtectionDecision: (message: any, context: any) => {
+        // A replayed buffer arrives as a burst; judging it as live traffic
+        // would flag ordinary chatter from hours ago as a flood.
+        if (svc.isReplayedTimestamp(message?.timestamp)) return null;
         const protectionService =
           require('../ProtectionService').protectionService;
         return protectionService.evaluateIncomingMessage(message, context);

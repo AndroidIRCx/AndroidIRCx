@@ -4227,19 +4227,16 @@ class ScriptingService {
     const connection = message.network
       ? connectionManager.getConnection(message.network)
       : connectionManager.getActiveConnection();
+    // Runs for every message: a direct lookup, not a scan of a channel that
+    // may hold thousands of users.
+    const sender =
+      message.channel && message.from
+        ? connection?.ircService.getChannelUser(message.channel, message.from)
+        : undefined;
     const senderIsOp =
-      !!message.channel &&
-      !!message.from &&
-      connection?.ircService
-        .getChannelUsers(message.channel)
-        .some(
-          user =>
-            user.nick.toLocaleLowerCase('en-US') ===
-              message.from!.toLocaleLowerCase('en-US') &&
-            user.modes?.some(
-              mode => mode === 'o' || mode === 'a' || mode === 'q',
-            ) === true,
-        );
+      sender?.modes?.some(
+        mode => mode === 'o' || mode === 'a' || mode === 'q',
+      ) === true;
     const addonRoute = this.emitAddonEvent(
       addonEventFromIrcMessage(message, {
         selfNick: connection?.ircService.getCurrentNick(),

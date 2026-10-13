@@ -27,13 +27,17 @@ jest.mock('react-native-libsodium', () => ({
   },
 }));
 
-jest.mock('../../src/services/SecureStorageService', () => ({
-  secureStorageService: {
+jest.mock('../../src/services/SecureStorageService', () => {
+  const secureStorageService: any = {
     setSecret: jest.fn().mockResolvedValue(undefined),
     getSecret: jest.fn().mockResolvedValue(null),
     removeSecret: jest.fn().mockResolvedValue(undefined),
-  },
-}));
+  };
+  secureStorageService.hasSecret = jest.fn(
+    async (key: string) => (await secureStorageService.getSecret(key)) !== null,
+  );
+  return { secureStorageService };
+});
 
 describe('ChannelEncryptionService', () => {
   beforeEach(() => {

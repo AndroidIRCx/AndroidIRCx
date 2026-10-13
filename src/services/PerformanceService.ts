@@ -27,6 +27,7 @@ export interface PerformanceConfig {
   enableLazyLoading: boolean; // Lazy load old messages when scrolling up
   messageLimit: number; // Max messages to keep in memory per channel (default: 1000)
   enableMessageCleanup: boolean; // Automatically cleanup old messages
+  messageCleanupMigrated?: boolean; // One-time switch of the old 'off' default
   cleanupThreshold: number; // Cleanup when messages exceed this count (default: 1500)
   renderOptimization: boolean; // Use React.memo and useMemo for optimization
   imageLazyLoad: boolean; // Lazy load images (only load when visible)
@@ -55,7 +56,10 @@ class PerformanceService {
     messageLoadChunk: 50,
     enableLazyLoading: true,
     messageLimit: 1000,
-    enableMessageCleanup: false,
+    // On by default: an uncapped tab copies its whole history on every new
+    // message and keeps it in React state, which is what made busy channels
+    // and bouncer replays freeze. Older lines stay in history storage.
+    enableMessageCleanup: true,
     cleanupThreshold: 1500,
     renderOptimization: true,
     imageLazyLoad: true,
@@ -113,6 +117,12 @@ class PerformanceService {
       const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
+        // Saved configs used to carry the old 'off' default whether or not the
+        // user ever chose it. Turn the cap on once; a later 'off' sticks.
+        if (!data.messageCleanupMigrated) {
+          data.enableMessageCleanup = true;
+          data.messageCleanupMigrated = true;
+        }
         this.config = this.mergeConfig(data);
       }
     } catch (error) {

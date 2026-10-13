@@ -580,9 +580,10 @@ class EncryptedDMService {
     );
   }
 
+  // Runs for every incoming query message, so it asks only whether the bundle
+  // exists (cached) instead of reading and parsing it from the Keychain.
   async isEncryptedForNetwork(network: string, nick: string): Promise<boolean> {
-    const bundle = await this.getBundleForNetwork(network, nick);
-    return bundle !== null;
+    return secureStorageService.hasSecret(this.getBundleKeyV2(network, nick));
   }
 
   private async compareBundleForNetwork(

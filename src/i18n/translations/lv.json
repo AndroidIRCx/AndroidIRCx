@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA šis serveris neatbalsta"
+  },
+  "Sort scripts": {
+    "string": "Kārtot skriptus"
+  },
+  "Enabled first": {
+    "string": "Vispirms ieslēgtie"
+  },
+  "Slowest first": {
+    "string": "Vispirms lēnākie"
+  },
+  "{ms} ms used this session": {
+    "string": "Šajā sesijā {ms} ms"
   }
 }

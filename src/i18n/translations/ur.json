@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "میٹاڈیٹا اس سرور کی طرف سے تعاون یافتہ نہیں ہے"
+  },
+  "Sort scripts": {
+    "string": "اسکرپٹس ترتیب دیں"
+  },
+  "Enabled first": {
+    "string": "فعال پہلے"
+  },
+  "Slowest first": {
+    "string": "سب سے سست پہلے"
+  },
+  "{ms} ms used this session": {
+    "string": "اس سیشن میں {ms} ms"
   }
 }

@@ -119,6 +119,8 @@ export interface CommandHandlerContext {
     hostname?: string,
     network?: string,
   ) => boolean;
+  /** True for a line replayed by a bouncer (server-time well in the past). */
+  isReplayedTimestamp?: (timestamp: number) => boolean;
   evaluateProtectionDecision: (
     message: {
       type: string;

@@ -133,6 +133,51 @@ describe('MessageHistoryService', () => {
     });
   });
 
+  describe('saveMessages ordering', () => {
+    const msg = (id: string, timestamp: number): IRCMessage => ({
+      ...mockMessage,
+      id,
+      channel: '#general',
+      timestamp,
+    });
+    const saved = () =>
+      (
+        (storageCache.setItem as jest.Mock).mock.calls[0][1] as IRCMessage[]
+      ).map(m => m.id);
+
+    it('appends newer lines after the stored ones', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue([
+        msg('a', 1),
+        msg('b', 2),
+      ]);
+      await messageHistoryService.saveMessages(
+        [msg('d', 4), msg('c', 3)],
+        'freenode',
+      );
+      expect(saved()).toEqual(['a', 'b', 'c', 'd']);
+    });
+
+    it('sorts everything when a line arrives out of order', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue([
+        msg('a', 1),
+        msg('c', 3),
+      ]);
+      await messageHistoryService.saveMessages([msg('b', 2)], 'freenode');
+      expect(saved()).toEqual(['a', 'b', 'c']);
+    });
+
+    it('keeps only the newest 10000', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue(
+        Array.from({ length: 10000 }, (_, i) => msg(`e${i}`, i)),
+      );
+      await messageHistoryService.saveMessages([msg('new', 20000)], 'freenode');
+      const ids = saved();
+      expect(ids).toHaveLength(10000);
+      expect(ids[0]).toBe('e1');
+      expect(ids[9999]).toBe('new');
+    });
+  });
+
   describe('loadMessages', () => {
     it('should load messages from cache', async () => {
       const storedMessages = [mockMessage];

@@ -871,6 +871,83 @@ describe('MessageArea', () => {
     expect(toJSON()).toBeTruthy();
   });
 
+  it('scrolls to new messages only when not already at the very bottom', async () => {
+    jest.useFakeTimers();
+    const { FlatList } = require('react-native');
+    const scrollSpy = jest
+      .spyOn(FlatList.prototype, 'scrollToOffset')
+      .mockImplementation(() => {});
+    try {
+      const first = [makeMsg({ id: 'a1', timestamp: 1 })];
+      const view = await render(
+        <MessageArea {...baseProps} messages={first} />,
+      );
+      const list = view.UNSAFE_getAllByType(FlatList)[0];
+      const scrollTo = (y: number) =>
+        list.props.onScroll({
+          nativeEvent: {
+            contentOffset: { x: 0, y },
+            contentSize: { height: 1000, width: 100 },
+            layoutMeasurement: { height: 500, width: 100 },
+          },
+        });
+
+      await act(async () => scrollTo(0));
+      await view.rerender(
+        <MessageArea
+          {...baseProps}
+          messages={[...first, makeMsg({ id: 'a2', timestamp: 2 })]}
+        />,
+      );
+      await act(async () => {
+        jest.advanceTimersByTime(150);
+      });
+      expect(scrollSpy).not.toHaveBeenCalled();
+
+      await act(async () => scrollTo(40));
+      await view.rerender(
+        <MessageArea
+          {...baseProps}
+          messages={[
+            ...first,
+            makeMsg({ id: 'a2', timestamp: 2 }),
+            makeMsg({ id: 'a3', timestamp: 3 }),
+          ]}
+        />,
+      );
+      await act(async () => {
+        jest.advanceTimersByTime(150);
+      });
+      expect(scrollSpy).toHaveBeenCalledWith({ offset: 0, animated: true });
+    } finally {
+      scrollSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('is memoized, so messages in other tabs do not re-render it', () => {
+    expect((MessageArea as any).$$typeof).toBe(Symbol.for('react.memo'));
+  });
+
+  it('makes nicks of channel users tappable, other words not', async () => {
+    const channelUsers = [{ nick: 'Alice', modes: [] }];
+    const messages = [
+      makeMsg({ id: 'n1', text: 'Hello alice!' }),
+      makeMsg({ id: 'n2', text: 'Hello carol!' }),
+    ];
+    const screen = await renderAndSettle(
+      <MessageArea
+        {...baseProps}
+        messages={messages}
+        channelUsers={channelUsers as any}
+      />,
+    );
+    expect(screen.getByText('alice').props.onPress).toEqual(
+      expect.any(Function),
+    );
+    expect(screen.queryByText('carol')).toBeNull();
+  });
+
   // ── bottomInset ──────────────────────────────────────────────────────────
   it('accepts bottomInset prop', async () => {
     const { toJSON } = await renderAndSettle(
@@ -2858,16 +2935,86 @@ describe('MessageArea', () => {
       await act(async () => {
         list.props.onScroll(scrollEvent(0));
       });
-      await act(async () => {
-        list.props.onEndReached({ distanceFromEnd: 0 });
-      });
-      await act(async () => {
-        await new Promise<void>(r => setTimeout(r, 0));
-      });
-      expect(messageHistoryService.loadMessages).toHaveBeenCalledWith(
-        'TestNet',
-        '#general',
+      const tabStoreMod = require('../../src/stores/tabStore');
+      const origGetState = tabStoreMod.useTabStore.getState;
+      const setTabs = jest.fn();
+      const tab = {
+        id: baseProps.tabId,
+        name: '#general',
+        type: 'channel',
+        networkId: 'TestNet',
+        messages,
+      };
+      tabStoreMod.useTabStore.getState = () => ({ tabs: [tab], setTabs });
+      const older = Array.from({ length: 250 }, (_, i) =>
+        makeMsg({ id: `old${i}`, text: `Old ${i}`, timestamp: ts - 1000 + i }),
       );
+      messageHistoryService.loadMessages.mockResolvedValueOnce([
+        ...older,
+        ...messages,
+      ]);
+      try {
+        // First: show the rest of what the tab already holds.
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        expect(messageHistoryService.loadMessages).not.toHaveBeenCalled();
+        // Then: everything is shown, so the previous page comes from storage.
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        await act(async () => {
+          await new Promise<void>(r => setTimeout(r, 0));
+        });
+        expect(messageHistoryService.loadMessages).toHaveBeenCalledWith(
+          'TestNet',
+          '#general',
+        );
+        const nextTabs = setTabs.mock.calls[0][0];
+        expect(nextTabs[0].messages).toHaveLength(206);
+        expect(nextTabs[0].messages[0].id).toBe('old50');
+        expect(nextTabs[0].messages[205].id).toBe('s5');
+      } finally {
+        tabStoreMod.useTabStore.getState = origGetState;
+      }
+    });
+
+    it('does nothing at the top when storage has nothing older', async () => {
+      const {
+        messageHistoryService,
+      } = require('../../src/services/MessageHistoryService');
+      const tabStoreMod = require('../../src/stores/tabStore');
+      const origGetState = tabStoreMod.useTabStore.getState;
+      const setTabs = jest.fn();
+      const messages = [makeMsg({ id: 'only', timestamp: 5 })];
+      tabStoreMod.useTabStore.getState = () => ({
+        tabs: [
+          {
+            id: baseProps.tabId,
+            name: '#general',
+            type: 'channel',
+            networkId: 'TestNet',
+            messages,
+          },
+        ],
+        setTabs,
+      });
+      messageHistoryService.loadMessages.mockResolvedValueOnce(messages);
+      try {
+        const { UNSAFE_getAllByType } = await renderAndSettle(
+          <MessageArea {...baseProps} messages={messages} />,
+        );
+        const { FlatList } = require('react-native');
+        const list = UNSAFE_getAllByType(FlatList)[0];
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+          await new Promise<void>(r => setTimeout(r, 0));
+        });
+        expect(messageHistoryService.loadMessages).toHaveBeenCalled();
+        expect(setTabs).not.toHaveBeenCalled();
+      } finally {
+        tabStoreMod.useTabStore.getState = origGetState;
+      }
     });
 
     // ── chat history: timestamp ref + LATEST + finish event ──────────────────
@@ -4111,19 +4258,44 @@ describe('MessageArea', () => {
       const messages = Array.from({ length: 6 }, (_, i) =>
         makeMsg({ id: `e${i}`, text: `E${i}`, timestamp: ts + i }),
       );
-      const { UNSAFE_getAllByType } = await renderAndSettle(
-        <MessageArea {...baseProps} messages={messages} />,
-      );
-      const { FlatList } = require('react-native');
-      const list = UNSAFE_getAllByType(FlatList)[0];
-      await act(async () => {
-        list.props.onEndReached({ distanceFromEnd: 0 });
+      const tabStoreMod = require('../../src/stores/tabStore');
+      const origGetState = tabStoreMod.useTabStore.getState;
+      tabStoreMod.useTabStore.getState = () => ({
+        tabs: [
+          {
+            id: baseProps.tabId,
+            name: '#general',
+            type: 'channel',
+            networkId: 'TestNet',
+            messages,
+          },
+        ],
+        setTabs: jest.fn(),
       });
-      await act(async () => {
-        await new Promise<void>(r => setTimeout(r, 0));
-      });
-      expect(messageHistoryService.loadMessages).toHaveBeenCalled();
-      errSpy.mockRestore();
+      try {
+        const { UNSAFE_getAllByType } = await renderAndSettle(
+          <MessageArea {...baseProps} messages={messages} />,
+        );
+        const { FlatList } = require('react-native');
+        const list = UNSAFE_getAllByType(FlatList)[0];
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        await act(async () => {
+          list.props.onEndReached({ distanceFromEnd: 0 });
+        });
+        await act(async () => {
+          await new Promise<void>(r => setTimeout(r, 0));
+        });
+        expect(messageHistoryService.loadMessages).toHaveBeenCalled();
+        expect(errSpy).toHaveBeenCalledWith(
+          'Failed to load message history:',
+          expect.any(Error),
+        );
+      } finally {
+        tabStoreMod.useTabStore.getState = origGetState;
+        errSpy.mockRestore();
+      }
     });
 
     // ── closing the picker / QR / scan modals ────────────────────────────────

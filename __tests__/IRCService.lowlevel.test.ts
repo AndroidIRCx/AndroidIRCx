@@ -71,7 +71,8 @@ jest.mock('../src/services/STSService', () => ({
   },
 }));
 
-import { IRCService } from '../src/services/IRCService';
+import { IRCService, isDeadConnectionError } from '../src/services/IRCService';
+import { setWireMessageCapture } from '../src/services/irc/wireCapture';
 import { settingsService } from '../src/services/SettingsService';
 import { protectionService } from '../src/services/ProtectionService';
 
@@ -556,6 +557,104 @@ describe('IRCService low-level branches', () => {
     jest.advanceTimersByTime(1);
     await expect(tlsPromise).resolves.toBeUndefined();
     tlsSocket.emit('error', { message: 'oops', code: 'EPIPE' });
+  });
+
+  it('drops a connected socket on a broken pipe so reconnect can start', async () => {
+    const liveSocket = new MockSocket();
+    const destroySpy = jest.spyOn(liveSocket, 'destroy');
+    mockCreateConnection.mockImplementation((opts: any, cb: Function) => {
+      setTimeout(() => cb(), 0);
+      return liveSocket;
+    });
+    const states: boolean[] = [];
+    irc.onConnectionChange(connected => states.push(connected));
+
+    const connectPromise = irc.connect({
+      host: 'irc.example',
+      port: 6667,
+      nick: 'tester',
+      username: 'tester',
+      realname: 'Tester',
+      tls: false,
+    });
+    jest.advanceTimersByTime(1);
+    await expect(connectPromise).resolves.toBeUndefined();
+
+    // A transient error keeps the connection.
+    liveSocket.emit('error', { message: 'something odd' });
+    expect(destroySpy).not.toHaveBeenCalled();
+    expect((irc as any).isConnected).toBe(true);
+
+    // Android reports EPIPE as a code-less IOException message.
+    liveSocket.emit('error', { message: 'sendto failed: EPIPE (Broken pipe)' });
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+    expect((irc as any).isConnected).toBe(false);
+    expect((irc as any).keepAliveTimer).toBeNull();
+
+    liveSocket.emit('close');
+    expect(states[states.length - 1]).toBe(false);
+  });
+
+  it('logs instead of throwing when destroying a dead socket fails', async () => {
+    const liveSocket = new MockSocket();
+    jest.spyOn(liveSocket, 'destroy').mockImplementation(() => {
+      throw new Error('already gone');
+    });
+    mockCreateConnection.mockImplementation((opts: any, cb: Function) => {
+      setTimeout(() => cb(), 0);
+      return liveSocket;
+    });
+    const connectPromise = irc.connect({
+      host: 'irc.example',
+      port: 6667,
+      nick: 'tester',
+      username: 'tester',
+      realname: 'Tester',
+      tls: false,
+    });
+    jest.advanceTimersByTime(1);
+    await expect(connectPromise).resolves.toBeUndefined();
+    const logSpy = jest.spyOn(irc as any, 'logRaw');
+
+    expect(() =>
+      liveSocket.emit('error', { code: 'ECONNRESET', message: 'reset' }),
+    ).not.toThrow();
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Error destroying dead socket: already gone'),
+    );
+  });
+
+  it('skips raw wire messages while capture is off but still emits wire', () => {
+    const messages: any[] = [];
+    const wires: any[] = [];
+    irc.onMessage(m => messages.push(m));
+    irc.on('wire', (w: any) => wires.push(w));
+    try {
+      setWireMessageCapture({ in: false, out: true });
+      (irc as any).addWireMessage('in', 'PING :x');
+      (irc as any).addWireMessage('out', 'PONG :x');
+      expect(wires.map(w => w.direction)).toEqual(['in', 'out']);
+      expect(
+        messages
+          .map(m => m.rawCategory)
+          .filter(c => String(c).startsWith('traffic')),
+      ).toEqual(['trafficOut']);
+    } finally {
+      setWireMessageCapture({ in: true, out: true });
+    }
+  });
+
+  it('classifies dead-connection socket errors', () => {
+    expect(isDeadConnectionError('EPIPE', 'x')).toBe(true);
+    expect(isDeadConnectionError('ETIMEDOUT', 'x')).toBe(true);
+    expect(isDeadConnectionError('NO_CODE', 'Broken pipe')).toBe(true);
+    expect(
+      isDeadConnectionError('NO_CODE', 'Attempted to write to closed socket'),
+    ).toBe(true);
+    expect(isDeadConnectionError('NO_CODE', 'Connection reset by peer')).toBe(
+      true,
+    );
+    expect(isDeadConnectionError('NO_CODE', 'something odd')).toBe(false);
   });
 
   it('connects with IRCv3 WebSocket transport and sends WebIRC before CAP', async () => {

@@ -111,7 +111,6 @@ const baseProps = {
     messages: [],
   },
   activeMessages: [],
-  activeUsers: [{ nick: 'Alice' }],
   isConnected: true,
   networkName: 'freenode',
   selectedNetworkName: null,
@@ -218,6 +217,38 @@ describe('AppLayout', () => {
     expect(mockUserList).toHaveBeenCalledTimes(1);
     expect(mockTypingIndicator).toHaveBeenCalledTimes(1);
     expect(mockBannerAd).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the banner props stable across re-renders', async () => {
+    const view = await render(<AppLayout {...baseProps} />);
+    await view.rerender(<AppLayout {...baseProps} activeMessages={[]} />);
+    const calls = mockBannerAd.mock.calls as any[];
+    const first = calls[0][0];
+    const last = calls[calls.length - 1][0];
+    expect(calls.length).toBeGreaterThan(1);
+    expect(last.requestOptions).toBe(first.requestOptions);
+    expect(last.onAdFailedToLoad).toBe(first.onAdFailedToLoad);
+    expect(first.requestOptions).toEqual({
+      requestNonPersonalizedAdsOnly: false,
+    });
+  });
+
+  it('gives the user list and messages the active channel users from the store', async () => {
+    const {
+      useChannelUsersStore,
+    } = require('../../src/stores/channelUsersStore');
+    const alice = [{ nick: 'Alice', modes: [] }];
+    useChannelUsersStore.setState({
+      channelUsers: new Map([
+        ['#general', alice],
+        ['#other', [{ nick: 'Bob', modes: [] }]],
+      ]),
+    });
+    await render(<AppLayout {...baseProps} />);
+
+    expect(mockUserList.mock.calls[0][0].users).toBe(alice);
+    expect(mockMessageArea.mock.calls[0][0].channelUsers).toBe(alice);
+    useChannelUsersStore.setState({ channelUsers: new Map() });
   });
 
   it('keeps JS keyboard avoidance enabled in Android portrait', async () => {

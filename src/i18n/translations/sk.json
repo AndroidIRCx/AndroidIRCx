@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA nie je týmto serverom podporovaná"
+  },
+  "Sort scripts": {
+    "string": "Zoradiť skripty"
+  },
+  "Enabled first": {
+    "string": "Najprv zapnuté"
+  },
+  "Slowest first": {
+    "string": "Najprv najpomalšie"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms v tejto relácii"
   }
 }

@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA ei ole tämän palvelimen tukema"
+  },
+  "Sort scripts": {
+    "string": "Lajittele skriptit"
+  },
+  "Enabled first": {
+    "string": "Käytössä olevat ensin"
+  },
+  "Slowest first": {
+    "string": "Hitaimmat ensin"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms tässä istunnossa"
   }
 }

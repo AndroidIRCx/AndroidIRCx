@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "ఈ సర్వర్ ద్వారా METADATA మద్దతు లేదు"
+  },
+  "Sort scripts": {
+    "string": "స్క్రిప్ట్‌లను క్రమబద్ధీకరించు"
+  },
+  "Enabled first": {
+    "string": "ప్రారంభించినవి ముందు"
+  },
+  "Slowest first": {
+    "string": "అత్యంత నెమ్మదైనవి ముందు"
+  },
+  "{ms} ms used this session": {
+    "string": "ఈ సెషన్‌లో {ms} ms"
   }
 }

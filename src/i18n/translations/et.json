@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA ei ole selle serveri poolt toetatud"
+  },
+  "Sort scripts": {
+    "string": "Sorteeri skripte"
+  },
+  "Enabled first": {
+    "string": "Lubatud eespool"
+  },
+  "Slowest first": {
+    "string": "Aeglaseimad eespool"
+  },
+  "{ms} ms used this session": {
+    "string": "Selles seansis {ms} ms"
   }
 }

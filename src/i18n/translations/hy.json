@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA-ն չի աջակցվում այս սերվերի կողմից"
+  },
+  "Sort scripts": {
+    "string": "Դասավորել սկրիպտները"
+  },
+  "Enabled first": {
+    "string": "Նախ միացվածները"
+  },
+  "Slowest first": {
+    "string": "Նախ ամենադանդաղները"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} մվ այս նստաշրջանում"
   }
 }

@@ -76,6 +76,24 @@ describe('PerformanceService', () => {
       expect(config.userListSearchDebounceMs).toBe(150);
     });
 
+    it('turns the message cap on once for configs saved with the old default', async () => {
+      mockStorage['@AndroidIRCX:performanceConfig'] = JSON.stringify({
+        enableMessageCleanup: false,
+      });
+      await performanceService.initialize();
+      expect(performanceService.getConfig().enableMessageCleanup).toBe(true);
+      expect(performanceService.getConfig().messageCleanupMigrated).toBe(true);
+    });
+
+    it('keeps the cap off when the user turned it off after the switch', async () => {
+      mockStorage['@AndroidIRCX:performanceConfig'] = JSON.stringify({
+        enableMessageCleanup: false,
+        messageCleanupMigrated: true,
+      });
+      await performanceService.initialize();
+      expect(performanceService.getConfig().enableMessageCleanup).toBe(false);
+    });
+
     it('should handle storage errors gracefully', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { getItem } = require('@react-native-async-storage/async-storage');

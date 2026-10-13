@@ -37,6 +37,7 @@ import { ChannelTab } from '../types';
 import { bannerAdService } from '../services/BannerAdService';
 import { settingsService } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
+import { useChannelUsers } from '../stores/channelUsersStore';
 import { scriptingService } from '../services/ScriptingService';
 import { LayoutConfig } from '../services/LayoutService';
 import { useTheme } from '../hooks/useTheme';
@@ -47,7 +48,6 @@ interface AppLayoutProps {
   activeTabId: string;
   activeTab: ChannelTab | null;
   activeMessages: any[];
-  activeUsers: any[];
   isConnected: boolean;
   networkName: string;
   selectedNetworkName: string | null;
@@ -143,7 +143,6 @@ export function AppLayout({
   activeTabId,
   activeTab,
   activeMessages,
-  activeUsers,
   isConnected,
   networkName,
   selectedNetworkName,
@@ -212,6 +211,20 @@ export function AppLayout({
   // What AI is doing in the tab being looked at. Keyed the same way the
   // scripting API writes it, so a script in one channel cannot show a strip
   // over another.
+  // Only this channel's list: a change elsewhere does not re-render the layout.
+  const activeUsers = useChannelUsers(
+    activeTab?.type === 'channel' ? activeTab.name : null,
+  );
+  // Stable banner props: a new object here on every incoming batch of
+  // messages meant a native prop update for the ad view each time.
+  const nonPersonalizedAdsOnly = !bannerAdService.canShowPersonalizedAds();
+  const bannerRequestOptions = useMemo(
+    () => ({ requestNonPersonalizedAdsOnly: nonPersonalizedAdsOnly }),
+    [nonPersonalizedAdsOnly],
+  );
+  const handleBannerAdFailed = useCallback((error: unknown) => {
+    console.error('Banner ad failed to load:', error);
+  }, []);
   const aiActivityKey = activeTab
     ? `${activeTab.networkId}::${activeTab.name.toLowerCase()}`
     : '';
@@ -602,13 +615,8 @@ export function AppLayout({
       <BannerAd
         unitId={bannerAdService.getBannerAdUnitId()}
         size={BannerAdSize.BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly:
-            !bannerAdService.canShowPersonalizedAds(),
-        }}
-        onAdFailedToLoad={error => {
-          console.error('Banner ad failed to load:', error);
-        }}
+        requestOptions={bannerRequestOptions}
+        onAdFailedToLoad={handleBannerAdFailed}
       />
     </View>
   );

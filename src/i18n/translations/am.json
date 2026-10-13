@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA በዚህ አገልጋይ አይደገፍም"
+  },
+  "Sort scripts": {
+    "string": "ስክሪፕቶችን ደርድር"
+  },
+  "Enabled first": {
+    "string": "የነቁት መጀመሪያ"
+  },
+  "Slowest first": {
+    "string": "በጣም ቀርፋፋው መጀመሪያ"
+  },
+  "{ms} ms used this session": {
+    "string": "በዚህ ክፍለ ጊዜ {ms} ሚሴ ጥቅም ላይ ውሏል"
   }
 }

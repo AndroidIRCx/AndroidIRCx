@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA word nie deur hierdie bediener ondersteun nie"
+  },
+  "Sort scripts": {
+    "string": "Sorteer skripte"
+  },
+  "Enabled first": {
+    "string": "Geaktiveerdes eerste"
+  },
+  "Slowest first": {
+    "string": "Stadigste eerste"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms gebruik in hierdie sessie"
   }
 }

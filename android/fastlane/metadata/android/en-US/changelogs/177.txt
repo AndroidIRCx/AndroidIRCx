@@ -1,0 +1,8 @@
+What's new in v1.10.5:
+- Much faster with ZNC: history replay no longer freezes the app.
+- Big channels (Libera etc.) open and scroll smoothly.
+- Replayed ZNC history no longer floods you with notifications.
+- One notification per channel or query, grouped per network.
+- Scripts list can be sorted: enabled first, name or slowest.
+- Fixed "Broken pipe" leaving a dead connection instead of reconnecting.
+- Library and security updates.

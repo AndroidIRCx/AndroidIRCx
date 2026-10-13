@@ -13384,5 +13384,17 @@
   },
   "NFC timed out. Try again, holding the phones together.": {
     "string": "NFC timed out. Try again, holding the phones together."
+  },
+  "Sort scripts": {
+    "string": "Sortează scripturile"
+  },
+  "Enabled first": {
+    "string": "Întâi cele activate"
+  },
+  "Slowest first": {
+    "string": "Întâi cele mai lente"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} ms folosite în această sesiune"
   }
 }

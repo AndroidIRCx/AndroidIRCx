@@ -134,6 +134,31 @@ describe('useTabActions', () => {
     expect(mockSetActiveConnectionId).toHaveBeenCalledWith('test-network');
   });
 
+  it('clears the conversation notification when a tab is opened', async () => {
+    const {
+      notificationService,
+    } = require('../../src/services/NotificationService');
+    const clearSpy = jest
+      .spyOn(notificationService, 'clearConversation')
+      .mockImplementation(() => {});
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [
+        {
+          id: 'test-tab',
+          networkId: 'test-network',
+          type: 'query',
+          name: 'bob',
+        },
+      ],
+    });
+
+    const { result } = await renderHook(() => useTabActions(defaultProps));
+    result.current.handleTabPress('test-tab');
+
+    expect(clearSpy).toHaveBeenCalledWith('bob', 'test-network');
+    clearSpy.mockRestore();
+  });
+
   it('should clear tab activity when pressing a tab', async () => {
     const mockTab = {
       id: 'test-tab',

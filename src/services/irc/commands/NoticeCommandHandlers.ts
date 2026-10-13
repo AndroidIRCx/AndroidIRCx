@@ -38,7 +38,11 @@ export const handleNOTICE: CommandHandler = (
     return;
   }
 
-  if (prefix.includes('!') && noticeText) {
+  if (
+    prefix.includes('!') &&
+    noticeText &&
+    !ctx.isReplayedTimestamp?.(timestamp)
+  ) {
     const isChannelNotice =
       noticeTarget.startsWith('#') ||
       noticeTarget.startsWith('&') ||

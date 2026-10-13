@@ -12,6 +12,7 @@ import {
 } from '../services/SettingsService';
 import { connectionManager } from '../services/ConnectionManager';
 import { tabService } from '../services/TabService';
+import { notificationService } from '../services/NotificationService';
 import { useTabStore } from '../stores/tabStore';
 import { useUIStore } from '../stores/uiStore';
 import { sortTabsGrouped } from '../utils/tabUtils';
@@ -57,6 +58,8 @@ export const useTabActions = (params: UseTabActionsParams) => {
         setTabs(prev =>
           prev.map(t => (t.id === tabId ? { ...t, hasActivity: false } : t)),
         );
+        // Opening a conversation reads its pending notification.
+        notificationService.clearConversation(tab.name, tab.networkId);
       }
       // Fetch users for the channel if it's a channel tab
       if (tab && (tab.type === 'channel' || tab.type === 'dcc')) {

@@ -56,6 +56,12 @@ describe('SecureStorageService', () => {
       );
     });
 
+    it('answers hasSecret from AsyncStorage when the Keychain is missing', async () => {
+      expect(await secureStorageService.hasSecret('test-key')).toBe(false);
+      await AsyncStorage.setItem('@AndroidIRCX:secure:test-key', 'value');
+      expect(await secureStorageService.hasSecret('test-key')).toBe(true);
+    });
+
     it('should list all fallback secret keys', async () => {
       await AsyncStorage.setItem('@AndroidIRCX:secure:key1', 'value1');
       await AsyncStorage.setItem('@AndroidIRCX:secure:key2', 'value2');

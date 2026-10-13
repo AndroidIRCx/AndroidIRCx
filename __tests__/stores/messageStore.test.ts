@@ -582,6 +582,50 @@ describe('messageStore', () => {
       expect(targetMap.has('fresh')).toBe(true);
     });
 
+    it('leaves the state untouched when nothing has expired', async () => {
+      await act(() => {
+        useMessageStore.getState().setTypingUser('network1', '#channel', 'a', {
+          status: 'active',
+          timestamp: Date.now(),
+        });
+      });
+      const before = useMessageStore.getState();
+
+      await act(() => {
+        useMessageStore.getState().cleanupStaleTyping(10000);
+      });
+
+      expect(useMessageStore.getState()).toBe(before);
+      expect(useMessageStore.getState().typingUsers).toBe(before.typingUsers);
+    });
+
+    it('builds new maps instead of editing the old ones', async () => {
+      await act(() => {
+        const store = useMessageStore.getState();
+        store.setTypingUser('network1', '#channel', 'old', {
+          status: 'active',
+          timestamp: Date.now() - 20000,
+        });
+        store.setTypingUser('network1', '#other', 'fresh', {
+          status: 'active',
+          timestamp: Date.now(),
+        });
+      });
+      const oldTarget = useMessageStore
+        .getState()
+        .typingUsers.get('network1')!
+        .get('#channel')!;
+
+      await act(() => {
+        useMessageStore.getState().cleanupStaleTyping(10000);
+      });
+
+      expect(oldTarget.has('old')).toBe(true);
+      const network = useMessageStore.getState().typingUsers.get('network1')!;
+      expect(network.has('#channel')).toBe(false);
+      expect(network.get('#other')!.has('fresh')).toBe(true);
+    });
+
     it('should use default max age of 10000ms', async () => {
       const oldStatus: TypingUser = {
         status: 'active',

@@ -64,7 +64,7 @@ import { useUIStore } from '../stores/uiStore';
 import { NickContextMenu } from './NickContextMenu';
 import { useDebounce } from '../hooks/useDebounce';
 import { webRtcCallService } from '../services/WebRTCCallService';
-import { compareStringsCaseInsensitive } from '../utils/localeSafe';
+import { highestUserMode, sortUsersByRank } from '../utils/userSort';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -314,10 +314,6 @@ export const UserList: React.FC<UserListProps> = ({
   // User list type from config
   const userListType = performanceConfig.userListType ?? 'flashlist';
 
-  // Threshold for skip sort
-  const skipSortThreshold = performanceConfig.userListSkipSortThreshold ?? 1000;
-  const shouldSkipSort = users.length > skipSortThreshold;
-
   // Grouping logic
   const groupingEnabled = performanceConfig.userListGrouping !== false;
   const groupingThreshold =
@@ -330,16 +326,13 @@ export const UserList: React.FC<UserListProps> = ({
       groupingEnabled &&
       users.length <= groupingThreshold);
 
-  // Group users by their highest mode
-  const groupedUsers = useMemo(() => {
-    const modePriority: { [key: string]: number } = {
-      q: 0,
-      a: 1,
-      o: 2,
-      h: 3,
-      v: 4,
-    };
+  // Sorted by highest mode, then nick. Keys are computed once per user rather
+  // than per comparison, so even a 2000-user channel sorts in a few ms - big
+  // channels used to be shown unsorted to avoid the cost.
+  const sortedUsers = useMemo(() => sortUsersByRank(users), [users]);
 
+  // Group users by their highest mode (sortedUsers keeps each group sorted).
+  const groupedUsers = useMemo(() => {
     const groups: { [key: string]: ChannelUser[] } = {
       q: [],
       a: [],
@@ -348,69 +341,12 @@ export const UserList: React.FC<UserListProps> = ({
       v: [],
       none: [],
     };
-
-    users.forEach(user => {
-      if (user.modes.length === 0) {
-        groups.none.push(user);
-        return;
-      }
-
-      // Find highest priority mode
-      const highestMode = user.modes.reduce((prev, current) => {
-        const prevPriority = modePriority[prev] ?? 99;
-        const currentPriority = modePriority[current] ?? 99;
-        return currentPriority < prevPriority ? current : prev;
-      });
-
-      if (highestMode && groups[highestMode]) {
-        groups[highestMode].push(user);
-      } else {
-        groups.none.push(user);
-      }
+    if (!groupingActive) return groups;
+    sortedUsers.forEach(user => {
+      groups[highestUserMode(user.modes) ?? 'none'].push(user);
     });
-
-    // Sort each group alphabetically
-    Object.keys(groups).forEach(key => {
-      groups[key].sort((a, b) => compareStringsCaseInsensitive(a.nick, b.nick));
-    });
-
     return groups;
-  }, [users]);
-
-  const sortedUsers = useMemo(() => {
-    // Skip sort for large lists if enabled
-    if (shouldSkipSort) {
-      return users;
-    }
-
-    // Sort by mode priority first, then alphabetically
-    const modePriority: { [key: string]: number } = {
-      q: 0, // owner
-      a: 1, // admin
-      o: 2, // operator
-      h: 3, // halfop
-      v: 4, // voice
-    };
-
-    return [...users].sort((a, b) => {
-      // Get highest priority mode for each user
-      const getHighestPriority = (modes: string[]): number => {
-        if (modes.length === 0) return 99; // No modes
-        return Math.min(...modes.map(m => modePriority[m] ?? 99));
-      };
-
-      const aPriority = getHighestPriority(a.modes);
-      const bPriority = getHighestPriority(b.modes);
-
-      // First sort by mode priority
-      if (aPriority !== bPriority) {
-        return aPriority - bPriority;
-      }
-
-      // Then sort alphabetically by nick
-      return compareStringsCaseInsensitive(a.nick, b.nick);
-    });
-  }, [users, shouldSkipSort]);
+  }, [sortedUsers, groupingActive]);
 
   const filteredUsers = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return sortedUsers;
@@ -501,16 +437,7 @@ export const UserList: React.FC<UserListProps> = ({
 
   // Always use network-aware storage. Get network from IRC service if not provided as prop.
   const getNetworkForStorage = useCallback((): string => {
-    const result = network || activeIrc.getNetworkName() || 'default';
-    console.log(
-      '[UserList] getNetworkForStorage - network prop:',
-      network,
-      'activeIrc.getNetworkName():',
-      activeIrc.getNetworkName(),
-      'result:',
-      result,
-    );
-    return result;
+    return network || activeIrc.getNetworkName() || 'default';
   }, [network, activeIrc]);
 
   const handleExternalPayload = useCallback(

@@ -41,6 +41,51 @@ interface UseMessageBatchingParams {
   setTabs: Dispatch<SetStateAction<ChannelTab[]>>;
 }
 
+type PendingAppend = { messages: IRCMessage[]; msgids: Set<string> };
+
+/** Local echo is reconciled against lines this recent. */
+const LOCAL_ECHO_WINDOW_MS = 8000;
+/** How far back from the end a local-echo match is looked for. */
+const LOCAL_ECHO_SCAN = 200;
+
+const collectMsgids = (messages: IRCMessage[]): Set<string> => {
+  const ids = new Set<string>();
+  for (const m of messages) if (m.msgid) ids.add(m.msgid);
+  return ids;
+};
+
+const isLocalEcho = (m: IRCMessage) =>
+  m.status === 'sent' || m.status === 'pending';
+
+const isEchoOf = (m: IRCMessage, message: IRCMessage) =>
+  (isLocalEcho(m) || isLocalEcho(message)) &&
+  !(m.msgid && message.msgid) &&
+  Math.abs(m.timestamp - message.timestamp) < LOCAL_ECHO_WINDOW_MS &&
+  m.type === message.type &&
+  m.from?.toLowerCase() === message.from?.toLowerCase() &&
+  m.text === message.text;
+
+/**
+ * Same rule as before, without scanning the whole tab per message: msgids are
+ * looked up in a set, and the text/time match is only for local echo
+ * reconciliation, which by definition concerns the last few seconds.
+ */
+const isDuplicateMessage = (
+  message: IRCMessage,
+  existing: IRCMessage[],
+  pending: PendingAppend,
+): boolean => {
+  if (message.msgid && pending.msgids.has(message.msgid)) return true;
+  for (let i = pending.messages.length - 1; i >= 0; i--) {
+    if (isEchoOf(pending.messages[i], message)) return true;
+  }
+  const stop = Math.max(0, existing.length - LOCAL_ECHO_SCAN);
+  for (let i = existing.length - 1; i >= stop; i--) {
+    if (isEchoOf(existing[i], message)) return true;
+  }
+  return false;
+};
+
 export const useMessageBatching = (params: UseMessageBatchingParams) => {
   const {
     pendingMessagesRef,
@@ -212,6 +257,10 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       );
       let newTabs = prevTabs;
       let tabsModified = false;
+      // Messages bound for existing tabs are collected here and appended once
+      // per tab after the loop: copying a tab's whole array for every message
+      // made a flush O(batch x history), which froze bouncer replays.
+      const appendsByTabId = new Map<string, PendingAppend>();
 
       for (const { message, context } of batch) {
         if (!context) {
@@ -322,40 +371,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           }
         } else {
           // Update existing tab
-          if (!tabsModified) newTabs = [...newTabs];
           const tab = newTabs[tabIndex];
+          let pending = appendsByTabId.get(tab.id);
+          if (!pending) {
+            pending = { messages: [], msgids: collectMsgids(tab.messages) };
+            appendsByTabId.set(tab.id, pending);
+          }
 
-          // Check for duplicate messages.
-          // We only use text/time dedup for local echo reconciliation; otherwise
-          // legitimate repeated lines can be incorrectly dropped.
-          const isDuplicate = tab.messages.some(m => {
-            // If both have msgid (IRCv3 message IDs), compare by that
-            if (m.msgid && message.msgid) {
-              return m.msgid === message.msgid;
-            }
-
-            const existingIsLocalEcho =
-              m.status === 'sent' || m.status === 'pending';
-            const incomingIsLocalEcho =
-              message.status === 'sent' || message.status === 'pending';
-            const isLocalEchoReconciliation =
-              existingIsLocalEcho || incomingIsLocalEcho;
-            if (!isLocalEchoReconciliation) {
-              return false;
-            }
-
-            // For local echo reconciliation, compare by timestamp + from + text.
-            // Allow small timestamp difference for network latency.
-            const timeDiff = Math.abs(m.timestamp - message.timestamp);
-            return (
-              timeDiff < 8000 &&
-              m.type === message.type &&
-              m.from?.toLowerCase() === message.from?.toLowerCase() &&
-              m.text === message.text
-            );
-          });
-
-          if (isDuplicate) {
+          if (isDuplicateMessage(message, tab.messages, pending)) {
             debugLogger.debug(
               'messageBatching',
               'Skipping duplicate message',
@@ -364,26 +387,35 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             continue;
           }
 
-          //console.log(`📨 useMessageBatching: Adding message to existing tab ${tab.id} (current: ${tab.messages.length}, batchTag: ${message.batchTag || 'none'}, isPlayback: ${message.isPlayback || false})`);
-          const newMessages = [...tab.messages, message];
-          const perfConfig = performanceService.getConfig();
-          const messagesFinal =
-            perfConfig.enableMessageCleanup &&
-            newMessages.length > perfConfig.cleanupThreshold
-              ? newMessages.slice(-perfConfig.messageLimit)
-              : newMessages;
-
-          newTabs[tabIndex] = {
-            ...tab,
-            messages: messagesFinal,
-            hasActivity: tab.id !== activeTabId ? true : tab.hasActivity,
-          };
+          pending.messages.push(message);
+          if (message.msgid) pending.msgids.add(message.msgid);
           if (shouldPersistMessage(message, hasValidNetwork)) {
             messagesToPersist.push({ message, network: messageNetwork });
           }
-          //console.log(`📨 useMessageBatching: Tab ${tab.id} now has ${messagesFinal.length} messages`);
-          tabsModified = true;
         }
+      }
+
+      const hasAppends = Array.from(appendsByTabId.values()).some(
+        pending => pending.messages.length > 0,
+      );
+      if (hasAppends) {
+        const perfConfig = performanceService.getConfig();
+        if (!tabsModified) newTabs = [...newTabs];
+        newTabs = newTabs.map(tab => {
+          const pending = appendsByTabId.get(tab.id);
+          if (!pending || pending.messages.length === 0) return tab;
+          const merged = tab.messages.concat(pending.messages);
+          return {
+            ...tab,
+            messages:
+              perfConfig.enableMessageCleanup &&
+              merged.length > perfConfig.cleanupThreshold
+                ? merged.slice(-perfConfig.messageLimit)
+                : merged,
+            hasActivity: tab.id !== activeTabId ? true : tab.hasActivity,
+          };
+        });
+        tabsModified = true;
       }
 
       if (!tabsModified) {

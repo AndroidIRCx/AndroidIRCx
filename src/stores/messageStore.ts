@@ -137,30 +137,46 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     return Array.from(targetMap.keys());
   },
 
+  // Runs every couple of seconds. When nothing has expired it leaves the state
+  // object untouched, so subscribers do not re-render; otherwise it builds new
+  // maps instead of editing the ones components may still hold.
   cleanupStaleTyping: (maxAge = 10000) => {
     set(state => {
       const now = Date.now();
-      const newMap = new Map(state.typingUsers);
+      let changed = false;
+      const nextNetworks = new Map<
+        string,
+        Map<string, Map<string, TypingUser>>
+      >();
 
-      newMap.forEach((networkMap, networkId) => {
+      state.typingUsers.forEach((networkMap, networkId) => {
+        const nextTargets = new Map<string, Map<string, TypingUser>>();
         networkMap.forEach((targetMap, target) => {
+          const live = new Map<string, TypingUser>();
           targetMap.forEach((status, nick) => {
             if (now - status.timestamp > maxAge) {
-              targetMap.delete(nick);
+              changed = true;
+            } else {
+              live.set(nick, status);
             }
           });
-
-          if (targetMap.size === 0) {
-            networkMap.delete(target);
+          if (live.size > 0) {
+            nextTargets.set(
+              target,
+              live.size === targetMap.size ? targetMap : live,
+            );
+          } else {
+            changed = true;
           }
         });
-
-        if (networkMap.size === 0) {
-          newMap.delete(networkId);
+        if (nextTargets.size > 0) {
+          nextNetworks.set(networkId, nextTargets);
+        } else {
+          changed = true;
         }
       });
 
-      return { typingUsers: newMap };
+      return changed ? { typingUsers: nextNetworks } : state;
     });
   },
 

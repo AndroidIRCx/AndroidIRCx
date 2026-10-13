@@ -13384,5 +13384,17 @@
   },
   "METADATA is not supported by this server": {
     "string": "METADATA אינו נתמך על ידי שרת זה"
+  },
+  "Sort scripts": {
+    "string": "מיון סקריפטים"
+  },
+  "Enabled first": {
+    "string": "הפעילים קודם"
+  },
+  "Slowest first": {
+    "string": "האיטיים ביותר קודם"
+  },
+  "{ms} ms used this session": {
+    "string": "{ms} אלפיות שנייה בהפעלה זו"
   }
 }

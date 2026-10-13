@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, {
   AndroidImportance,
   AndroidCategory,
+  AndroidGroupAlertBehavior,
+  AndroidStyle,
   EventType,
 } from '@notifee/react-native';
 import { tx } from '../i18n/localization';
@@ -30,6 +32,24 @@ export const NOTIFICATION_CHANNELS = {
 } as const;
 
 const ONGOING_CALL_NOTIFICATION_ID = 'androidircx-ongoing-call';
+
+/**
+ * Message notifications are one per conversation (network + channel/nick):
+ * new lines update it in place - a count and the last few lines - instead of
+ * stacking a new notification per message. It sounds/vibrates at most this
+ * often per conversation; updates in between are silent.
+ */
+const CONVERSATION_ALERT_INTERVAL_MS = 30_000;
+/** Lines kept in a conversation notification's expanded view. */
+const CONVERSATION_LINES = 5;
+/** Permission state is re-checked natively at most this often. */
+const PERMISSION_CACHE_MS = 60_000;
+
+type ConversationNotification = {
+  count: number;
+  lines: string[];
+  lastAlertAt: number;
+};
 const PENDING_CALL_ACTION_KEY = '@AndroidIRCX:pendingCallNotificationAction';
 export const CALL_NOTIFICATION_ACTIONS = {
   RETURN: 'call-return',
@@ -56,6 +76,10 @@ export interface NotificationPreferences {
 
 class NotificationService {
   private notificationIdCounter: number = 0;
+  private conversations = new Map<string, ConversationNotification>();
+  private permissionCache: { granted: boolean; at: number } | null = null;
+  // Mention pattern for the current nick, rebuilt only when the nick changes.
+  private mentionCache: { nick: string; pattern: RegExp | null } | null = null;
   private readonly STORAGE_KEY = '@AndroidIRCX:notificationPreferences';
   private preferences: NotificationPreferences = {
     enabled: true,
@@ -498,6 +522,132 @@ class NotificationService {
     return NOTIFICATION_CHANNELS.PRIVATE_MESSAGES;
   }
 
+  /** checkPermission, answered from a short cache on the message hot path. */
+  private async hasCachedPermission(): Promise<boolean> {
+    const now = Date.now();
+    if (
+      this.permissionCache &&
+      now - this.permissionCache.at < PERMISSION_CACHE_MS
+    ) {
+      return this.permissionCache.granted;
+    }
+    const granted = await this.checkPermission();
+    this.permissionCache = { granted, at: now };
+    return granted;
+  }
+
+  private conversationKey(channel: string, network?: string): string {
+    return `${(network || '').toLowerCase()}::${channel.toLowerCase()}`;
+  }
+
+  private conversationNotificationId(key: string): string {
+    return `irc_conv_${key}`;
+  }
+
+  private networkGroupId(network?: string): string {
+    return `irc_net_${(network || 'default').toLowerCase()}`;
+  }
+
+  /**
+   * Forget a conversation's notification: called when the user opens it, so
+   * the next message starts a fresh notification that alerts again.
+   */
+  clearConversation(channel: string, network?: string): void {
+    const key = this.conversationKey(channel, network);
+    if (!this.conversations.delete(key)) return;
+    try {
+      notifee.cancelNotification(this.conversationNotificationId(key));
+    } catch (error) {
+      console.error(
+        'NotificationService: Error clearing conversation notification:',
+        error,
+      );
+    }
+  }
+
+  private async showConversationNotification(
+    title: string,
+    line: string,
+    channel: string,
+    network?: string,
+    messageType?: string,
+  ): Promise<void> {
+    if (!(await this.hasCachedPermission())) return;
+
+    const key = this.conversationKey(channel, network);
+    const now = Date.now();
+    const state = this.conversations.get(key) || {
+      count: 0,
+      lines: [],
+      lastAlertAt: 0,
+    };
+    state.count += 1;
+    state.lines = [...state.lines, line].slice(-CONVERSATION_LINES);
+    const alert = now - state.lastAlertAt >= CONVERSATION_ALERT_INTERVAL_MS;
+    if (alert) state.lastAlertAt = now;
+    this.conversations.set(key, state);
+
+    const t = (k: string, params?: Record<string, unknown>) => {
+      const translator = (tx as any)?.t;
+      return typeof translator === 'function' ? translator(k, params) : k;
+    };
+    const shownTitle =
+      state.count > 1
+        ? t('{channel} ({count} new message{suffix})', {
+            channel: title,
+            count: state.count,
+            suffix: 's',
+          })
+        : title;
+    const androidChannelId = this.resolveChannelId(channel, messageType);
+    const groupId = this.networkGroupId(network);
+
+    try {
+      await notifee.displayNotification({
+        id: this.conversationNotificationId(key),
+        title: shownTitle,
+        body: line,
+        data: {
+          channel,
+          network: network || '',
+          timestamp: now,
+        },
+        android: {
+          channelId: androidChannelId,
+          importance: AndroidImportance.HIGH,
+          pressAction: { id: 'default' },
+          groupId,
+          groupAlertBehavior: AndroidGroupAlertBehavior.CHILDREN,
+          onlyAlertOnce: !alert,
+          timestamp: now,
+          showTimestamp: true,
+          ...(state.count > 1
+            ? { style: { type: AndroidStyle.INBOX, lines: state.lines } }
+            : {}),
+        },
+        ios: {
+          sound: alert ? 'default' : undefined,
+          threadId: groupId,
+        },
+      });
+      // A silent summary keeps one network's conversations together.
+      await notifee.displayNotification({
+        id: `${groupId}_summary`,
+        title: network || t('Messages'),
+        android: {
+          channelId: androidChannelId,
+          groupId,
+          groupSummary: true,
+          groupAlertBehavior: AndroidGroupAlertBehavior.CHILDREN,
+          onlyAlertOnce: true,
+          pressAction: { id: 'default' },
+        },
+      });
+    } catch (error) {
+      console.error('NotificationService: Error showing notification:', error);
+    }
+  }
+
   /**
    * Show a local notification using react-native-notifications
    */
@@ -589,7 +739,13 @@ class NotificationService {
       });
     }
 
-    await this.showNotification(title, body, channel, network, message.type);
+    await this.showConversationNotification(
+      title,
+      body,
+      channel,
+      network,
+      message.type,
+    );
   }
 
   async showOngoingCallNotification(options: {
@@ -817,18 +973,31 @@ class NotificationService {
       if (highlightService.isHighlighted(message.text)) {
         return true;
       }
-      // Check if message mentions current nick (escape special regex chars)
-      try {
-        const escapedNick = currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const mentionPattern = new RegExp(`@?${escapedNick}\\b`, 'i');
-        return mentionPattern.test(message.text);
-      } catch {
-        // Fallback to simple includes if regex fails
-        return message.text.toLowerCase().includes(currentNick.toLowerCase());
-      }
+      return this.mentionsNick(message.text, currentNick);
     }
 
     return false;
+  }
+
+  /** Whether text mentions the nick (optionally as @nick), case-insensitive. */
+  mentionsNick(text: string, nick: string): boolean {
+    if (!text || !nick) return false;
+    if (this.mentionCache?.nick !== nick) {
+      let pattern: RegExp | null;
+      try {
+        // Escape special regex characters in the nick
+        const escapedNick = nick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        pattern = new RegExp(`@?${escapedNick}\\b`, 'i');
+      } catch {
+        pattern = null;
+      }
+      this.mentionCache = { nick, pattern };
+    }
+    const { pattern } = this.mentionCache;
+    // Fallback to simple includes if the pattern could not be built
+    return pattern
+      ? pattern.test(text)
+      : text.toLowerCase().includes(nick.toLowerCase());
   }
 }
 
