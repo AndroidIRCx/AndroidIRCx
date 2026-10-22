@@ -442,3 +442,9 @@
 -keep class com.androidircx.McpServerModule { *; }
 -keep class com.androidircx.McpClientPackage { *; }
 -keep class com.androidircx.McpClientModule { *; }
+
+# org.jitsi:webrtc 155 ships the generated Dav1dDecoderJni bridge (and a GEN_JNI
+# entry) without the Dav1dDecoder class itself: the AV1 decoder is not built
+# in, so nothing can reach the bridge. react-native-webrtc keeps org.webrtc.**,
+# which makes R8 resolve it and fail on the missing class.
+-dontwarn org.webrtc.Dav1dDecoder$Natives
