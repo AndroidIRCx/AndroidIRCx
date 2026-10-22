@@ -257,8 +257,8 @@ android {
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 177
-        versionName = "1.10.5"
+        versionCode = 178
+        versionName = "1.10.6"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -364,7 +364,7 @@ dependencies {
     // Firebase app services used by AndroidIRCX. Do not include Firebase Messaging
     // unless remote push is implemented; unused FCM auto-init has caused
     // FirebaseMessaging token refresh crashes in production.
-    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:35.0.0"))
     implementation("com.google.firebase:firebase-appcheck")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("com.google.firebase:firebase-analytics")
