@@ -1,0 +1,6 @@
+What's new in v1.10.6:
+- Updated to React Native 0.88 with Android fixes for text, images and accessibility.
+- Voice and video calls use the newer WebRTC M155 engine.
+- NFC key exchange moved to the new NFC library.
+- Crash reporting and app protection updated (Firebase 27).
+- Ads, in-app purchases, keyboard and SVG library updates.

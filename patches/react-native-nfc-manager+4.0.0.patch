@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-nfc-manager/android/build.gradle b/node_modules/react-native-nfc-manager/android/build.gradle
+index 3a21570..cd277d5 100644
+--- a/node_modules/react-native-nfc-manager/android/build.gradle
++++ b/node_modules/react-native-nfc-manager/android/build.gradle
+@@ -21,7 +21,10 @@ def reactNativeArchitectures() {
+ }
+ 
+ def isNewArchitectureEnabled() {
+-    return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
++    // RN 0.82+ sets newArchEnabled only on subprojects, never on the root project,
++    // so this check is always false and codegen (NativeNfcManagerSpec) never runs.
++    // v4 has no old-architecture path, so always build for the new architecture.
++    return true
+ }
+ 
+ apply plugin: 'com.android.library'
