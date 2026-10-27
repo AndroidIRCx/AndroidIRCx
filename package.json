@@ -129,6 +129,7 @@
     "@grpc/grpc-js": "1.14.6",
     "joi": "17.13.8",
     "sharp": "0.35.5",
-    "compression": "1.8.2"
+    "compression": "1.8.2",
+    "qs": "6.17.0"
   }
 }
