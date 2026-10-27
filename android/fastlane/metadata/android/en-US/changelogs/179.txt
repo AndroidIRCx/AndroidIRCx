@@ -1,0 +1,5 @@
+What's new in v1.10.7:
+- React Native 0.88.1 with Android text rendering fixes.
+- Crash reporting and app protection updated (Firebase 27.1).
+- NFC, in-app purchases, keyboard, slider and QR code library updates.
+- Security fix in the certificate and key handling library.
