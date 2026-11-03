@@ -4,6 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setNumericScriptHook } from './irc/numericScriptHook';
 import type { IRCMessage } from './IRCService';
 import type { ChannelTab } from '../types';
 import { connectionManager } from './ConnectionManager';
@@ -5084,3 +5085,9 @@ class ScriptingService {
 }
 
 export const scriptingService = new ScriptingService();
+
+// IRCService hands every numeric to scripts through this hook instead of
+// requiring ScriptingService (that closed an import cycle).
+setNumericScriptHook((code, params, text, message) =>
+  scriptingService.handleNumeric(code, params, text, message),
+);

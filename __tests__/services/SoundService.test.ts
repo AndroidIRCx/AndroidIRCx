@@ -11,15 +11,7 @@ import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 import { SoundEventType, DEFAULT_SOUND_SETTINGS } from '../../src/types/sound';
-import { awayService } from '../../src/services/AwayService';
 import { audioFocusService } from '../../src/services/AudioFocusService';
-
-// Mock AwayService
-jest.mock('../../src/services/AwayService', () => ({
-  awayService: {
-    shouldMuteSounds: jest.fn().mockReturnValue(false),
-  },
-}));
 
 // Mock AudioFocusService
 jest.mock('../../src/services/AudioFocusService', () => ({
@@ -34,7 +26,8 @@ describe('SoundService', () => {
     jest.restoreAllMocks();
     await AsyncStorage.clear();
     jest.clearAllMocks();
-    (awayService.shouldMuteSounds as jest.Mock).mockReturnValue(false);
+    // AwayService registers this check in the app; default to not muted.
+    soundService.setMuteCheck(() => false);
     // Reset service state
     // @ts-ignore
     soundService.isInitialized = false;
@@ -167,14 +160,15 @@ describe('SoundService', () => {
     });
 
     it('should not play when away mode mutes sounds', async () => {
-      const { awayService } = require('../../src/services/AwayService');
-      awayService.shouldMuteSounds.mockReturnValue(true);
+      const muted = jest.fn(() => true);
+      soundService.setMuteCheck(muted);
 
       await soundService.initialize();
       await soundService.updateSettings({ enabled: true });
 
-      // Should not throw
       await expect(soundService.playSound('message')).resolves.not.toThrow();
+      expect(muted).toHaveBeenCalled();
+      expect(Sound).not.toHaveBeenCalled();
     });
 
     it('should not play event when disabled', async () => {

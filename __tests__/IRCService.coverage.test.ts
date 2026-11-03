@@ -77,7 +77,10 @@ jest.mock('../src/services/ConnectionManager', () => ({
   },
 }));
 
-import { IRCService } from '../src/services/IRCService';
+import {
+  IRCService,
+  setForegroundConnectionsProvider,
+} from '../src/services/IRCService';
 import { protectionService } from '../src/services/ProtectionService';
 
 class RichSocket {
@@ -887,6 +890,11 @@ describe('IRCService coverage - keepalive, reconnect & disconnect', () => {
 });
 
 describe('IRCService coverage - foreground notification', () => {
+  // ConnectionManager registers this provider in the app; register the mock.
+  beforeAll(() =>
+    setForegroundConnectionsProvider(() => mockGetAllConnections()),
+  );
+  afterAll(() => setForegroundConnectionsProvider(null));
   afterEach(() => jest.restoreAllMocks());
 
   it('emitConnection starts foreground service on connect', () => {
@@ -914,6 +922,10 @@ describe('IRCService coverage - foreground notification', () => {
     irc.onConnectionChange(() => {});
     (irc as any).emitConnection(true);
     expect(mockFgUpdate).toHaveBeenCalled();
+    // Both connected networks come from the registered provider.
+    const lastUpdate = JSON.stringify(mockFgUpdate.mock.calls.at(-1));
+    expect(lastUpdate).toContain('Net1');
+    expect(lastUpdate).toContain('Net2');
   });
 
   it('emitConnection stops service when nothing connected', () => {

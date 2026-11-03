@@ -9,7 +9,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { IRCService } from './IRCService';
+import type { IRCService } from './IRCService';
 import { tx } from '../i18n/localization';
 import { decodeIfBase64Like } from '../utils/Base64Utils';
 

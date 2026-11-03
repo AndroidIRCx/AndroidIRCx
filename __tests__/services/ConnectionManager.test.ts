@@ -30,6 +30,7 @@ const mockIRCService = {
 const mockAutoReconnectService = {
   registerConnection: jest.fn(),
   unregisterConnection: jest.fn(),
+  setConnectionManager: jest.fn(),
 };
 
 const mockServiceDetectionService = {
@@ -73,6 +74,7 @@ const mockAutoAuthService = {
 jest.mock('../../src/services/IRCService', () => ({
   IRCService: jest.fn().mockImplementation(() => mockIRCService),
   ircService: mockIRCService,
+  setForegroundConnectionsProvider: jest.fn(),
 }));
 
 jest.mock('../../src/services/AutoReconnectService', () => ({

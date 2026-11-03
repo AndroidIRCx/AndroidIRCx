@@ -14,12 +14,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageCache } from '../../src/services/StorageCache';
 import { IRCMessage } from '../../src/services/IRCService';
 
-jest.mock('../../src/services/MessageHistoryBatching', () => ({
-  messageHistoryBatching: {
+// setSaver stores the saver on the mock itself, so it survives beforeEach's
+// clearAllMocks (which only wipes call records).
+jest.mock('../../src/services/MessageHistoryBatching', () => {
+  const batching: any = {
     queueMessage: jest.fn(),
     clearQueue: jest.fn(),
-  },
-}));
+    registeredSaver: null,
+  };
+  batching.setSaver = jest.fn((saver: any) => {
+    batching.registeredSaver = saver;
+  });
+  return { messageHistoryBatching: batching };
+});
 
 jest.mock('../../src/services/StorageCache', () => ({
   storageCache: {
@@ -63,6 +70,23 @@ describe('MessageHistoryService', () => {
   };
 
   describe('saveMessage', () => {
+    it('registers itself as the batcher saver at module load', async () => {
+      const {
+        messageHistoryBatching,
+      } = require('../../src/services/MessageHistoryBatching');
+      const saver = messageHistoryBatching.registeredSaver;
+      expect(saver).toEqual(expect.any(Function));
+      const spy = jest
+        .spyOn(messageHistoryService, 'saveMessages')
+        .mockResolvedValue(undefined);
+      try {
+        await saver([mockMessage], 'freenode');
+        expect(spy).toHaveBeenCalledWith([mockMessage], 'freenode');
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
     it('should queue message for batching', async () => {
       const {
         messageHistoryBatching,

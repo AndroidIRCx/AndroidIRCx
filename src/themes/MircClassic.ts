@@ -10,7 +10,7 @@
  */
 
 import { tx } from '../i18n/localization';
-import { Theme } from '../services/ThemeService';
+import type { Theme } from '../services/ThemeService';
 import { makeClassicMircFormats } from './formats';
 import { withAlpha } from './palette';
 

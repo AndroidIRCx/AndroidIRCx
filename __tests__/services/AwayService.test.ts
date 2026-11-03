@@ -189,6 +189,19 @@ describe('AwayService', () => {
     expect(awayService.shouldMuteSounds()).toBe(true);
   });
 
+  it('registers its mute check with SoundService at module load', () => {
+    const { soundService } = require('../../src/services/SoundService');
+    const spy = jest.spyOn(awayService, 'shouldMuteSounds');
+    try {
+      spy.mockReturnValue(true);
+      expect((soundService as any).muteCheck()).toBe(true);
+      spy.mockReturnValue(false);
+      expect((soundService as any).muteCheck()).toBe(false);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('sets away across all connections in multi-server mode', async () => {
     const ircA = makeIrcService();
     const ircB = makeIrcService();

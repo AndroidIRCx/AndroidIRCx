@@ -5,6 +5,7 @@
 
 jest.mock('../src/services/IRCService', () => {
   return {
+    setForegroundConnectionsProvider: jest.fn(),
     IRCService: jest.fn(() => ({
       networkId: '',
       isConnected: false,
@@ -104,6 +105,7 @@ jest.mock('../src/services/AutoReconnectService', () => ({
   autoReconnectService: {
     registerConnection: jest.fn(),
     unregisterConnection: jest.fn(),
+    setConnectionManager: jest.fn(),
   },
 }));
 

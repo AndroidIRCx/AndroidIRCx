@@ -12,7 +12,6 @@ import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, Platform } from 'react-native';
-import { awayService } from './AwayService';
 import { audioFocusService } from './AudioFocusService';
 import {
   SoundEventType,
@@ -44,6 +43,14 @@ class SoundService {
   private appState: AppStateStatus = 'active';
   private soundQueue: Array<{ eventType: SoundEventType; volume: number }> = [];
   private isProcessingQueue = false;
+  // Registered by AwayService ("mute sounds while away"). Injected instead of
+  // imported so this service does not import AwayService (runtime cycle).
+  private muteCheck: () => boolean = () => false;
+
+  /** Set the check that silences all sounds (AwayService registers it). */
+  setMuteCheck(check: () => boolean): void {
+    this.muteCheck = check;
+  }
 
   constructor() {
     // Listen for app state changes
@@ -182,7 +189,7 @@ class SoundService {
       return;
     }
 
-    if (awayService.shouldMuteSounds()) {
+    if (this.muteCheck()) {
       return;
     }
 
@@ -599,7 +606,7 @@ class SoundService {
     if (!entry) return false;
 
     if (!this.settings.enabled) return true;
-    if (awayService.shouldMuteSounds()) return true;
+    if (this.muteCheck()) return true;
     const isBackground = this.appState !== 'active';
     if (isBackground && !this.settings.playInBackground) return true;
     if (!isBackground && !this.settings.playInForeground) return true;

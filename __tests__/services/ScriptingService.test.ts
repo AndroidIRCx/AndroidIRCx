@@ -188,6 +188,7 @@ jest.mock('../../src/services/DCCFileService', () => ({
 const mockSoundService = {
   playSound: jest.fn().mockResolvedValue(undefined),
   playCustomSoundByName: jest.fn().mockResolvedValue(false),
+  setMuteCheck: jest.fn(),
 };
 jest.mock('../../src/services/SoundService', () => ({
   soundService: mockSoundService,

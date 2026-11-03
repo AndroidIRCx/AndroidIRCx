@@ -7,8 +7,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ircService, IRCConnectionConfig, IRCService } from './IRCService';
 import { channelFavoritesService } from './ChannelFavoritesService';
 import { bouncerService } from './BouncerService';
-import { connectionManager } from './ConnectionManager';
+import type { connectionManager as ConnectionManagerInstance } from './ConnectionManager';
 import { IRCNetworkConfig, settingsService } from './SettingsService';
+
+/**
+ * The ConnectionManager calls this service needs. ConnectionManager registers
+ * itself (setConnectionManager) instead of being imported here, which made a
+ * runtime import cycle.
+ */
+type ConnectionManagerLike = Pick<
+  typeof ConnectionManagerInstance,
+  'connect' | 'setActiveConnection' | 'getConnection'
+>;
 
 export interface AutoReconnectConfig {
   enabled: boolean;
@@ -43,6 +53,11 @@ class AutoReconnectService {
   private readonly STORAGE_KEY = '@AndroidIRCX:connectionStates';
   private readonly CONFIG_STORAGE_KEY = '@AndroidIRCX:autoReconnectConfigs';
   private connectionListeners: Map<string, () => void> = new Map(); // network -> cleanup function
+  private connectionManager: ConnectionManagerLike | null = null;
+
+  setConnectionManager(manager: ConnectionManagerLike): void {
+    this.connectionManager = manager;
+  }
   private messageListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private intentionalDisconnectListeners: Map<string, () => void> = new Map(); // network -> cleanup function
 
@@ -407,17 +422,18 @@ class AutoReconnectService {
         this.saveConnectionStates();
 
         // Attempt reconnection via ConnectionManager if networkConfig is available
-        if (state.networkConfig) {
+        const manager = this.connectionManager;
+        if (state.networkConfig && manager) {
           console.log(
             `AutoReconnectService: Reconnecting via ConnectionManager for ${network}`,
           );
-          const reconnectedId = await connectionManager.connect(
+          const reconnectedId = await manager.connect(
             network,
             state.networkConfig,
             state.config,
           );
           // Ensure this connection is set as active
-          connectionManager.setActiveConnection(reconnectedId);
+          manager.setActiveConnection(reconnectedId);
           console.log(
             `AutoReconnectService: Reconnected to ${network} with ID ${reconnectedId}`,
           );
@@ -467,7 +483,7 @@ class AutoReconnectService {
     );
 
     // Get IRCService instance from ConnectionManager
-    const connection = connectionManager.getConnection(network);
+    const connection = this.connectionManager?.getConnection(network);
     if (!connection) {
       console.error(
         `AutoReconnectService: Connection not found for ${network}, cannot rejoin channels`,

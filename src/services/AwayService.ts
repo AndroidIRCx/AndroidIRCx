@@ -6,6 +6,7 @@
 import { connectionManager } from './ConnectionManager';
 import { IRCMessage, IRCService } from './IRCService';
 import { settingsService } from './SettingsService';
+import { soundService } from './SoundService';
 import { tx } from '../i18n/localization';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -587,3 +588,7 @@ class AwayService {
 }
 
 export const awayService = new AwayService();
+
+// SoundService asks this service whether to stay silent; registering the check
+// here keeps SoundService from importing AwayService (runtime import cycle).
+soundService.setMuteCheck(() => awayService.shouldMuteSounds());

@@ -51,6 +51,7 @@ import { ScramAuthService } from './irc/ScramAuth';
 // break this file's rule of importing no services.
 import { sanitizeOutboundLine } from './scripting/AddonRawPolicy';
 import { isWireMessageCaptured } from './irc/wireCapture';
+import { getNumericScriptHook } from './irc/numericScriptHook';
 
 /* eslint-disable no-bitwise, no-control-regex, no-useless-escape -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
 // Re-export ChannelTab from types for backward compatibility
@@ -78,6 +79,25 @@ const USER_LIST_FLUSH_MS = 150;
 
 /** Lines older than live by more than this are treated as bouncer replay. */
 const REPLAY_AGE_MS = 60_000;
+
+/** What the foreground notification needs to know about each connection. */
+export type ForegroundConnection = {
+  networkId: string;
+  ircService: { getConnectionStatus: () => boolean };
+};
+
+/**
+ * Lists every connection for the foreground notification. ConnectionManager
+ * registers it (it already imports this module); IRCService must not import
+ * ConnectionManager back, which made an import cycle. Unset in singleton mode.
+ */
+let foregroundConnectionsProvider: (() => ForegroundConnection[]) | null = null;
+
+export function setForegroundConnectionsProvider(
+  provider: (() => ForegroundConnection[]) | null,
+): void {
+  foregroundConnectionsProvider = provider;
+}
 
 export function isDeadConnectionError(code: string, message: string): boolean {
   if (DEAD_CONNECTION_CODES.has(code)) return true;
@@ -1944,10 +1964,8 @@ export class IRCService {
       command: String(numeric).padStart(3, '0'),
     };
     try {
-      // Runtime require avoids an IRCService <-> ScriptingService module cycle.
-      const { scriptingService } = require('./ScriptingService');
       this.suppressNumericDisplay =
-        scriptingService.handleNumeric(
+        getNumericScriptHook()?.(
           numeric,
           params.slice(1),
           text,
@@ -3941,13 +3959,12 @@ export class IRCService {
       let connectedNames: string[] = [];
       let connectedCount = 0;
       try {
-        const { connectionManager } = require('./ConnectionManager');
-        const connections = connectionManager?.getAllConnections?.() || [];
-        const activeConnections = connections.filter((ctx: any) =>
+        const connections = foregroundConnectionsProvider?.() || [];
+        const activeConnections = connections.filter(ctx =>
           ctx?.ircService?.getConnectionStatus?.(),
         );
         connectedNames = activeConnections
-          .map((ctx: any) => ctx.networkId)
+          .map(ctx => ctx.networkId)
           .filter(Boolean);
         connectedCount = activeConnections.length;
       } catch {

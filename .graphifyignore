@@ -1,0 +1,43 @@
+# graphify: what stays out of the knowledge graph (graphify-out/).
+# Secrets and anything machine- or account-specific never go in; the rest is
+# noise that would bury the app's own structure.
+
+# Secrets, credentials, private notes, local logs
+secrets/
+logs/
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.pem
+**/*.key
+**/.env*
+**/google-services.json
+**/GoogleService-Info.plist
+android/fastlane/
+scripts/docker/
+ios/.xcode.env*
+
+# Build output and dependencies
+node_modules/
+coverage/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/.gradle/
+ios/Pods/
+graphify-out/
+
+# Noise: tests, translations, generated resources, lockfiles, binary assets
+__tests__/
+test-support/
+src/i18n/translations/
+android/app/src/main/res/
+patches/
+assets/
+yarn.lock
+package-lock.json
+
+# iOS is an unused template here (Android-only app); its icons would cost a
+# vision pass each for no information
+ios/
+LICENSE.md

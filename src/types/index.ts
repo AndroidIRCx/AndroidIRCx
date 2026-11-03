@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { IRCMessage } from '../services/IRCService';
+import type { IRCMessage } from '../services/IRCService';
 
 export interface ChannelTab {
   id: string;

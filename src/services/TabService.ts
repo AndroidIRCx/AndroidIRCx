@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { ChannelTab } from '../types';
+import type { ChannelTab } from '../types';
 import { storageCache } from './StorageCache';
 
 const TABS_STORAGE_KEY_PREFIX = 'TABS_';

@@ -4,7 +4,7 @@
  */
 
 import { tx } from '../i18n/localization';
-import { Theme } from '../services/ThemeService';
+import type { Theme } from '../services/ThemeService';
 import { BLUE, ROLE_COLORS_LIGHT, SELECTION_TINT, withAlpha } from './palette';
 
 const t = (key: string) => tx.t(key);

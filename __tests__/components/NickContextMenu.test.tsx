@@ -33,6 +33,7 @@ const mockSetUserListTarget = jest.fn();
 const mockSetShowUserLists = jest.fn();
 
 jest.mock('../../src/services/IRCService', () => ({
+  setForegroundConnectionsProvider: jest.fn(),
   ircService: {
     sendRaw: (...args: unknown[]) => mockSendRaw(...args),
     sendCommand: (...args: unknown[]) => mockSendCommand(...args),

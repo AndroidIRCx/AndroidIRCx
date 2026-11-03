@@ -11,7 +11,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RawMessageCategory } from '../services/IRCService';
+import type { RawMessageCategory } from '../services/IRCService';
 import { ChannelLogEntry } from '../services/ChannelNotesService';
 
 type UserListsInitialTab =

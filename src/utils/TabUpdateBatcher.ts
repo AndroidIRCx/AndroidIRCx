@@ -9,7 +9,7 @@
  * after a delay with no new updates.
  */
 
-import { ChannelTab } from '../types';
+import type { ChannelTab } from '../types';
 import { tabService } from '../services/TabService';
 
 export type SaveCallback = (

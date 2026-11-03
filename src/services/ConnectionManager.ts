@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { IRCService, IRCConnectionConfig } from './IRCService';
+import {
+  IRCService,
+  IRCConnectionConfig,
+  setForegroundConnectionsProvider,
+} from './IRCService';
 import { ChannelManagementService } from './ChannelManagementService';
 import { UserManagementService } from './UserManagementService';
 import { NotifyService } from './NotifyService';
@@ -642,3 +646,11 @@ class ConnectionManager {
 }
 
 export const connectionManager = new ConnectionManager();
+
+// AutoReconnectService reconnects through this manager; registering here keeps
+// it from importing ConnectionManager back (runtime import cycle).
+autoReconnectService.setConnectionManager(connectionManager);
+
+// IRCService lists every connection in the foreground notification through
+// this provider instead of importing ConnectionManager (import cycle).
+setForegroundConnectionsProvider(() => connectionManager.getAllConnections());

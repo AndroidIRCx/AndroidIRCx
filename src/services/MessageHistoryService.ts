@@ -839,3 +839,9 @@ class MessageHistoryService {
 }
 
 export const messageHistoryService = new MessageHistoryService();
+
+// The batcher persists through this service; registering it here keeps the
+// batcher from importing the service back (runtime import cycle).
+messageHistoryBatching.setSaver((messages, network) =>
+  messageHistoryService.saveMessages(messages, network),
+);

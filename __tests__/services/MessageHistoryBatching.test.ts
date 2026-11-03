@@ -21,8 +21,31 @@ describe('MessageHistoryBatching', () => {
     (messageHistoryService.saveMessages as jest.Mock).mockResolvedValue(
       undefined,
     );
+    // The real MessageHistoryService registers this saver at module load; the
+    // mock above does not, so register the same delegation here.
+    messageHistoryBatching.setSaver((messages, network) =>
+      messageHistoryService.saveMessages(messages, network),
+    );
     // Reset batching state
     messageHistoryBatching.clearQueue();
+  });
+
+  it('keeps queued messages until a saver is registered', async () => {
+    let fresh: typeof messageHistoryBatching | undefined;
+    jest.isolateModules(() => {
+      fresh =
+        require('../../src/services/MessageHistoryBatching').messageHistoryBatching;
+    });
+    fresh!.queueMessage({ id: '1', text: 'kept' } as any, 'net');
+    await fresh!.flush();
+    expect(fresh!.getQueueSize()).toBe(1);
+
+    const saver = jest.fn().mockResolvedValue(undefined);
+    fresh!.setSaver(saver);
+    await fresh!.flush();
+    expect(saver).toHaveBeenCalledWith([{ id: '1', text: 'kept' }], 'net');
+    expect(fresh!.getQueueSize()).toBe(0);
+    fresh!.clearQueue();
   });
 
   afterEach(() => {

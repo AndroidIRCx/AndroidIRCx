@@ -72,6 +72,9 @@ describe('AutoReconnectService', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     (AsyncStorage as any).__reset && (AsyncStorage as any).__reset();
+    // The real ConnectionManager registers itself at module load; it is mocked
+    // here, so inject the mock the same way.
+    autoReconnectService.setConnectionManager(connectionManager as any);
     // Reset service state
     (autoReconnectService as any).config = new Map();
     (autoReconnectService as any).connectionStates = new Map();
@@ -696,6 +699,31 @@ describe('AutoReconnectService', () => {
       expect(
         connectionManager.setActiveConnection as jest.Mock,
       ).toHaveBeenCalledWith('freenode');
+    });
+
+    it('falls back to the singleton ircService before ConnectionManager registers', async () => {
+      (autoReconnectService as any).connectionManager = null;
+      await autoReconnectService.setConfig('net2', {
+        enabled: true,
+        initialDelay: 1,
+      });
+      await autoReconnectService.saveConnectionState(
+        'net2',
+        { host: 'y' } as any,
+        [],
+        { id: 'net2', name: 'Net2' } as any,
+      );
+
+      (autoReconnectService as any).attemptReconnect('net2');
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+
+      expect(connectionManager.connect as jest.Mock).not.toHaveBeenCalled();
+      expect(ircService.connect as jest.Mock).toHaveBeenCalled();
+      // Without a manager there is no connection to rejoin channels on.
+      await expect(
+        (autoReconnectService as any).rejoinChannels('net2', ['#a']),
+      ).resolves.toBeUndefined();
     });
 
     it('rejoins via playback or join list branches on successful handleConnected', async () => {

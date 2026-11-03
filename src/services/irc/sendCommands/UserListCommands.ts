@@ -14,7 +14,7 @@ import type {
   SendMessageHandler,
   SendMessageHandlerRegistry,
 } from '../sendMessageTypes';
-import { UserListType } from '../../UserManagementService';
+import type { UserListType } from '../../UserManagementService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

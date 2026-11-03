@@ -10,7 +10,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { ChannelTab } from '../types';
+import type { ChannelTab } from '../types';
 import { tabService } from '../services/TabService';
 import { tabUpdateBatcher } from '../utils/TabUpdateBatcher';
 

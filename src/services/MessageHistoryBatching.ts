@@ -9,12 +9,21 @@
  */
 
 import { IRCMessage } from './IRCService';
-import { messageHistoryService } from './MessageHistoryService';
 
 interface QueuedMessage {
   message: IRCMessage;
   network: string;
 }
+
+/**
+ * Writes one network's batch to storage. MessageHistoryService registers it,
+ * so this module does not import the service back (that import made a
+ * runtime cycle).
+ */
+export type BatchSaver = (
+  messages: IRCMessage[],
+  network: string,
+) => Promise<void>;
 
 class MessageHistoryBatching {
   private readonly BATCH_SIZE = 10;
@@ -27,6 +36,15 @@ class MessageHistoryBatching {
   private retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private isFlushing = false;
   private retryAttempts = 0;
+  private saver: BatchSaver | null = null;
+
+  /**
+   * Set the function that persists a batch. Until it is set, queued messages
+   * stay in the queue instead of being dropped.
+   */
+  setSaver(saver: BatchSaver): void {
+    this.saver = saver;
+  }
 
   /**
    * Queue a message for batched saving
@@ -59,7 +77,8 @@ class MessageHistoryBatching {
    * Flush all queued messages to storage
    */
   async flush(): Promise<void> {
-    if (this.isFlushing || this.queue.length === 0) {
+    const saver = this.saver;
+    if (this.isFlushing || this.queue.length === 0 || !saver) {
       return;
     }
 
@@ -91,7 +110,7 @@ class MessageHistoryBatching {
       const savePromises = Array.from(messagesByNetwork.entries()).map(
         async ([network, messages]) => {
           try {
-            await messageHistoryService.saveMessages(messages, network);
+            await saver(messages, network);
           } catch (err) {
             console.error(
               `MessageHistoryBatching: Error saving batch for ${network}:`,

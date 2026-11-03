@@ -10,7 +10,7 @@
  * Uses MONITOR (IRCv3), WATCH (legacy), or ISON (fallback) depending on server support.
  */
 
-import { IRCService } from './IRCService';
+import type { IRCService } from './IRCService';
 import { userManagementService, UserListEntry } from './UserManagementService';
 import { soundService } from './SoundService';
 import { SoundEventType } from '../types/sound';
