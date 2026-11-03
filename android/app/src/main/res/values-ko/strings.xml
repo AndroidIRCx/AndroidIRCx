@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ko: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX를 시작할 수 없습니다</string>
+    <string name="native_load_error_message">이 AndroidIRCX 사본은 불완전하거나 다른 프로세서용으로 만들어졌습니다. Google Play에서 최신 버전을 설치해 주세요.</string>
+    <string name="native_load_error_open_play">Google Play 열기</string>
+</resources>

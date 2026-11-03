@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- he: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">לא ניתן להפעיל את AndroidIRCX</string>
+    <string name="native_load_error_message">עותק זה של AndroidIRCX אינו שלם או שנבנה עבור מעבד אחר. יש להתקין את הגרסה העדכנית ביותר מ-Google Play.</string>
+    <string name="native_load_error_open_play">פתיחת Google Play</string>
+</resources>

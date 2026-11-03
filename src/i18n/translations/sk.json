@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms v tejto relácii"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Váš kľúč je pre QR kód príliš veľký. Vymeňte si ho radšej cez NFC priložením telefónov k sebe alebo ho pošlite v tomto čete, čo je menej bezpečné ako výmena offline."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Táto téma je pre QR kód príliš veľká. Ťuknite na Kopírovať a zdieľajte kód."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Tento odtlačok je pre QR kód príliš veľký. Zdieľajte ho ako text."
   }
 }

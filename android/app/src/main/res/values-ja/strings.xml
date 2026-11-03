@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ja: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX を起動できません</string>
+    <string name="native_load_error_message">この AndroidIRCX は不完全か、別のプロセッサ向けに作られています。Google Play から最新バージョンをインストールしてください。</string>
+    <string name="native_load_error_open_play">Google Play を開く</string>
+</resources>

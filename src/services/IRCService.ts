@@ -1765,6 +1765,12 @@ export class IRCService {
     if (command === 'PONG') {
       // Accept any PONG as keepalive proof; this recovers from idle timeout drifts.
       this.keepAliveMissedPongs = 0;
+      // ConnectionQualityService sends `PING :<timestamp>`; hand the echoed
+      // timestamp to it (same 'pong' event the CTCP PING reply emits).
+      const token = params[params.length - 1] || '';
+      if (/^\d+$/.test(token)) {
+        this.emit('pong', parseInt(token, 10));
+      }
       return;
     }
     if (command === 'METADATA') {

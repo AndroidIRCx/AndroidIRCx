@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- mn: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX эхлэх боломжгүй</string>
+    <string name="native_load_error_message">AndroidIRCX-ийн энэ хуулбар дутуу эсвэл өөр процессорт зориулагдсан байна. Google Play-ээс хамгийн сүүлийн хувилбарыг суулгана уу.</string>
+    <string name="native_load_error_open_play">Google Play нээх</string>
+</resources>

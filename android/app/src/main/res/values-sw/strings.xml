@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sw: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX haiwezi kuanza</string>
+    <string name="native_load_error_message">Nakala hii ya AndroidIRCX haijakamilika au imetengenezwa kwa ajili ya prosesa nyingine. Tafadhali sakinisha toleo jipya zaidi kutoka Google Play.</string>
+    <string name="native_load_error_open_play">Fungua Google Play</string>
+</resources>

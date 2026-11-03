@@ -23,6 +23,16 @@ class MainApplication : Application(), ReactApplication {
         private const val ELF_MACHINE_AARCH64 = 183
         private const val ELF_MACHINE_X86 = 3
         private const val ELF_MACHINE_X86_64 = 62
+
+        /**
+         * True when React Native's native libraries could not be loaded (an install missing
+         * this device's ABI split, or libraries built for another CPU). MainActivity then shows
+         * NativeLoadErrorActivity instead of starting React Native, so the process does not
+         * crash; the cause is already reported to Crashlytics as a non-fatal.
+         */
+        @Volatile
+        var nativeLoadFailed = false
+            private set
     }
 
   // Temporary ReactNativeHost for PackageList initialization
@@ -507,18 +517,23 @@ class MainApplication : Application(), ReactApplication {
               Log.e(TAG, "Device supported ABIs: $abi")
           } catch (ignored: Exception) {
           }
-          // Re-throw - app cannot function without native libraries
-          throw RuntimeException("Native library not found - please reinstall the app", e)
+          // The app cannot run without native libraries; MainActivity shows the
+          // reinstall screen instead of crashing.
+          nativeLoadFailed = true
       } catch (e: UnsatisfiedLinkError) {
           Log.e(TAG, "CRITICAL: Failed to link native library: ${e.message}", e)
           reportToCrashlyticsSafely(e)
-          throw RuntimeException("Native library linking failed - please reinstall the app", e)
+          nativeLoadFailed = true
       } catch (e: Throwable) {
           Log.e(TAG, "CRITICAL: Failed to load React Native: ${e.message}", e)
           // Report to Crashlytics safely
           reportToCrashlyticsSafely(e)
-          // Re-throw - app cannot function without React Native
-          throw RuntimeException("Failed to load React Native", e)
+          if (isNativeLoadFailure(e)) {
+              nativeLoadFailed = true
+          } else {
+              // Re-throw - app cannot function without React Native
+              throw RuntimeException("Failed to load React Native", e)
+          }
       }
 
       Log.d(TAG, "Application onCreate completed")

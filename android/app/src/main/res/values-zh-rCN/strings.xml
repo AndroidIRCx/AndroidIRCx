@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- zh-CN: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">无法启动 AndroidIRCX</string>
+    <string name="native_load_error_message">此 AndroidIRCX 副本不完整，或是为其他处理器构建的。请从 Google Play 安装最新版本。</string>
+    <string name="native_load_error_open_play">打开 Google Play</string>
+</resources>

@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "በዚህ ክፍለ ጊዜ {ms} ሚሴ ጥቅም ላይ ውሏል"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "ቁልፍዎ ለQR ኮድ በጣም ትልቅ ነው። ስልኮቹን አንድ ላይ በመያዝ በNFC ይለዋወጡት፣ ወይም በዚህ ውይይት ይላኩት፤ ይህ ግን ከመስመር ውጭ ልውውጥ ያነሰ ደህንነቱ የተጠበቀ ነው።"
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "ይህ ገጽታ ለQR ኮድ በጣም ትልቅ ነው። ቅዳን ይንኩ እና ኮዱን ያጋሩ።"
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "ይህ የጣት አሻራ ለQR ኮድ በጣም ትልቅ ነው። በምትኩ እንደ ጽሑፍ ያጋሩት።"
   }
 }

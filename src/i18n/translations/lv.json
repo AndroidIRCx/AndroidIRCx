@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "Šajā sesijā {ms} ms"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Jūsu atslēga ir par lielu QR kodam. Tā vietā apmainieties ar to, izmantojot NFC un turot tālruņus kopā, vai nosūtiet to šajā tērzēšanā, kas ir mazāk droši nekā apmaiņa bezsaistē."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Šis motīvs ir par lielu QR kodam. Pieskarieties “Kopēt” un kopīgojiet kodu."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Šis pirkstu nospiedums ir par lielu QR kodam. Kopīgojiet to kā tekstu."
   }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- af: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX kan nie begin nie</string>
+    <string name="native_load_error_message">Hierdie kopie van AndroidIRCX is onvolledig of is vir \'n ander verwerker gemaak. Installeer asseblief die nuutste weergawe vanaf Google Play.</string>
+    <string name="native_load_error_open_play">Maak Google Play oop</string>
+</resources>

@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms zimetumika katika kipindi hiki"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Ufunguo wako ni mkubwa mno kwa msimbo wa QR. Badala yake ubadilishane kupitia NFC kwa kushikanisha simu, au uutume katika gumzo hili, jambo ambalo si salama kama ubadilishanaji nje ya mtandao."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Mandhari hii ni kubwa mno kwa msimbo wa QR. Gusa Nakili kisha ushiriki msimbo."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Alama hii ya kidole ni kubwa mno kwa msimbo wa QR. Ishiriki kama maandishi."
   }
 }

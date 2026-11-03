@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- uz: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX ishga tushmayapti</string>
+    <string name="native_load_error_message">AndroidIRCX ning bu nusxasi to‘liq emas yoki boshqa protsessor uchun yaratilgan. Iltimos, eng so‘nggi versiyani Google Play’dan o‘rnating.</string>
+    <string name="native_load_error_open_play">Google Play’ni ochish</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ru: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">Не удаётся запустить AndroidIRCX</string>
+    <string name="native_load_error_message">Эта копия AndroidIRCX неполная или создана для другого процессора. Установите последнюю версию из Google Play.</string>
+    <string name="native_load_error_open_play">Открыть Google Play</string>
+</resources>

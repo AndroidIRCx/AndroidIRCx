@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "本次会话用时 {ms} 毫秒"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "你的密钥太大，无法生成二维码。请改为将两部手机靠在一起通过 NFC 交换，或在此聊天中发送（这比离线交换更不安全）。"
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "此主题太大，无法生成二维码。请点按“复制”并分享代码。"
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "此指纹太大，无法生成二维码。请以文本形式分享。"
   }
 }

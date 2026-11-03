@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- hu: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">Az AndroidIRCX nem tud elindulni</string>
+    <string name="native_load_error_message">Az AndroidIRCX ezen példánya hiányos, vagy más processzorhoz készült. Kérjük, telepítsd a legújabb verziót a Google Playről.</string>
+    <string name="native_load_error_open_play">Google Play megnyitása</string>
+</resources>

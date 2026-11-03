@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sa: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX आरब्धुं न शक्यते</string>
+    <string name="native_load_error_message">AndroidIRCX इत्यस्य इयं प्रतिः अपूर्णा अस्ति अथवा अन्यस्मै प्रोसेसराय निर्मिता। कृपया Google Play तः नवीनतमं संस्करणं स्थापयतु।</string>
+    <string name="native_load_error_open_play">Google Play उद्घाटयतु</string>
+</resources>

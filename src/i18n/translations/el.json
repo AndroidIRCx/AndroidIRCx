@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms σε αυτή τη συνεδρία"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Το κλειδί σας είναι πολύ μεγάλο για κωδικό QR. Ανταλλάξτε το μέσω NFC φέρνοντας τα τηλέφωνα κοντά, ή στείλτε το σε αυτή τη συνομιλία, κάτι λιγότερο ασφαλές από μια ανταλλαγή εκτός σύνδεσης."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Αυτό το θέμα είναι πολύ μεγάλο για κωδικό QR. Πατήστε Αντιγραφή και μοιραστείτε τον κωδικό."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Αυτό το αποτύπωμα είναι πολύ μεγάλο για κωδικό QR. Μοιραστείτε το ως κείμενο."
   }
 }

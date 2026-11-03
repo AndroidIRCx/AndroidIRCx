@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms ang nagamit sa session na ito"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Masyadong malaki ang iyong key para sa QR code. Sa halip, ipagpalit ito sa NFC sa pamamagitan ng pagdikit ng mga telepono, o ipadala ito sa chat na ito, na hindi kasing-ligtas ng offline na palitan."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Masyadong malaki ang theme na ito para sa QR code. I-tap ang Kopyahin at ibahagi na lang ang code."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Masyadong malaki ang fingerprint na ito para sa QR code. Ibahagi na lang ito bilang text."
   }
 }

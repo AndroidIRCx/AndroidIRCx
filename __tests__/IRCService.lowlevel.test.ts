@@ -352,6 +352,28 @@ describe('IRCService low-level branches', () => {
     expect(labeledSpy).toHaveBeenCalled();
   });
 
+  it('emits pong with the echoed timestamp for the lag probe only', () => {
+    const pong = jest.fn();
+    irc.on('pong', pong);
+
+    (irc as any).keepAliveMissedPongs = 1;
+    (irc as any).handleIRCMessage(
+      ':irc.example PONG irc.example :1793707200000',
+    );
+    expect(pong).toHaveBeenCalledWith(1793707200000);
+    expect((irc as any).keepAliveMissedPongs).toBe(0);
+
+    // Keepalive and text tokens still reset the counter but are not lag probes.
+    pong.mockClear();
+    (irc as any).keepAliveMissedPongs = 1;
+    (irc as any).handleIRCMessage(
+      ':irc.example PONG irc.example :keepalive-17',
+    );
+    (irc as any).handleIRCMessage(':irc.example PONG :abc');
+    expect(pong).not.toHaveBeenCalled();
+    expect((irc as any).keepAliveMissedPongs).toBe(0);
+  });
+
   it('cleans connection-scoped timers on disconnect before delayed registration fires', () => {
     const sendRegistration = jest.fn();
     (irc as any)._sendRegistration = sendRegistration;

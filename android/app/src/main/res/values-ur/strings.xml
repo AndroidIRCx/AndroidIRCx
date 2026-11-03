@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ur: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX شروع نہیں ہو سکتا</string>
+    <string name="native_load_error_message">AndroidIRCX کی یہ کاپی نامکمل ہے یا کسی دوسرے پروسیسر کے لیے بنائی گئی ہے۔ براہ کرم Google Play سے تازہ ترین ورژن انسٹال کریں۔</string>
+    <string name="native_load_error_open_play">Google Play کھولیں</string>
+</resources>

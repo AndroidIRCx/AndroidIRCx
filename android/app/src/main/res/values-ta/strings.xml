@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ta: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX-ஐத் தொடங்க முடியவில்லை</string>
+    <string name="native_load_error_message">இந்த AndroidIRCX நகல் முழுமையற்றது அல்லது வேறு ப்ராசஸருக்காக உருவாக்கப்பட்டது. Google Play-இலிருந்து சமீபத்திய பதிப்பை நிறுவவும்.</string>
+    <string name="native_load_error_open_play">Google Play-ஐத் திற</string>
+</resources>

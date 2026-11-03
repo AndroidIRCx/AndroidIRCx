@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ms: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX tidak dapat dimulakan</string>
+    <string name="native_load_error_message">Salinan AndroidIRCX ini tidak lengkap atau dibuat untuk pemproses lain. Sila pasang versi terkini daripada Google Play.</string>
+    <string name="native_load_error_open_play">Buka Google Play</string>
+</resources>

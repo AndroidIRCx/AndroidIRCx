@@ -22,7 +22,7 @@ import {
   Alert,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import QRCode from 'react-native-qrcode-svg';
+import SafeQRCode from './SafeQRCode';
 import {
   useCameraDevice,
   useCameraPermission,
@@ -1911,12 +1911,16 @@ export const UserList: React.FC<UserListProps> = ({
               </View>
               <View style={styles.qrCodeContainer}>
                 {qrPayload ? (
-                  <QRCode
+                  <SafeQRCode
                     value={qrPayload}
                     size={260}
                     backgroundColor={colors.surface || '#FFFFFF'}
                     color={colors.text || '#000000'}
                     ecl="H"
+                    tooLargeMessage={t(
+                      'Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.',
+                    )}
+                    tooLargeTextStyle={{ color: colors.text || '#000000' }}
                   />
                 ) : null}
               </View>

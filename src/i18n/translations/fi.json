@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms tässä istunnossa"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Avaimesi on liian suuri QR-koodiksi. Vaihda se sen sijaan NFC:llä pitämällä puhelimia vierekkäin, tai lähetä se tässä keskustelussa, mikä on vähemmän turvallista kuin offline-vaihto."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Tämä teema on liian suuri QR-koodiksi. Napauta Kopioi ja jaa koodi."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Tämä sormenjälki on liian suuri QR-koodiksi. Jaa se tekstinä."
   }
 }

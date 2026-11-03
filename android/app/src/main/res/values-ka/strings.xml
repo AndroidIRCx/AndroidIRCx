@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ka: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX-ის გაშვება ვერ ხერხდება</string>
+    <string name="native_load_error_message">AndroidIRCX-ის ეს ასლი არასრულია ან სხვა პროცესორისთვისაა შექმნილი. გთხოვთ, დააინსტალიროთ უახლესი ვერსია Google Play-დან.</string>
+    <string name="native_load_error_open_play">Google Play-ის გახსნა</string>
+</resources>

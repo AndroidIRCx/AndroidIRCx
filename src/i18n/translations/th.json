@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "ใช้ไป {ms} มิลลิวินาทีในเซสชันนี้"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "คีย์ของคุณใหญ่เกินกว่าจะใส่ในคิวอาร์โค้ด ให้แลกเปลี่ยนผ่าน NFC แทนโดยถือโทรศัพท์ไว้ใกล้กัน หรือส่งในแชทนี้ ซึ่งปลอดภัยน้อยกว่าการแลกเปลี่ยนแบบออฟไลน์"
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "ธีมนี้ใหญ่เกินกว่าจะใส่ในคิวอาร์โค้ด แตะ คัดลอก แล้วแชร์โค้ดแทน"
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "ลายนิ้วมือนี้ใหญ่เกินกว่าจะใส่ในคิวอาร์โค้ด ให้แชร์เป็นข้อความแทน"
   }
 }

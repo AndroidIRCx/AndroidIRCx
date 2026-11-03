@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "이번 세션에서 {ms}ms 사용"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "키가 너무 커서 QR 코드로 만들 수 없습니다. 대신 휴대폰을 맞대어 NFC로 교환하거나 이 채팅으로 보내세요. 채팅 전송은 오프라인 교환보다 덜 안전합니다."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "이 테마는 너무 커서 QR 코드로 만들 수 없습니다. 복사을(를) 눌러 코드를 공유하세요."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "이 지문은 너무 커서 QR 코드로 만들 수 없습니다. 텍스트로 공유하세요."
   }
 }

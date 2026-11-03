@@ -24,7 +24,7 @@ import {
   Switch,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import QRCode from 'react-native-qrcode-svg';
+import SafeQRCode from '../SafeQRCode';
 import { certificateManager } from '../../services/CertificateManagerService';
 import { FingerprintFormat, IRCService } from '../../types/certificate';
 import { useT } from '../../i18n/localization';
@@ -176,11 +176,15 @@ export const CertificateFingerprintModal: React.FC<
               <View style={styles.qrContainer}>
                 <Text style={styles.sectionLabel}>{t('QR Code')}</Text>
                 <View style={styles.qrBox}>
-                  <QRCode
+                  <SafeQRCode
                     value={`certfp://${getFormattedFingerprint()}`}
                     size={200}
                     backgroundColor="#FFFFFF"
                     color="#000000"
+                    tooLargeMessage={t(
+                      'This fingerprint is too large for a QR code. Share it as text instead.',
+                    )}
+                    tooLargeTextStyle={styles.qrTooLargeText}
                   />
                 </View>
                 <Text style={styles.qrHint}>
@@ -351,6 +355,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#808080',
     textAlign: 'center',
+  },
+  qrTooLargeText: {
+    fontSize: 14,
+    color: '#000000',
   },
   serviceContainer: {
     marginBottom: 24,

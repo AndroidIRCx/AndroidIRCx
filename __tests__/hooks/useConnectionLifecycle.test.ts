@@ -2713,16 +2713,65 @@ describe('useConnectionLifecycle', () => {
     expect(IRC().sendRaw).toHaveBeenCalledWith('NOTICE #test :notice all');
   });
 
-  it('updates ping while connected via the ping interval', async () => {
-    jest.useFakeTimers();
-    const setPing = jest.fn();
-    await renderHook(() =>
-      useConnectionLifecycle({ ...mockParams, isConnected: true, setPing }),
-    );
-    act(() => {
-      jest.advanceTimersByTime(5000);
+  it('shows the measured lag of the active network only', async () => {
+    const cm =
+      require('../../src/services/ConnectionManager').connectionManager;
+    const makeSvc = (name: string) => ({
+      onMessage: jest.fn().mockReturnValue(jest.fn()),
+      onConnectionChange: jest.fn().mockReturnValue(jest.fn()),
+      on: jest.fn().mockReturnValue(jest.fn()),
+      onUserListChange: jest.fn().mockReturnValue(jest.fn()),
+      getConnectionStatus: jest.fn().mockReturnValue(true),
+      getNetworkName: jest.fn().mockReturnValue(name),
+      getCurrentNick: jest.fn().mockReturnValue('me'),
+      addMessage: jest.fn(),
+      sendRaw: jest.fn(),
+      partChannel: jest.fn(),
+      emit: jest.fn(),
     });
-    expect(setPing).toHaveBeenCalled();
-    jest.useRealTimers();
+    const lagListeners = new Map<string, (lag: number) => void>();
+    const makeQuality = (name: string) => ({
+      onLagUpdate: jest.fn((cb: (lag: number) => void) => {
+        lagListeners.set(name, cb);
+        return jest.fn();
+      }),
+    });
+    const contexts: Record<string, any> = {
+      'net-a': {
+        networkId: 'net-a',
+        ircService: makeSvc('net-a'),
+        userManagementService: { isUserIgnored: jest.fn(() => false) },
+        connectionQualityService: makeQuality('net-a'),
+      },
+      'net-b': {
+        networkId: 'net-b',
+        ircService: makeSvc('net-b'),
+        userManagementService: { isUserIgnored: jest.fn(() => false) },
+        connectionQualityService: makeQuality('net-b'),
+      },
+    };
+    cm.getAllConnections.mockReturnValue(Object.values(contexts));
+    cm.getConnection.mockImplementation((id: string) => contexts[id] ?? null);
+    cm.getActiveNetworkId.mockReturnValue('net-a');
+
+    try {
+      const setPing = jest.fn();
+      await renderHook(() =>
+        useConnectionLifecycle({ ...mockParams, setPing }),
+      );
+      expect(lagListeners.size).toBe(2);
+
+      act(() => {
+        lagListeners.get('net-a')?.(42);
+        lagListeners.get('net-b')?.(900);
+      });
+      expect(setPing).toHaveBeenCalledTimes(1);
+      expect(setPing).toHaveBeenCalledWith(42);
+    } finally {
+      cm.getAllConnections.mockReturnValue([]);
+      cm.getConnection.mockReset();
+      cm.getConnection.mockReturnValue(null);
+      cm.getActiveNetworkId.mockReturnValue(null);
+    }
   });
 });

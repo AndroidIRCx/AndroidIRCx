@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sk: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX sa nedá spustiť</string>
+    <string name="native_load_error_message">Táto kópia AndroidIRCX je neúplná alebo bola vytvorená pre iný procesor. Nainštalujte si najnovšiu verziu z Google Play.</string>
+    <string name="native_load_error_open_play">Otvoriť Google Play</string>
+</resources>

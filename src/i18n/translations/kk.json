@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "Осы сеанста {ms} мс"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Кілтіңіз QR коды үшін тым үлкен. Оның орнына телефондарды бір-біріне жақындатып, NFC арқылы алмасыңыз немесе осы чатта жіберіңіз, бірақ бұл офлайн алмасудан гөрі қауіпсіздігі төмен."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Бұл тақырып QR коды үшін тым үлкен. «Көшіру» түймесін түртіп, кодты бөлісіңіз."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Бұл саусақ ізі QR коды үшін тым үлкен. Оны мәтін ретінде бөлісіңіз."
   }
 }
