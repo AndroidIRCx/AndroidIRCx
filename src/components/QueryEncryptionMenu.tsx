@@ -13,7 +13,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import SafeQRCode from './SafeQRCode';
 import {
   useCameraDevice,
   useCameraPermission,
@@ -697,12 +697,16 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
               </View>
               <View style={styles.qrCodeContainer}>
                 {qrPayload ? (
-                  <QRCode
+                  <SafeQRCode
                     value={qrPayload}
                     size={260}
                     backgroundColor="#FFFFFF"
                     color="#000000"
                     ecl="H"
+                    tooLargeMessage={t(
+                      'Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.',
+                    )}
+                    tooLargeTextStyle={styles.qrTooLargeText}
                   />
                 ) : null}
               </View>
@@ -859,6 +863,10 @@ const createStyles = (colors: any = {}) =>
       justifyContent: 'center',
       padding: 24,
       backgroundColor: '#FFFFFF',
+    },
+    qrTooLargeText: {
+      fontSize: 14,
+      color: '#000000',
     },
     qrModalButton: {
       padding: 16,

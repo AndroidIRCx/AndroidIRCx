@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- fi: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX ei voi käynnistyä</string>
+    <string name="native_load_error_message">Tämä AndroidIRCX-kopio on puutteellinen tai tehty eri suorittimelle. Asenna uusin versio Google Playsta.</string>
+    <string name="native_load_error_open_play">Avaa Google Play</string>
+</resources>

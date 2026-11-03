@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- th: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">ไม่สามารถเริ่ม AndroidIRCX ได้</string>
+    <string name="native_load_error_message">สำเนา AndroidIRCX นี้ไม่สมบูรณ์หรือสร้างมาสำหรับโปรเซสเซอร์อื่น โปรดติดตั้งเวอร์ชันล่าสุดจาก Google Play</string>
+    <string name="native_load_error_open_play">เปิด Google Play</string>
+</resources>

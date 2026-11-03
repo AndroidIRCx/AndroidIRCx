@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sr@Cyrl: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX не може да се покрене</string>
+    <string name="native_load_error_message">Ова копија AndroidIRCX-а је непотпуна или је направљена за други процесор. Инсталирајте најновију верзију са Google Play продавнице.</string>
+    <string name="native_load_error_open_play">Отвори Google Play</string>
+</resources>

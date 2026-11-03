@@ -1878,13 +1878,20 @@ export const useConnectionLifecycle = (
         },
       );
 
-      // Simulate ping (in real implementation, measure actual ping)
-      const pingInterval = setInterval(() => {
-        const latest = latestRef.current;
-        if (latest.isConnected) {
-          latest.setPing(Math.random() * 100 + 50); // Simulated ping
-        }
-      }, 5000);
+      // Real server round-trip time, measured by this connection's
+      // ConnectionQualityService (PING :<timestamp> every 30s). Only the
+      // network the user is looking at drives the header's ping.
+      const qualityService =
+        connectionManager.getConnection(
+          targetNetworkId,
+        )?.connectionQualityService;
+      const unsubscribeLag = qualityService
+        ? qualityService.onLagUpdate((lag: number) => {
+            if (connectionManager.getActiveNetworkId() === targetNetworkId) {
+              latestRef.current.setPing(lag);
+            }
+          })
+        : undefined;
 
       unsubscribers.push(() => {
         unsubscribeMessages();
@@ -1904,7 +1911,7 @@ export const useConnectionLifecycle = (
         unsubscribeReconnect();
         unsubscribeStsPolicy();
         unsubscribeBeep();
-        clearInterval(pingInterval);
+        unsubscribeLag && unsubscribeLag();
         unsubscribeRegistered && unsubscribeRegistered();
         unsubscribeMotd && unsubscribeMotd();
         unsubscribeMotdAny && unsubscribeMotdAny();

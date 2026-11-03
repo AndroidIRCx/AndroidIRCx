@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- kk: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX іске қосылмайды</string>
+    <string name="native_load_error_message">AndroidIRCX-тің бұл көшірмесі толық емес немесе басқа процессорға арналған. Google Play-ден соңғы нұсқасын орнатыңыз.</string>
+    <string name="native_load_error_open_play">Google Play ашу</string>
+</resources>

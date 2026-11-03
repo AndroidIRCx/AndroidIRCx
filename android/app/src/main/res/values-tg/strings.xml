@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- tg: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX оғоз шуда наметавонад</string>
+    <string name="native_load_error_message">Ин нусхаи AndroidIRCX нопурра аст ё барои протсессори дигар сохта шудааст. Лутфан версияи навтаринро аз Google Play насб кунед.</string>
+    <string name="native_load_error_open_play">Кушодани Google Play</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ro: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX nu poate porni</string>
+    <string name="native_load_error_message">Această copie a AndroidIRCX este incompletă sau a fost creată pentru alt procesor. Instalați cea mai recentă versiune din Google Play.</string>
+    <string name="native_load_error_open_play">Deschide Google Play</string>
+</resources>

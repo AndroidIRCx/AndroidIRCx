@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- tl: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">Hindi makapagsimula ang AndroidIRCX</string>
+    <string name="native_load_error_message">Hindi kumpleto ang kopyang ito ng AndroidIRCX o ginawa ito para sa ibang processor. Paki-install ang pinakabagong bersyon mula sa Google Play.</string>
+    <string name="native_load_error_open_play">Buksan ang Google Play</string>
+</resources>

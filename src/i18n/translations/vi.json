@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "Đã dùng {ms} ms trong phiên này"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Khóa của bạn quá lớn để tạo mã QR. Thay vào đó, hãy trao đổi qua NFC bằng cách đặt hai điện thoại gần nhau, hoặc gửi trong cuộc trò chuyện này, cách này kém an toàn hơn trao đổi ngoại tuyến."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Chủ đề này quá lớn để tạo mã QR. Nhấn Sao chép và chia sẻ mã."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Vân tay này quá lớn để tạo mã QR. Hãy chia sẻ dưới dạng văn bản."
   }
 }

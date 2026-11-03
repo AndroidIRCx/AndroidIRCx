@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "இந்த அமர்வில் {ms} ms"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "உங்கள் சாவி QR குறியீட்டுக்கு மிகப் பெரியது. அதற்குப் பதிலாக ஃபோன்களை அருகருகே வைத்து NFC மூலம் பரிமாறுங்கள், அல்லது இந்த அரட்டையில் அனுப்புங்கள்; இது ஆஃப்லைன் பரிமாற்றத்தை விடக் குறைவான பாதுகாப்புடையது."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "இந்தத் தீம் QR குறியீட்டுக்கு மிகப் பெரியது. நகலெடு என்பதைத் தட்டி குறியீட்டைப் பகிருங்கள்."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "இந்தக் கைரேகை QR குறியீட்டுக்கு மிகப் பெரியது. அதை உரையாகப் பகிருங்கள்."
   }
 }

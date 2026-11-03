@@ -340,8 +340,14 @@ export class ConnectionQualityService {
    * Setup ping monitoring
    */
   private setupPingMonitoring(): void {
-    // Override sendRaw to intercept PING/PONG
-    // We'll monitor PING/PONG in IRCService instead
+    // IRCService emits 'pong' with the echoed timestamp, for a server PONG and
+    // for a CTCP PING reply alike. Only our own latest probe counts: a manual
+    // /ctcp nick PING carries its own timestamp and is not this link's lag.
+    this.ircService?.on('pong', (sentTime: number) => {
+      if (sentTime === this.lastPingTime) {
+        this.handlePongResponse(sentTime);
+      }
+    });
   }
 
   /**

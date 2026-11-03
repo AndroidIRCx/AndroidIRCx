@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sr: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX ne može da se pokrene</string>
+    <string name="native_load_error_message">Ova kopija AndroidIRCX-a je nepotpuna ili je napravljena za drugi procesor. Instalirajte najnoviju verziju sa Google Play prodavnice.</string>
+    <string name="native_load_error_open_play">Otvori Google Play</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- cs: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX nelze spustit</string>
+    <string name="native_load_error_message">Tato kopie AndroidIRCX je neúplná nebo byla vytvořena pro jiný procesor. Nainstalujte prosím nejnovější verzi z Google Play.</string>
+    <string name="native_load_error_open_play">Otevřít Google Play</string>
+</resources>

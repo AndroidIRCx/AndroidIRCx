@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms brukt i denne økten"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Nøkkelen din er for stor for en QR-kode. Utveksle den heller via NFC ved å holde telefonene sammen, eller send den i denne chatten, som er mindre trygt enn en frakoblet utveksling."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Dette temaet er for stort for en QR-kode. Trykk på Kopier og del koden i stedet."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Dette fingeravtrykket er for stort for en QR-kode. Del det som tekst i stedet."
   }
 }

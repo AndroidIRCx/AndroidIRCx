@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- hy: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX-ը չի կարող գործարկվել</string>
+    <string name="native_load_error_message">AndroidIRCX-ի այս պատճենը թերի է կամ ստեղծված է այլ պրոցեսորի համար։ Խնդրում ենք տեղադրել վերջին տարբերակը Google Play-ից։</string>
+    <string name="native_load_error_open_play">Բացել Google Play-ը</string>
+</resources>

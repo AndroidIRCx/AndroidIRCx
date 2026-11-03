@@ -25,7 +25,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import SafeQRCode from './SafeQRCode';
 import {
   useCameraDevice,
   useCameraPermission,
@@ -3792,7 +3792,14 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
               </View>
               <View style={styles.qrCodeContainer}>
                 {qrPayload ? (
-                  <QRCode value={qrPayload} size={220} />
+                  <SafeQRCode
+                    value={qrPayload}
+                    size={220}
+                    tooLargeMessage={t(
+                      'Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.',
+                    )}
+                    tooLargeTextStyle={styles.blacklistOptionText}
+                  />
                 ) : (
                   <Text style={styles.blacklistOptionText}>
                     {t('No QR payload')}

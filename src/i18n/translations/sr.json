@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms u ovoj sesiji"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Vaš ključ je prevelik za QR kod. Umesto toga ga razmenite preko NFC-a tako što ćete prisloniti telefone, ili ga pošaljite u ovom četu, što je manje bezbedno od razmene van mreže."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Ova tema je prevelika za QR kod. Dodirnite „Kopiraj“ i podelite kod."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Ovaj otisak je prevelik za QR kod. Podelite ga kao tekst."
   }
 }

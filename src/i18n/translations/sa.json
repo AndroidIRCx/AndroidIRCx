@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "अस्मिन् सत्रे {ms} ms उपयुक्तम्"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "भवतः कुञ्जिका QR-सङ्केताय अतिविशाला अस्ति। तस्य स्थाने दूरभाषौ समीपे धृत्वा NFC द्वारा विनिमयतु, अथवा अस्मिन् संवादे प्रेषयतु, यत् अजालविनिमयात् न्यूनसुरक्षितम्।"
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "इदं विषयरूपं QR-सङ्केताय अतिविशालम्। प्रतिलिपि स्पृशतु सङ्केतं च विभजतु।"
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "इयम् अङ्गुलिमुद्रा QR-सङ्केताय अतिविशाला। ताम् पाठरूपेण विभजतु।"
   }
 }

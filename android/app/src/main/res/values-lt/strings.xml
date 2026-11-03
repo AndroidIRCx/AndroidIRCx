@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- lt: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX negali pasileisti</string>
+    <string name="native_load_error_message">Ši AndroidIRCX kopija yra nepilna arba sukurta kitam procesoriui. Įdiekite naujausią versiją iš Google Play.</string>
+    <string name="native_load_error_open_play">Atidaryti Google Play</string>
+</resources>

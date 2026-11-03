@@ -15,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import QRCode from 'react-native-qrcode-svg';
+import SafeQRCode from '../components/SafeQRCode';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ModalSafeArea } from '../components/ModalSafeArea';
 import {
@@ -1078,7 +1078,14 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                 </Text>
               </TouchableOpacity>
               <View style={styles.qrRow}>
-                <QRCode value={shareCode} size={200} />
+                <SafeQRCode
+                  value={shareCode}
+                  size={200}
+                  tooLargeMessage={t(
+                    'This theme is too large for a QR code. Tap Copy and share the code instead.',
+                  )}
+                  tooLargeTextStyle={{ color: currentColors.text }}
+                />
               </View>
               <Text style={[styles.pickerLabel, { color: currentColors.text }]}>
                 {t('Import from code')}

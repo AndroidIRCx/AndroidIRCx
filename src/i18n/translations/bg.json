@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} мс в тази сесия"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Ключът ви е твърде голям за QR код. Вместо това го разменете чрез NFC, като допрете телефоните, или го изпратете в този чат, което е по-малко безопасно от офлайн размяна."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Тази тема е твърде голяма за QR код. Докоснете „Копирай“ и споделете кода."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Този отпечатък е твърде голям за QR код. Споделете го като текст."
   }
 }

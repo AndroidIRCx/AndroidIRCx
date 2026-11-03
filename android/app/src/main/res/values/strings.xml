@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">AndroidIRCX</string>
     <string name="nfc_hce_description">Share an encryption key with a nearby phone</string>
+    <!-- NativeLoadErrorActivity, shown instead of a crash when native libraries cannot load.
+         Translated in values-* for every app language. -->
+    <string name="native_load_error_title">AndroidIRCX can\'t start</string>
+    <string name="native_load_error_message">This copy of AndroidIRCX is incomplete or was made for a different processor. Please install the latest version from Google Play.</string>
+    <string name="native_load_error_open_play">Open Google Play</string>
 </resources>

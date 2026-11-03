@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} ms w tej sesji"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Twój klucz jest za duży na kod QR. Zamiast tego wymień go przez NFC, przykładając telefony do siebie, albo wyślij go na tym czacie, co jest mniej bezpieczne niż wymiana offline."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Ten motyw jest za duży na kod QR. Stuknij Kopiuj i udostępnij kod."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Ten odcisk jest za duży na kod QR. Udostępnij go jako tekst."
   }
 }

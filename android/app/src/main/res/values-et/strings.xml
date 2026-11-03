@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- et: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX ei saa käivituda</string>
+    <string name="native_load_error_message">See AndroidIRCX-i koopia on puudulik või loodud teise protsessori jaoks. Palun installi uusim versioon Google Playst.</string>
+    <string name="native_load_error_open_play">Ava Google Play</string>
+</resources>

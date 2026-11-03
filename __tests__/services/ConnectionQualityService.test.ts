@@ -28,6 +28,12 @@ describe('ConnectionQualityService', () => {
       (createIrc as any)._msg = cb;
       return jest.fn();
     }),
+    on: jest.fn((event: string, cb: any) => {
+      if (event === 'pong') {
+        (createIrc as any)._pong = cb;
+      }
+      return jest.fn();
+    }),
     getConnectionStatus: jest.fn(() => true),
     getCurrentNick: jest.fn(() => 'tester'),
     sendRaw: jest.fn(),
@@ -250,5 +256,32 @@ describe('ConnectionQualityService', () => {
     settingHandlers.lagCheckMethod?.('ctcp');
     (createIrc as any)._conn?.(true);
     expect(irc.sendCTCPRequest).toHaveBeenCalled();
+  });
+
+  it('measures lag from the pong that answers its own latest ping', async () => {
+    jest.setSystemTime(new Date('2026-11-03T12:00:00Z'));
+    const service = createService();
+    const irc = createIrc();
+    service.setIRCService(irc as any);
+    await service.initialize();
+    expect(irc.on).toHaveBeenCalledWith('pong', expect.any(Function));
+
+    const lagListener = jest.fn();
+    service.onLagUpdate(lagListener);
+
+    // Connecting sends the first `PING :<timestamp>` right away.
+    (createIrc as any)._conn(true);
+    const sentTime = Date.now();
+    expect(irc.sendRaw).toHaveBeenCalledWith(`PING :${sentTime}`);
+
+    // A pong for some other timestamp (e.g. a manual /ctcp nick PING) is not
+    // this link's lag.
+    jest.advanceTimersByTime(80);
+    (createIrc as any)._pong(sentTime - 5000);
+    expect(lagListener).not.toHaveBeenCalled();
+
+    (createIrc as any)._pong(sentTime);
+    expect(lagListener).toHaveBeenCalledWith(80, 'good');
+    expect(service.getStatistics().currentLag).toBe(80);
   });
 });

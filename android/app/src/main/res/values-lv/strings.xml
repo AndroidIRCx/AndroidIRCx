@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- lv: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX nevar startēt</string>
+    <string name="native_load_error_message">Šī AndroidIRCX kopija ir nepilnīga vai izveidota citam procesoram. Lūdzu, instalējiet jaunāko versiju no Google Play.</string>
+    <string name="native_load_error_open_play">Atvērt Google Play</string>
+</resources>

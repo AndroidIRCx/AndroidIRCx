@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "ამ სესიაში {ms} მწმ"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "თქვენი გასაღები ზედმეტად დიდია QR კოდისთვის. ამის ნაცვლად გაცვალეთ ის NFC-ით ტელეფონების ერთმანეთთან მიდებით, ან გაგზავნეთ ამ ჩატში, რაც ნაკლებად უსაფრთხოა, ვიდრე ოფლაინ გაცვლა."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "ეს თემა ზედმეტად დიდია QR კოდისთვის. შეეხეთ „კოპირება“-ს და გააზიარეთ კოდი."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "ეს თითის ანაბეჭდი ზედმეტად დიდია QR კოდისთვის. გააზიარეთ ის ტექსტად."
   }
 }

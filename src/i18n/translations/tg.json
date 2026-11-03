@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "Дар ин ҷаласа {ms} мс"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Калиди шумо барои рамзи QR хеле калон аст. Ба ҷои ин онро тавассути NFC бо наздик кардани телефонҳо мубодила кунед ё дар ҳамин чат фиристед, ки нисбат ба мубодилаи офлайн камтар бехатар аст."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Ин мавзӯъ барои рамзи QR хеле калон аст. «Нусхабардорӣ»-ро пахш кунед ва рамзро мубодила кунед."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Ин изи ангушт барои рамзи QR хеле калон аст. Онро ҳамчун матн мубодила кунед."
   }
 }

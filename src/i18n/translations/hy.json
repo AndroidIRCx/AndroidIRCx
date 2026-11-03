@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "{ms} մվ այս նստաշրջանում"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "Ձեր բանալին չափազանց մեծ է QR կոդի համար։ Փոխարենը փոխանակեք այն NFC-ով՝ հեռախոսները իրար մոտ պահելով, կամ ուղարկեք այս զրույցում, ինչը պակաս անվտանգ է, քան անցանց փոխանակումը։"
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "Այս թեման չափազանց մեծ է QR կոդի համար։ Հպեք «Պատճենել» և կիսվեք կոդով։"
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "Այս մատնահետքը չափազանց մեծ է QR կոդի համար։ Կիսվեք այն որպես տեքստ։"
   }
 }

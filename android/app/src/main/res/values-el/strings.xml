@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- el: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">Δεν είναι δυνατή η εκκίνηση του AndroidIRCX</string>
+    <string name="native_load_error_message">Αυτό το αντίγραφο του AndroidIRCX είναι ελλιπές ή δημιουργήθηκε για διαφορετικό επεξεργαστή. Εγκαταστήστε την πιο πρόσφατη έκδοση από το Google Play.</string>
+    <string name="native_load_error_open_play">Άνοιγμα Google Play</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- fa: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">AndroidIRCX نمی‌تواند اجرا شود</string>
+    <string name="native_load_error_message">این نسخه از AndroidIRCX ناقص است یا برای پردازنده دیگری ساخته شده است. لطفاً آخرین نسخه را از Google Play نصب کنید.</string>
+    <string name="native_load_error_open_play">باز کردن Google Play</string>
+</resources>

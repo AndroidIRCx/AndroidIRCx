@@ -76,6 +76,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Shown instead of a crash when React Native's native libraries cannot load -->
+        <activity
+            android:name=".NativeLoadErrorActivity"
+            android:exported="false" />
+
         <!-- Foreground service for maintaining IRC connection in background -->
         <service
             android:name=".IRCForegroundService"

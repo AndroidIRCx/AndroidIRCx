@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ar: NativeLoadErrorActivity (shown when native libraries cannot load) -->
+<resources>
+    <string name="native_load_error_title">تعذّر تشغيل AndroidIRCX</string>
+    <string name="native_load_error_message">هذه النسخة من AndroidIRCX غير مكتملة أو مُعدّة لمعالج مختلف. يُرجى تثبيت أحدث إصدار من Google Play.</string>
+    <string name="native_load_error_open_play">فتح Google Play</string>
+</resources>

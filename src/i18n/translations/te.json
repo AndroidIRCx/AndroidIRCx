@@ -13396,5 +13396,14 @@
   },
   "{ms} ms used this session": {
     "string": "ఈ సెషన్‌లో {ms} ms"
+  },
+  "Your key is too large for a QR code. Exchange it over NFC instead by holding the phones together, or send it in this chat, which is less safe than an offline exchange.": {
+    "string": "మీ కీ QR కోడ్‌కు చాలా పెద్దది. బదులుగా ఫోన్‌లను దగ్గరగా ఉంచి NFC ద్వారా మార్చుకోండి, లేదా ఈ చాట్‌లో పంపండి; ఇది ఆఫ్‌లైన్ మార్పిడి కంటే తక్కువ సురక్షితం."
+  },
+  "This theme is too large for a QR code. Tap Copy and share the code instead.": {
+    "string": "ఈ థీమ్ QR కోడ్‌కు చాలా పెద్దది. కాపీ నొక్కి కోడ్‌ను షేర్ చేయండి."
+  },
+  "This fingerprint is too large for a QR code. Share it as text instead.": {
+    "string": "ఈ వేలిముద్ర QR కోడ్‌కు చాలా పెద్దది. దాన్ని టెక్స్ట్‌గా షేర్ చేయండి."
   }
 }
