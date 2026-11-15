@@ -37,7 +37,7 @@
     "@shopify/flash-list": "2.3.3",
     "buffer": "^6.0.3",
     "fflate": "0.8.3",
-    "node-forge": "^1.4.2",
+    "node-forge": "^1.4.3",
     "prismjs": "^1.30.0",
     "prop-types": "^15.8.1",
     "react": "19.3.1",
