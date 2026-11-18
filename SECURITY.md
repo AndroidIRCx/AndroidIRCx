@@ -10,11 +10,11 @@ Do not open public issues for security reports.
 ## Supported Versions
 
 We support security fixes only for the latest secure public release.
-At the moment, `1.9.15` is the latest supported secure version.
+At the moment, `1.10.9` is the latest supported secure version.
 Older versions are not supported because dependency security fixes are only
 backed for the current secure release line.
 
 | Version  | Supported |
 | -------- | --------- |
-| 1.9.15   | Yes       |
-| < 1.9.15 | No        |
+| 1.10.9   | Yes       |
+| < 1.10.9 | No        |
