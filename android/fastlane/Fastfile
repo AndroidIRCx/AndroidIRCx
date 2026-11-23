@@ -49,6 +49,78 @@ platform :android do
   end
 
   ########################################
+  # Internal testing from the GitHub build (no local build)
+  ########################################
+  # Takes the AAB of the latest successful "Android Release" run on master
+  # (artifact android-release-<sha>), reads versionCode/versionName and the
+  # en-US changelog from that same commit, and uploads it to Internal with the
+  # release named v<versionName>. Store listing, images and screenshots are
+  # left alone; only the AAB and its release notes are uploaded.
+  # Needs the GitHub CLI (gh) logged in with access to the repo.
+  # Optional: run_id:<id> to take a specific run instead of the latest.
+  desc "Upload the AAB of the latest successful GitHub master build to Play Internal"
+  lane :upload_to_internal_from_github do |options|
+    require "json"
+    require "base64"
+    require "tmpdir"
+
+    repo = "AndroidIRCx/AndroidIRCx"
+    gh_json = lambda { |*args| JSON.parse(sh("gh", *args, log: false)) }
+
+    if options[:run_id]
+      run = gh_json.call("run", "view", options[:run_id].to_s, "--repo", repo, "--json", "databaseId,headSha,conclusion,headBranch")
+      UI.user_error!("Run #{options[:run_id]} did not succeed (#{run['conclusion']})") unless run["conclusion"] == "success"
+    else
+      runs = gh_json.call("run", "list", "--repo", repo, "--workflow", "android-release.yml",
+                          "--branch", "master", "--event", "push", "--status", "success",
+                          "--limit", "1", "--json", "databaseId,headSha")
+      UI.user_error!("No successful Android Release build on master") if runs.empty?
+      run = runs.first
+    end
+    run_id = run["databaseId"].to_s
+    sha = run["headSha"]
+    UI.message("Using GitHub build #{run_id} of commit #{sha[0, 7]}")
+
+    file_at = lambda do |path|
+      Base64.decode64(gh_json.call("api", "repos/#{repo}/contents/#{path}?ref=#{sha}")["content"])
+    end
+    gradle = file_at.call("android/app/build.gradle")
+    version_code = gradle[/versionCode\s*=\s*(\d+)/, 1]
+    version_name = gradle[/versionName\s*=\s*"([^"]+)"/, 1]
+    UI.user_error!("Could not read versionCode/versionName at #{sha}") unless version_code && version_name
+    changelog = file_at.call("android/fastlane/metadata/android/en-US/changelogs/#{version_code}.txt")
+    UI.message("Version v#{version_name} (#{version_code})")
+
+    Dir.mktmpdir("androidircx-play") do |work|
+      sh("gh", "run", "download", run_id, "--repo", repo, "--name", "android-release-#{sha}", "--dir", work)
+      aab = Dir.glob(File.join(work, "**", "app-release.aab")).first
+      UI.user_error!("app-release.aab is not in the artifact of run #{run_id}") unless aab
+
+      changelog_dir = File.join(work, "metadata", "en-US", "changelogs")
+      FileUtils.mkdir_p(changelog_dir)
+      File.write(File.join(changelog_dir, "#{version_code}.txt"), changelog)
+
+      # Google Play gives no upload progress, so say what is happening and how
+      # long it took. Run the lane with --verbose to also see the HTTP calls.
+      size_mb = (File.size(aab) / 1024.0 / 1024.0).round(1)
+      started = Time.now
+      UI.important("Uploading #{size_mb} MB AAB to Play Internal as v#{version_name} at #{started.strftime('%H:%M:%S')}.")
+      UI.important("There is no progress bar; this usually takes 1-3 minutes, so a quiet terminal is normal.")
+      upload_to_play_store(
+        track: "internal",
+        aab: aab,
+        version_name: "v#{version_name}",
+        release_status: "completed",
+        metadata_path: File.join(work, "metadata"),
+        skip_upload_metadata: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
+      UI.success("Uploaded v#{version_name} (#{version_code}) to Internal in #{(Time.now - started).round} s.")
+    end
+  end
+
+  ########################################
   # Production - full rollout
   ########################################
   desc "Upload AAB to Production (100%)"

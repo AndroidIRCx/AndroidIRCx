@@ -127,6 +127,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
+      # Keeps compiled C++ objects between runs. Gradle does not cache the
+      # NDK/CMake compilation, which is most of the build time.
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@e91f31892a1d1b8c44424b1a94c0b7f52d337168 # v1.2.26
+        with:
+          key: android-release
+          max-size: 3G
+
       - name: Install dependencies (retry on registry errors)
         run: |
           set -o pipefail
@@ -221,6 +229,11 @@ jobs:
 
       - name: Build release APK + AAB
         working-directory: android
+        # CMake 3.17+ reads these for every native module (app and libraries).
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CCACHE_COMPILERCHECK: content
         run: ./gradlew assembleRelease bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64 --no-configuration-cache --stacktrace
 
       - name: Verify native libraries
@@ -233,10 +246,26 @@ jobs:
           }
 
       - name: Verify APK signature
+        # Prints the whole apksigner output, then requires the upload key
+        # certificate (SHA-256 starts with E0:DE:33).
         run: |
-          set -o pipefail
-          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | grep -E "Signer #1 certificate (DN|SHA-256)"
+          apksigner=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)
+          if [ -z "$apksigner" ]; then
+            echo "::error::apksigner not found under $ANDROID_HOME/build-tools"
+            exit 1
+          fi
+          echo "Using $apksigner"
+          if ! "$apksigner" verify --verbose --print-certs \
+              android/app/build/outputs/apk/release/app-release.apk > apksigner.txt 2>&1; then
+            cat apksigner.txt
+            echo "::error::apksigner could not verify the APK"
+            exit 1
+          fi
+          cat apksigner.txt
+          if ! grep -qiE "SHA-256 digest: e0de33" apksigner.txt; then
+            echo "::error::APK is not signed with the upload key (expected SHA-256 starting e0de33)"
+            exit 1
+          fi
 
       - name: Remove signing secrets
         if: always()
