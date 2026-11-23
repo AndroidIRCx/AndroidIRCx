@@ -1,0 +1,4 @@
+What's new in v1.10.10:
+- Removing a saved password or key now also deletes it from the secure device storage.
+- Secure storage, animation, keyboard, splash screen, language, clipboard, picker and audio library updates.
+- Security fix in a developer tool library.

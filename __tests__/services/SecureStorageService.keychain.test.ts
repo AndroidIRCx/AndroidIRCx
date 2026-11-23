@@ -12,9 +12,12 @@ const mockGetInternetCredentials = jest.fn(async (key: string) =>
     ? { username: 'androidircx', password: mockKeychainStore.get(key) }
     : false,
 );
-const mockResetInternetCredentials = jest.fn(async (key: string) => {
-  mockKeychainStore.delete(key);
-});
+const mockResetInternetCredentials = jest.fn(
+  async (options: { server: string }) => {
+    mockKeychainStore.delete(options.server);
+    return true;
+  },
+);
 
 jest.mock('react-native-keychain', () => ({
   setInternetCredentials: jest.fn(
@@ -23,7 +26,8 @@ jest.mock('react-native-keychain', () => ({
     },
   ),
   getInternetCredentials: (key: string) => mockGetInternetCredentials(key),
-  resetInternetCredentials: (key: string) => mockResetInternetCredentials(key),
+  resetInternetCredentials: (options: { server: string }) =>
+    mockResetInternetCredentials(options),
 }));
 
 import { secureStorageService } from '../../src/services/SecureStorageService';
@@ -56,6 +60,8 @@ describe('SecureStorageService presence cache (Keychain)', () => {
     expect(await secureStorageService.hasSecret('k')).toBe(true);
     await secureStorageService.removeSecret('k');
     expect(await secureStorageService.hasSecret('k')).toBe(false);
+    expect(mockResetInternetCredentials).toHaveBeenCalledWith({ server: 'k' });
+    expect(mockKeychainStore.has('k')).toBe(false);
     expect(mockGetInternetCredentials).toHaveBeenCalledTimes(1);
   });
 

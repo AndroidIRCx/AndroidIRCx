@@ -127,7 +127,9 @@ class SecureStorageService {
     if (this.isKeychainAvailable()) {
       this.existence.set(key, false);
       try {
-        await Keychain.resetInternetCredentials(key);
+        // Takes an options object; a bare string never reaches the native
+        // side, so the entry would stay in the Keystore.
+        await Keychain.resetInternetCredentials({ server: key });
         // Remove from index
         await this.removeFromIndex(key);
       } catch {

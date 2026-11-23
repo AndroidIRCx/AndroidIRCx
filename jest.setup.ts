@@ -678,8 +678,8 @@ jest.mock('react-native-keychain', () => {
         server,
       };
     }),
-    resetInternetCredentials: jest.fn(async (server: string) => {
-      keychainStore.delete(`internet:${server}`);
+    resetInternetCredentials: jest.fn(async (options: { server: string }) => {
+      keychainStore.delete(`internet:${options.server}`);
       return true;
     }),
     getAllGenericPasswordServices: jest.fn(async () => {
