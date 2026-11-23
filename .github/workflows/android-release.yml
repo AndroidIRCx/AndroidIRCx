@@ -25,9 +25,11 @@ on:
     paths-ignore:
       - '**.md'
 
+# A newer push to master cancels the master build still running; a tag
+# build is never cancelled.
 concurrency:
   group: android-release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref_type == 'branch' }}
 
 env:
   ARTIFACT_NAME: android-release-${{ github.sha }}
@@ -198,8 +200,10 @@ jobs:
           mkdir -p secrets
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > secrets/my-upload-key.keystore
           printf '%s' "$GOOGLE_SERVICES_JSON" > secrets/google-services.json
+          # Absolute path: app/build.gradle resolves a relative name against
+          # android/app (Gradle's file() is always absolute), not secrets/.
           {
-            echo "MYAPP_UPLOAD_STORE_FILE=my-upload-key.keystore"
+            echo "MYAPP_UPLOAD_STORE_FILE=$GITHUB_WORKSPACE/secrets/my-upload-key.keystore"
             echo "MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD"
             echo "MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS"
             echo "MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_PASSWORD"
@@ -207,7 +211,13 @@ jobs:
 
       - name: Generate codegen artifacts
         working-directory: android
-        run: ./gradlew :app:generateCodegenArtifactsFromSchema --no-configuration-cache --stacktrace
+        # Gradle hides why a plugin could not be resolved; on failure, run it
+        # again with --info and print only the resolution lines.
+        run: |
+          ./gradlew :app:generateCodegenArtifactsFromSchema --no-configuration-cache --stacktrace && exit 0
+          ./gradlew :app:generateCodegenArtifactsFromSchema --no-configuration-cache --info 2>&1 |
+            grep -iE "foojay|could not|status code|received|resolv|timeout|refused|handshake" | head -100
+          exit 1
 
       - name: Build release APK + AAB
         working-directory: android
