@@ -43,6 +43,23 @@ def codegenStubTargets = [
     "node_modules/react-native-sound/android/build/generated/source/codegen/jni": "RNSoundSpec",
 ]
 
+def writeAppAutolinkingStubHeader = { File appAutolinkingDir, String libraryName ->
+    new File(appAutolinkingDir, "${libraryName}.h").text = """
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include <ReactCommon/JavaTurboModule.h>
+
+namespace facebook::react {
+std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
+    const std::string &moduleName,
+    const JavaTurboModule::InitParams &params);
+} // namespace facebook::react
+""".trim() + "\n"
+}
+
 tasks.register("ensureAutolinkingCodegenStubs") {
     outputs.upToDateWhen { false }
     doLast {
@@ -78,21 +95,7 @@ std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
 } // namespace facebook::react
 """.trim() + "\n"
 
-            def appHeaderFile = new File(appAutolinkingDir, "${libraryName}.h")
-            appHeaderFile.text = """
-#pragma once
-
-#include <memory>
-#include <string>
-
-#include <ReactCommon/JavaTurboModule.h>
-
-namespace facebook::react {
-std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
-    const std::string &moduleName,
-    const JavaTurboModule::InitParams &params);
-} // namespace facebook::react
-""".trim() + "\n"
+            writeAppAutolinkingStubHeader(appAutolinkingDir, libraryName)
 
             def cppFile = new File(targetDir, "${libraryName}.cpp")
             cppFile.text = """
@@ -121,6 +124,29 @@ tasks.matching { task ->
     task.name.startsWith("configureCMake") || task.name.startsWith("buildCMake") || task.name.startsWith("generateAutolinking")
 }.configureEach {
     dependsOn("ensureAutolinkingCodegenStubs")
+}
+
+// On its first run without task history (a fresh CI checkout), Gradle empties
+// the output directory of generateAutolinkingNewArchitectureFiles before the
+// task runs, which deletes the app-side stub headers written above, and the
+// app CMake build then fails with "'Libsodium.h' file not found". Write them
+// again after autolinking, before CMake needs them.
+tasks.register("restoreAppAutolinkingStubHeaders") {
+    outputs.upToDateWhen { false }
+    mustRunAfter(tasks.matching { it.name.startsWith("generateAutolinking") })
+    doLast {
+        def appAutolinkingDir = new File(project.buildDir, "generated/autolinking/src/main/jni")
+        appAutolinkingDir.mkdirs()
+        codegenStubTargets.each { relativePath, libraryName ->
+            writeAppAutolinkingStubHeader(appAutolinkingDir, libraryName)
+        }
+    }
+}
+
+tasks.matching { task ->
+    task.name.startsWith("configureCMake") || task.name.startsWith("buildCMake")
+}.configureEach {
+    dependsOn("restoreAppAutolinkingStubHeaders")
 }
 
 tasks.matching { task ->
