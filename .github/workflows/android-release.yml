@@ -1,0 +1,279 @@
+# Copyright (c) 2025-2026 Velimir Majstorov
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Signed Android release build.
+#
+# - Push to master: builds a signed APK + AAB and keeps them as the
+#   artifact "android-release-<commit sha>" (a test build of what will ship).
+# - Push of a version tag (vX.Y.Z): reuses the master build of the same commit
+#   when one succeeded and its artifact still exists (waits for it if it is
+#   still running), otherwise builds again. The APK is attached to the GitHub
+#   release as app-release.apk; if the release does not exist yet, a draft is
+#   created. The AAB stays in the workflow artifact.
+#
+# Signing secrets live in the "Release" environment, which only master and
+# v* tags may use.
+
+name: Android Release
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ARTIFACT_NAME: android-release-${{ github.sha }}
+
+jobs:
+  lookup:
+    name: Find master build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      run_id: ${{ steps.find.outputs.run_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check tag matches versionName
+        run: |
+          version=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' android/app/build.gradle)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match versionName $version"
+            exit 1
+          fi
+
+      - name: Find a successful master build of this commit
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow android-release.yml \
+            --branch master --event push --commit "$GITHUB_SHA" --limit 1 \
+            --json databaseId,status,conclusion --jq '.[0] // empty')
+          if [ -z "$run" ]; then
+            echo "No master build for $GITHUB_SHA, building from the tag."
+            exit 0
+          fi
+          id=$(echo "$run" | jq -r .databaseId)
+          if [ "$(echo "$run" | jq -r .status)" != "completed" ]; then
+            echo "Master build $id is still running, waiting for it."
+            gh run watch "$id" --repo "$GITHUB_REPOSITORY" --interval 60 > /dev/null || true
+          fi
+          conclusion=$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)
+          if [ "$conclusion" != "success" ]; then
+            echo "Master build $id ended with '$conclusion', building from the tag."
+            exit 0
+          fi
+          expired=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts" \
+            --jq ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .expired")
+          if [ "$expired" != "false" ]; then
+            echo "Artifact of master build $id is missing or expired, building from the tag."
+            exit 0
+          fi
+          echo "Reusing master build $id."
+          echo "run_id=$id" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build signed APK + AAB
+    needs: lookup
+    if: >-
+      !cancelled() &&
+      (github.ref_type == 'branch' ||
+      (needs.lookup.result == 'success' && needs.lookup.outputs.run_id == ''))
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    environment: Release
+    permissions:
+      contents: read
+
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift
+          df -h /
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'yarn'
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: 'microsoft'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Install dependencies (retry on registry errors)
+        run: |
+          set -o pipefail
+          for i in 1 2 3; do
+            yarn install --frozen-lockfile --network-timeout 120000 2>&1 | tee yarn-install.log && break
+            if [ "$i" -eq 3 ]; then
+              echo "yarn install failed after $i attempts"
+              exit 1
+            fi
+            echo "yarn install failed (attempt $i), retrying in 15s..."
+            sleep 15
+          done
+
+      # patch-package already fails the install on CI when a patch does not
+      # apply; this also fails when a patch was skipped, and lists them all.
+      - name: Check every patch was applied
+        run: |
+          missing=0
+          for f in patches/*.patch; do
+            base=$(basename "$f" .patch)
+            name=${base%+*}
+            version=${base##*+}
+            entry="${name//+//}@$version"
+            if grep -qF "$entry ✔" yarn-install.log; then
+              echo "applied: $entry"
+            else
+              echo "::error::Patch not applied: $entry"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      # android/gradle.properties is gitignored. These are the same settings
+      # as the local file, without the Windows-only Gradle home and with CI
+      # friendly daemon/worker values.
+      - name: Write android/gradle.properties
+        run: |
+          cat > android/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseParallelGC
+          org.gradle.daemon=false
+          org.gradle.parallel=true
+          android.useAndroidX=true
+          android.builtInKotlin=false
+          android.newDsl=false
+          org.gradle.configureondemand=true
+          org.gradle.caching=true
+          org.gradle.workers.max=4
+          org.gradle.vfs.watch=false
+          reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+          hermesEnabled=true
+          edgeToEdgeEnabled=true
+          org.gradle.configuration-cache=false
+          org.gradle.configuration-cache-problems=warn
+          android.r8.optimizedResourceShrinking=true
+          android.enableR8.fullMode=true
+          kotlin.daemon.jvmargs=-Xmx1536m -Dkotlin.enableCacheForAllThreads=true
+          android.debug.obsoleteApi=true
+          VisionCamera_enableCodeScanner=true
+          usesCleartextTraffic=true
+          EOF
+          sed -i 's/^ *//' android/gradle.properties
+
+      - name: Write signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          mkdir -p secrets
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > secrets/my-upload-key.keystore
+          printf '%s' "$GOOGLE_SERVICES_JSON" > secrets/google-services.json
+          {
+            echo "MYAPP_UPLOAD_STORE_FILE=my-upload-key.keystore"
+            echo "MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD"
+            echo "MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS"
+            echo "MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_PASSWORD"
+          } > secrets/gradle.properties
+
+      - name: Generate codegen artifacts
+        working-directory: android
+        run: ./gradlew :app:generateCodegenArtifactsFromSchema --no-configuration-cache --stacktrace
+
+      - name: Build release APK + AAB
+        working-directory: android
+        run: ./gradlew assembleRelease bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64 --no-configuration-cache --stacktrace
+
+      - name: Verify native libraries
+        shell: pwsh
+        run: |
+          foreach ($artifact in @(
+              'android/app/build/outputs/apk/release/app-release.apk',
+              'android/app/build/outputs/bundle/release/app-release.aab')) {
+            ./scripts/verify-android-native-libs.ps1 -ArtifactPath $artifact
+          }
+
+      - name: Verify APK signature
+        run: |
+          set -o pipefail
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | grep -E "Signer #1 certificate (DN|SHA-256)"
+
+      - name: Remove signing secrets
+        if: always()
+        run: rm -rf secrets android/app/google-services.json
+
+      - name: Upload APK + AAB
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 90
+
+  release:
+    name: Attach APK to GitHub release
+    needs: [lookup, build]
+    if: >-
+      !cancelled() &&
+      github.ref_type == 'tag' &&
+      needs.lookup.result == 'success' &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+
+    steps:
+      - name: Download APK + AAB
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ needs.lookup.outputs.run_id || github.run_id }}
+        run: |
+          echo "Taking the build from run $SOURCE_RUN."
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir out
+          find out -type f
+
+      - name: Attach APK to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk=$(find out -name app-release.apk | head -1)
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$apk#app-release.apk" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$apk#app-release.apk" --repo "$GITHUB_REPOSITORY" \
+              --draft --title "$GITHUB_REF_NAME" --notes "Draft created by the Android Release workflow. Add the release notes and publish."
+          fi
