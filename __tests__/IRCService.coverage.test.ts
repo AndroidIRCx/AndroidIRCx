@@ -409,7 +409,10 @@ describe('IRCService coverage - capabilities & isupport', () => {
     const { irc, socket } = makeConnected();
     expect(irc.hasTypingCapability()).toBe(false);
     expect(irc.sendTypingIndicator('#c', 'active')).toBe(false);
+    // A typing cap does not exist; the tag needs message-tags only.
     enableCaps(irc, 'draft/typing');
+    expect(irc.hasTypingCapability()).toBe(false);
+    enableCaps(irc, 'message-tags');
     expect(irc.hasTypingCapability()).toBe(true);
     expect(irc.sendTypingIndicator('#c', 'active')).toBe(true);
     expect(socket.writes.some(w => w.includes('TAGMSG #c'))).toBe(true);
@@ -824,40 +827,6 @@ describe('IRCService coverage - keepalive, reconnect & disconnect', () => {
     expect(socket.writes.some(w => w.includes('PING :keepalive'))).toBe(true);
     expect(socket.destroyed).toBe(true);
     (irc as any).stopKeepAlive();
-  });
-
-  it('scheduleReconnect schedules and retries connect', () => {
-    const { irc } = makeConnected();
-    (irc as any).autoReconnectEnabled = true;
-    (irc as any).config = { host: 'irc.host', port: 6667 };
-    (irc as any).INITIAL_RECONNECT_DELAY = 100;
-    (irc as any).MAX_RECONNECT_DELAY = 1000;
-    const connectSpy = jest
-      .spyOn(irc, 'connect')
-      .mockResolvedValue(undefined as any);
-    (irc as any).scheduleReconnect();
-    jest.advanceTimersByTime(200);
-    expect(connectSpy).toHaveBeenCalled();
-  });
-
-  it('scheduleReconnect no-ops without config or when disabled', () => {
-    const { irc } = makeConnected();
-    (irc as any).autoReconnectEnabled = false;
-    (irc as any).config = { host: 'h', port: 1 };
-    (irc as any).scheduleReconnect();
-    expect((irc as any).reconnectTimer).toBeFalsy();
-  });
-
-  it('setAutoReconnect and cancelReconnect manage timer', () => {
-    const { irc } = makeConnected();
-    irc.setAutoReconnect(true);
-    expect(irc.isAutoReconnectEnabled()).toBe(true);
-    (irc as any).reconnectTimer = setTimeout(() => {}, 10000);
-    irc.setAutoReconnect(false);
-    expect((irc as any).reconnectTimer).toBeNull();
-    (irc as any).reconnectTimer = setTimeout(() => {}, 10000);
-    irc.cancelReconnect();
-    expect((irc as any).reconnectTimer).toBeNull();
   });
 
   it('disconnect gracefully tears down a tcp socket', () => {

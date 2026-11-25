@@ -43,7 +43,6 @@ describe('PrivmsgCommandHandlers', () => {
         .mockReturnValue({ isActiveTab: true, isQueryOpen: false }),
       handleProtectionBlock: jest.fn(),
       handleCTCPRequest: jest.fn(),
-      handleMultilineMessage: jest.fn().mockReturnValue('Hello world'),
       getEncryptedDMService: jest.fn().mockReturnValue({
         handleIncomingBundleForNetwork: jest.fn(),
         handleKeyOfferForNetwork: jest.fn(),
@@ -183,8 +182,6 @@ describe('PrivmsgCommandHandlers', () => {
 
   describe('Message handling', () => {
     it('should add channel message to chat', () => {
-      ctx.handleMultilineMessage.mockReturnValue('Hello everyone');
-
       handlePRIVMSG(
         ctx,
         'User!user@host.com',
@@ -204,8 +201,6 @@ describe('PrivmsgCommandHandlers', () => {
     });
 
     it('should add private message to chat', () => {
-      ctx.handleMultilineMessage.mockReturnValue('Private hello');
-
       handlePRIVMSG(
         ctx,
         'User!user@host.com',
@@ -462,6 +457,52 @@ describe('PrivmsgCommandHandlers', () => {
       expect(decryptMock).toHaveBeenCalled();
     });
 
+    it('joins the pieces of a long encrypted DM into one message', async () => {
+      const decryptMock = jest.fn((payload: any) =>
+        Promise.resolve(payload.text),
+      );
+      ctx.getEncryptedDMService.mockReturnValue({
+        decryptForNetwork: decryptMock,
+      });
+      const piece = (text: string, i: number) =>
+        `!enc-msg ${JSON.stringify({ text, part: { id: 'pz', i, n: 2 } })}`;
+      handlePRIVMSG(
+        ctx,
+        'User!user@host.com',
+        ['MyNick', piece('world', 1)],
+        1,
+      );
+      handlePRIVMSG(
+        ctx,
+        'User!user@host.com',
+        ['MyNick', piece('hello ', 0)],
+        2,
+      );
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const shown = addMessageMock.mock.calls
+        .map((call: any[]) => call[0])
+        .filter((m: any) => m.type === 'message');
+      expect(shown).toHaveLength(1);
+      expect(shown[0].text).toContain('hello world');
+    });
+
+    it('joins the pieces of a long encrypted channel message', async () => {
+      const decryptMessage = jest.fn((payload: any) =>
+        Promise.resolve(payload.text),
+      );
+      ctx.getChannelEncryptionService.mockReturnValue({ decryptMessage });
+      const piece = (text: string, i: number) =>
+        `!chanenc-msg ${JSON.stringify({ text, part: { id: 'cz', i, n: 2 } })}`;
+      handlePRIVMSG(ctx, 'User!user@host.com', ['#chan', piece('a ', 0)], 1);
+      handlePRIVMSG(ctx, 'User!user@host.com', ['#chan', piece('b', 1)], 2);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const shown = addMessageMock.mock.calls
+        .map((call: any[]) => call[0])
+        .filter((m: any) => m.type === 'message');
+      expect(shown).toHaveLength(1);
+      expect(shown[0].text).toContain('a b');
+    });
+
     it('should handle invalid and undecryptable !enc-msg payloads', async () => {
       const decryptMock = jest
         .fn()
@@ -704,42 +745,31 @@ describe('PrivmsgCommandHandlers', () => {
       );
     });
 
-    it('should skip addMessage when multiline assembly is incomplete and forward meta tags', () => {
+    it('forwards the meta tags of a message to the chat', () => {
       const ts = Date.now();
-      ctx.handleMultilineMessage.mockReturnValueOnce(null);
-
       handlePRIVMSG(
         ctx,
         'User!user@host.com',
         ['+channel', '[12:34:56] message body [23:45:56]'],
         ts,
         {
-          multilineConcatTag: 'draft-1',
           accountTag: 'account',
           msgidTag: 'msg-1',
           channelContextTag: 'ctx',
           replyTag: 'reply-1',
-          reactTag: { smile: ['User'] },
           typingTag: 'active',
           batchTag: 'batch-1',
         },
       );
-
-      expect(ctx.handleMultilineMessage).toHaveBeenCalledWith(
-        'User',
-        '+channel',
-        'message body',
-        'draft-1',
+      expect(addMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          timestamp: ts,
+          type: 'message',
+          text: 'message body',
           account: 'account',
           msgid: 'msg-1',
           channelContext: 'ctx',
           replyTo: 'reply-1',
         }),
-      );
-      expect(addMessageMock).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'message' }),
         'batch-1',
       );
     });

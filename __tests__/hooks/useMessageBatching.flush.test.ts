@@ -122,6 +122,42 @@ describe('useMessageBatching flush', () => {
     expect(result[0].messages).toEqual([sent]);
   });
 
+  it('takes the msgid and server-time from the echo of a stored local line', async () => {
+    // echo-message.md: the echo is our message as delivered; its msgid is
+    // what replies and reactions point to.
+    const sent = msg({ text: 'hi', status: 'sent', timestamp: 10_000 });
+    const { result } = await run(
+      [sent],
+      [msg({ text: 'hi', timestamp: 12_000, msgid: 'srv-1', account: 'acc' })],
+    );
+    expect(result[0].messages).toHaveLength(1);
+    expect(result[0].messages[0]).toEqual(
+      expect.objectContaining({
+        id: sent.id,
+        msgid: 'srv-1',
+        timestamp: 12_000,
+        account: 'acc',
+        status: 'sent',
+      }),
+    );
+  });
+
+  it('takes the msgid from the echo of a line still in the same batch', async () => {
+    const sent = msg({ text: 'yo', status: 'pending', timestamp: 20_000 });
+    const { result } = await run(
+      [],
+      [sent, msg({ text: 'yo', timestamp: 20_500, msgid: 'srv-2' })],
+    );
+    expect(result[0].messages).toHaveLength(1);
+    expect(result[0].messages[0].msgid).toBe('srv-2');
+    expect(result[0].messages[0].id).toBe(sent.id);
+    // A later copy with the same msgid is a duplicate, not a new line.
+    const again = await run(result[0].messages, [
+      msg({ text: 'yo', msgid: 'srv-2' }),
+    ]);
+    expect(again.result[0].messages).toHaveLength(1);
+  });
+
   it('returns the same tabs array when everything was a duplicate', async () => {
     const { tabs, result } = await run(
       [msg({ msgid: 'x' })],

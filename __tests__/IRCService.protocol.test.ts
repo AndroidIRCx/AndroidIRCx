@@ -8,7 +8,6 @@
  *
  * Direct unit tests for:
  * - CTCPHandlers (parseCTCP, encodeCTCP, handleCTCPRequest)
- * - MultilineHandler (multiline message assembly)
  * - CAPHandlers (CAP LS, ACK, NAK, NEW, DEL)
  */
 
@@ -17,7 +16,6 @@ import {
   encodeCTCP,
   handleCTCPRequest,
 } from '../src/services/irc/protocol/CTCPHandlers';
-import { MultilineHandler } from '../src/services/irc/protocol/MultilineHandler';
 import { CAPHandlers } from '../src/services/irc/cap/CAPHandlers';
 
 // ========================================
@@ -192,103 +190,6 @@ describe('CTCPHandlers', () => {
       expect(messages[0].type).toBe('ctcp');
       expect(ctx.logRaw).toHaveBeenCalled();
     });
-  });
-});
-
-// ========================================
-// MULTILINE HANDLER
-// ========================================
-describe('MultilineHandler', () => {
-  let handler: MultilineHandler;
-
-  beforeEach(() => {
-    handler = new MultilineHandler();
-  });
-
-  it('returns text directly for single-line (no concat tag)', () => {
-    const result = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Hello',
-      undefined,
-      { timestamp: Date.now() },
-    );
-    expect(result).toBe('Hello');
-  });
-
-  it('buffers parts when concat tag is non-empty', () => {
-    const result = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Line 1',
-      'draft/multiline-concat',
-      { timestamp: Date.now() },
-    );
-    expect(result).toBeNull();
-  });
-
-  it('buffers multiple parts with non-empty concat tag', () => {
-    const r1 = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Line 1',
-      'draft/multiline-concat',
-      { timestamp: Date.now() },
-    );
-    const r2 = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Line 2',
-      'draft/multiline-concat',
-      { timestamp: Date.now() },
-    );
-
-    expect(r1).toBeNull();
-    expect(r2).toBeNull();
-  });
-
-  it('keeps separate buffers per sender/target pair', () => {
-    const rA = handler.handleMultilineMessage(
-      'alice',
-      '#chan1',
-      'A1',
-      'concat',
-      { timestamp: Date.now() },
-    );
-    const rB = handler.handleMultilineMessage('bob', '#chan1', 'B1', 'concat', {
-      timestamp: Date.now(),
-    });
-
-    // Both should be buffering
-    expect(rA).toBeNull();
-    expect(rB).toBeNull();
-  });
-
-  it('returns last line directly when concat tag is undefined (single-line or final)', () => {
-    // The final message in a multiline batch has no concat tag
-    // so it returns the text directly via the !concatTag check
-    const result = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Final line',
-      undefined,
-      { timestamp: Date.now() },
-    );
-
-    expect(result).toBe('Final line');
-  });
-
-  it('treats empty string concat as falsy - returns text directly', () => {
-    // Empty string is falsy in JS, so '' goes through !concatTag branch
-    const result = handler.handleMultilineMessage(
-      'alice',
-      '#chan',
-      'Text',
-      '',
-      { timestamp: Date.now() },
-    );
-
-    expect(result).toBe('Text');
   });
 });
 

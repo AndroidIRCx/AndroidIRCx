@@ -102,9 +102,6 @@ function createMockCtx(overrides?: Record<string, any>) {
     isUserIgnored: jest.fn(() => false),
     isUserProtected: jest.fn(() => false),
     evaluateProtectionDecision: jest.fn(() => null),
-    handleMultilineMessage: jest.fn(
-      (_f: string, _t: string, text: string) => text,
-    ),
     getEncryptedDMService: jest.fn(() => ({})),
     getChannelEncryptionService: jest.fn(() => ({})),
     handleKillDisconnect: jest.fn(),
@@ -622,12 +619,19 @@ describe('UserStateCommandHandlers', () => {
     it('handles react tag', () => {
       const { ctx, emitted } = createMockCtx();
       handleTAGMSG(ctx, 'alice!u@h', ['#chan'], Date.now(), {
-        reactTag: 'msgid123;👍',
+        replyTag: 'msgid123',
+        reactTag: '👍',
       });
 
       const reaction = emitted.find(e => e.event === 'reaction-received');
       expect(reaction).toBeTruthy();
-      expect(reaction!.args).toEqual(['#chan', 'msgid123', '👍', 'alice']);
+      expect(reaction!.args).toEqual([
+        '#chan',
+        'msgid123',
+        '👍',
+        'alice',
+        false,
+      ]);
     });
 
     it('handles typing tag', () => {
@@ -652,11 +656,11 @@ describe('UserStateCommandHandlers', () => {
       expect(emitted.find(e => e.event === 'typing-indicator')).toBeTruthy();
     });
 
-    it('shows raw message when no tags', () => {
+    it('does not show a TAGMSG in the history', () => {
       const { ctx } = createMockCtx();
       handleTAGMSG(ctx, 'dan!u@h', ['#chan'], Date.now());
 
-      expect(ctx.addRawMessage).toHaveBeenCalled();
+      expect(ctx.addRawMessage).not.toHaveBeenCalled();
     });
   });
 });

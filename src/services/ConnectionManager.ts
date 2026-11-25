@@ -25,6 +25,7 @@ import { ircForegroundService } from './IRCForegroundService';
 import { tx } from '../i18n/localization';
 import { serviceDetectionService } from './ServiceDetectionService';
 import { serviceCommandProvider } from './ServiceCommandProvider';
+import { messageReactionsService } from './MessageReactionsService';
 import { AutoAuthService, createAutoAuthService } from './AutoAuthService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -156,38 +157,6 @@ class ConnectionManager {
     }
 
     console.log(`ConnectionManager: Creating new connection for ${finalId}`);
-    console.log('ConnectionManager: Checking service imports...');
-    console.log('IRCService:', typeof IRCService, IRCService);
-    console.log(
-      'ChannelManagementService:',
-      typeof ChannelManagementService,
-      ChannelManagementService,
-    );
-    console.log(
-      'UserManagementService:',
-      typeof UserManagementService,
-      UserManagementService,
-    );
-    console.log(
-      'ChannelListService:',
-      typeof ChannelListService,
-      ChannelListService,
-    );
-    console.log(
-      'AutoRejoinService:',
-      typeof AutoRejoinService,
-      AutoRejoinService,
-    );
-    console.log('AutoVoiceService:', typeof AutoVoiceService, AutoVoiceService);
-    console.log(
-      'ConnectionQualityService:',
-      typeof ConnectionQualityService,
-      ConnectionQualityService,
-    );
-    console.log('BouncerService:', typeof BouncerService, BouncerService);
-    console.log('STSService:', typeof STSService, STSService);
-    console.log('CommandService:', typeof CommandService, CommandService);
-
     const ircService = new IRCService();
     ircService.setNetworkId(finalId); // Set networkId FIRST so all messages have correct network!
     const manualWhoisDoubleNick = networkConfig.whoisUseDoubleNick === true;
@@ -461,6 +430,23 @@ class ConnectionManager {
     );
     cleanupFunctions.push(welcomeCleanup);
 
+    // IRCv3 reactions from others (and our own, echoed back) on this network.
+    const reactionCleanup = ircService.on(
+      'reaction-received',
+      (
+        _target: string,
+        msgid: string,
+        emoji: string,
+        from: string,
+        remove?: boolean,
+      ) => {
+        messageReactionsService
+          .applyRemoteReaction(finalId, msgid, emoji, from, remove === true)
+          .catch(() => {});
+      },
+    );
+    cleanupFunctions.push(reactionCleanup);
+
     // Handle SASL authentication events
     const saslSuccessCleanup = ircService.on('sasl-success', () => {
       console.log(
@@ -654,3 +640,11 @@ autoReconnectService.setConnectionManager(connectionManager);
 // IRCService lists every connection in the foreground notification through
 // this provider instead of importing ConnectionManager (import cycle).
 setForegroundConnectionsProvider(() => connectionManager.getAllConnections());
+
+// Reactions the user taps go out on the connection of their network.
+messageReactionsService.setReactionSender(
+  (network, target, msgid, emoji, remove) =>
+    connectionManager
+      .getConnection(network)
+      ?.ircService.sendReaction(target, msgid, emoji, remove) ?? false,
+);

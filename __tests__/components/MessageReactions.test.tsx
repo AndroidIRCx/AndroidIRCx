@@ -4,7 +4,7 @@ import { MessageReactionsComponent } from '../../src/components/MessageReactions
 
 const mockGetReactions = jest.fn();
 const mockOnReactionsChange = jest.fn();
-const mockToggleReaction = jest.fn();
+const mockToggleNetworkReaction = jest.fn();
 const mockHasUserReacted = jest.fn();
 
 jest.mock('../../src/hooks/useTheme', () => ({
@@ -19,10 +19,12 @@ jest.mock('../../src/hooks/useTheme', () => ({
 }));
 
 jest.mock('../../src/services/MessageReactionsService', () => ({
+  reactionKey: (network: string, msgid: string) => `${network}|${msgid}`,
   messageReactionsService: {
     getReactions: (...args: unknown[]) => mockGetReactions(...args),
     onReactionsChange: (...args: unknown[]) => mockOnReactionsChange(...args),
-    toggleReaction: (...args: unknown[]) => mockToggleReaction(...args),
+    toggleNetworkReaction: (...args: unknown[]) =>
+      mockToggleNetworkReaction(...args),
     hasUserReacted: (...args: unknown[]) => mockHasUserReacted(...args),
   },
 }));
@@ -30,7 +32,7 @@ jest.mock('../../src/services/MessageReactionsService', () => ({
 describe('MessageReactionsComponent', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockToggleReaction.mockResolvedValue(undefined);
+    mockToggleNetworkReaction.mockResolvedValue(true);
     mockOnReactionsChange.mockImplementation(() => () => {});
   });
 
@@ -38,12 +40,23 @@ describe('MessageReactionsComponent', () => {
     mockGetReactions.mockReturnValue({ reactions: [] });
 
     const { toJSON } = await render(
-      <MessageReactionsComponent messageId="m1" />,
+      <MessageReactionsComponent network="net" msgid="m1" target="#c" />,
     );
     expect(toJSON()).toBeNull();
   });
 
-  it('renders reactions and toggles with callback for current user', async () => {
+  it('shows nothing for a message without a msgid', async () => {
+    mockGetReactions.mockReturnValue({
+      reactions: [{ emoji: '👍', count: 1 }],
+    });
+    const { toJSON } = await render(
+      <MessageReactionsComponent network="net" target="#c" />,
+    );
+    expect(toJSON()).toBeNull();
+    expect(mockGetReactions).not.toHaveBeenCalled();
+  });
+
+  it('reads reactions by network and msgid and toggles them on the network', async () => {
     mockGetReactions.mockReturnValue({
       reactions: [{ emoji: '👍', count: 2 }],
     });
@@ -52,17 +65,26 @@ describe('MessageReactionsComponent', () => {
     const onReactionPress = jest.fn();
     const { getByText } = await render(
       <MessageReactionsComponent
-        messageId="m1"
+        network="net"
+        msgid="m1"
+        target="#c"
         currentUserNick="alice"
         onReactionPress={onReactionPress}
       />,
     );
+    expect(mockGetReactions).toHaveBeenCalledWith('net|m1');
 
     await act(async () => {
       await fireEvent.press(getByText('👍'));
     });
 
-    expect(mockToggleReaction).toHaveBeenCalledWith('m1', '👍', 'alice');
+    expect(mockToggleNetworkReaction).toHaveBeenCalledWith(
+      'net',
+      '#c',
+      'm1',
+      '👍',
+      'alice',
+    );
     expect(onReactionPress).toHaveBeenCalledWith('👍');
     expect(getByText('2')).toBeTruthy();
   });
@@ -73,14 +95,14 @@ describe('MessageReactionsComponent', () => {
     });
 
     const { getByText } = await render(
-      <MessageReactionsComponent messageId="m2" />,
+      <MessageReactionsComponent network="net" msgid="m2" target="#c" />,
     );
 
     await act(async () => {
       await fireEvent.press(getByText('🔥'));
     });
 
-    expect(mockToggleReaction).not.toHaveBeenCalled();
+    expect(mockToggleNetworkReaction).not.toHaveBeenCalled();
   });
 
   it('updates reactions when service emits message-specific changes', async () => {
@@ -95,16 +117,23 @@ describe('MessageReactionsComponent', () => {
     });
 
     const { getByText, queryByText } = await render(
-      <MessageReactionsComponent messageId="m3" currentUserNick="bob" />,
+      <MessageReactionsComponent
+        network="net"
+        msgid="m3"
+        target="#c"
+        currentUserNick="bob"
+      />,
     );
 
     expect(getByText('❤️')).toBeTruthy();
 
     await act(() => {
-      listener?.('m3', { reactions: [{ emoji: '🎉', count: 4 }] });
+      listener?.('net|other', { reactions: [{ emoji: '🙃', count: 1 }] });
+      listener?.('net|m3', { reactions: [{ emoji: '🎉', count: 4 }] });
     });
 
     expect(getByText('🎉')).toBeTruthy();
     expect(queryByText('❤️')).toBeNull();
+    expect(queryByText('🙃')).toBeNull();
   });
 });

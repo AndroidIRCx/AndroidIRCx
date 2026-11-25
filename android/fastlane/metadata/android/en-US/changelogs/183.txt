@@ -1,0 +1,8 @@
+What's new in v1.10.11:
+- Replies, reactions and typing now work with other IRCv3 clients.
+- Long messages are no longer cut off; long encrypted ones arrive whole.
+- After a dropped connection you rejoin the channels you were in.
+- Connection errors show the real reason. Tor and .onion get more time.
+- Message history can no longer be wiped by a failed read.
+- Firebase, camera, clipboard and picker library updates.
+- Security hardening and smaller fixes.

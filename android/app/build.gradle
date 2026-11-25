@@ -283,8 +283,8 @@ android {
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 182
-        versionName = "1.10.10"
+        versionCode = 183
+        versionName = "1.10.11"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -381,6 +381,10 @@ dependencies {
     // AndroidX Core for WindowCompat (edge-to-edge support)
     implementation("androidx.core:core-ktx:1.15.0")
 
+    // Emoji picker for IRCv3 reactions (EmojiPickerModule). Android has no
+    // system emoji picker call; this is Google's picker view.
+    implementation("androidx.emoji2:emoji2-emojipicker:1.7.0")
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
@@ -390,7 +394,7 @@ dependencies {
     // Firebase app services used by AndroidIRCX. Do not include Firebase Messaging
     // unless remote push is implemented; unused FCM auto-init has caused
     // FirebaseMessaging token refresh crashes in production.
-    implementation(platform("com.google.firebase:firebase-bom:35.0.2"))
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-appcheck")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("com.google.firebase:firebase-analytics")

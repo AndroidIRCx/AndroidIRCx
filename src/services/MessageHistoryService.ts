@@ -13,6 +13,7 @@ import { IRCMessage } from './IRCService';
 import { storageCache } from './StorageCache';
 import { tx } from '../i18n/localization';
 import { messageHistoryBatching } from './MessageHistoryBatching';
+import { utf8ByteLength } from '../utils/ircMessageSplit';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -52,6 +53,14 @@ const appendInTimeOrder = (
   existing: IRCMessage[],
   incoming: IRCMessage[],
 ): IRCMessage[] => {
+  // A batch that is saved again after a failed save must not be stored twice.
+  const recentIds = new Set(
+    existing
+      .slice(-(incoming.length * 2 + 50))
+      .map(m => m.id)
+      .filter(Boolean),
+  );
+  incoming = incoming.filter(m => !m.id || !recentIds.has(m.id));
   if (incoming.length === 0) return existing;
   const byTime = (a: IRCMessage, b: IRCMessage) => a.timestamp - b.timestamp;
   const batch = [...incoming].sort(byTime);
@@ -66,6 +75,16 @@ class MessageHistoryService {
   private readonly STORAGE_PREFIX = '@AndroidIRCX:history:';
   private readonly MAX_MESSAGES_PER_CHANNEL = 10000; // Limit to prevent storage issues
   private readonly CLEANUP_THRESHOLD = 12000; // Cleanup when exceeding this
+  /**
+   * A channel is one AsyncStorage row, and Android reads a row through a
+   * CursorWindow of about 2 MB: a bigger row cannot be read back at all. The
+   * oldest lines go first to stay well under that.
+   */
+  private readonly MAX_CHANNEL_BYTES = 1.5 * 1024 * 1024;
+  /** Failed reads of a channel before its stored history is given up. */
+  private readonly UNREADABLE_AFTER_FAILURES = 3;
+  private readFailures: Map<string, number> = new Map();
+  private messageBytes: WeakMap<IRCMessage, number> = new WeakMap();
   private migrationInProgress = false;
   private migrationCompleted = false;
 
@@ -105,14 +124,16 @@ class MessageHistoryService {
     const promises = Array.from(messagesByChannel.entries()).map(
       ([channel, msgs]) => {
         const key = this.getStorageKey(network, channel);
-        return this.loadMessagesByKey(key).then(existing => {
-          return storageCache.setItem(
+        return this.loadMessagesForAppend(key).then(existing =>
+          storageCache.setItem(
             key,
-            appendInTimeOrder(existing, msgs).slice(
-              -this.MAX_MESSAGES_PER_CHANNEL,
+            this.trimToByteBudget(
+              appendInTimeOrder(existing, msgs).slice(
+                -this.MAX_MESSAGES_PER_CHANNEL,
+              ),
             ),
-          );
-        });
+          ),
+        );
       },
     );
 
@@ -815,6 +836,54 @@ class MessageHistoryService {
     } finally {
       this.migrationInProgress = false;
     }
+  }
+
+  /**
+   * Read a channel before new lines are added to it. A failed read throws, so
+   * the batch is kept and saved again later; treating it as empty would
+   * overwrite the whole history with the new lines. Only when the stored
+   * history keeps failing to read (a row too big for Android's CursorWindow
+   * is the known case) is it given up, or no line would ever be saved again.
+   */
+  private async loadMessagesForAppend(key: string): Promise<IRCMessage[]> {
+    try {
+      const data = await storageCache.getItemStrict<IRCMessage[]>(key, {
+        ttl: 5 * 60 * 1000,
+      });
+      this.readFailures.delete(key);
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      const failures = (this.readFailures.get(key) ?? 0) + 1;
+      if (failures < this.UNREADABLE_AFTER_FAILURES) {
+        this.readFailures.set(key, failures);
+        throw error;
+      }
+      this.readFailures.delete(key);
+      console.error(
+        `MessageHistoryService: history in ${key} cannot be read, starting it again:`,
+        error,
+      );
+      return [];
+    }
+  }
+
+  /** Drop the oldest lines until the channel fits MAX_CHANNEL_BYTES. */
+  private trimToByteBudget(messages: IRCMessage[]): IRCMessage[] {
+    const sizes = messages.map(message => {
+      let size = this.messageBytes.get(message);
+      if (size === undefined) {
+        size = utf8ByteLength(JSON.stringify(message)) + 1; // + the comma
+        this.messageBytes.set(message, size);
+      }
+      return size;
+    });
+    let total = sizes.reduce((sum, size) => sum + size, 2);
+    let start = 0;
+    while (total > this.MAX_CHANNEL_BYTES && start < messages.length - 1) {
+      total -= sizes[start];
+      start += 1;
+    }
+    return start === 0 ? messages : messages.slice(start);
   }
 
   /**

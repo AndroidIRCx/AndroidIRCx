@@ -169,6 +169,14 @@ class MainApplication : Application(), ReactApplication {
               Log.e(TAG, "Failed to add AddonRuntimePackage: ${e.message}", e)
           }
 
+          // Add the AndroidX emoji picker used for IRCv3 reactions
+          try {
+              packages.add(EmojiPickerPackage())
+              Log.d(TAG, "Added EmojiPickerPackage")
+          } catch (e: Throwable) {
+              Log.e(TAG, "Failed to add EmojiPickerPackage: ${e.message}", e)
+          }
+
           // Add our custom package for phone-to-phone NFC key sharing (HCE)
           try {
               packages.add(NfcHcePackage())

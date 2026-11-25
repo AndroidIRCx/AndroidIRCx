@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Această amprentă este prea mare pentru un cod QR. Distribui-o ca text."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** O linie era prea lungă pentru server și a fost scurtată"
+  },
+  "React": {
+    "string": "Reacționează"
+  },
+  "Replying to {nick}": {
+    "string": "Răspuns pentru {nick}"
+  },
+  "More reactions": {
+    "string": "Mai multe reacții"
   }
 }

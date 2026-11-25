@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Энэ хурууны хээ QR кодонд хэт том байна. Үүнийг текстээр хуваалцана уу."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Мөр серверт хэт урт байсан тул богиносгосон"
+  },
+  "React": {
+    "string": "Хариу үйлдэл"
+  },
+  "Replying to {nick}": {
+    "string": "{nick}-д хариулж байна"
+  },
+  "More reactions": {
+    "string": "Бусад хариу үйлдэл"
   }
 }

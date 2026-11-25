@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Այս մատնահետքը չափազանց մեծ է QR կոդի համար։ Կիսվեք այն որպես տեքստ։"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Տողը չափազանց երկար էր սերվերի համար և կրճատվեց"
+  },
+  "React": {
+    "string": "Արձագանքել"
+  },
+  "Replying to {nick}": {
+    "string": "Պատասխան {nick}-ին"
+  },
+  "More reactions": {
+    "string": "Ավելի շատ արձագանքներ"
   }
 }

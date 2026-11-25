@@ -14,6 +14,58 @@ describe('StorageCache', () => {
     jest.clearAllMocks();
   });
 
+  describe('getItemStrict', () => {
+    it('returns null for a missing key and the value for a stored one', async () => {
+      expect(await storageCache.getItemStrict('strict-missing')).toBeNull();
+      await AsyncStorage.setItem('strict-stored', JSON.stringify({ a: 1 }));
+      expect(await storageCache.getItemStrict('strict-stored')).toEqual({
+        a: 1,
+      });
+      // Now cached: no second read.
+      (AsyncStorage.getItem as jest.Mock).mockClear();
+      expect(await storageCache.getItemStrict('strict-stored')).toEqual({
+        a: 1,
+      });
+      expect(AsyncStorage.getItem).not.toHaveBeenCalled();
+    });
+
+    it('throws when the read fails instead of answering null', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Row too big to fit into CursorWindow'),
+      );
+      await expect(storageCache.getItemStrict('strict-big')).rejects.toThrow(
+        'CursorWindow',
+      );
+    });
+
+    it('throws on stored text that is not JSON', async () => {
+      await AsyncStorage.setItem('strict-bad', '{broken');
+      await expect(storageCache.getItemStrict('strict-bad')).rejects.toThrow();
+    });
+
+    it('answers a write still waiting for the debounce, and re-reads after the TTL', async () => {
+      await storageCache.setItem('strict-pending', ['new']);
+      (storageCache as any).cache.delete('strict-pending');
+      expect(await storageCache.getItemStrict('strict-pending')).toEqual([
+        'new',
+      ]);
+      await storageCache.flush();
+
+      await AsyncStorage.setItem('strict-ttl', JSON.stringify('fresh'));
+      (storageCache as any).cache.set('strict-ttl', {
+        data: 'stale',
+        timestamp: Date.now() - 10_000,
+        hits: 0,
+      });
+      expect(
+        await storageCache.getItemStrict('strict-ttl', { ttl: 1000 }),
+      ).toBe('fresh');
+      expect(await storageCache.getItemStrict('strict-ttl', { ttl: 0 })).toBe(
+        'fresh',
+      );
+    });
+  });
+
   describe('getItem', () => {
     it('should return null for non-existent key', async () => {
       const result = await storageCache.getItem('non-existent');

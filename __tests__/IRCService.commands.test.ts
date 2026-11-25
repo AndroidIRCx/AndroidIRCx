@@ -167,37 +167,6 @@ describe('IRCService command helpers', () => {
     expect(statuses).toEqual([true, true, false]);
   });
 
-  it('covers reconnect scheduler success/failure and cancel flow', async () => {
-    const addRawSpy = jest.spyOn(irc, 'addRawMessage');
-    (irc as any).config = { host: 'irc.example', port: 6667, nick: 'tester' };
-    const connectSpy = jest
-      .spyOn(irc, 'connect')
-      .mockResolvedValueOnce(undefined as any);
-
-    (irc as any).scheduleReconnect();
-    jest.advanceTimersByTime(2100);
-    await Promise.resolve();
-    expect(connectSpy).toHaveBeenCalledTimes(1);
-    expect(addRawSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Reconnected successfully'),
-      'connection',
-    );
-
-    connectSpy.mockReset();
-    connectSpy.mockRejectedValueOnce(new Error('boom'));
-    (irc as any).scheduleReconnect();
-    jest.advanceTimersByTime(2100);
-    await Promise.resolve();
-    expect(connectSpy).toHaveBeenCalledTimes(1);
-
-    (irc as any).reconnectTimer = setTimeout(() => {}, 1000);
-    irc.cancelReconnect();
-    expect(addRawSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Auto-reconnect cancelled'),
-      'connection',
-    );
-  });
-
   it('responds to incoming CTCP PING', () => {
     (irc as any).isConnected = true;
     (irc as any).handleIRCMessage(
@@ -219,26 +188,33 @@ describe('IRCService command helpers', () => {
 
   it('uses multiline sender when message contains newlines', () => {
     const multiSpy = jest.spyOn(irc, 'sendMultilineMessage');
-    (irc as any).capEnabledSet.add('draft/multiline');
 
     irc.sendMessage('#chan', 'line one\r\nline two');
 
     expect(multiSpy).toHaveBeenCalledWith('#chan', 'line one\nline two');
+    // No BATCH is built, so no multiline tags go out without one.
     expect(socket.writes.some(w => w.includes('draft/multiline-concat'))).toBe(
-      true,
+      false,
+    );
+    expect(socket.writes).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('PRIVMSG #chan :line one'),
+        expect.stringContaining('PRIVMSG #chan :line two'),
+      ]),
     );
     multiSpy.mockRestore();
   });
 
   it('uses multiline sender for tagged messages with newlines', () => {
     const multiSpy = jest.spyOn(irc, 'sendMultilineMessage');
-    (irc as any).capEnabledSet.add('draft/multiline');
 
     irc.sendMessageWithTags('#chan', 'alpha\nbeta', { replyTo: 'msgid123' });
 
-    expect(multiSpy).toHaveBeenCalledWith('#chan', 'alpha\nbeta');
+    expect(multiSpy).toHaveBeenCalledWith('#chan', 'alpha\nbeta', {
+      replyTo: 'msgid123',
+    });
     expect(socket.writes.some(w => w.includes('draft/multiline-concat'))).toBe(
-      true,
+      false,
     );
     multiSpy.mockRestore();
   });
@@ -309,40 +285,6 @@ describe('IRCService command helpers', () => {
 
     const user = (irc as any).channelUsers.get('#chan').get('carol');
     expect(user?.account).toBe('account-name');
-  });
-
-  it('assembles multiline messages when final concat tag is empty', () => {
-    const messages: IRCMessage[] = [];
-    irc.onMessage(m => messages.push(m));
-
-    (irc as any).handleIRCMessage(
-      '@draft/multiline-concat=concat :alice!u@h PRIVMSG #chan :line 1',
-    );
-    (irc as any).handleIRCMessage(
-      '@draft/multiline-concat= :alice!u@h PRIVMSG #chan :line 2',
-    );
-
-    const assembled = messages.find(
-      m => m.type === 'message' && m.from === 'alice',
-    );
-    expect(assembled?.text).toBe('line 1\nline 2');
-  });
-
-  it('does not deduplicate multiline chunks that share the same msgid', () => {
-    const messages: IRCMessage[] = [];
-    irc.onMessage(m => messages.push(m));
-
-    (irc as any).handleIRCMessage(
-      '@msgid=mid-42;draft/multiline-concat=concat :alice!u@h PRIVMSG #chan :part A',
-    );
-    (irc as any).handleIRCMessage(
-      '@msgid=mid-42;draft/multiline-concat= :alice!u@h PRIVMSG #chan :part B',
-    );
-
-    const assembled = messages.find(
-      m => m.type === 'message' && m.from === 'alice',
-    );
-    expect(assembled?.text).toBe('part A\npart B');
   });
 
   it('setRealname sends SETNAME when capability is enabled and shows error otherwise', () => {
@@ -604,6 +546,7 @@ describe('IRCService command helpers', () => {
     const messages: IRCMessage[] = [];
     const emitSpy = jest.spyOn(irc as any, 'emit');
     irc.onMessage(m => messages.push(m));
+    (irc as any).capEnabledSet.add('message-tags');
 
     irc.sendMessageWithTags('#room', 'hello', {
       channelContext: '#context',
@@ -613,7 +556,7 @@ describe('IRCService command helpers', () => {
     expect(
       socket.writes.some(w =>
         w.includes(
-          '@+draft/channel-context=#context;+draft/reply=msgid-9;+typing=active PRIVMSG #room :hello',
+          '@+draft/channel-context=#context;+reply=msgid-9;+typing=active PRIVMSG #room :hello',
         ),
       ),
     ).toBe(true);
@@ -626,10 +569,12 @@ describe('IRCService command helpers', () => {
       ),
     ).toBe(true);
 
-    irc.sendReaction('#room', 'msgid-9', ':+1:');
+    // client-tags/react.md: the parent goes in +reply, the reaction alone in
+    // +draft/react.
+    expect(irc.sendReaction('#room', 'msgid-9', ':+1:')).toBe(true);
     expect(
       socket.writes.some(w =>
-        w.includes('@+draft/react=msgid-9\\::+1: TAGMSG #room'),
+        w.includes('@+reply=msgid-9;+draft/react=:+1: TAGMSG #room'),
       ),
     ).toBe(true);
     expect(emitSpy).toHaveBeenCalledWith(
@@ -637,34 +582,71 @@ describe('IRCService command helpers', () => {
       '#room',
       'msgid-9',
       ':+1:',
+      false,
     );
+    expect(irc.sendReaction('#room', 'msgid-9', ':+1:', true)).toBe(true);
+    expect(
+      socket.writes.some(w =>
+        w.includes('@+reply=msgid-9;+draft/unreact=:+1: TAGMSG #room'),
+      ),
+    ).toBe(true);
   });
 
-  it('sendMultilineMessage handles capability and fallback modes', () => {
+  it('sends no client tags or TAGMSG without message-tags', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+    irc.sendMessageWithTags('#room', 'hello', {
+      replyTo: 'm1',
+      typing: 'done',
+    });
+    expect(socket.writes.some(w => w.includes('PRIVMSG #room :hello'))).toBe(
+      true,
+    );
+    expect(socket.writes.some(w => w.startsWith('@'))).toBe(false);
+    expect(messages.find(m => m.text === 'hello')?.replyTo).toBeUndefined();
+    expect(irc.sendReaction('#room', 'm1', 'x')).toBe(false);
+    expect(irc.hasTypingCapability()).toBe(false);
+  });
+
+  it('does not send a reaction value that is not a reaction', () => {
+    (irc as any).capEnabledSet.add('message-tags');
+    expect(irc.sendReaction('#room', 'm1', 'x'.repeat(40))).toBe(false);
+    expect(irc.sendReaction('#room', 'm1', 'a\r\nQUIT')).toBe(false);
+    expect(socket.writes.some(w => w.includes('TAGMSG'))).toBe(false);
+  });
+
+  it('respects CLIENTTAGDENY for reactions and typing', () => {
+    (irc as any).capEnabledSet.add('message-tags');
+    (irc as any).clientTagDeny.add('draft/react');
+    expect(irc.sendReaction('#room', 'm1', 'x')).toBe(false);
+    expect(irc.sendReaction('#room', 'm1', 'x', true)).toBe(true);
+    (irc as any).clientTagDeny.add('typing');
+    expect(irc.hasTypingCapability()).toBe(false);
+    (irc as any).isConnected = false;
+    expect(irc.sendReaction('#room', 'm1', 'x', true)).toBe(false);
+  });
+
+  it('sendMultilineMessage sends and echoes every non-empty line', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(m => messages.push(m));
 
+    // Even when the server offers draft/multiline, lines go out plain.
     (irc as any).capEnabledSet.add('draft/multiline');
-    irc.sendMultilineMessage('#room', 'line1\nline2');
-    expect(
-      socket.writes.some(w =>
-        w.includes('@draft/multiline-concat=concat PRIVMSG #room :line1'),
-      ),
-    ).toBe(true);
-    expect(
-      socket.writes.some(w =>
-        w.includes('@draft/multiline-concat PRIVMSG #room :line2'),
-      ),
-    ).toBe(true);
-
-    (irc as any).capEnabledSet.delete('draft/multiline');
     irc.sendMultilineMessage('#room', 'a\n\nb');
+    expect(socket.writes.some(w => w.includes('multiline'))).toBe(false);
     expect(socket.writes.some(w => w.includes('PRIVMSG #room :a'))).toBe(true);
     expect(socket.writes.some(w => w.includes('PRIVMSG #room :b'))).toBe(true);
     expect(
-      messages.filter(m => m.type === 'message' && m.channel === '#room')
-        .length,
-    ).toBeGreaterThanOrEqual(2);
+      messages
+        .filter(m => m.type === 'message' && m.channel === '#room')
+        .map(m => m.text),
+    ).toEqual(['a', 'b']);
+  });
+
+  it('sendMultilineMessage does nothing while disconnected', () => {
+    (irc as any).isConnected = false;
+    irc.sendMultilineMessage('#room', 'a\nb');
+    expect(socket.writes.length).toBe(0);
   });
 
   it('wraps batch label manager helpers', () => {
@@ -749,8 +731,8 @@ describe('IRCService command helpers', () => {
     expect(irc.getNotifyService()).toBe(notify);
 
     expect(irc.getConnectionStatus()).toBe(true);
-    (irc as any).capEnabledSet.add('typing');
-    expect(irc.hasCapability('typing')).toBe(true);
+    (irc as any).capEnabledSet.add('message-tags');
+    expect(irc.hasCapability('message-tags')).toBe(true);
     expect(irc.hasTypingCapability()).toBe(true);
     expect(irc.sendTypingIndicator('#room', 'active')).toBe(true);
     expect(
@@ -920,38 +902,6 @@ describe('IRCService command helpers', () => {
     expect(clones.has('h2')).toBe(false);
     expect((await irc.detectClones('#missing')).size).toBe(0);
     jest.useFakeTimers();
-  });
-
-  it('covers auto-reconnect controls and scheduler outcomes', async () => {
-    const msgs: IRCMessage[] = [];
-    irc.onMessage(m => msgs.push(m));
-    (irc as any).config = { host: 'irc.example', port: 6667, nick: 'tester' };
-
-    const connectSpy = jest
-      .spyOn(irc as any, 'connect')
-      .mockResolvedValueOnce(undefined);
-    (irc as any).scheduleReconnect();
-    jest.advanceTimersByTime(2200);
-    await Promise.resolve();
-    expect(connectSpy).toHaveBeenCalled();
-
-    (irc as any).setAutoReconnect(false);
-    expect((irc as any).isAutoReconnectEnabled()).toBe(false);
-    (irc as any).reconnectTimer = setTimeout(() => undefined, 1000);
-    (irc as any).cancelReconnect();
-    expect(msgs.some(m => m.text.includes('Auto-reconnect cancelled'))).toBe(
-      true,
-    );
-
-    (irc as any).setAutoReconnect(true);
-    const failConnectSpy = jest
-      .spyOn(irc as any, 'connect')
-      .mockRejectedValueOnce(new Error('fail-connect'));
-    (irc as any).scheduleReconnect();
-    jest.advanceTimersByTime(2200);
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(failConnectSpy).toHaveBeenCalled();
   });
 
   it('covers join/request names and emitConnection foreground service branches', async () => {

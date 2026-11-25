@@ -139,19 +139,6 @@ export interface CommandHandlerContext {
       isCtcp: boolean;
     },
   ) => { kind: string } | null;
-  handleMultilineMessage: (
-    from: string,
-    target: string,
-    text: string,
-    concatTag: string | undefined,
-    otherTags: {
-      timestamp: number;
-      account?: string;
-      msgid?: string;
-      channelContext?: string;
-      replyTo?: string;
-    },
-  ) => string | null;
   getEncryptedDMService: () => any;
   getChannelEncryptionService: () => any;
 }
@@ -171,8 +158,8 @@ export type CommandHandler = (
     channelContextTag?: string;
     replyTag?: string;
     reactTag?: string;
+    unreactTag?: string;
     typingTag?: string;
-    multilineConcatTag?: string;
     intentTag?: string;
     tags?: Record<string, string>;
   },

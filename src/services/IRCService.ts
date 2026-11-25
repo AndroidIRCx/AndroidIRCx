@@ -44,12 +44,17 @@ import {
 import { settingsService } from './SettingsService';
 import type { WebIRCConfig } from './SettingsService';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
-import { MultilineHandler } from './irc/protocol/MultilineHandler';
 import { stsService } from './STSService';
 import { ScramAuthService } from './irc/ScramAuth';
 // Pure policy with no service dependencies, so importing it here does not
 // break this file's rule of importing no services.
-import { sanitizeOutboundLine } from './scripting/AddonRawPolicy';
+import {
+  MAX_LINE_BYTES,
+  sanitizeOutboundLine,
+} from './scripting/AddonRawPolicy';
+import { splitIrcText, utf8ByteLength } from '../utils/ircMessageSplit';
+import { newEncryptedPartId } from './irc/protocol/EncryptedPartAssembler';
+import { isValidReaction } from '../utils/reactionValue';
 import { isWireMessageCaptured } from './irc/wireCapture';
 import { getNumericScriptHook } from './irc/numericScriptHook';
 
@@ -343,6 +348,32 @@ export class IRCService {
   private registered: boolean = false;
   private currentNick: string = '';
   private altNick: string = '';
+  /** Our own user@host as the server relays it, learned from our own lines. */
+  private selfUser: string | null = null;
+  private selfHost: string | null = null;
+  /** Pieces of long user messages still to go out, so a paste is not a flood. */
+  private pacedLines: string[] = [];
+  /** Keys we joined channels with (lowercased name -> key), this session. */
+  private channelKeys: Map<string, string> = new Map();
+  private pacedTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly PACED_BURST = 4;
+  private readonly PACED_INTERVAL_MS = 700;
+  /**
+   * Room left for anything a server may add to a relayed line that we did not
+   * count, such as a STATUSMSG prefix (multiline.md suggests 10 bytes).
+   */
+  private readonly RELAY_SAFETY_BYTES = 10;
+  /** Never split into pieces smaller than this, whatever the prefix costs. */
+  private readonly MIN_TEXT_BUDGET = 100;
+  /** HOSTLEN most servers allow; assumed while our own host is not known. */
+  private readonly ASSUMED_HOST_BYTES = 63;
+  /** Encrypted lines: the JSON around the ciphertext, and the smallest piece. */
+  private readonly ENCRYPTED_JSON_OVERHEAD = 160;
+  private readonly MIN_ENCRYPTED_PIECE = 32;
+  /** Room for `,"part":{"id":"…","i":…,"n":…}` on a piece of a long message. */
+  private readonly ENCRYPTED_PART_RESERVE = 64;
+  /** An unfinished inbound line longer than this is dropped. */
+  private readonly MAX_PARTIAL_LINE_BYTES = 64 * 1024;
   private selfUserModes: Set<string> = new Set();
   private nickChangeAttempts: number = 0;
   private verboseLogging: boolean = false;
@@ -385,13 +416,6 @@ export class IRCService {
   // NotifyService instance
   private _notifyService: typeof notifyService | null = null;
 
-  // Auto-reconnect with exponential backoff
-  private autoReconnectEnabled: boolean = true;
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private reconnectAttempts: number = 0;
-  private readonly MAX_RECONNECT_DELAY = 300000; // 5 minutes max
-  private readonly INITIAL_RECONNECT_DELAY = 2000; // Start with 2 seconds
-
   // IRCv3 features
   private serverTime: boolean = false;
   // Phone clock minus server clock, as seen on live lines (ms). Lets replayed
@@ -422,7 +446,25 @@ export class IRCService {
   private readonly MAX_MSGID_CACHE = 1000; // Keep last 1000 message IDs
 
   // Multiline message handler (draft/multiline)
-  private multilineHandler: MultilineHandler = new MultilineHandler();
+  /** Inbound draft/multiline batches being collected, by reference tag. */
+  private multilineInbound: Map<
+    string,
+    {
+      prefix: string;
+      target: string;
+      command: string;
+      timestamp: number;
+      lines: Array<{ text: string; concat: boolean }>;
+      tags: Map<string, string>;
+    }
+  > = new Map();
+  /** The last multiline batch we sent, to resend plainly if it is refused. */
+  private lastMultilineSent: {
+    target: string;
+    text: string;
+    at: number;
+  } | null = null;
+  private multilineRefCounter = 0;
   private whoisUseDoubleNick: boolean = false;
   private keepAliveTimer: NodeJS.Timeout | null = null;
   private connectionTimeout: NodeJS.Timeout | null = null;
@@ -843,6 +885,7 @@ export class IRCService {
       this.userListFlushTimer = null;
     }
     this.dirtyUserLists.clear();
+    this.clearPacedLines();
     (this as any)._capTimeout = null;
   }
 
@@ -885,6 +928,7 @@ export class IRCService {
               `STS: Upgrading to TLS on port ${stsResult.targetPort}`,
             );
 
+            const originalPort = config.port;
             // Modify config to use TLS
             config = {
               ...config,
@@ -895,7 +939,7 @@ export class IRCService {
             // Emit event to inform UI about STS upgrade
             this.emit('sts-upgrade', {
               host: config.host,
-              originalPort: config.port,
+              originalPort,
               newPort: stsResult.targetPort,
               reason: stsResult.reason,
             });
@@ -920,6 +964,8 @@ export class IRCService {
 
         this.config = config;
         this.registered = false;
+        this.selfUser = null;
+        this.selfHost = null;
         this.liveServerTimeOffset = NaN;
         this.inboundBuffer = Buffer.alloc(0);
 
@@ -998,10 +1044,58 @@ export class IRCService {
         }
 
         this.logRaw('IRCService: Creating socket connection...');
+
+        // Tor circuits, and .onion ones most of all, take far longer than a
+        // direct connection, so each proxy step and the whole attempt get
+        // more time there.
+        const isTor =
+          proxy?.type === 'tor' || /\.onion\.?$/i.test(config.host || '');
+        const proxyStepTimeoutMs = isTor ? 45000 : 15000;
+        const connectTimeoutMs = !proxy ? 10000 : isTor ? 60000 : 20000;
+
+        // The core listeners are attached only once the socket is open.
+        // tcp-socket drops an 'error' nobody listens to, so without this a
+        // refused port, an unknown host or a bad certificate only showed up as
+        // "Connection timeout" ten seconds later.
+        let socketOpened = false;
+        let earlySocket: any = null;
+        const onEarlyError = (error: any) => {
+          if (socketOpened || this.socket !== earlySocket) return;
+          const errorMessage =
+            error?.message ||
+            error?.toString() ||
+            t('Unknown connection error');
+          const errorCode = error?.code || 'NO_CODE';
+          this.addMessage({
+            type: 'error',
+            text: t('Connection error [{code}]: {message}', {
+              code: errorCode,
+              message: errorMessage,
+            }),
+            timestamp: Date.now(),
+          });
+          this.disconnect();
+          reject(
+            new Error(
+              t('{message} (Code: {code})', {
+                message: errorMessage,
+                code: errorCode,
+              }),
+            ),
+          );
+        };
+        const watchEarlyErrors = () => {
+          earlySocket = this.socket;
+          earlySocket?.once?.('error', onEarlyError);
+        };
+
         const attachCoreListeners = () => {
           if (!this.socket) {
             this.logRaw('IRCService: Cannot attach listeners - socket is null');
             return;
+          }
+          if (earlySocket?.removeListener) {
+            earlySocket.removeListener('error', onEarlyError);
           }
 
           this.socket.on('data', (data: any) => {
@@ -1129,20 +1223,12 @@ export class IRCService {
             this.stopKeepAlive();
             this.emitConnection(false);
 
-            // AutoReconnectService will handle reconnection via connectionChange event
-            // IRCService's scheduleReconnect() is kept for backward compatibility but
-            // AutoReconnectService takes precedence in multi-network scenarios
+            // AutoReconnectService reconnects from the connectionChange event.
           });
         };
 
         const markConnected = (tls: boolean) => {
           this.isConnected = true;
-          // Reset reconnection counter on successful connection
-          this.reconnectAttempts = 0;
-          if (this.reconnectTimer) {
-            clearTimeout(this.reconnectTimer);
-            this.reconnectTimer = null;
-          }
           this.emitConnection(true);
           this.startKeepAlive();
           this.addRawMessage(
@@ -1255,9 +1341,20 @@ export class IRCService {
           this.socket = TcpSocket.createConnection(
             { host: proxyHost, port: proxyPort },
             async () => {
+              socketOpened = true;
               try {
-                await this.establishProxyTunnel(proxy, config);
+                const leftover =
+                  (await this.establishProxyTunnel(
+                    proxy,
+                    config,
+                    proxyStepTimeoutMs,
+                  )) ?? Buffer.alloc(0);
                 if (config.tls) {
+                  if (leftover.length > 0) {
+                    this.logRaw(
+                      `IRCService: ${leftover.length} unexpected bytes after the proxy reply, before TLS`,
+                    );
+                  }
                   this.logRaw(
                     'IRCService: Upgrading proxy connection to TLS...',
                   );
@@ -1293,6 +1390,15 @@ export class IRCService {
                 } else {
                   attachCoreListeners();
                   markConnected(false);
+                  // Lines the server sent in the same packet as the proxy
+                  // reply belong to IRC, not to the proxy.
+                  if (leftover.length > 0) {
+                    this.inboundBuffer = Buffer.concat([
+                      this.inboundBuffer,
+                      leftover,
+                    ]);
+                    this.processBuffer();
+                  }
                 }
               } catch (err: any) {
                 const msg = err?.message || String(err);
@@ -1307,14 +1413,19 @@ export class IRCService {
           );
         } else if (config.tls) {
           this.socket = TcpSocket.connectTLS(tlsOptions, () => {
+            socketOpened = true;
             attachCoreListeners();
             markConnected(true);
           });
         } else {
           this.socket = TcpSocket.createConnection(tlsOptions, () => {
+            socketOpened = true;
             attachCoreListeners();
             markConnected(false);
           });
+        }
+        if (requestedTransport === 'tcp') {
+          watchEarlyErrors();
         }
 
         this.connectionTimeout = setTimeout(() => {
@@ -1322,7 +1433,7 @@ export class IRCService {
             this.disconnect();
             reject(new Error(t('Connection timeout')));
           }
-        }, 10000);
+        }, connectTimeoutMs);
 
         if (requestedTransport === 'tcp' && this.socket?.once) {
           this.socket.once('connect', () => {
@@ -1469,22 +1580,28 @@ export class IRCService {
     });
   }
 
+  /**
+   * Open the tunnel through the proxy. Resolves with any bytes that arrived
+   * after the proxy's reply: those are already the IRC server talking.
+   */
   private async establishProxyTunnel(
     proxy: ProxyConfig,
     config: IRCConnectionConfig,
-  ): Promise<void> {
-    if (!proxy) return;
+    stepTimeoutMs: number = 5000,
+  ): Promise<Buffer> {
+    if (!proxy) return Buffer.alloc(0);
     if (proxy.type === 'http') {
-      return this.establishHttpTunnel(proxy, config);
+      return this.establishHttpTunnel(proxy, config, stepTimeoutMs);
     }
     // SOCKS5 (default) and Tor use the same handshake (Tor typically on localhost:9050/9150)
-    return this.establishSocks5Tunnel(proxy, config);
+    return this.establishSocks5Tunnel(proxy, config, stepTimeoutMs);
   }
 
   private async establishHttpTunnel(
     proxy: ProxyConfig,
     config: IRCConnectionConfig,
-  ): Promise<void> {
+    stepTimeoutMs: number = 5000,
+  ): Promise<Buffer> {
     const auth =
       proxy.username && proxy.password
         ? `Proxy-Authorization: Basic ${Buffer.from(`${proxy.username}:${proxy.password}`).toString('base64')}\r\n`
@@ -1494,12 +1611,17 @@ export class IRCService {
       `IRCService: HTTP proxy CONNECT -> ${config.host}:${config.port}`,
     );
     this.socket.write(connectReq);
-    const responseBuffer = await this.readFromSocketUntil(this.socket, buf =>
-      buf.includes(Buffer.from('\r\n\r\n')),
+    const headerEnd = Buffer.from('\r\n\r\n');
+    const responseBuffer = await this.readFromSocketUntil(
+      this.socket,
+      buf => buf.includes(headerEnd),
+      stepTimeoutMs,
     );
-    const response = responseBuffer.toString('utf8');
+    const bodyStart = responseBuffer.indexOf(headerEnd) + headerEnd.length;
+    const response = responseBuffer.subarray(0, bodyStart).toString('utf8');
     const statusLine = response.split('\r\n')[0] || '';
-    if (!statusLine.includes('200')) {
+    // The status code, not any "200" somewhere in the reason phrase.
+    if (!/^HTTP\/\d(\.\d)? 200\b/.test(statusLine)) {
       throw new Error(
         t('HTTP proxy CONNECT failed: {status}', { status: statusLine.trim() }),
       );
@@ -1507,12 +1629,14 @@ export class IRCService {
     this.logRaw(
       `IRCService: HTTP proxy CONNECT tunnel established (${statusLine.trim()})`,
     );
+    return Buffer.from(responseBuffer.subarray(bodyStart));
   }
 
   private async establishSocks5Tunnel(
     proxy: ProxyConfig,
     config: IRCConnectionConfig,
-  ): Promise<void> {
+    stepTimeoutMs: number = 5000,
+  ): Promise<Buffer> {
     const hostBuf = Buffer.from(config.host, 'utf8');
     const portBuf = Buffer.alloc(2);
     portBuf.writeUInt16BE(config.port, 0);
@@ -1527,6 +1651,7 @@ export class IRCService {
     const methodResp = await this.readFromSocketUntil(
       this.socket,
       buf => buf.length >= 2,
+      stepTimeoutMs,
     );
     if (methodResp[0] !== 0x05) {
       throw new Error(t('SOCKS5 proxy: invalid version'));
@@ -1545,6 +1670,7 @@ export class IRCService {
       const authResp = await this.readFromSocketUntil(
         this.socket,
         buf => buf.length >= 2,
+        stepTimeoutMs,
       );
       if (authResp[1] !== 0x00) {
         throw new Error(t('SOCKS5 proxy: authentication failed'));
@@ -1561,10 +1687,12 @@ export class IRCService {
     ]);
     this.socket.write(request);
 
-    const replyHead = await this.readFromSocketUntil(
+    let reply = await this.readFromSocketUntil(
       this.socket,
       buf => buf.length >= 5,
+      stepTimeoutMs,
     );
+    const replyHead = reply;
     if (replyHead[1] !== 0x00) {
       throw new Error(
         t('SOCKS5 proxy: connect failed (code {code})', { code: replyHead[1] }),
@@ -1576,10 +1704,18 @@ export class IRCService {
     else if (atyp === 0x03) addrLen = replyHead[4];
     else if (atyp === 0x04) addrLen = 16;
     const need = 4 + (atyp === 0x03 ? 1 : 0) + addrLen + 2;
-    if (replyHead.length < need) {
-      await this.readFromSocketUntil(this.socket, buf => buf.length >= need);
+    if (reply.length < need) {
+      // Only the rest of the reply is still to come, not all of it again.
+      const missing = need - reply.length;
+      const rest = await this.readFromSocketUntil(
+        this.socket,
+        buf => buf.length >= missing,
+        stepTimeoutMs,
+      );
+      reply = Buffer.concat([reply, rest]);
     }
     this.logRaw('IRCService: SOCKS5 tunnel established');
+    return Buffer.from(reply.subarray(need));
   }
 
   private processBuffer(): void {
@@ -1630,7 +1766,15 @@ export class IRCService {
         ? Buffer.from(this.inboundBuffer.subarray(start))
         : this.inboundBuffer;
 
-    if (this.inboundBuffer.length > 8192) {
+    if (this.inboundBuffer.length > this.MAX_PARTIAL_LINE_BYTES) {
+      // No IRC line is anywhere near this long (512 bytes plus 8 KB of tags),
+      // so it is a broken or hostile peer. Without a cap the buffer would
+      // keep growing for as long as it sends.
+      this.logRaw(
+        `IRCService: Dropped ${this.inboundBuffer.length} bytes without a line break`,
+      );
+      this.inboundBuffer = Buffer.alloc(0);
+    } else if (this.inboundBuffer.length > 8192) {
       this.logRaw(
         `IRCService: Large partial line buffer detected (${this.inboundBuffer.length} bytes)`,
       );
@@ -1688,15 +1832,13 @@ export class IRCService {
 
     // Extract msgid tag for message-ids (IRCv3.3)
     const msgidTag = tags.get('msgid') || undefined;
-    const hasMultilineConcatTag = tags.has('draft/multiline-concat');
+    // Lines inside a multiline batch are assembled, not deduplicated: some
+    // servers repeat the batch's msgid on them.
+    const inMultilineBatch =
+      batchTag !== undefined && this.multilineInbound.has(batchTag);
 
-    // Message deduplication: skip duplicate msgid values, but never for multiline parts.
-    // Some servers reuse the same msgid across all multiline chunks.
-    if (
-      msgidTag &&
-      !hasMultilineConcatTag &&
-      this.seenMessageIds.has(msgidTag)
-    ) {
+    // Message deduplication: skip duplicate msgid values.
+    if (msgidTag && !inMultilineBatch && this.seenMessageIds.has(msgidTag)) {
       this.logRaw(
         `IRCService: Skipping duplicate message with msgid: ${msgidTag}`,
       );
@@ -1704,7 +1846,7 @@ export class IRCService {
     }
 
     // Track this msgid to prevent duplicates.
-    if (msgidTag && !hasMultilineConcatTag) {
+    if (msgidTag && !inMultilineBatch) {
       this.seenMessageIds.add(msgidTag);
       // Prevent unbounded growth - keep only the last MAX_MSGID_CACHE entries
       if (this.seenMessageIds.size > this.MAX_MSGID_CACHE) {
@@ -1717,10 +1859,14 @@ export class IRCService {
 
     // Extract client-only tags (draft)
     const channelContextTag = tags.get('+draft/channel-context') || undefined;
+    // `+reply` is the ratified name (client-tags/reply.md); older software
+    // still sends `+draft/reply`.
     const replyTag =
-      tags.get('+draft/reply') || tags.get('+reply') || undefined;
+      tags.get('+reply') || tags.get('+draft/reply') || undefined;
     const reactTag =
       tags.get('+draft/react') || tags.get('+react') || undefined;
+    const unreactTag =
+      tags.get('+draft/unreact') || tags.get('+unreact') || undefined;
     const typingTag =
       tags.get('typing') ||
       tags.get('draft/typing') ||
@@ -1730,12 +1876,6 @@ export class IRCService {
     // Extract intent tag (draft/intent)
     const intentTag =
       tags.get('+draft/intent') || tags.get('+intent') || undefined;
-
-    // Extract multiline concat tag (draft/multiline).
-    // Keep empty-string value because it marks the final chunk.
-    const multilineConcatTag = hasMultilineConcatTag
-      ? (tags.get('draft/multiline-concat') ?? '')
-      : undefined;
 
     let prefix = '';
     let command = '';
@@ -1777,6 +1917,27 @@ export class IRCService {
       rest = rest.replace(/^ +/, '');
     }
 
+    this.rememberSelfMask(prefix, command, params);
+
+    if (
+      this.handleMultilineInbound(
+        command,
+        prefix,
+        params,
+        tags,
+        messageTimestamp,
+      )
+    ) {
+      return;
+    }
+    if (
+      command === 'FAIL' &&
+      params[0] === 'BATCH' &&
+      /^MULTILINE_/.test(params[1] || '')
+    ) {
+      this.resendRefusedMultiline();
+    }
+
     if (command === 'PING') {
       const server = params[0] || '';
       this.sendRaw(server ? `PONG :${server}` : 'PONG');
@@ -1814,8 +1975,8 @@ export class IRCService {
       channelContextTag,
       replyTag,
       reactTag,
+      unreactTag,
       typingTag,
-      multilineConcatTag,
       intentTag,
       tags: tagObject,
     });
@@ -2724,6 +2885,242 @@ export class IRCService {
   }
 
   /**
+   * Learn our own user@host from lines the server sends about us: our JOINs,
+   * echoed messages, CHGHOST, RPL_HOSTHIDDEN (396) and the mask some servers
+   * put at the end of RPL_WELCOME (001). It sizes the pieces of long messages.
+   */
+  private rememberSelfMask(
+    prefix: string,
+    command: string,
+    params: string[],
+  ): void {
+    if (command === '001') {
+      const words = (params[params.length - 1] || '').split(' ');
+      this.rememberMaskIfOurs(words[words.length - 1] || '', params[0] || '');
+      return;
+    }
+    if (command === '396') {
+      const shown = params[1] || '';
+      const at = shown.indexOf('@');
+      if (at > 0 && at < shown.length - 1) {
+        this.selfUser = shown.slice(0, at);
+        this.selfHost = shown.slice(at + 1);
+      } else if (shown && at === -1) {
+        this.selfHost = shown;
+      }
+      return;
+    }
+    if (command === 'CHGHOST') {
+      const bang = prefix.indexOf('!');
+      const nick = bang > 0 ? prefix.slice(0, bang) : prefix;
+      if (
+        nick.toLowerCase() === this.currentNick.toLowerCase() &&
+        params[0] &&
+        params[1]
+      ) {
+        this.selfUser = params[0];
+        this.selfHost = params[1];
+      }
+      return;
+    }
+    this.rememberMaskIfOurs(prefix, this.currentNick);
+  }
+
+  private rememberMaskIfOurs(mask: string, nick: string): void {
+    const bang = mask.indexOf('!');
+    const at = mask.indexOf('@', bang + 1);
+    if (!nick || bang <= 0 || at <= bang + 1 || at === mask.length - 1) return;
+    if (mask.slice(0, bang).toLowerCase() !== nick.toLowerCase()) return;
+    this.selfUser = mask.slice(bang + 1, at);
+    this.selfHost = mask.slice(at + 1);
+  }
+
+  /**
+   * Bytes left for the text of `COMMAND target :text`. The 512-byte limit
+   * applies to the line the server relays, which starts with our
+   * `:nick!user@host`, so that prefix is counted too. While our own mask is
+   * not known yet, a long one is assumed: pieces come out a little short
+   * rather than cut.
+   */
+  /**
+   * Bytes a line may have without its CRLF: 510, or what the server
+   * advertises with the ISUPPORT LINELEN token (irc-defs isupport.yaml).
+   */
+  public getLineByteLimit(): number {
+    const advertised = this.isupportValues.get('LINELEN');
+    const lineLen =
+      typeof advertised === 'string' && /^\d+$/.test(advertised)
+        ? parseInt(advertised, 10)
+        : 512;
+    return Math.max(MAX_LINE_BYTES, lineLen - 2);
+  }
+
+  public getTextByteBudget(
+    command: string,
+    target: string,
+    extraBytes: number = 0,
+  ): number {
+    const nick = this.currentNick || this.config?.nick || '';
+    const userLenToken = this.isupportValues.get('USERLEN');
+    const userLen =
+      typeof userLenToken === 'string' && /^\d+$/.test(userLenToken)
+        ? parseInt(userLenToken, 10)
+        : 10;
+    const user =
+      this.selfUser ??
+      `~${this.config?.username || nick}`.slice(0, userLen + 1);
+    const hostBytes =
+      this.selfHost !== null
+        ? utf8ByteLength(this.selfHost)
+        : this.ASSUMED_HOST_BYTES;
+    const relayedPrefix = utf8ByteLength(`:${nick}!${user}@ `) + hostBytes;
+    const ownPart = utf8ByteLength(`${command} ${target} :`);
+    return Math.max(
+      this.MIN_TEXT_BUDGET,
+      this.getLineByteLimit() -
+        relayedPrefix -
+        ownPart -
+        extraBytes -
+        this.RELAY_SAFETY_BYTES,
+    );
+  }
+
+  /**
+   * Send text the user wrote to one target, as several lines when it does not
+   * fit in one, and return the pieces in the order they go out. `wrap` turns a
+   * piece into the text of its line (a CTCP ACTION) and `wrapBytes` is what it
+   * adds; `tagsFor` gives each line its tag prefix. Raw lines from /raw,
+   * scripts and addons do not come here: they are protocol, not text.
+   */
+  public sendSplitText(
+    command: 'PRIVMSG' | 'NOTICE',
+    target: string,
+    text: string,
+    options: {
+      wrap?: (piece: string) => string;
+      wrapBytes?: number;
+      tagsFor?: (index: number, count: number) => string;
+    } = {},
+  ): string[] {
+    const pieces = splitIrcText(
+      text,
+      this.getTextByteBudget(command, target, options.wrapBytes ?? 0),
+    );
+    this.sendPaced(
+      pieces.map(
+        (piece, index) =>
+          `${options.tagsFor?.(index, pieces.length) ?? ''}${command} ${target} :${
+            options.wrap ? options.wrap(piece) : piece
+          }`,
+      ),
+    );
+    return pieces;
+  }
+
+  /**
+   * Send an encrypted message (`!enc-msg` / `!chanenc-msg`) as one or more
+   * lines. The plain text is split first and every piece is encrypted on its
+   * own, so each line decrypts by itself and the receiving side needs no
+   * change. A piece whose line still comes out too long is split again.
+   * Returns the plain pieces in the order they go out.
+   */
+  public async sendEncryptedText(
+    target: string,
+    plaintext: string,
+    marker: '!enc-msg' | '!chanenc-msg',
+    encrypt: (piece: string) => Promise<unknown>,
+  ): Promise<string[]> {
+    const lineBudget = this.getTextByteBudget(
+      'PRIVMSG',
+      target,
+      utf8ByteLength(`${marker} `),
+    );
+    // Base64 turns 3 bytes into 4; the JSON keys, nonce, key id and
+    // authentication tag take the rest. A message in several pieces also
+    // carries `part` so the other side can join it (EncryptedPartAssembler).
+    const plainBudgetFor = (available: number) =>
+      Math.max(
+        this.MIN_ENCRYPTED_PIECE,
+        Math.floor(((available - this.ENCRYPTED_JSON_OVERHEAD) * 3) / 4),
+      );
+    for (const reserve of [0, this.ENCRYPTED_PART_RESERVE]) {
+      const available = lineBudget - reserve;
+      let budget = plainBudgetFor(available);
+      if (reserve === 0 && utf8ByteLength(plaintext) > budget) continue;
+      const queue = splitIrcText(plaintext, budget);
+      const entries: Array<{ piece: string; payload: unknown }> = [];
+      while (queue.length > 0) {
+        const piece = queue.shift() as string;
+        const payload = await encrypt(piece);
+        if (
+          utf8ByteLength(JSON.stringify(payload)) > available &&
+          utf8ByteLength(piece) > this.MIN_ENCRYPTED_PIECE
+        ) {
+          budget = Math.max(this.MIN_ENCRYPTED_PIECE, Math.floor(budget * 0.8));
+          queue.unshift(...splitIrcText(piece, budget));
+          continue;
+        }
+        entries.push({ piece, payload });
+      }
+      // One piece after all, but planned without room for `part`: fine.
+      // Several pieces planned without that room: plan again with it.
+      if (entries.length > 1 && reserve === 0) continue;
+      const id = newEncryptedPartId();
+      this.sendPaced(
+        entries.map(({ payload }, index) => {
+          const withPart =
+            entries.length > 1 && payload && typeof payload === 'object'
+              ? { ...payload, part: { id, i: index, n: entries.length } }
+              : payload;
+          return `PRIVMSG ${target} :${marker} ${JSON.stringify(withPart)}`;
+        }),
+      );
+      return entries.map(entry => entry.piece);
+    }
+    return [];
+  }
+
+  /**
+   * The first few lines go at once and the rest one by one, so a long paste
+   * does not get us disconnected for flooding. Lines queued earlier keep
+   * their place in front of new ones.
+   */
+  private sendPaced(lines: string[]): void {
+    if (this.pacedLines.length > 0 || this.pacedTimer) {
+      this.pacedLines.push(...lines);
+      return;
+    }
+    lines.slice(0, this.PACED_BURST).forEach(line => this.sendRaw(line));
+    const later = lines.slice(this.PACED_BURST);
+    if (later.length > 0) {
+      this.pacedLines.push(...later);
+      this.schedulePacedLine();
+    }
+  }
+
+  private schedulePacedLine(): void {
+    this.pacedTimer = setTimeout(() => {
+      this.pacedTimer = null;
+      const line = this.pacedLines.shift();
+      if (line === undefined) return;
+      if (!this.isConnected) {
+        this.pacedLines = [];
+        return;
+      }
+      this.sendRaw(line);
+      if (this.pacedLines.length > 0) this.schedulePacedLine();
+    }, this.PACED_INTERVAL_MS);
+  }
+
+  private clearPacedLines(): void {
+    if (this.pacedTimer) {
+      clearTimeout(this.pacedTimer);
+      this.pacedTimer = null;
+    }
+    this.pacedLines = [];
+  }
+
+  /**
    * Write a single IRC line to the TCP socket, encoded with the connection
    * encoding. For UTF-8 (or the UTF-8-fallback mode, which sends UTF-8)
    * encodeForSend returns null and we keep the plain string write so the common
@@ -2765,7 +3162,7 @@ export class IRCService {
       // into a line that looked like one, and quietly repairing it would hide
       // the attempt. Over-length lines are truncated, which is what the server
       // would do anyway - dropping the whole message is the worse outcome.
-      const checked = sanitizeOutboundLine(message);
+      const checked = sanitizeOutboundLine(message, this.getLineByteLimit());
       if (checked.line === null) {
         this.emit('raw-rejected', { reason: checked.rejected });
         this.logRaw(
@@ -2773,7 +3170,15 @@ export class IRCService {
         );
         return;
       }
-      if (checked.truncated) this.emit('raw-truncated', {});
+      if (checked.truncated) {
+        // Text the user typed is split before it gets here, so this is a raw
+        // line (/raw, a script, an addon). Say so instead of cutting silently.
+        this.emit('raw-truncated', {});
+        this.addRawMessage(
+          t('*** A line was too long for the server and was shortened'),
+          'connection',
+        );
+      }
       message = checked.line;
       try {
         if (this.currentTransport === 'websocket' && this.socket.send) {
@@ -3002,96 +3407,36 @@ export class IRCService {
     this.seenMessageIds.clear(); // Clear message ID cache for deduplication
   }
 
-  /**
-   * Enable or disable automatic reconnection
-   */
-  setAutoReconnect(enabled: boolean): void {
-    this.autoReconnectEnabled = enabled;
-    if (!enabled && this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-      this.reconnectAttempts = 0;
-    }
-  }
-
-  /**
-   * Get current auto-reconnect status
-   */
-  isAutoReconnectEnabled(): boolean {
-    return this.autoReconnectEnabled;
-  }
-
-  /**
-   * Cancel any pending reconnection attempt
-   */
-  cancelReconnect(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-      this.reconnectAttempts = 0;
-      this.addRawMessage(t('*** Auto-reconnect cancelled'), 'connection');
-    }
-  }
-
-  /**
-   * Schedule reconnection with exponential backoff
-   */
-  private scheduleReconnect(): void {
-    if (!this.autoReconnectEnabled || !this.config) {
-      return;
-    }
-
-    // Cancel any existing timer
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-    }
-
-    // Calculate delay with exponential backoff: delay = initial * 2^attempts
-    // Capped at MAX_RECONNECT_DELAY
-    const delay = Math.min(
-      this.INITIAL_RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
-      this.MAX_RECONNECT_DELAY,
-    );
-
-    this.reconnectAttempts++;
-    const seconds = Math.round(delay / 1000);
-    this.addRawMessage(
-      t('*** Reconnecting in {seconds} second{suffix} (attempt {attempt})...', {
-        seconds,
-        suffix: seconds !== 1 ? 's' : '',
-        attempt: this.reconnectAttempts,
-      }),
-      'connection',
-    );
-
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      this.addRawMessage(t('*** Attempting to reconnect...'), 'connection');
-
-      // Attempt to reconnect using the saved config
-      this.connect(this.config!)
-        .then(() => {
-          // Reset reconnect counter on successful connection
-          this.reconnectAttempts = 0;
-          this.addRawMessage(t('*** Reconnected successfully'), 'connection');
-        })
-        .catch((error: any) => {
-          this.addRawMessage(
-            t('*** Reconnection failed: {message}', {
-              message: error?.message || error,
-            }),
-            'connection',
-          );
-          // Will trigger another reconnect attempt via the error handler
-        });
-    }, delay);
-  }
-
   joinChannel(channel: string, key?: string): void {
     if (this.isConnected) {
-      const channelName = channel.startsWith('#') ? channel : `#${channel}`;
+      const channelName = this.withChannelPrefix(channel);
+      if (key && !channelName.includes(',')) {
+        this.channelKeys.set(channelName.toLowerCase(), key);
+      }
       this.sendRaw(key ? `JOIN ${channelName} ${key}` : `JOIN ${channelName}`);
     }
+  }
+
+  /** The key we last joined a channel with, for rejoining it after a drop. */
+  getChannelKey(channel: string): string | undefined {
+    return this.channelKeys.get(channel.toLowerCase());
+  }
+
+  /**
+   * Add `#` to a channel name only when it does not already start with one of
+   * the server's channel types (CHANTYPES, `#&` until the server says), so
+   * `&local` or `!abc` stay what they are. `0` (part all) is left alone, and a
+   * comma list is handled name by name.
+   */
+  private withChannelPrefix(channel: string): string {
+    if (channel === '0') return channel;
+    const advertised = this.isupportValues.get('CHANTYPES');
+    const types =
+      typeof advertised === 'string' && advertised ? advertised : '#&';
+    return channel
+      .split(',')
+      .map(name => (name && !types.includes(name[0]) ? `#${name}` : name))
+      .join(',');
   }
 
   requestChannelUsers(channel: string): void {
@@ -3335,28 +3680,6 @@ export class IRCService {
     return this.monitoredNicks.has(nick);
   }
 
-  private handleMultilineMessage(
-    from: string,
-    target: string,
-    text: string,
-    concatTag: string | undefined,
-    otherTags: {
-      timestamp: number;
-      account?: string;
-      msgid?: string;
-      channelContext?: string;
-      replyTo?: string;
-    },
-  ): string | null {
-    return this.multilineHandler.handleMultilineMessage(
-      from,
-      target,
-      text,
-      concatTag,
-      otherTags,
-    );
-  }
-
   private getBatchLabelManager(): BatchLabelManager {
     if (!this.batchLabelManager) {
       this.batchLabelManager = new BatchLabelManager({
@@ -3562,109 +3885,353 @@ export class IRCService {
         .replace(/\r/g, '\n');
       if (
         !normalizedMessage.startsWith('/') &&
-        normalizedMessage.includes('\n')
+        (normalizedMessage.includes('\n') ||
+          this.needsMultiline(target, normalizedMessage))
       ) {
-        this.sendMultilineMessage(target, normalizedMessage);
+        this.sendMultilineMessage(target, normalizedMessage, options);
         return;
       }
-      const tagString = buildIRCv3ClientTagPrefix(
-        {
-          '+draft/channel-context': options?.channelContext,
-          '+draft/reply': options?.replyTo,
-          '+typing': options?.typing,
-        },
-        tag => this.isClientTagAllowed(tag),
-      );
-      this.sendRaw(`${tagString}PRIVMSG ${target} :${normalizedMessage}`);
-
-      // Echo message locally
-      this.addMessage({
-        type: 'message',
-        channel: target,
-        from: this.currentNick,
-        text: normalizedMessage,
-        timestamp: Date.now(),
-        status: 'sent',
-        channelContext: options?.channelContext,
-        replyTo: options?.replyTo,
-        typing: options?.typing,
+      // Client-only tags may only be sent once message-tags is negotiated
+      // (client-tags/reply.md, typing.md); without it the text goes plain.
+      const withTags = this.canSendClientTags();
+      // A long message goes as several lines: the reply and context belong
+      // to its first line, the typing state to its last. `+reply` is the
+      // ratified name (client-tags/reply.md, 2026-02).
+      const pieces = this.sendSplitText('PRIVMSG', target, normalizedMessage, {
+        tagsFor: (index, count) =>
+          withTags
+            ? buildIRCv3ClientTagPrefix(
+                {
+                  '+draft/channel-context':
+                    index === 0 ? options?.channelContext : undefined,
+                  '+reply': index === 0 ? options?.replyTo : undefined,
+                  '+typing': index === count - 1 ? options?.typing : undefined,
+                },
+                tag => this.isClientTagAllowed(tag),
+              )
+            : '',
       });
-    }
-  }
 
-  sendReaction(target: string, msgid: string, emoji: string): void {
-    // Send reaction using client-only tag
-    if (this.isConnected && msgid) {
-      const tagString = buildIRCv3ClientTagPrefix(
-        { '+draft/react': `${msgid};${emoji}` },
-        tag => this.isClientTagAllowed(tag),
-      );
-      if (!tagString) return;
-      this.sendRaw(`${tagString}TAGMSG ${target}`);
-      this.logRaw(
-        `IRCService: Sent reaction ${emoji} to message ${msgid} in ${target}`,
-      );
-      this.emit('reaction-sent', target, msgid, emoji);
-    }
-  }
-
-  sendMultilineMessage(target: string, message: string): void {
-    // Send multiline message using draft/multiline capability
-    if (this.isConnected && this.capEnabledSet.has('draft/multiline')) {
-      const lines = message.split('\n');
-
-      if (lines.length === 1) {
-        // Single line, send normally
-        this.sendRaw(`PRIVMSG ${target} :${message}`);
-        // Echo the message locally
+      // Echo each line locally, as the others see it.
+      pieces.forEach((piece, index) =>
         this.addMessage({
           type: 'message',
           channel: target,
           from: this.currentNick,
-          text: message,
+          text: piece,
           timestamp: Date.now(),
           status: 'sent',
-        });
+          channelContext:
+            withTags && index === 0 ? options?.channelContext : undefined,
+          replyTo: withTags && index === 0 ? options?.replyTo : undefined,
+          typing:
+            withTags && index === pieces.length - 1
+              ? options?.typing
+              : undefined,
+        }),
+      );
+    }
+  }
+
+  /**
+   * React to (or, with `remove`, unreact from) the message `msgid` in
+   * `target`, as client-tags/react.md defines it:
+   * `@+reply=<msgid>;+draft/react=<reaction> TAGMSG <target>`. Needs
+   * message-tags, and the tags must not be blocked by CLIENTTAGDENY.
+   * Returns whether it was sent.
+   */
+  sendReaction(
+    target: string,
+    msgid: string,
+    emoji: string,
+    remove: boolean = false,
+  ): boolean {
+    if (
+      !this.isConnected ||
+      !msgid ||
+      !isValidReaction(emoji) ||
+      !this.canSendClientTags()
+    ) {
+      return false;
+    }
+    const reactTag = remove ? '+draft/unreact' : '+draft/react';
+    if (
+      !this.isClientTagAllowed('+reply') ||
+      !this.isClientTagAllowed(reactTag)
+    ) {
+      return false;
+    }
+    const tagString = buildIRCv3ClientTagPrefix({
+      '+reply': msgid,
+      [reactTag]: emoji,
+    });
+    this.sendRaw(`${tagString}TAGMSG ${target}`);
+    this.logRaw(
+      `IRCService: Sent ${remove ? 'unreaction' : 'reaction'} ${emoji} to message ${msgid} in ${target}`,
+    );
+    this.emit('reaction-sent', target, msgid, emoji, remove);
+    return true;
+  }
+
+  /**
+   * Send text with line breaks. With draft/multiline the whole text goes as
+   * one batch the other clients show as one message; otherwise every line is
+   * its own PRIVMSG, split further where it is too long, and echoed locally
+   * line by line as the others see it.
+   */
+  sendMultilineMessage(
+    target: string,
+    message: string,
+    options?: {
+      channelContext?: string;
+      replyTo?: string;
+      typing?: 'active' | 'paused' | 'done';
+    },
+  ): void {
+    if (!this.isConnected) return;
+    if (this.sendMultilineBatch(target, message, options)) {
+      this.addMessage({
+        type: 'message',
+        channel: target,
+        from: this.currentNick,
+        text: message,
+        timestamp: Date.now(),
+        status: 'sent',
+        ...(this.canSendClientTags()
+          ? {
+              channelContext: options?.channelContext,
+              replyTo: options?.replyTo,
+              typing: options?.typing,
+            }
+          : {}),
+      });
+      return;
+    }
+    this.sendLinesPlain(target, message, true);
+  }
+
+  /** Every line as its own PRIVMSG, split where too long. */
+  private sendLinesPlain(target: string, message: string, echo: boolean): void {
+    message.split('\n').forEach(line => {
+      if (!line.trim()) return;
+      const pieces = this.sendSplitText('PRIVMSG', target, line);
+      if (!echo) return;
+      pieces.forEach(piece =>
+        this.addMessage({
+          type: 'message',
+          channel: target,
+          from: this.currentNick,
+          text: piece,
+          timestamp: Date.now(),
+          status: 'sent',
+        }),
+      );
+    });
+  }
+
+  /** Text too long for one line, on a server that takes multiline batches. */
+  private needsMultiline(target: string, text: string): boolean {
+    return (
+      this.canSendMultiline() &&
+      utf8ByteLength(text) > this.getTextByteBudget('PRIVMSG', target)
+    );
+  }
+
+  /** Both draft/multiline and batch are needed (extensions/multiline.md). */
+  canSendMultiline(): boolean {
+    return (
+      this.capEnabledSet.has('draft/multiline') &&
+      this.capEnabledSet.has('batch')
+    );
+  }
+
+  /** `max-bytes` (required) and `max-lines` from the draft/multiline value. */
+  private getMultilineLimits(): { maxBytes?: number; maxLines?: number } {
+    const limits: { maxBytes?: number; maxLines?: number } = {};
+    (this.capValues.get('draft/multiline') || '').split(',').forEach(token => {
+      const [key, value] = token.split('=');
+      const number = /^\d+$/.test(value || '') ? parseInt(value, 10) : NaN;
+      if (Number.isNaN(number)) return;
+      if (key === 'max-bytes') limits.maxBytes = number;
+      if (key === 'max-lines') limits.maxLines = number;
+    });
+    return limits;
+  }
+
+  /**
+   * Send `text` as one draft/multiline batch (extensions/multiline.md):
+   * `BATCH +ref draft/multiline <target>`, one `@batch=ref PRIVMSG` per line,
+   * pieces of a too-long line joined back with `draft/multiline-concat`, then
+   * `BATCH -ref`. Client-only tags go on the BATCH command only. Returns false
+   * when a batch is not possible or not needed, so the caller falls back to
+   * plain lines.
+   */
+  private sendMultilineBatch(
+    target: string,
+    text: string,
+    options?: {
+      channelContext?: string;
+      replyTo?: string;
+      typing?: 'active' | 'paused' | 'done';
+    },
+  ): boolean {
+    if (!this.canSendMultiline()) return false;
+    const { maxBytes, maxLines } = this.getMultilineLimits();
+    if (!maxBytes) return false;
+    const textLines = text.split('\n');
+    // Clients MUST NOT send messages consisting entirely of blank lines.
+    if (textLines.every(line => !line.trim())) return false;
+
+    const budget = this.getTextByteBudget('PRIVMSG', target);
+    const lines: Array<{ text: string; concat: boolean }> = [];
+    textLines.forEach(line => {
+      if (line === '') {
+        // A blank line is allowed, but never as a concatenation.
+        lines.push({ text: '', concat: false });
         return;
       }
+      splitIrcText(line, budget).forEach((piece, index) =>
+        lines.push({ text: piece, concat: index > 0 }),
+      );
+    });
+    if (lines.length < 2) return false;
+    const combinedBytes =
+      lines.reduce((sum, line) => sum + utf8ByteLength(line.text), 0) +
+      textLines.length -
+      1;
+    if (combinedBytes > maxBytes) return false;
+    if (maxLines !== undefined && lines.length > maxLines) return false;
 
-      // Send each line with concat tag
-      lines.forEach((line, index) => {
-        const isLast = index === lines.length - 1;
-        const concatTag = isLast ? '' : 'concat'; // Empty string for last part
-        const tagString = buildIRCv3ClientTagPrefix({
-          'draft/multiline-concat': concatTag,
-        });
-        this.sendRaw(`${tagString}PRIVMSG ${target} :${line}`);
-      });
-
-      // Echo the full message locally
-      this.addMessage({
-        type: 'message',
-        channel: target,
-        from: this.currentNick,
-        text: message,
-        timestamp: Date.now(),
-        status: 'sent',
-      });
+    const ref = `ml${(++this.multilineRefCounter).toString(36)}${Date.now().toString(36)}`;
+    const clientTags = this.canSendClientTags()
+      ? buildIRCv3ClientTagPrefix(
+          {
+            '+draft/channel-context': options?.channelContext,
+            '+reply': options?.replyTo,
+            '+typing': options?.typing,
+          },
+          tag => this.isClientTagAllowed(tag),
+        )
+      : '';
+    const wire = [
+      `${clientTags}BATCH +${ref} draft/multiline ${target}`,
+      ...lines.map(
+        line =>
+          `@batch=${ref}${line.concat ? ';draft/multiline-concat' : ''} PRIVMSG ${target} :${line.text}`,
+      ),
+      `BATCH -${ref}`,
+    ];
+    // The batch goes out whole; servers expect that (multiline.md). Lines
+    // already waiting go first, so nothing ends up inside the batch.
+    if (this.pacedLines.length > 0 || this.pacedTimer) {
+      this.pacedLines.push(...wire);
     } else {
-      // Fallback: send as multiple separate messages
-      const lines = message.split('\n');
-      lines.forEach(line => {
-        if (line.trim()) {
-          this.sendRaw(`PRIVMSG ${target} :${line}`);
-        }
-      });
-      // Echo the full multiline message locally (even in fallback mode)
-      this.addMessage({
-        type: 'message',
-        channel: target,
-        from: this.currentNick,
-        text: message,
-        timestamp: Date.now(),
-        status: 'sent',
-      });
+      wire.forEach(line => this.sendRaw(line));
     }
+    this.lastMultilineSent = { target, text, at: Date.now() };
+    return true;
+  }
+
+  /**
+   * The server refused our last multiline batch (FAIL BATCH MULTILINE_*): send
+   * it again as plain lines, so the message is not lost. It is already shown.
+   */
+  private resendRefusedMultiline(): void {
+    const last = this.lastMultilineSent;
+    this.lastMultilineSent = null;
+    if (!last || Date.now() - last.at > 30000) return;
+    this.sendLinesPlain(last.target, last.text, false);
+  }
+
+  /**
+   * Collect an inbound draft/multiline batch and hand it on as ONE message
+   * once it ends (extensions/multiline.md). Lines are joined with a line feed,
+   * or with nothing when they carry draft/multiline-concat. The batch's own
+   * tags (msgid, time, account, client tags) belong to the message. Returns
+   * true when the line was consumed here.
+   */
+  private handleMultilineInbound(
+    command: string,
+    prefix: string,
+    params: string[],
+    tags: Map<string, string>,
+    timestamp: number,
+  ): boolean {
+    const batchTag = tags.get('batch');
+    if (command === 'BATCH') {
+      const id = params[0] || '';
+      if (id.startsWith('+') && params[1] === 'draft/multiline') {
+        this.multilineInbound.set(id.slice(1), {
+          prefix,
+          target: params[2] || '',
+          command: '',
+          timestamp,
+          lines: [],
+          tags,
+        });
+        return true;
+      }
+      if (id.startsWith('-') && this.multilineInbound.has(id.slice(1))) {
+        const batch = this.multilineInbound.get(id.slice(1))!;
+        this.multilineInbound.delete(id.slice(1));
+        this.dispatchMultiline(batch);
+        return true;
+      }
+      return false;
+    }
+    if (
+      batchTag !== undefined &&
+      (command === 'PRIVMSG' || command === 'NOTICE') &&
+      this.multilineInbound.has(batchTag)
+    ) {
+      const batch = this.multilineInbound.get(batchTag)!;
+      batch.command = batch.command || command;
+      batch.prefix = batch.prefix || prefix;
+      batch.lines.push({
+        text: params[params.length - 1] ?? '',
+        concat: tags.has('draft/multiline-concat'),
+      });
+      return true;
+    }
+    return false;
+  }
+
+  private dispatchMultiline(batch: {
+    prefix: string;
+    target: string;
+    command: string;
+    timestamp: number;
+    lines: Array<{ text: string; concat: boolean }>;
+    tags: Map<string, string>;
+  }): void {
+    if (batch.lines.length === 0) return;
+    const text = batch.lines.reduce(
+      (combined, line, index) =>
+        index === 0
+          ? line.text
+          : `${combined}${line.concat ? '' : '\n'}${line.text}`,
+      '',
+    );
+    const tags = batch.tags;
+    if (!this.commandHandlers) {
+      this.commandHandlers = new IRCCommandHandlers(this as any);
+    }
+    this.commandHandlers.handle(
+      batch.command || 'PRIVMSG',
+      batch.prefix,
+      [batch.target, text],
+      batch.timestamp,
+      {
+        batchTag: tags.get('batch') || undefined,
+        accountTag: tags.get('account') || undefined,
+        msgidTag: tags.get('msgid') || undefined,
+        channelContextTag: tags.get('+draft/channel-context') || undefined,
+        replyTag: tags.get('+reply') || tags.get('+draft/reply') || undefined,
+        typingTag: tags.get('+typing') || undefined,
+        intentTag: tags.get('+draft/intent') || undefined,
+        tags: tags.size > 0 ? Object.fromEntries(tags.entries()) : undefined,
+      },
+    );
   }
 
   sendMessage(
@@ -3690,7 +4257,8 @@ export class IRCService {
       .replace(/\r/g, '\n');
     if (
       !normalizedMessage.startsWith('/') &&
-      normalizedMessage.includes('\n')
+      (normalizedMessage.includes('\n') ||
+        this.needsMultiline(target, normalizedMessage))
     ) {
       this.sendMultilineMessage(target, normalizedMessage);
       return;
@@ -3712,15 +4280,16 @@ export class IRCService {
       return;
     }
 
-    this.sendRaw(`PRIVMSG ${target} :${normalizedMessage}`);
-    this.addMessage({
-      type: 'message',
-      channel: target,
-      from: this.currentNick,
-      text: normalizedMessage,
-      timestamp: Date.now(),
-      status: 'sent',
-    });
+    this.sendSplitText('PRIVMSG', target, normalizedMessage).forEach(piece =>
+      this.addMessage({
+        type: 'message',
+        channel: target,
+        from: this.currentNick,
+        text: piece,
+        timestamp: Date.now(),
+        status: 'sent',
+      }),
+    );
   }
 
   sendCommand(command: string): void {
@@ -4287,9 +4856,17 @@ export class IRCService {
    * @returns true if either typing capability is enabled
    */
   hasTypingCapability(): boolean {
-    return (
-      this.capEnabledSet.has('typing') || this.capEnabledSet.has('draft/typing')
-    );
+    // `typing` is a client-only tag, not a capability: it needs message-tags
+    // and must not be blocked by CLIENTTAGDENY (client-tags/typing.md).
+    return this.canSendClientTags() && this.isClientTagAllowed('+typing');
+  }
+
+  /**
+   * Client-only tags and TAGMSG may only be sent once message-tags has been
+   * negotiated (extensions/message-tags.md).
+   */
+  canSendClientTags(): boolean {
+    return this.capEnabledSet.has('message-tags');
   }
 
   /**

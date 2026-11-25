@@ -16,6 +16,11 @@ import type {
   CommandHandlerRegistry,
 } from '../commandTypes';
 
+import {
+  encryptedPartAssembler,
+  readEncryptedPart,
+} from '../protocol/EncryptedPartAssembler';
+
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** Check if target is a channel */
@@ -56,6 +61,24 @@ function resolveChannelIdentifier(
     : fromNick.toLowerCase() === currentNick.toLowerCase()
       ? target
       : fromNick;
+}
+
+/**
+ * Show a decrypted message. A piece of a long one (payload `part`) waits for
+ * the other pieces and is shown with them as one message.
+ */
+function showDecrypted(
+  payload: unknown,
+  conversation: string,
+  plaintext: string,
+  show: (text: string) => void,
+): void {
+  const part = readEncryptedPart(payload);
+  if (!part) {
+    show(plaintext);
+    return;
+  }
+  encryptedPartAssembler.add(conversation, part, plaintext, show);
 }
 
 /**
@@ -178,15 +201,21 @@ function handleEncryptionProtocol(
 
     channelEncryptionService
       .decryptMessage(payload, target, network)
-      .then((plaintext: string) => {
-        ctx.addMessage({
-          type: 'message',
-          channel: channelIdentifier,
-          from: fromNick,
-          text: t('🔒 {message}', { message: plaintext }),
-          timestamp,
-        });
-      })
+      .then((plaintext: string) =>
+        showDecrypted(
+          payload,
+          `${network}|${channelIdentifier}|${fromNick}`,
+          plaintext,
+          text =>
+            ctx.addMessage({
+              type: 'message',
+              channel: channelIdentifier,
+              from: fromNick,
+              text: t('🔒 {message}', { message: text }),
+              timestamp,
+            }),
+        ),
+      )
       .catch((e: any) => {
         ctx.addMessage({
           type: 'message',
@@ -253,15 +282,21 @@ function handleEncryptionProtocol(
 
     encryptedDMService
       .decryptForNetwork(payload, network, fromNick)
-      .then((plaintext: string) => {
-        ctx.addMessage({
-          type: 'message',
-          channel: channelIdentifier,
-          from: fromNick,
-          text: t('🔒 {message}', { message: plaintext }),
-          timestamp,
-        });
-      })
+      .then((plaintext: string) =>
+        showDecrypted(
+          payload,
+          `${network}|${channelIdentifier}|${fromNick}`,
+          plaintext,
+          text =>
+            ctx.addMessage({
+              type: 'message',
+              channel: channelIdentifier,
+              from: fromNick,
+              text: t('🔒 {message}', { message: text }),
+              timestamp,
+            }),
+        ),
+      )
       .catch(() => {
         ctx.addMessage({
           type: 'error',
@@ -446,46 +481,29 @@ export const handlePRIVMSG: CommandHandler = (
     return;
   }
 
-  // Handle multiline messages (draft/multiline)
-  const finalText = ctx.handleMultilineMessage(
-    fromNick,
-    channelIdentifier,
-    msgText,
-    meta?.multilineConcatTag,
+  // A draft/multiline batch arrives here already joined into one message.
+  ctx.addMessage(
     {
+      type: 'message',
+      channel: channelIdentifier,
+      from: fromNick,
+      text: msgText,
       timestamp,
       account: meta?.accountTag,
       msgid: meta?.msgidTag,
       channelContext: meta?.channelContextTag,
       replyTo: meta?.replyTag,
+      reactions: meta?.reactTag,
+      typing: meta?.typingTag as 'active' | 'paused' | 'done' | undefined,
+      intent: meta?.intentTag,
+      tags: meta?.tags,
+      username,
+      hostname,
+      target,
+      command: 'PRIVMSG',
     },
+    meta?.batchTag,
   );
-
-  // Only add message if multiline assembly is complete
-  if (finalText !== null) {
-    ctx.addMessage(
-      {
-        type: 'message',
-        channel: channelIdentifier,
-        from: fromNick,
-        text: finalText,
-        timestamp,
-        account: meta?.accountTag,
-        msgid: meta?.msgidTag,
-        channelContext: meta?.channelContextTag,
-        replyTo: meta?.replyTag,
-        reactions: meta?.reactTag,
-        typing: meta?.typingTag as 'active' | 'paused' | 'done' | undefined,
-        intent: meta?.intentTag,
-        tags: meta?.tags,
-        username,
-        hostname,
-        target,
-        command: 'PRIVMSG',
-      },
-      meta?.batchTag,
-    );
-  }
 };
 
 export const privmsgCommandHandlers: CommandHandlerRegistry = new Map([

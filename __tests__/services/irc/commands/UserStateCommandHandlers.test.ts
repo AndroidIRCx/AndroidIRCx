@@ -156,7 +156,38 @@ describe('UserStateCommandHandlers', () => {
   });
 
   describe('handleTAGMSG', () => {
-    it('logs reaction tag', () => {
+    // client-tags/react.md: @+reply=<parent>;+draft/react=<reaction> TAGMSG
+    it('reads a reaction from +reply and +draft/react', () => {
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        replyTag: 'msgid123',
+        reactTag: '👍',
+      });
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'reaction-received',
+        '#channel',
+        'msgid123',
+        '👍',
+        'nick',
+        false,
+      );
+    });
+
+    it('reads an unreaction from +draft/unreact', () => {
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        replyTag: 'm1',
+        unreactTag: '❤️',
+      });
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'reaction-received',
+        '#channel',
+        'm1',
+        '❤️',
+        'nick',
+        true,
+      );
+    });
+
+    it('still reads the old <msgid>;<reaction> form of earlier builds', () => {
       handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
         reactTag: 'msgid123;👍',
       });
@@ -166,8 +197,27 @@ describe('UserStateCommandHandlers', () => {
         'msgid123',
         '👍',
         'nick',
+        false,
       );
-      expect(ctx.logRaw).toHaveBeenCalled();
+    });
+
+    it('ignores a reaction without a parent, or with react and unreact both', () => {
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        reactTag: '👍',
+      });
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        replyTag: 'm1',
+        reactTag: '👍',
+        unreactTag: '👍',
+      });
+      expect(ctx.emit).not.toHaveBeenCalledWith(
+        'reaction-received',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
     it('logs typing tag', () => {
@@ -183,41 +233,22 @@ describe('UserStateCommandHandlers', () => {
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
-    it('adds raw message with tag summary when tags present', () => {
+    it('never shows a TAGMSG in the message history (message-tags.md)', () => {
       handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
-        reactTag: 'id;👍',
-      });
-      expect(ctx.addRawMessage).toHaveBeenCalled();
-    });
-
-    it('adds raw message without tags when no meta', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {});
-      expect(ctx.addRawMessage).toHaveBeenCalled();
-    });
-
-    it('handles both react and typing tags', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
-        reactTag: 'id;❤️',
+        replyTag: 'id',
+        reactTag: '👍',
         typingTag: 'done',
       });
-      expect(ctx.emit).toHaveBeenCalledWith(
-        'reaction-received',
-        '#channel',
-        'id',
-        '❤️',
-        'nick',
-      );
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {});
+      handleTAGMSG(ctx, 'nick!user@host', [], Date.now(), undefined);
+      expect(ctx.addRawMessage).not.toHaveBeenCalled();
+      expect(ctx.addMessage).not.toHaveBeenCalled();
       expect(ctx.emit).toHaveBeenCalledWith(
         'typing-indicator',
         '#channel',
         'nick',
         'done',
       );
-    });
-
-    it('handles undefined meta', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), undefined);
-      expect(ctx.addRawMessage).toHaveBeenCalled();
     });
   });
 });

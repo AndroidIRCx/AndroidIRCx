@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "此指紋太大，無法產生 QR 碼。請以文字形式分享。"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** 一行內容超出了伺服器的長度限制，已被截短"
+  },
+  "React": {
+    "string": "回應"
+  },
+  "Replying to {nick}": {
+    "string": "回覆 {nick}"
+  },
+  "More reactions": {
+    "string": "更多回應"
   }
 }

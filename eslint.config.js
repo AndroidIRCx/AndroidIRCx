@@ -34,7 +34,15 @@ const eslint10CompatibleReactNativeConfig = reactNativeConfig.map(config => {
 
 module.exports = [
   {
-    ignores: ['.eslintrc.js', 'eslint.config.js', 'coverage/**'],
+    // vendor/bundle holds locally installed Ruby gems and secrets/ local notes
+    // and fetched protocol specs (both gitignored), not app code.
+    ignores: [
+      '.eslintrc.js',
+      'eslint.config.js',
+      'coverage/**',
+      'vendor/bundle/**',
+      'secrets/**',
+    ],
   },
   ...eslint10CompatibleReactNativeConfig,
   {

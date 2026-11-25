@@ -30,6 +30,14 @@ export const TRANSPORT_CRITICAL_COMMANDS: ReadonlySet<string> = new Set([
 /** RFC 1459: 512 bytes on the wire including the trailing CRLF. */
 export const MAX_LINE_BYTES = 510;
 
+/**
+ * IRCv3 message tags have their own budget, separate from the 512 bytes of the
+ * message itself. A client may send at most 4094 bytes of tag data (8191 is
+ * only what a server may send to a client); with the leading '@' and the
+ * trailing space that is 4096.
+ */
+export const MAX_TAG_BYTES = 4094 + 2;
+
 export type RawRejectReason =
   'empty' | 'control-characters' | 'line-break' | 'too-long';
 
@@ -173,7 +181,10 @@ function truncateToBytes(value: string, maxBytes: number): string {
  * truncated instead of dropped, because the server would truncate them anyway
  * and losing the whole message is the worse outcome for the user.
  */
-export function sanitizeOutboundLine(line: string): RawSanitizeResult {
+export function sanitizeOutboundLine(
+  line: string,
+  maxLineBytes: number = MAX_LINE_BYTES,
+): RawSanitizeResult {
   if (typeof line !== 'string' || line.trim().length === 0)
     return { line: null, truncated: false, rejected: 'empty' };
   if (/[\r\n]/.test(line))
@@ -183,12 +194,26 @@ export function sanitizeOutboundLine(line: string): RawSanitizeResult {
   if (/\0/.test(line))
     return { line: null, truncated: false, rejected: 'control-characters' };
 
-  if (byteLengthOf(line) <= MAX_LINE_BYTES) return { line, truncated: false };
+  // Tags are not part of the 510 bytes, so they are measured on their own.
+  // Cutting inside them would break their syntax, so too many tags is refused.
+  let tags = '';
+  let message = line;
+  if (line.startsWith('@')) {
+    const space = line.indexOf(' ');
+    if (space === -1)
+      return { line: null, truncated: false, rejected: 'empty' };
+    tags = line.slice(0, space + 1);
+    message = line.slice(space + 1);
+    if (byteLengthOf(tags) > MAX_TAG_BYTES)
+      return { line: null, truncated: false, rejected: 'too-long' };
+  }
 
-  const shortened = truncateToBytes(line, MAX_LINE_BYTES);
+  if (byteLengthOf(message) <= maxLineBytes) return { line, truncated: false };
+
+  const shortened = truncateToBytes(message, maxLineBytes);
   if (shortened.trim().length === 0)
     return { line: null, truncated: false, rejected: 'too-long' };
-  return { line: shortened, truncated: true };
+  return { line: tags + shortened, truncated: true };
 }
 
 /**

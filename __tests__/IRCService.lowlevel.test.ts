@@ -239,7 +239,7 @@ describe('IRCService low-level branches', () => {
         { type: 'http', host: '127.0.0.1', port: 8080 },
         { host: 'irc.example', port: 6697 },
       ),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual(Buffer.alloc(0));
 
     readSpy.mockResolvedValueOnce(
       Buffer.from('HTTP/1.1 407 Proxy Authentication Required\r\n\r\n'),
@@ -267,7 +267,7 @@ describe('IRCService low-level branches', () => {
         { type: 'socks5', host: '127.0.0.1', port: 9050 },
         { host: 'irc.example', port: 6697 },
       ),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual(Buffer.alloc(0));
 
     readSpy.mockReset();
     readSpy.mockResolvedValueOnce(Buffer.from([0x04, 0x00]));
@@ -897,18 +897,9 @@ describe('IRCService low-level branches', () => {
     expect(clones.has('h2')).toBe(false);
   });
 
-  it('covers clone status and auto reconnect toggles', () => {
+  it('covers clone status', () => {
     (irc as any).cloneDetectionActive = true;
     expect(irc.isCloneDetectionActive()).toBe(true);
-
-    const clearSpy = jest.spyOn(global, 'clearTimeout');
-    (irc as any).reconnectTimer = setTimeout(() => {}, 1000);
-    (irc as any).reconnectAttempts = 3;
-    irc.setAutoReconnect(false);
-    expect(irc.isAutoReconnectEnabled()).toBe(false);
-    expect((irc as any).reconnectAttempts).toBe(0);
-    expect(clearSpy).toHaveBeenCalled();
-    clearSpy.mockRestore();
   });
 
   it('covers requestChannelUsers and channel/user service accessors', () => {

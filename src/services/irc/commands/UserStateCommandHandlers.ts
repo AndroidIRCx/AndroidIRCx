@@ -119,43 +119,30 @@ export const handleTAGMSG: CommandHandler = (
 ) => {
   const tagTarget = params[0] || '';
   const tagFrom = ctx.extractNick(prefix);
-  const reactTag = meta?.reactTag;
   const typingTag = meta?.typingTag;
 
-  const tagSummary = [
-    reactTag ? `react=${reactTag}` : null,
-    typingTag ? `typing=${typingTag}` : null,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  // A TAGMSG MUST NOT be shown in the message history by default
+  // (message-tags.md); what its tags mean is handled below.
+  ctx.logRaw(
+    `IRCService: TAGMSG ${tagFrom} -> ${tagTarget || '-'} ${JSON.stringify(meta?.tags ?? {})}`,
+  );
 
-  if (tagSummary) {
-    ctx.addRawMessage(
-      t('*** TAGMSG {from} -> {target} ({tags})', {
-        from: tagFrom,
-        target: tagTarget || '-',
-        tags: tagSummary,
-      }),
-      'user',
-      timestamp,
-    );
-  } else {
-    ctx.addRawMessage(
-      t('*** TAGMSG {from} -> {target}', {
-        from: tagFrom,
-        target: tagTarget || '-',
-      }),
-      'user',
-      timestamp,
-    );
+  // client-tags/react.md: the parent message is in +reply, the reaction in
+  // +draft/react or +draft/unreact (never both). Builds before 1.10.11 sent
+  // `+draft/react=<msgid>;<reaction>` without +reply; that is still read.
+  let parent = meta?.replyTag;
+  let reaction = meta?.reactTag ?? meta?.unreactTag;
+  const remove = !meta?.reactTag && !!meta?.unreactTag;
+  if (!parent && meta?.reactTag && meta.reactTag.includes(';')) {
+    const split = meta.reactTag.indexOf(';');
+    parent = meta.reactTag.slice(0, split);
+    reaction = meta.reactTag.slice(split + 1);
   }
-
-  if (reactTag) {
-    const [referencedMsgid, emoji] = reactTag.split(';');
+  if (parent && reaction && !(meta?.reactTag && meta?.unreactTag)) {
     ctx.logRaw(
-      `IRCService: ${tagFrom} reacted ${emoji} to message ${referencedMsgid} in ${tagTarget}`,
+      `IRCService: ${tagFrom} ${remove ? 'unreacted' : 'reacted'} ${reaction} to message ${parent} in ${tagTarget}`,
     );
-    ctx.emit('reaction-received', tagTarget, referencedMsgid, emoji, tagFrom);
+    ctx.emit('reaction-received', tagTarget, parent, reaction, tagFrom, remove);
   }
 
   if (typingTag) {

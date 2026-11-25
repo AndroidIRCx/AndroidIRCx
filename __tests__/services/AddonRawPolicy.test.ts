@@ -141,6 +141,37 @@ describe('AddonRawPolicy', () => {
       );
     });
 
+    it('does not count message tags against the 510 bytes', () => {
+      const tags = `@+draft/reply=${'m'.repeat(200)}`;
+      const message = `PRIVMSG #chan :${'a'.repeat(400)}`;
+      expect(sanitizeOutboundLine(`${tags} ${message}`)).toEqual({
+        line: `${tags} ${message}`,
+        truncated: false,
+      });
+    });
+
+    it('keeps the tags whole when it shortens a tagged line', () => {
+      const tags = '@+draft/reply=abc';
+      const result = sanitizeOutboundLine(
+        `${tags} PRIVMSG #chan :${'a'.repeat(600)}`,
+      );
+      expect(result.truncated).toBe(true);
+      expect(result.line?.startsWith(`${tags} PRIVMSG #chan :a`)).toBe(true);
+      const message = (result.line as string).slice(tags.length + 1);
+      expect(byteLengthOf(message)).toBeLessThanOrEqual(MAX_LINE_BYTES);
+    });
+
+    it('refuses tags over their own limit and a line that is only tags', () => {
+      // Clients may send 4094 bytes of tag data ('@+x=' counts, the '@' not).
+      const atLimit = `@+x=${'t'.repeat(4094 - 3)} PRIVMSG #c :hi`;
+      expect(sanitizeOutboundLine(atLimit).line).toBe(atLimit);
+      expect(
+        sanitizeOutboundLine(`@+x=${'t'.repeat(4094 - 2)} PRIVMSG #c :hi`)
+          .rejected,
+      ).toBe('too-long');
+      expect(sanitizeOutboundLine('@+x=1').rejected).toBe('empty');
+    });
+
     it('measures the limit in bytes, not characters', () => {
       // 300 two-byte characters is 600 bytes even though it is 300 chars.
       const result = sanitizeOutboundLine(`PRIVMSG #c :${'ž'.repeat(300)}`);

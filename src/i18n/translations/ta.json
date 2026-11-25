@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "இந்தக் கைரேகை QR குறியீட்டுக்கு மிகப் பெரியது. அதை உரையாகப் பகிருங்கள்."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** ஒரு வரி சேவையகத்திற்கு மிக நீளமாக இருந்ததால் சுருக்கப்பட்டது"
+  },
+  "React": {
+    "string": "எதிர்வினை"
+  },
+  "Replying to {nick}": {
+    "string": "{nick}க்கு பதில்"
+  },
+  "More reactions": {
+    "string": "மேலும் எதிர்வினைகள்"
   }
 }

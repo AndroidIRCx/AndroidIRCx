@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Bu barmoq izi QR kod uchun juda katta. Uni matn sifatida ulashing."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Qator server uchun juda uzun edi va qisqartirildi"
+  },
+  "React": {
+    "string": "Munosabat"
+  },
+  "Replying to {nick}": {
+    "string": "{nick} foydalanuvchisiga javob"
+  },
+  "More reactions": {
+    "string": "Boshqa munosabatlar"
   }
 }

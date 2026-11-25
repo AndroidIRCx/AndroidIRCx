@@ -60,6 +60,13 @@ class AutoReconnectService {
   }
   private messageListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private intentionalDisconnectListeners: Map<string, () => void> = new Map(); // network -> cleanup function
+  private channelEventListeners: Map<string, Array<() => void>> = new Map(); // network -> kick/registered cleanups
+  /**
+   * Networks that connected and wait for registration before channels are
+   * rejoined. The value says whether this connection was our own reconnect,
+   * in which case the channels of the lost session are rejoined too.
+   */
+  private pendingRejoin: Map<string, boolean> = new Map();
 
   private async resolveNetworkConfig(
     networkId: string,
@@ -128,30 +135,22 @@ class AutoReconnectService {
     ircService.onMessage(message => {
       const network = ircService.getNetworkName();
       if (network && network !== 'Not connected') {
-        if (
-          message.type === 'join' &&
-          message.channel &&
-          message.from === ircService.getCurrentNick()
-        ) {
-          this.addChannelToState(network, message.channel);
-        } else if (
-          message.type === 'part' &&
-          message.channel &&
-          message.from === ircService.getCurrentNick()
-        ) {
-          this.removeChannelFromState(network, message.channel);
-        } else if (
-          message.type === 'mode' &&
-          message.text.includes('KICK') &&
-          message.text.includes(ircService.getCurrentNick())
-        ) {
-          // This is a basic way to detect a kick, might need refinement
-          const parts = message.text.split(' ');
-          if (parts.length >= 4 && parts[2] === ircService.getCurrentNick()) {
-            const channel = parts[1];
-            this.removeChannelFromState(network, channel);
-          }
-        }
+        this.trackOwnChannel(network, message, ircService.getCurrentNick());
+      }
+    });
+
+    // 'kick' is only emitted when we are the one kicked.
+    ircService.on('kick', (channel: string) => {
+      const network = ircService.getNetworkName();
+      if (network && network !== 'Not connected' && channel) {
+        this.removeChannelFromState(network, channel);
+      }
+    });
+
+    ircService.on('registered', () => {
+      const network = ircService.getNetworkName();
+      if (network && network !== 'Not connected') {
+        this.handleRegistered(network);
       }
     });
 
@@ -184,32 +183,13 @@ class AutoReconnectService {
     );
 
     // Listen for channel joins/parts
-    const messageCleanup = ircServiceInstance.onMessage(message => {
-      const currentNick = ircServiceInstance.getCurrentNick();
-      if (
-        message.type === 'join' &&
-        message.channel &&
-        message.from === currentNick
-      ) {
-        this.addChannelToState(networkId, message.channel);
-      } else if (
-        message.type === 'part' &&
-        message.channel &&
-        message.from === currentNick
-      ) {
-        this.removeChannelFromState(networkId, message.channel);
-      } else if (
-        message.type === 'mode' &&
-        message.text.includes('KICK') &&
-        message.text.includes(currentNick)
-      ) {
-        const parts = message.text.split(' ');
-        if (parts.length >= 4 && parts[2] === currentNick) {
-          const channel = parts[1];
-          this.removeChannelFromState(networkId, channel);
-        }
-      }
-    });
+    const messageCleanup = ircServiceInstance.onMessage(message =>
+      this.trackOwnChannel(
+        networkId,
+        message,
+        ircServiceInstance.getCurrentNick(),
+      ),
+    );
 
     const intentionalDisconnectCleanup = ircServiceInstance.on(
       'intentional-quit',
@@ -220,12 +200,41 @@ class AutoReconnectService {
       },
     );
 
+    // 'kick' is only emitted when we are the one kicked.
+    const kickCleanup = ircServiceInstance.on('kick', (channel: string) => {
+      if (channel) this.removeChannelFromState(networkId, channel);
+    });
+    const registeredCleanup = ircServiceInstance.on('registered', () =>
+      this.handleRegistered(networkId),
+    );
+
     this.connectionListeners.set(networkId, connectionCleanup);
     this.messageListeners.set(networkId, messageCleanup);
     this.intentionalDisconnectListeners.set(
       networkId,
       intentionalDisconnectCleanup,
     );
+    this.channelEventListeners.set(networkId, [kickCleanup, registeredCleanup]);
+  }
+
+  /** Keep the list of channels we are in, from our own JOIN and PART lines. */
+  private trackOwnChannel(
+    network: string,
+    message: { type?: string; channel?: string; from?: string },
+    currentNick: string,
+  ): void {
+    if (
+      !message.channel ||
+      !currentNick ||
+      message.from?.toLowerCase() !== currentNick.toLowerCase()
+    ) {
+      return;
+    }
+    if (message.type === 'join') {
+      this.addChannelToState(network, message.channel);
+    } else if (message.type === 'part') {
+      this.removeChannelFromState(network, message.channel);
+    }
   }
 
   /**
@@ -250,6 +259,9 @@ class AutoReconnectService {
       intentionalCleanup();
       this.intentionalDisconnectListeners.delete(networkId);
     }
+
+    this.channelEventListeners.get(networkId)?.forEach(cleanup => cleanup());
+    this.channelEventListeners.delete(networkId);
 
     console.log(
       `AutoReconnectService: Unregistered listeners for ${networkId}`,
@@ -276,31 +288,53 @@ class AutoReconnectService {
       this.reconnectTimers.delete(network);
     }
 
+    const wasOurReconnect = this.isReconnecting.get(network) === true;
     this.isReconnecting.set(network, false);
 
-    // Rejoin channels or request playback if configured
-    const config = this.config.get(network);
-    const bouncerInfo = bouncerService.getBouncerInfo();
+    // The socket is up, but the server has not accepted us yet: a JOIN now
+    // would be refused, and a bouncer is only known once its capabilities
+    // are in. Rejoining waits for registration (001).
+    this.pendingRejoin.set(network, wasOurReconnect);
+  }
 
-    if (config?.rejoinChannels && state?.channels) {
-      if (bouncerInfo.playbackSupported) {
-        console.log(
-          'AutoReconnectService: Bouncer with playback detected, requesting playback.',
-        );
-        // Let the bouncer handle rejoining and message history
-        setTimeout(() => {
-          bouncerService.requestPlayback();
-        }, 1000); // Small delay to ensure server is ready
-      } else {
-        // No bouncer or playback support, rejoin manually
-        console.log(
-          'AutoReconnectService: No bouncer detected, rejoining channels manually.',
-        );
-        setTimeout(() => {
-          this.rejoinChannels(network, state.channels);
-        }, 2000); // Wait 2 seconds after connection to rejoin
-      }
+  /**
+   * Registration finished: rejoin channels, or let a bouncer play back.
+   * After our own reconnect the channels of the lost session are rejoined
+   * too, not only favorites and auto-join.
+   */
+  private handleRegistered(network: string): void {
+    const includeLostSession = this.pendingRejoin.get(network);
+    if (includeLostSession === undefined) return;
+    this.pendingRejoin.delete(network);
+
+    const config = this.config.get(network);
+    const state = this.connectionStates.get(network);
+    if (!config?.rejoinChannels || !state) return;
+
+    // Each connection has its own BouncerService; the singleton only knows
+    // the singleton ircService.
+    const bouncer =
+      this.connectionManager?.getConnection(network)?.bouncerService ??
+      bouncerService;
+
+    if (bouncer.getBouncerInfo().playbackSupported) {
+      console.log(
+        'AutoReconnectService: Bouncer with playback detected, requesting playback.',
+      );
+      // The bouncer kept us in the channels; it only has to replay history.
+      setTimeout(() => {
+        bouncer.requestPlayback();
+      }, 1000);
+      return;
     }
+
+    console.log(
+      'AutoReconnectService: No bouncer detected, rejoining channels manually.',
+    );
+    const lostSession = includeLostSession ? [...state.channels] : [];
+    setTimeout(() => {
+      this.rejoinChannels(network, lostSession);
+    }, 2000); // Give NickServ identification a moment first
   }
 
   /**
@@ -505,32 +539,28 @@ class AutoReconnectService {
     const favorites = autoJoinFavoritesEnabled
       ? channelFavoritesService.getFavorites(favoritesNetworkName)
       : [];
-    const favoriteChannels = favorites.map(f => ({ name: f.name, key: f.key }));
     const autoJoinChannels = networkConfig?.autoJoinChannels || [];
 
-    // Only rejoin channels from auto-join list or favorites
-    const allowed = new Set<string>([
-      ...autoJoinChannels,
-      ...favoriteChannels.map(f => f.name),
-    ]);
-    const allChannels = new Map<string, string | undefined>();
-    favoriteChannels.forEach(f => allChannels.set(f.name, f.key));
-    autoJoinChannels.forEach(ch => {
-      if (!allChannels.has(ch)) {
-        allChannels.set(ch, undefined);
-      }
-    });
-
-    if (allowed.size === 0) {
-      return;
-    }
+    // Favorites, auto-join, and the channels of the lost session (passed in
+    // only after our own reconnect), once each whatever their case. A key
+    // comes from the favorite, or from the JOIN we sent earlier.
+    const allChannels = new Map<string, { name: string; key?: string }>();
+    const add = (name: string, key?: string) => {
+      if (!name || allChannels.has(name.toLowerCase())) return;
+      allChannels.set(name.toLowerCase(), {
+        name,
+        key: key || ircServiceInstance.getChannelKey?.(name),
+      });
+    };
+    favorites.forEach(f => add(f.name, f.key));
+    autoJoinChannels.forEach(ch => add(ch));
+    channels.forEach(ch => add(ch));
 
     // Rejoin with delay between each to avoid flood
     let delay = 0;
-    for (const [channel, key] of allChannels) {
-      if (!allowed.has(channel)) continue;
+    for (const { name, key } of allChannels.values()) {
       setTimeout(() => {
-        ircServiceInstance.joinChannel(channel, key);
+        ircServiceInstance.joinChannel(name, key);
       }, delay);
       delay += 1000; // 1 second between each join
     }
@@ -564,7 +594,8 @@ class AutoReconnectService {
   addChannelToState(network: string, channel: string): void {
     const state = this.connectionStates.get(network);
     if (state) {
-      if (!state.channels.includes(channel)) {
+      const lower = channel.toLowerCase();
+      if (!state.channels.some(c => c.toLowerCase() === lower)) {
         state.channels.push(channel);
         this.connectionStates.set(network, state);
         this.saveConnectionStates();
@@ -578,7 +609,8 @@ class AutoReconnectService {
   removeChannelFromState(network: string, channel: string): void {
     const state = this.connectionStates.get(network);
     if (state) {
-      state.channels = state.channels.filter(c => c !== channel);
+      const lower = channel.toLowerCase();
+      state.channels = state.channels.filter(c => c.toLowerCase() !== lower);
       this.connectionStates.set(network, state);
       this.saveConnectionStates();
     }

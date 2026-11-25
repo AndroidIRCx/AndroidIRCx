@@ -82,17 +82,17 @@ export const handleENCMSG: SendMessageHandler = (ctx, args) => {
     const encTarget = args[0];
     const encPlaintext = args.slice(1).join(' ');
     const network = ctx.getNetworkName();
-    encryptedDMService
-      .encryptForNetwork(encPlaintext, network, encTarget)
-      .then((payload: any) => {
-        ctx.sendRaw(
-          `PRIVMSG ${encTarget} :!enc-msg ${JSON.stringify(payload)}`,
-        );
+    ctx
+      .sendEncryptedText(encTarget, encPlaintext, '!enc-msg', piece =>
+        encryptedDMService.encryptForNetwork(piece, network, encTarget),
+      )
+      .then((pieces: string[]) => {
+        // Shown as one message, the way the other side joins it.
         ctx.addMessage({
           type: 'message',
           channel: encTarget,
           from: ctx.getCurrentNick(),
-          text: t('🔒 {message}', { message: encPlaintext }),
+          text: t('🔒 {message}', { message: pieces.join('') }),
           timestamp: Date.now(),
           status: 'sent',
         });
@@ -249,17 +249,21 @@ export const handleCHANKEY: SendMessageHandler = (ctx, args, target) => {
       }
       {
         const encText = args.slice(1).join(' ');
-        channelEncryptionService
-          .encryptMessage(encText, target, ctx.getNetworkName())
-          .then((payload: any) => {
-            ctx.sendRaw(
-              `PRIVMSG ${target} :!chanenc-msg ${JSON.stringify(payload)}`,
-            );
+        ctx
+          .sendEncryptedText(target, encText, '!chanenc-msg', piece =>
+            channelEncryptionService.encryptMessage(
+              piece,
+              target,
+              ctx.getNetworkName(),
+            ),
+          )
+          .then((pieces: string[]) => {
+            // Shown as one message, the way the other side joins it.
             ctx.addMessage({
               type: 'message',
               channel: target,
               from: ctx.getCurrentNick(),
-              text: t('🔒 {message}', { message: encText }),
+              text: t('🔒 {message}', { message: pieces.join('') }),
               timestamp: Date.now(),
               status: 'sent',
             });

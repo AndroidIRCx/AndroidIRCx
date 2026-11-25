@@ -396,20 +396,6 @@ export class IRCCommandHandlers {
           require('../ProtectionService').protectionService;
         return protectionService.evaluateIncomingMessage(message, context);
       },
-      handleMultilineMessage: (
-        from: string,
-        target: string,
-        text: string,
-        concatTag: string | undefined,
-        otherTags: any,
-      ) =>
-        (svc as any).handleMultilineMessage(
-          from,
-          target,
-          text,
-          concatTag,
-          otherTags,
-        ),
       getEncryptedDMService: () =>
         require('../EncryptedDMService').encryptedDMService,
       getChannelEncryptionService: () =>
@@ -487,8 +473,8 @@ export class IRCCommandHandlers {
       channelContextTag?: string;
       replyTag?: string;
       reactTag?: string;
+      unreactTag?: string;
       typingTag?: string;
-      multilineConcatTag?: string;
       intentTag?: string;
       tags?: Record<string, string>;
     },

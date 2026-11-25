@@ -9,28 +9,41 @@ import { useTheme } from '../hooks/useTheme';
 import {
   messageReactionsService,
   MessageReactions,
+  reactionKey,
 } from '../services/MessageReactionsService';
 
 interface MessageReactionsProps {
-  messageId: string;
+  /** Network and server msgid of the message: IRCv3 reactions point to it. */
+  network?: string;
+  msgid?: string;
+  /** Channel or nick the reaction is sent to. */
+  target?: string;
   currentUserNick?: string;
   onReactionPress?: (emoji: string) => void;
 }
 
 export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
-  messageId,
+  network,
+  msgid,
+  target,
   currentUserNick,
   onReactionPress,
 }) => {
+  // Without a msgid nobody else can see a reaction, so there is none to show.
+  const messageId = network && msgid ? reactionKey(network, msgid) : '';
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   // Read on first render: every message row mounts this, and loading it in the
   // effect instead meant a second render per row.
   const [reactions, setReactions] = useState<MessageReactions | null>(() =>
-    messageReactionsService.getReactions(messageId),
+    messageId ? messageReactionsService.getReactions(messageId) : null,
   );
 
   useEffect(() => {
+    if (!messageId) {
+      setReactions(null);
+      return undefined;
+    }
     // Same object as the first render when nothing changed: no re-render.
     setReactions(messageReactionsService.getReactions(messageId));
 
@@ -47,12 +60,15 @@ export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
   }, [messageId]);
 
   const handleReactionPress = async (emoji: string) => {
-    if (!currentUserNick) {
+    if (!currentUserNick || !network || !msgid || !target) {
       return;
     }
 
-    await messageReactionsService.toggleReaction(
-      messageId,
+    // Tapping a reaction joins it, or takes yours back, on the network.
+    await messageReactionsService.toggleNetworkReaction(
+      network,
+      target,
+      msgid,
       emoji,
       currentUserNick,
     );

@@ -330,74 +330,6 @@ class MediaPickerService {
   }
 
   /**
-   * Record video with camera
-   * Note: Placeholder - needs camera screen implementation
-   */
-  async recordVideo(): Promise<MediaPickResult> {
-    try {
-      // Permissions should already be requested by the caller
-      // Just verify they're granted
-      const hasCameraPermission = await this.requestCameraPermission();
-      if (!hasCameraPermission) {
-        return {
-          success: false,
-          error: 'Camera permission denied',
-        };
-      }
-
-      const hasMicPermission = await this.requestMicrophonePermission();
-      if (!hasMicPermission) {
-        return {
-          success: false,
-          error: 'Microphone permission denied',
-        };
-      }
-
-      // TODO: Implement video recording screen
-      return {
-        success: false,
-        error:
-          'Video recording feature is not yet implemented. Please use "Video Library" option to select an existing video.',
-      };
-    } catch (error: any) {
-      console.error('[MediaPickerService] Record video error:', error);
-      return {
-        success: false,
-        error: error?.message || 'Failed to record video',
-      };
-    }
-  }
-
-  /**
-   * Record voice message
-   * Note: Placeholder - needs audio recording implementation
-   */
-  async recordVoice(): Promise<MediaPickResult> {
-    try {
-      const hasPermission = await this.requestMicrophonePermission();
-      if (!hasPermission) {
-        return { success: false, error: 'Microphone permission denied' };
-      }
-
-      // TODO: Implement audio recording
-      // - Create VoiceRecorder component
-      // - Use react-native-audio-recorder or similar
-      // - Save to cache directory
-      // - Return file URI with duration
-      return {
-        success: false,
-        error: 'Voice recording not yet implemented',
-      };
-    } catch (error: any) {
-      console.error('[MediaPickerService] Record voice error:', error);
-      return {
-        success: false,
-        error: error.message || 'Failed to record voice',
-      };
-    }
-  }
-
-  /**
    * Pick generic file (documents, audio, gif, etc.)
    */
   async pickFile(): Promise<MediaPickResult> {
@@ -731,33 +663,6 @@ class MediaPickerService {
       return true; // iOS permissions handled in Info.plist
     } catch (error) {
       console.error('[MediaPickerService] Camera permission error:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Request microphone permission (Android)
-   */
-  private async requestMicrophonePermission(): Promise<boolean> {
-    try {
-      if (Platform.OS === 'android') {
-        // Check current permission status using PermissionsAndroid
-        const hasPermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        );
-
-        if (hasPermission) {
-          return true;
-        }
-
-        const micPermission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        );
-        return micPermission === PermissionsAndroid.RESULTS.GRANTED;
-      }
-      return true; // iOS permissions handled in Info.plist
-    } catch (error) {
-      console.error('[MediaPickerService] Microphone permission error:', error);
       return false;
     }
   }

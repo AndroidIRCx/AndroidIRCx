@@ -31,6 +31,58 @@ describe('MessageCommands', () => {
         (cmd: string, text: string) => `\x01${cmd} ${text}\x01`,
       ),
     };
+    // The real one splits by bytes; here every word longer than 20 characters
+    // stands in for "too long", so the handlers' per-piece handling shows.
+    ctx.sendSplitText = jest.fn(
+      (
+        command: string,
+        target: string,
+        text: string,
+        options?: { wrap?: (piece: string) => string },
+      ) => {
+        const pieces = text.length > 20 ? text.split(' ') : [text];
+        pieces.forEach(piece =>
+          ctx.sendRaw(
+            `${command} ${target} :${options?.wrap ? options.wrap(piece) : piece}`,
+          ),
+        );
+        return pieces;
+      },
+    );
+  });
+
+  describe('long text', () => {
+    it('/msg echoes every piece that was sent', () => {
+      handleMSG(ctx, ['#c', 'first-part', 'second-part'], '#other');
+      expect(ctx.sendRaw).toHaveBeenCalledTimes(2);
+      expect(ctx.addMessage).toHaveBeenCalledTimes(2);
+      expect(ctx.addMessage).toHaveBeenLastCalledWith(
+        expect.objectContaining({ text: 'second-part' }),
+      );
+    });
+
+    it('/me sends every piece as its own action', () => {
+      handleME(ctx, ['waves-at-everyone', 'very-politely'], '#c');
+      expect(ctx.sendSplitText).toHaveBeenCalledWith(
+        'PRIVMSG',
+        '#c',
+        'waves-at-everyone very-politely',
+        expect.objectContaining({ wrapBytes: 9 }),
+      );
+      expect(ctx.sendRaw).toHaveBeenNthCalledWith(
+        2,
+        'PRIVMSG #c :\x01ACTION very-politely\x01',
+      );
+      expect(ctx.addMessage).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ text: '\x01ACTION very-politely\x01' }),
+      );
+    });
+
+    it('/notice echoes every piece', () => {
+      handleNOTICE(ctx, ['bob', 'a-rather-long', 'notice-text'], '#c');
+      expect(ctx.addMessage).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('messageCommands map', () => {

@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "ఈ వేలిముద్ర QR కోడ్‌కు చాలా పెద్దది. దాన్ని టెక్స్ట్‌గా షేర్ చేయండి."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** ఒక పంక్తి సర్వర్‌కు చాలా పొడవుగా ఉండటంతో కుదించబడింది"
+  },
+  "React": {
+    "string": "స్పందించు"
+  },
+  "Replying to {nick}": {
+    "string": "{nick}కి సమాధానం"
+  },
+  "More reactions": {
+    "string": "మరిన్ని స్పందనలు"
   }
 }

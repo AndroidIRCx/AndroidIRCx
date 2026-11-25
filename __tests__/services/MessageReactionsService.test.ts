@@ -442,4 +442,227 @@ describe('MessageReactionsService', () => {
       expect(reactions?.reactions[0].users).toContain('bob|mobile');
     });
   });
+  describe('network reactions (IRCv3)', () => {
+    const {
+      reactionKey,
+    } = require('../../src/services/MessageReactionsService');
+
+    afterEach(() => messageReactionsService.setReactionSender(null));
+
+    it('keys reactions by network and msgid', () => {
+      expect(reactionKey('net', 'm1')).not.toBe(reactionKey('other', 'm1'));
+    });
+
+    it('sends first and only shows what was sent', async () => {
+      const sender = jest.fn(() => true);
+      messageReactionsService.setReactionSender(sender);
+      await expect(
+        messageReactionsService.toggleNetworkReaction(
+          'net',
+          '#c',
+          'm1',
+          '👍',
+          'me',
+        ),
+      ).resolves.toBe(true);
+      expect(sender).toHaveBeenLastCalledWith('net', '#c', 'm1', '👍', false);
+      expect(
+        messageReactionsService.hasUserReacted(
+          reactionKey('net', 'm1'),
+          '👍',
+          'me',
+        ),
+      ).toBe(true);
+
+      // Tapping again sends an unreact and removes it.
+      await messageReactionsService.toggleNetworkReaction(
+        'net',
+        '#c',
+        'm1',
+        '👍',
+        'me',
+      );
+      expect(sender).toHaveBeenLastCalledWith('net', '#c', 'm1', '👍', true);
+      expect(
+        messageReactionsService.getReactions(reactionKey('net', 'm1')),
+      ).toBeNull();
+    });
+
+    it('changes nothing when it cannot be sent', async () => {
+      await expect(
+        messageReactionsService.toggleNetworkReaction(
+          'net',
+          '#c',
+          'm1',
+          '👍',
+          'me',
+        ),
+      ).resolves.toBe(false);
+      messageReactionsService.setReactionSender(() => false);
+      await expect(
+        messageReactionsService.toggleNetworkReaction(
+          'net',
+          '#c',
+          'm1',
+          '👍',
+          'me',
+        ),
+      ).resolves.toBe(false);
+      expect(
+        messageReactionsService.getReactions(reactionKey('net', 'm1')),
+      ).toBeNull();
+    });
+
+    it('applies reactions and unreactions from the network', async () => {
+      await messageReactionsService.applyRemoteReaction(
+        'net',
+        'm1',
+        '🎉',
+        'bob',
+        false,
+      );
+      await messageReactionsService.applyRemoteReaction(
+        'net',
+        'm1',
+        '🎉',
+        'amy',
+        false,
+      );
+      expect(
+        messageReactionsService.getReactions(reactionKey('net', 'm1'))
+          ?.reactions[0].count,
+      ).toBe(2);
+      await messageReactionsService.applyRemoteReaction(
+        'net',
+        'm1',
+        '🎉',
+        'bob',
+        true,
+      );
+      expect(
+        messageReactionsService.getReactions(reactionKey('net', 'm1'))
+          ?.reactions[0].users,
+      ).toEqual(['amy']);
+      await messageReactionsService.applyRemoteReaction(
+        '',
+        'm1',
+        '🎉',
+        'bob',
+        false,
+      );
+      await messageReactionsService.applyRemoteReaction(
+        'net',
+        'm1',
+        '',
+        'bob',
+        false,
+      );
+      expect(
+        messageReactionsService.getReactions(reactionKey('net', 'm1'))
+          ?.reactions[0].users,
+      ).toEqual(['amy']);
+    });
+  });
+  describe('quick reactions and reaction values', () => {
+    const {
+      reactionKey,
+      DEFAULT_QUICK_REACTIONS,
+    } = require('../../src/services/MessageReactionsService');
+
+    beforeEach(() => {
+      (messageReactionsService as any).recentReactions = [];
+      messageReactionsService.setReactionSender(() => true);
+    });
+    afterEach(() => messageReactionsService.setReactionSender(null));
+
+    it('offers the defaults, then the reactions used most recently', async () => {
+      expect(messageReactionsService.getQuickReactions()).toEqual(
+        DEFAULT_QUICK_REACTIONS,
+      );
+      await messageReactionsService.toggleNetworkReaction(
+        'n',
+        '#c',
+        'm1',
+        '🎉',
+        'me',
+      );
+      await messageReactionsService.toggleNetworkReaction(
+        'n',
+        '#c',
+        'm2',
+        '👍',
+        'me',
+      );
+      const quick = messageReactionsService.getQuickReactions();
+      expect(quick.slice(0, 2)).toEqual(['👍', '🎉']);
+      expect(quick).toHaveLength(6);
+      expect(new Set(quick).size).toBe(6);
+      // Taking a reaction back does not count as using it.
+      await messageReactionsService.toggleNetworkReaction(
+        'n',
+        '#c',
+        'm1',
+        '🎉',
+        'me',
+      );
+      expect(messageReactionsService.getQuickReactions()[0]).toBe('👍');
+    });
+
+    it('remembers recent reactions across restarts', async () => {
+      await messageReactionsService.toggleNetworkReaction(
+        'n',
+        '#c',
+        'm1',
+        '🦊',
+        'me',
+      );
+      (messageReactionsService as any).recentReactions = [];
+      await messageReactionsService.initialize();
+      expect(messageReactionsService.getQuickReactions()[0]).toBe('🦊');
+    });
+
+    it('ignores stored recents that are not reactions', async () => {
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:recentReactions',
+        JSON.stringify(['🐧', 'x'.repeat(99), 7]),
+      );
+      await messageReactionsService.initialize();
+      expect(messageReactionsService.getQuickReactions()[0]).toBe('🐧');
+      await AsyncStorage.setItem('@AndroidIRCX:recentReactions', '{broken');
+      await messageReactionsService.initialize();
+      expect(messageReactionsService.getQuickReactions()).toEqual(
+        DEFAULT_QUICK_REACTIONS,
+      );
+      await AsyncStorage.setItem('@AndroidIRCX:recentReactions', '"x"');
+      await messageReactionsService.initialize();
+      expect(messageReactionsService.getQuickReactions()).toEqual(
+        DEFAULT_QUICK_REACTIONS,
+      );
+    });
+
+    it('neither sends nor shows a value that is not a reaction', async () => {
+      const sender = jest.fn(() => true);
+      messageReactionsService.setReactionSender(sender);
+      await expect(
+        messageReactionsService.toggleNetworkReaction(
+          'n',
+          '#c',
+          'm1',
+          'x'.repeat(40),
+          'me',
+        ),
+      ).resolves.toBe(false);
+      expect(sender).not.toHaveBeenCalled();
+      await messageReactionsService.applyRemoteReaction(
+        'n',
+        'm9',
+        'y'.repeat(40),
+        'bob',
+        false,
+      );
+      expect(
+        messageReactionsService.getReactions(reactionKey('n', 'm9')),
+      ).toBeNull();
+    });
+  });
 });

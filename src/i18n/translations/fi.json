@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Tämä sormenjälki on liian suuri QR-koodiksi. Jaa se tekstinä."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Rivi oli liian pitkä palvelimelle, joten sitä lyhennettiin"
+  },
+  "React": {
+    "string": "Reagoi"
+  },
+  "Replying to {nick}": {
+    "string": "Vastaus käyttäjälle {nick}"
+  },
+  "More reactions": {
+    "string": "Lisää reaktioita"
   }
 }

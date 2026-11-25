@@ -41,7 +41,12 @@ interface UseMessageBatchingParams {
   setTabs: Dispatch<SetStateAction<ChannelTab[]>>;
 }
 
-type PendingAppend = { messages: IRCMessage[]; msgids: Set<string> };
+type PendingAppend = {
+  messages: IRCMessage[];
+  msgids: Set<string>;
+  /** Stored messages (by index) replaced by the server's echo of them. */
+  replaced: Map<number, IRCMessage>;
+};
 
 /** Local echo is reconciled against lines this recent. */
 const LOCAL_ECHO_WINDOW_MS = 8000;
@@ -66,9 +71,29 @@ const isEchoOf = (m: IRCMessage, message: IRCMessage) =>
   m.text === message.text;
 
 /**
+ * The server's echo of a message we showed locally (echo-message.md) carries
+ * what the local copy lacks: the msgid that replies and reactions point to,
+ * the server-time, and the text as the server delivered it. Keep the local
+ * id so the row stays the same row.
+ */
+const adoptEcho = (local: IRCMessage, echo: IRCMessage): IRCMessage =>
+  isLocalEcho(local) && echo.msgid && !local.msgid
+    ? {
+        ...local,
+        msgid: echo.msgid,
+        timestamp: echo.timestamp || local.timestamp,
+        text: echo.text,
+        tags: echo.tags ?? local.tags,
+        account: echo.account ?? local.account,
+        status: 'sent',
+      }
+    : local;
+
+/**
  * Same rule as before, without scanning the whole tab per message: msgids are
  * looked up in a set, and the text/time match is only for local echo
- * reconciliation, which by definition concerns the last few seconds.
+ * reconciliation, which by definition concerns the last few seconds. A
+ * server echo of a local message is merged into it instead of shown twice.
  */
 const isDuplicateMessage = (
   message: IRCMessage,
@@ -77,11 +102,21 @@ const isDuplicateMessage = (
 ): boolean => {
   if (message.msgid && pending.msgids.has(message.msgid)) return true;
   for (let i = pending.messages.length - 1; i >= 0; i--) {
-    if (isEchoOf(pending.messages[i], message)) return true;
+    if (isEchoOf(pending.messages[i], message)) {
+      pending.messages[i] = adoptEcho(pending.messages[i], message);
+      if (message.msgid) pending.msgids.add(message.msgid);
+      return true;
+    }
   }
   const stop = Math.max(0, existing.length - LOCAL_ECHO_SCAN);
   for (let i = existing.length - 1; i >= stop; i--) {
-    if (isEchoOf(existing[i], message)) return true;
+    const current = pending.replaced.get(i) ?? existing[i];
+    if (isEchoOf(current, message)) {
+      const merged = adoptEcho(current, message);
+      if (merged !== current) pending.replaced.set(i, merged);
+      if (message.msgid) pending.msgids.add(message.msgid);
+      return true;
+    }
   }
   return false;
 };
@@ -374,7 +409,11 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           const tab = newTabs[tabIndex];
           let pending = appendsByTabId.get(tab.id);
           if (!pending) {
-            pending = { messages: [], msgids: collectMsgids(tab.messages) };
+            pending = {
+              messages: [],
+              msgids: collectMsgids(tab.messages),
+              replaced: new Map(),
+            };
             appendsByTabId.set(tab.id, pending);
           }
 
@@ -396,15 +435,26 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       }
 
       const hasAppends = Array.from(appendsByTabId.values()).some(
-        pending => pending.messages.length > 0,
+        pending => pending.messages.length > 0 || pending.replaced.size > 0,
       );
       if (hasAppends) {
         const perfConfig = performanceService.getConfig();
         if (!tabsModified) newTabs = [...newTabs];
         newTabs = newTabs.map(tab => {
           const pending = appendsByTabId.get(tab.id);
-          if (!pending || pending.messages.length === 0) return tab;
-          const merged = tab.messages.concat(pending.messages);
+          if (
+            !pending ||
+            (pending.messages.length === 0 && pending.replaced.size === 0)
+          ) {
+            return tab;
+          }
+          const kept =
+            pending.replaced.size > 0
+              ? tab.messages.map(
+                  (existing, index) => pending.replaced.get(index) ?? existing,
+                )
+              : tab.messages;
+          const merged = kept.concat(pending.messages);
           return {
             ...tab,
             messages:

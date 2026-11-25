@@ -122,6 +122,7 @@ import { IRCNetworkConfig } from '../src/services/SettingsService';
 
 let connectionManager: any;
 let UserManagementServiceRef: any;
+let reactionsRef: any;
 
 describe('ConnectionManager', () => {
   const baseNetwork: IRCNetworkConfig = {
@@ -156,6 +157,8 @@ describe('ConnectionManager', () => {
 
       const mod = require('../src/services/ConnectionManager');
       connectionManager = mod.connectionManager;
+      reactionsRef =
+        require('../src/services/MessageReactionsService').messageReactionsService;
     });
   });
 
@@ -182,6 +185,37 @@ describe('ConnectionManager', () => {
     ctx.ircService.getConnectionStatus.mockReturnValue(true);
     const second = await connectionManager.connect('net', baseNetwork, config);
     expect(second).toContain('(1)');
+  });
+
+  it('routes IRCv3 reactions both ways for its connections', async () => {
+    const config = { host: 'irc.test', port: 6667, nick: 'n' } as any;
+    const reactions = reactionsRef;
+    const apply = jest
+      .spyOn(reactions, 'applyRemoteReaction')
+      .mockResolvedValue(undefined);
+    await connectionManager.connect('net', baseNetwork, config);
+    const ctx = (connectionManager as any).connections.get('net') as any;
+
+    // Incoming: the connection's 'reaction-received' reaches the store.
+    const listener = ctx.ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'reaction-received',
+    )[1];
+    listener('#c', 'm1', '👍', 'bob', true);
+    listener('#c', 'm2', '👍', 'bob');
+    expect(apply).toHaveBeenCalledWith('net', 'm1', '👍', 'bob', true);
+    expect(apply).toHaveBeenCalledWith('net', 'm2', '👍', 'bob', false);
+
+    // Outgoing: the store sends through the network's own connection.
+    ctx.ircService.sendReaction = jest.fn(() => true);
+    const sender = (reactions as any).sender;
+    expect(sender('net', '#c', 'm1', '👍', false)).toBe(true);
+    expect(ctx.ircService.sendReaction).toHaveBeenCalledWith(
+      '#c',
+      'm1',
+      '👍',
+      false,
+    );
+    expect(sender('missing', '#c', 'm1', '👍', false)).toBe(false);
   });
 
   it('disconnects all connections', async () => {
