@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "یہ فنگر پرنٹ QR کوڈ کے لیے بہت بڑا ہے۔ اسے متن کے طور پر شیئر کریں۔"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** ایک لائن سرور کے لیے بہت لمبی تھی اس لیے اسے مختصر کر دیا گیا"
+  },
+  "React": {
+    "string": "ردعمل"
+  },
+  "Replying to {nick}": {
+    "string": "{nick} کو جواب"
+  },
+  "More reactions": {
+    "string": "مزید ردعمل"
   }
 }

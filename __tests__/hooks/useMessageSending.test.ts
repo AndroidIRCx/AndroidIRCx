@@ -119,6 +119,17 @@ describe('useMessageSending', () => {
       sendMessage: mockSendMessage,
       sendCommand: mockSendCommand,
       sendRaw: mockSendRaw,
+      // Short text: one encrypted line, sent the way IRCService sends it.
+      sendEncryptedText: async (
+        target: string,
+        plaintext: string,
+        marker: string,
+        encrypt: (piece: string) => Promise<unknown>,
+      ) => {
+        const payload = await encrypt(plaintext);
+        mockSendRaw(`PRIVMSG ${target} :${marker} ${JSON.stringify(payload)}`);
+        return [plaintext];
+      },
       sendCTCPRequest: mockSendCTCPRequest,
       addMessage: mockAddMessage,
       getNetworkName: jest.fn().mockReturnValue('freenode'),
@@ -1108,6 +1119,37 @@ describe('useMessageSending', () => {
       },
     );
     expect(mockSendMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not attach a reply chosen in another tab', async () => {
+    mockTabStore.tabs = [
+      {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+        messages: [],
+      },
+    ];
+    const mockSendMessageWithTags = jest.fn();
+    setPendingReply({ msgid: 'elsewhere', target: '#other', nick: 'Bob' });
+    const { result } = await renderHook(() =>
+      useMessageSending(
+        createMockParams({
+          getActiveIRCService: jest.fn().mockReturnValue({
+            sendMessage: mockSendMessage,
+            sendMessageWithTags: mockSendMessageWithTags,
+            addMessage: mockAddMessage,
+            getNetworkName: jest.fn().mockReturnValue('freenode'),
+          }),
+        }),
+      ),
+    );
+    await act(async () => {
+      await result.current.handleSendMessage('plain body');
+    });
+    expect(mockSendMessageWithTags).not.toHaveBeenCalled();
+    expect(mockSendMessage).toHaveBeenCalledWith('#test', 'plain body');
   });
 
   it('reports dcc send usage error for an empty quoted path', async () => {

@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Овај отисак је превелик за QR код. Поделите га као текст."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Ред је био предугачак за сервер и скраћен је"
+  },
+  "React": {
+    "string": "Реагуј"
+  },
+  "Replying to {nick}": {
+    "string": "Одговор за {nick}"
+  },
+  "More reactions": {
+    "string": "Још реакција"
   }
 }

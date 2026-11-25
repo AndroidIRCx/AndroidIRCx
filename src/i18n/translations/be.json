@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Гэты адбітак занадта вялікі для QR-кода. Падзяліцеся ім як тэкстам."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Радок быў занадта доўгі для сервера і быў скарочаны"
+  },
+  "React": {
+    "string": "Рэакцыя"
+  },
+  "Replying to {nick}": {
+    "string": "Адказ для {nick}"
+  },
+  "More reactions": {
+    "string": "Больш рэакцый"
   }
 }

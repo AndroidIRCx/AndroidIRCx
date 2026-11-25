@@ -288,6 +288,7 @@ jest.mock('../../src/utils/MessageParser', () => ({
 
 jest.mock('../../src/utils/IRCFormatter', () => ({
   formatIRCTextAsComponent: jest.fn((text: string) => text),
+  stripIRCFormatting: jest.fn((text: string) => text),
   formatIRCTextWithLinks: jest.fn((text: string, style: any) => {
     const React = require('react');
     const { Text } = require('react-native');
@@ -396,6 +397,8 @@ jest.mock('../../src/stores/tabStore', () => ({
 
 jest.mock('../../src/services/PendingReplyStore', () => ({
   setPendingReply: jest.fn(),
+  getPendingReply: jest.fn(() => null),
+  subscribePendingReply: jest.fn(() => () => {}),
 }));
 
 jest.mock('../../src/stores/uiStore', () => ({
@@ -493,6 +496,7 @@ describe('MessageArea', () => {
       getEnabledCapabilities: jest.fn(() => []),
       requestChatHistory: jest.fn(),
       on: jest.fn(() => jest.fn()),
+      canSendClientTags: jest.fn(() => true),
     };
     mockGetConnection.mockReturnValue({ ircService: mockActiveIrc });
     const {
@@ -3726,6 +3730,236 @@ describe('MessageArea', () => {
     });
 
     // ── non-virtualized reply flow ────────────────────────────────────────────
+    it('offers reactions for a selected message and sends the one picked', async () => {
+      const {
+        messageReactionsService,
+      } = require('../../src/services/MessageReactionsService');
+      const toggle = jest
+        .spyOn(messageReactionsService, 'toggleNetworkReaction')
+        .mockResolvedValue(true);
+      const messages = [
+        makeMsg({
+          id: 'react-a',
+          text: 'ReactToMe',
+          from: 'Alice',
+          msgid: 'mid-r',
+          channel: '#general',
+        }),
+      ];
+      const { getByText, queryByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('ReactToMe'), 'longPress');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('React'));
+      });
+      // The picker replaces Reply/React with quick reactions.
+      expect(queryByText('Reply')).toBeNull();
+      await act(async () => {
+        await fireEvent.press(getByText('👍'));
+      });
+      expect(toggle).toHaveBeenCalledWith(
+        expect.any(String),
+        '#general',
+        'mid-r',
+        '👍',
+        expect.any(String),
+      );
+      expect(queryByText('1 selected')).toBeNull();
+      toggle.mockRestore();
+    });
+
+    it('offers "+" with the system emoji picker and sends what is picked', async () => {
+      const {
+        messageReactionsService,
+      } = require('../../src/services/MessageReactionsService');
+      const {
+        emojiPickerService,
+      } = require('../../src/services/EmojiPickerService');
+      const toggle = jest
+        .spyOn(messageReactionsService, 'toggleNetworkReaction')
+        .mockResolvedValue(true);
+      const available = jest
+        .spyOn(emojiPickerService, 'isAvailable')
+        .mockReturnValue(true);
+      const pick = jest
+        .spyOn(emojiPickerService, 'pick')
+        .mockResolvedValueOnce('🦊')
+        .mockResolvedValueOnce(null);
+      const messages = [
+        makeMsg({
+          id: 'plus-a',
+          text: 'PlusMe',
+          from: 'Alice',
+          msgid: 'mid-p',
+          channel: '#general',
+        }),
+      ];
+      const { getByText, getByLabelText, queryByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      const openPicker = async () => {
+        await act(async () => {
+          await fireEvent(getByText('PlusMe'), 'longPress');
+        });
+        await act(async () => {
+          await fireEvent.press(getByText('React'));
+        });
+        await act(async () => {
+          await fireEvent.press(getByLabelText('More reactions'));
+        });
+      };
+      await openPicker();
+      expect(toggle).toHaveBeenCalledWith(
+        expect.any(String),
+        '#general',
+        'mid-p',
+        '🦊',
+        expect.any(String),
+      );
+      expect(queryByText('1 selected')).toBeNull();
+
+      // Closing the picker sends nothing.
+      toggle.mockClear();
+      await openPicker();
+      expect(toggle).not.toHaveBeenCalled();
+      toggle.mockRestore();
+      available.mockRestore();
+      pick.mockRestore();
+    });
+
+    it('hides "+" where there is no emoji picker', async () => {
+      const {
+        emojiPickerService,
+      } = require('../../src/services/EmojiPickerService');
+      const available = jest
+        .spyOn(emojiPickerService, 'isAvailable')
+        .mockReturnValue(false);
+      const messages = [
+        makeMsg({
+          id: 'np-a',
+          text: 'NoPicker',
+          from: 'Alice',
+          msgid: 'mid-np',
+          channel: '#general',
+        }),
+      ];
+      const { getByText, queryByLabelText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('NoPicker'), 'longPress');
+      });
+      await act(async () => {
+        await fireEvent.press(getByText('React'));
+      });
+      expect(queryByLabelText('More reactions')).toBeNull();
+      expect(getByText('👍')).toBeTruthy();
+      available.mockRestore();
+    });
+
+    it('hides Reply and React without a msgid or without message-tags', async () => {
+      const messages = [
+        makeMsg({ id: 'no-mid', text: 'NoMsgid', from: 'Alice' }),
+        makeMsg({
+          id: 'with-mid',
+          text: 'HasMsgid',
+          from: 'Bob',
+          msgid: 'm-x',
+          channel: '#general',
+        }),
+      ];
+      const { getByText, queryByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      await act(async () => {
+        await fireEvent(getByText('NoMsgid'), 'longPress');
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+      expect(queryByText('Reply')).toBeNull();
+      expect(queryByText('React')).toBeNull();
+      await act(async () => {
+        await fireEvent.press(getByText('NoMsgid'));
+      });
+
+      mockActiveIrc.canSendClientTags.mockReturnValue(false);
+      await act(async () => {
+        await fireEvent(getByText('HasMsgid'), 'longPress');
+      });
+      expect(getByText('1 selected')).toBeTruthy();
+      expect(queryByText('Reply')).toBeNull();
+    });
+
+    it('shows what the next message replies to and lets it be cancelled', async () => {
+      const store = require('../../src/services/PendingReplyStore');
+      let listener: ((reply: any) => void) | null = null;
+      store.getPendingReply.mockReturnValue({
+        msgid: 'm1',
+        target: '#GENERAL',
+        nick: 'Alice',
+      });
+      store.subscribePendingReply.mockImplementation((cb: any) => {
+        listener = cb;
+        return () => {};
+      });
+      const { getByText, queryByText, getByLabelText } = await renderAndSettle(
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg({ id: 'r-1', text: 'Hi', from: 'Alice' })]}
+        />,
+      );
+      // The i18n mock returns keys as they are.
+      expect(getByText('Replying to {nick}')).toBeTruthy();
+      await act(async () => {
+        await fireEvent.press(getByLabelText('Cancel'));
+      });
+      expect(store.setPendingReply).toHaveBeenCalledWith(null);
+      await act(async () => {
+        listener?.(null);
+      });
+      expect(queryByText('Replying to {nick}')).toBeNull();
+      // A reply chosen in another tab is not shown here.
+      await act(async () => {
+        listener?.({ msgid: 'm2', target: '#other', nick: 'Bob' });
+      });
+      expect(queryByText('Replying to {nick}')).toBeNull();
+      store.getPendingReply.mockReturnValue(null);
+      store.subscribePendingReply.mockImplementation(() => () => {});
+    });
+
+    it('shows the message a reply answers when it is in the tab', async () => {
+      const messages = [
+        makeMsg({
+          id: 'parent',
+          text: 'Original words',
+          from: 'Alice',
+          msgid: 'p-1',
+          channel: '#general',
+        }),
+        makeMsg({
+          id: 'child',
+          text: 'My answer',
+          from: 'Bob',
+          replyTo: 'p-1',
+          channel: '#general',
+        }),
+        makeMsg({
+          id: 'orphan',
+          text: 'Answer to the void',
+          from: 'Bob',
+          replyTo: 'gone',
+          channel: '#general',
+        }),
+      ];
+      const { getByText, getAllByText } = await renderAndSettle(
+        <MessageArea {...baseProps} messages={messages} />,
+      );
+      expect(getByText('Alice: Original words')).toBeTruthy();
+      expect(getAllByText('Reply').length).toBeGreaterThan(0);
+    });
+
     it('replies to a single selection in the non-virtualized path', async () => {
       const {
         performanceService,

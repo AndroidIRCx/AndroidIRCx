@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "このフィンガープリントは大きすぎて QR コードにできません。テキストとして共有してください。"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** 行がサーバーの上限を超えていたため短縮されました"
+  },
+  "React": {
+    "string": "リアクション"
+  },
+  "Replying to {nick}": {
+    "string": "{nick} に返信"
+  },
+  "More reactions": {
+    "string": "その他のリアクション"
   }
 }

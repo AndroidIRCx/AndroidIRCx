@@ -1,12 +1,13 @@
 {
   "name": "androidircx",
-  "version": "1.10.10",
+  "version": "1.10.11",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
     "android": "react-native run-android",
     "ci:quality": "yarn format-check && yarn lint:ci && yarn type-check",
     "ci:verify": "yarn ci:quality && yarn test:ci",
+    "ci:local": "prettier --check \"**/*\" --ignore-unknown --cache --end-of-line auto && eslint . --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/ && tsc --noEmit && jest --ci --coverage",
     "format": "prettier --write \"**/*\" --ignore-unknown",
     "format-check": "prettier --check \"**/*\" --ignore-unknown",
     "metro": "react-native start --host 0.0.0.0 --reset-cache",

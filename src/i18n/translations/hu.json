@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Ez az ujjlenyomat túl nagy egy QR-kódhoz. Oszd meg inkább szövegként."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Egy sor túl hosszú volt a szervernek, ezért lerövidült"
+  },
+  "React": {
+    "string": "Reakció"
+  },
+  "Replying to {nick}": {
+    "string": "Válasz neki: {nick}"
+  },
+  "More reactions": {
+    "string": "További reakciók"
   }
 }

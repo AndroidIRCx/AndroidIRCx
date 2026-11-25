@@ -15,9 +15,21 @@ export interface PendingReply {
 }
 
 let pendingReply: PendingReply | null = null;
+const listeners = new Set<(reply: PendingReply | null) => void>();
 
 export function setPendingReply(reply: PendingReply | null): void {
   pendingReply = reply;
+  listeners.forEach(listener => listener(reply));
+}
+
+/** Follow the pending reply, so the UI can show what is being replied to. */
+export function subscribePendingReply(
+  listener: (reply: PendingReply | null) => void,
+): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function getPendingReply(): PendingReply | null {
@@ -26,6 +38,6 @@ export function getPendingReply(): PendingReply | null {
 
 export function getAndClearPendingReply(): PendingReply | null {
   const reply = pendingReply;
-  pendingReply = null;
+  if (reply) setPendingReply(null);
   return reply;
 }

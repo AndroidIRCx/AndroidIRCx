@@ -83,6 +83,37 @@ class StorageCache {
   }
 
   /**
+   * Like getItem, but a failed read throws instead of looking like a missing
+   * key. A caller that reads, changes and writes back must not mistake
+   * "could not read" for "empty": it would overwrite what is stored.
+   */
+  async getItemStrict<T = string>(
+    key: string,
+    options: CacheOptions = {},
+  ): Promise<T | null> {
+    const { ttl = this.DEFAULT_TTL } = options;
+    const cached = this.cache.get(key);
+    if (cached && (ttl === 0 || Date.now() - cached.timestamp <= ttl)) {
+      cached.hits++;
+      cached.timestamp = Date.now();
+      return cached.data as T;
+    }
+    if (cached) this.cache.delete(key);
+    // A write still waiting for the debounce is newer than what is stored.
+    if (this.pendingWrites.has(key)) {
+      const pending = this.pendingWrites.get(key) as T;
+      this.setCache(key, pending);
+      return pending;
+    }
+
+    const value = await AsyncStorage.getItem(key);
+    if (value === null) return null;
+    const parsed = JSON.parse(value) as T;
+    this.setCache(key, parsed);
+    return parsed;
+  }
+
+  /**
    * Batch read multiple keys efficiently
    * Uses AsyncStorage.multiGet for better performance
    */

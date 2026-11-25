@@ -34,6 +34,8 @@ interface IRCServiceSendInterface {
   getWhoisUseDoubleNick: () => boolean;
   sendRaw: (command: string) => void;
   sendCommand: (command: string) => void;
+  sendSplitText: SendMessageContext['sendSplitText'];
+  sendEncryptedText: SendMessageContext['sendEncryptedText'];
   addMessage: (message: any) => void;
   emit: (event: string, ...args: any[]) => void;
   encodeCTCP: (command: string, args?: string) => string;
@@ -69,6 +71,10 @@ export class IRCSendMessageHandlers {
       getWhoisUseDoubleNick: () => svc.getWhoisUseDoubleNick(),
       sendRaw: (command: string) => svc.sendRaw(command),
       sendCommand: (command: string) => svc.sendCommand(command),
+      sendSplitText: (command, target, text, options) =>
+        svc.sendSplitText(command, target, text, options),
+      sendEncryptedText: (target, plaintext, marker, encrypt) =>
+        svc.sendEncryptedText(target, plaintext, marker, encrypt),
       addMessage: (message: any) => svc.addMessage(message),
       emit: (event: string, ...args: any[]) => {
         // Intercept set-whowas-target to directly set state

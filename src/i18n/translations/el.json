@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Αυτό το αποτύπωμα είναι πολύ μεγάλο για κωδικό QR. Μοιραστείτε το ως κείμενο."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Μια γραμμή ήταν πολύ μεγάλη για τον διακομιστή και συντομεύτηκε"
+  },
+  "React": {
+    "string": "Αντίδραση"
+  },
+  "Replying to {nick}": {
+    "string": "Απάντηση σε {nick}"
+  },
+  "More reactions": {
+    "string": "Περισσότερες αντιδράσεις"
   }
 }

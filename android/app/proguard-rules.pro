@@ -448,3 +448,11 @@
 # in, so nothing can reach the bridge. react-native-webrtc keeps org.webrtc.**,
 # which makes R8 resolve it and fail on the missing class.
 -dontwarn org.webrtc.Dav1dDecoder$Natives
+
+# androidx.emoji2:emoji2-emojipicker (EmojiPickerModule) brings in Guava, which
+# refers to compile-time annotation and javax.lang.model classes that are not
+# on Android. They are never loaded at runtime; only silence the warnings.
+-dontwarn javax.lang.model.element.Modifier
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn org.checkerframework.**

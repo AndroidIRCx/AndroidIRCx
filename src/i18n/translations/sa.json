@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "इयम् अङ्गुलिमुद्रा QR-सङ्केताय अतिविशाला। ताम् पाठरूपेण विभजतु।"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** एका पङ्क्तिः सर्वराय अतिदीर्घा आसीत्, अतः ह्रस्वीकृता"
+  },
+  "React": {
+    "string": "प्रतिक्रिया"
+  },
+  "Replying to {nick}": {
+    "string": "{nick} प्रति उत्तरम्"
+  },
+  "More reactions": {
+    "string": "अधिकाः प्रतिक्रियाः"
   }
 }

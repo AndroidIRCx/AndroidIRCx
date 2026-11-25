@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Alama hii ya kidole ni kubwa mno kwa msimbo wa QR. Ishiriki kama maandishi."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Mstari ulikuwa mrefu mno kwa seva na ukafupishwa"
+  },
+  "React": {
+    "string": "Jibu kwa hisia"
+  },
+  "Replying to {nick}": {
+    "string": "Unamjibu {nick}"
+  },
+  "More reactions": {
+    "string": "Hisia zaidi"
   }
 }

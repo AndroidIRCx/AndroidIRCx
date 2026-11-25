@@ -122,7 +122,6 @@ const fullContext = () => {
     handleChannelModeChange: jest.fn(),
     handleCTCPRequest: jest.fn(),
     handleKillDisconnect: jest.fn(),
-    handleMultilineMessage: jest.fn(),
     handleProtectionBlock: jest.fn(),
     handleScramServerFinal: jest.fn(),
     handleScramServerFirst: jest.fn(),

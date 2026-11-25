@@ -100,4 +100,20 @@ describe('IRCv3CapabilityRegistry', () => {
       1,
     );
   });
+
+  it('requests draft/multiline and batch when the server offers them', () => {
+    const selected = selectCapabilitiesToRequest(
+      new Set(['draft/multiline', 'batch', 'server-time']),
+    );
+    expect(selected).toEqual(
+      expect.arrayContaining(['draft/multiline', 'batch', 'server-time']),
+    );
+  });
+
+  it('does not request typing as a capability (it is a client tag)', () => {
+    const selected = selectCapabilitiesToRequest(
+      new Set(['typing', 'draft/typing', 'message-tags']),
+    );
+    expect(selected).toEqual(['message-tags']);
+  });
 });

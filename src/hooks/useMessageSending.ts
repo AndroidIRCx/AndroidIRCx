@@ -464,38 +464,47 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
         try {
           const encryptedNetworkId =
             activeTab.networkId || activeIRCService.getNetworkName();
-          const payload = await encryptedDMService.encryptForNetwork(
-            commandToSend,
-            encryptedNetworkId,
+          // Long text goes as several encrypted lines, one message each.
+          const pieces = await activeIRCService.sendEncryptedText(
             activeTab.name,
+            commandToSend,
+            '!enc-msg',
+            (piece: string) =>
+              encryptedDMService.encryptForNetwork(
+                piece,
+                encryptedNetworkId,
+                activeTab.name,
+              ),
           );
-          activeIRCService.sendRaw(
-            `PRIVMSG ${activeTab.name} :!enc-msg ${JSON.stringify(payload)}`,
+          // Shown as one message, the way the other side joins it.
+          const sentMessages: IRCMessage[] = [pieces.join('')].map(
+            (piece: string) => ({
+              id: `msg-${Date.now()}-${Math.random()}`,
+              type: 'message',
+              channel: activeTab.name,
+              from: 'You',
+              text: `🔒 ${piece}`,
+              timestamp: Date.now(),
+              status: 'sent',
+              network: activeTab.networkId,
+            }),
           );
-          const sentMessage: IRCMessage = {
-            id: `msg-${Date.now()}-${Math.random()}`,
-            type: 'message',
-            channel: activeTab.name,
-            from: 'You',
-            text: `🔒 ${commandToSend}`,
-            timestamp: Date.now(),
-            status: 'sent',
-            network: activeTab.networkId,
-          };
           setTabs(prev =>
             prev.map(tab =>
               tab.id === activeTab.id
-                ? { ...tab, messages: [...tab.messages, sentMessage] }
+                ? { ...tab, messages: [...tab.messages, ...sentMessages] }
                 : tab,
             ),
           );
           // Save encrypted DM to history
           if (activeTab.networkId && activeTab.networkId !== 'Not connected') {
-            messageHistoryService
-              .saveMessage(sentMessage, activeTab.networkId)
-              .catch(err => {
-                console.error('Error saving encrypted DM to history:', err);
-              });
+            sentMessages.forEach(sentMessage =>
+              messageHistoryService
+                .saveMessage(sentMessage, activeTab.networkId)
+                .catch(err => {
+                  console.error('Error saving encrypted DM to history:', err);
+                }),
+            );
           }
           return;
         } catch (e) {
@@ -536,28 +545,35 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
         );
         if (hasKey) {
           try {
-            const payload = await channelEncryptionService.encryptMessage(
-              commandToSend,
+            // Long text goes as several encrypted lines, one message each.
+            const pieces = await activeIRCService.sendEncryptedText(
               activeTab.name,
-              activeTab.networkId,
+              commandToSend,
+              '!chanenc-msg',
+              (piece: string) =>
+                channelEncryptionService.encryptMessage(
+                  piece,
+                  activeTab.name,
+                  activeTab.networkId,
+                ),
             );
-            activeIRCService.sendRaw(
-              `PRIVMSG ${activeTab.name} :!chanenc-msg ${JSON.stringify(payload)}`,
+            // Shown as one message, the way the other side joins it.
+            const sentMessages: IRCMessage[] = [pieces.join('')].map(
+              (piece: string) => ({
+                id: `msg-${Date.now()}-${Math.random()}`,
+                type: 'message',
+                channel: activeTab.name,
+                from: 'You',
+                text: `🔒 ${piece}`,
+                timestamp: Date.now(),
+                status: 'sent',
+                network: activeTab.networkId,
+              }),
             );
-            const sentMessage: IRCMessage = {
-              id: `msg-${Date.now()}-${Math.random()}`,
-              type: 'message',
-              channel: activeTab.name,
-              from: 'You',
-              text: `🔒 ${commandToSend}`,
-              timestamp: Date.now(),
-              status: 'sent',
-              network: activeTab.networkId,
-            };
             setTabs(prev =>
               prev.map(tab =>
                 tab.id === activeTab.id
-                  ? { ...tab, messages: [...tab.messages, sentMessage] }
+                  ? { ...tab, messages: [...tab.messages, ...sentMessages] }
                   : tab,
               ),
             );
@@ -566,14 +582,16 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
               activeTab.networkId &&
               activeTab.networkId !== 'Not connected'
             ) {
-              messageHistoryService
-                .saveMessage(sentMessage, activeTab.networkId)
-                .catch(err => {
-                  console.error(
-                    'Error saving encrypted channel message to history:',
-                    err,
-                  );
-                });
+              sentMessages.forEach(sentMessage =>
+                messageHistoryService
+                  .saveMessage(sentMessage, activeTab.networkId)
+                  .catch(err => {
+                    console.error(
+                      'Error saving encrypted channel message to history:',
+                      err,
+                    );
+                  }),
+              );
             }
             return;
           } catch (e) {
@@ -633,8 +651,12 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
         }
       }
 
+      // A reply chosen in another tab does not belong to this message.
       const pendingReply = getAndClearPendingReply();
-      if (pendingReply) {
+      if (
+        pendingReply &&
+        pendingReply.target.toLowerCase() === activeTab.name.toLowerCase()
+      ) {
         activeIRCService.sendMessageWithTags(activeTab.name, commandToSend, {
           replyTo: pendingReply.msgid,
         });

@@ -50,6 +50,21 @@ describe('EncryptionCommands', () => {
       getCurrentNick: jest.fn(() => 'AndroidIRCX'),
       sendRaw: jest.fn(),
       addMessage: jest.fn(),
+      // Short text: one encrypted line, sent the way IRCService sends it.
+      sendEncryptedText: jest.fn(
+        async (
+          target: string,
+          plaintext: string,
+          marker: string,
+          encrypt: (piece: string) => Promise<unknown>,
+        ) => {
+          const payload = await encrypt(plaintext);
+          ctx.sendRaw(
+            `PRIVMSG ${target} :${marker} ${JSON.stringify(payload)}`,
+          );
+          return [plaintext];
+        },
+      ),
     };
 
     return { ctx: ctx as any, encryptedDMService, channelEncryptionService };

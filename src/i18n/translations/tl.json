@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Masyadong malaki ang fingerprint na ito para sa QR code. Ibahagi na lang ito bilang text."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Masyadong mahaba ang isang linya para sa server kaya pinaikli ito"
+  },
+  "React": {
+    "string": "Mag-react"
+  },
+  "Replying to {nick}": {
+    "string": "Sumasagot kay {nick}"
+  },
+  "More reactions": {
+    "string": "Higit pang reaksyon"
   }
 }

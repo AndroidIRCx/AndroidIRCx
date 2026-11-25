@@ -36,8 +36,20 @@ export const IRCV3_CAPABILITY_DEFINITIONS: IRCv3CapabilityDefinition[] = [
   { name: 'away-notify', status: 'supported', requestPolicy: 'always' },
   { name: 'chghost', status: 'supported', requestPolicy: 'always' },
   { name: 'message-tags', status: 'partial', requestPolicy: 'always' },
-  { name: 'typing', status: 'partial', requestPolicy: 'always' },
-  { name: 'draft/typing', status: 'partial', requestPolicy: 'always' },
+  // `typing` is a client-only tag riding on message-tags, not a capability
+  // (client-tags/typing.md). Kept here so it shows up in the IRCv3 screen.
+  {
+    name: 'typing',
+    status: 'supported',
+    requestPolicy: 'never',
+    notes: 'Client-only +typing tag; needs message-tags, not a capability.',
+  },
+  {
+    name: 'draft/typing',
+    status: 'supported',
+    requestPolicy: 'never',
+    notes: 'Client-only +typing tag; needs message-tags, not a capability.',
+  },
   { name: 'batch', status: 'supported', requestPolicy: 'always' },
   { name: 'labeled-response', status: 'supported', requestPolicy: 'always' },
   { name: 'echo-message', status: 'partial', requestPolicy: 'always' },
@@ -59,7 +71,14 @@ export const IRCV3_CAPABILITY_DEFINITIONS: IRCv3CapabilityDefinition[] = [
     status: 'planned',
     requestPolicy: 'always',
   },
-  { name: 'draft/multiline', status: 'supported', requestPolicy: 'always' },
+  {
+    name: 'draft/multiline',
+    status: 'supported',
+    requestPolicy: 'always',
+    dependsOn: ['batch'],
+    notes:
+      'Sent and received as BATCH draft/multiline with multiline-concat; plain lines when the batch would break max-bytes/max-lines or is refused.',
+  },
   { name: 'draft/read-marker', status: 'supported', requestPolicy: 'always' },
   {
     name: 'draft/message-redaction',

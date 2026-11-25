@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Tento odtlačok je pre QR kód príliš veľký. Zdieľajte ho ako text."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Riadok bol pre server príliš dlhý a bol skrátený"
+  },
+  "React": {
+    "string": "Reagovať"
+  },
+  "Replying to {nick}": {
+    "string": "Odpoveď pre {nick}"
+  },
+  "More reactions": {
+    "string": "Ďalšie reakcie"
   }
 }

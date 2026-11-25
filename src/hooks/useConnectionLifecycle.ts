@@ -1761,7 +1761,7 @@ export const useConnectionLifecycle = (
             t => t.networkId === network && t.type === 'channel',
           );
           channelTabs.forEach(tab => {
-            activeIRCService.sendRaw(`PRIVMSG ${tab.name} :${message}`);
+            activeIRCService.sendSplitText('PRIVMSG', tab.name, message);
           });
           if (channelTabs.length > 0) {
             activeIRCService.addMessage({
@@ -1785,10 +1785,11 @@ export const useConnectionLifecycle = (
             t => t.networkId === network && t.type === 'channel',
           );
           channelTabs.forEach(tab => {
-            // CTCP ACTION encoding: \x01ACTION text\x01
-            activeIRCService.sendRaw(
-              `PRIVMSG ${tab.name} :\x01ACTION ${action}\x01`,
-            );
+            // CTCP ACTION encoding: \x01ACTION text\x01, per piece
+            activeIRCService.sendSplitText('PRIVMSG', tab.name, action, {
+              wrap: piece => `\x01ACTION ${piece}\x01`,
+              wrapBytes: '\x01ACTION \x01'.length,
+            });
           });
           if (channelTabs.length > 0) {
             activeIRCService.addMessage({
@@ -1812,7 +1813,7 @@ export const useConnectionLifecycle = (
             t => t.networkId === network && t.type === 'channel',
           );
           channelTabs.forEach(tab => {
-            activeIRCService.sendRaw(`NOTICE ${tab.name} :${message}`);
+            activeIRCService.sendSplitText('NOTICE', tab.name, message);
           });
           if (channelTabs.length > 0) {
             activeIRCService.addMessage({

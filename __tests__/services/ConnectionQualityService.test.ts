@@ -190,13 +190,29 @@ describe('ConnectionQualityService', () => {
       'Not connected',
     );
 
-    // socket.write throws
-    (irc as any).socket = {
-      write: jest.fn(() => {
-        throw new Error('write-fail');
-      }),
-    };
+    // The line goes through sendRaw, not straight to the socket.
+    jest.spyOn(service as any, 'checkRateLimit').mockReturnValue(true);
+    (irc as any).socket = { write: jest.fn() };
     (irc as any).isConnected = true;
+    await expect(
+      service.sendMessage('PRIVMSG #a :ok'),
+    ).resolves.toBeUndefined();
+    expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG #a :ok');
+    expect((irc as any).socket.write).not.toHaveBeenCalled();
+
+    // sendRaw marks the connection down when the write fails.
+    irc.sendRaw.mockImplementationOnce(() => {
+      (irc as any).isConnected = false;
+    });
+    await expect(service.sendMessage('PRIVMSG #a :boom')).rejects.toThrow(
+      'Not connected',
+    );
+
+    // sendRaw itself throwing is passed on.
+    (irc as any).isConnected = true;
+    irc.sendRaw.mockImplementationOnce(() => {
+      throw new Error('write-fail');
+    });
     await expect(service.sendMessage('PRIVMSG #a :boom')).rejects.toThrow(
       'write-fail',
     );

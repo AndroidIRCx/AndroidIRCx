@@ -77,10 +77,20 @@ import {
 import { banService } from '../services/BanService';
 import { dccChatService } from '../services/DCCChatService';
 import { ircService } from '../services/IRCService';
-import { setPendingReply } from '../services/PendingReplyStore';
+import {
+  getPendingReply,
+  PendingReply,
+  setPendingReply,
+  subscribePendingReply,
+} from '../services/PendingReplyStore';
+import { messageReactionsService } from '../services/MessageReactionsService';
+import { emojiPickerService } from '../services/EmojiPickerService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
-import { formatIRCTextWithLinks } from '../utils/IRCFormatter';
+import {
+  formatIRCTextWithLinks,
+  stripIRCFormatting,
+} from '../utils/IRCFormatter';
 import { MessageSearchBar, MessageSearchFilters } from './MessageSearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { NickContextMenu } from './NickContextMenu';
@@ -175,6 +185,8 @@ interface MessageItemProps {
   tabId?: string;
   layoutWidth?: number;
   messageFormats?: ThemeMessageFormats;
+  /** The message this one replies to (+reply), when it is in the tab. */
+  replyParent?: IRCMessage;
 }
 
 const applyMessageFormatStyle = (
@@ -289,6 +301,7 @@ const MessageItem = React.memo<MessageItemProps>(
     tabId,
     layoutWidth,
     messageFormats,
+    replyParent,
   }) => {
     const t = useT();
 
@@ -1043,7 +1056,13 @@ const MessageItem = React.memo<MessageItemProps>(
           {message.replyTo && (
             <View style={styles.replyIndicator}>
               <Text style={styles.replyIndicatorIcon}>&#8634;</Text>
-              <Text style={styles.replyIndicatorText}>{t('Reply')}</Text>
+              <Text style={styles.replyIndicatorText} numberOfLines={1}>
+                {replyParent
+                  ? `${replyParent.from || ''}: ${stripIRCFormatting(
+                      replyParent.text || '',
+                    )}`
+                  : t('Reply')}
+              </Text>
             </View>
           )}
           {message.type === 'raw' && formatParts ? (
@@ -1220,7 +1239,9 @@ const MessageItem = React.memo<MessageItemProps>(
                       ) : null,
                     )}
                   <MessageReactionsComponent
-                    messageId={message.id}
+                    network={network}
+                    msgid={message.msgid}
+                    target={message.channel || channel}
                     currentUserNick={currentNick}
                   />
                 </View>
@@ -1330,7 +1351,9 @@ const MessageItem = React.memo<MessageItemProps>(
                       ) : null,
                     )}
                   <MessageReactionsComponent
-                    messageId={message.id}
+                    network={network}
+                    msgid={message.msgid}
+                    target={message.channel || channel}
                     currentUserNick={currentNick}
                   />
                 </View>
@@ -1444,7 +1467,9 @@ const MessageItem = React.memo<MessageItemProps>(
                       ) : null,
                     )}
                   <MessageReactionsComponent
-                    messageId={message.id}
+                    network={network}
+                    msgid={message.msgid}
+                    target={message.channel || channel}
                     currentUserNick={currentNick}
                   />
                 </View>
@@ -1541,7 +1566,10 @@ const MessageItem = React.memo<MessageItemProps>(
       prevProps.channel === nextProps.channel &&
       prevProps.layoutWidth === nextProps.layoutWidth &&
       prevProps.messageFormats === nextProps.messageFormats &&
-      prevProps.nickLookup === nextProps.nickLookup
+      prevProps.nickLookup === nextProps.nickLookup &&
+      prevProps.message.msgid === nextProps.message.msgid &&
+      prevProps.message.replyTo === nextProps.message.replyTo &&
+      prevProps.replyParent === nextProps.replyParent
     );
   },
 );
@@ -3279,6 +3307,132 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
   );
 
   // Render message item
+  // The single selected message, when replies and reactions can point to it:
+  // both need its server msgid and a negotiated message-tags (client-tags/*).
+  const taggableSelection = useMemo(() => {
+    if (selectedMessageIds.size !== 1) return undefined;
+    const selected = displayMessages.find(m => selectedMessageIds.has(m.id));
+    if (!selected?.msgid || !activeIrc.canSendClientTags?.()) return undefined;
+    const target =
+      selected.channel && selected.channel !== '*'
+        ? selected.channel
+        : selected.from || channel || '';
+    return { message: selected, msgid: selected.msgid, target };
+  }, [selectedMessageIds, displayMessages, activeIrc, channel]);
+
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
+  useEffect(() => {
+    if (!taggableSelection) setReactionPickerOpen(false);
+  }, [taggableSelection]);
+
+  const [pendingReply, setPendingReplyState] = useState<PendingReply | null>(
+    () => getPendingReply(),
+  );
+  useEffect(() => subscribePendingReply(setPendingReplyState), []);
+
+  const renderReplyReactActions = () => {
+    if (!taggableSelection) return null;
+    if (reactionPickerOpen) {
+      const react = (emoji: string) => {
+        const reactNetwork =
+          network || currentTabNetworkId || activeIrc.getNetworkName();
+        messageReactionsService
+          .toggleNetworkReaction(
+            reactNetwork,
+            taggableSelection.target,
+            taggableSelection.msgid,
+            emoji,
+            currentNick,
+          )
+          .catch(() => {});
+        setReactionPickerOpen(false);
+        clearSelection();
+      };
+      return (
+        <>
+          {messageReactionsService.getQuickReactions().map(emoji => (
+            <TouchableOpacity
+              key={emoji}
+              style={styles.selectionButton}
+              accessibilityLabel={emoji}
+              onPress={() => react(emoji)}
+            >
+              <Text style={styles.selectionButtonText}>{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+          {emojiPickerService.isAvailable() && (
+            <TouchableOpacity
+              style={styles.selectionButton}
+              accessibilityLabel={t('More reactions')}
+              onPress={() => {
+                // Any emoji, from the system-style picker.
+                emojiPickerService
+                  .pick()
+                  .then(emoji => {
+                    if (emoji) react(emoji);
+                  })
+                  .catch(() => {});
+              }}
+            >
+              <Text style={styles.selectionButtonText}>+</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.selectionButton}
+          onPress={() => {
+            setPendingReply({
+              msgid: taggableSelection.msgid,
+              target: taggableSelection.target,
+              nick: taggableSelection.message.from || '',
+            });
+            clearSelection();
+          }}
+        >
+          <Text style={styles.selectionButtonText}>{t('Reply')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.selectionButton}
+          onPress={() => setReactionPickerOpen(true)}
+        >
+          <Text style={styles.selectionButtonText}>{t('React')}</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
+  // What the next message will reply to, shown above the input of its tab.
+  const pendingReplyBar =
+    pendingReply &&
+    channel &&
+    pendingReply.target.toLowerCase() === channel.toLowerCase() ? (
+      <View style={styles.pendingReplyBar}>
+        <Text style={styles.pendingReplyText} numberOfLines={1}>
+          {t('Replying to {nick}', { nick: pendingReply.nick })}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setPendingReply(null)}
+          accessibilityLabel={t('Cancel')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.pendingReplyCancel}>✕</Text>
+        </TouchableOpacity>
+      </View>
+    ) : null;
+
+  // Messages by msgid, so a reply can show what it answers (client-tags/reply.md).
+  const replyIndex = useMemo(() => {
+    const index = new Map<string, IRCMessage>();
+    displayMessages.forEach(item => {
+      if (item.msgid) index.set(item.msgid, item);
+    });
+    return index;
+  }, [displayMessages]);
+
   const renderItem = useCallback(
     ({ item: messageItem }: { item: IRCMessage }) => {
       return (
@@ -3333,10 +3487,16 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
           tabId={tabId}
           layoutWidth={containerWidth}
           messageFormats={theme.messageFormats}
+          replyParent={
+            messageItem.replyTo
+              ? replyIndex.get(messageItem.replyTo)
+              : undefined
+          }
         />
       );
     },
     [
+      replyIndex,
       layoutState.timestampDisplay,
       layoutState.timestampFormat,
       colors,
@@ -4002,6 +4162,7 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
           }}
         />
         {blacklistModals}
+        {pendingReplyBar}
         {selectionMode && (
           <Animated.View
             style={[
@@ -4023,30 +4184,7 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
               >
                 <Text style={styles.selectionButtonText}>{t('Copy')}</Text>
               </TouchableOpacity>
-              {selectedMessageIds.size === 1 && (
-                <TouchableOpacity
-                  style={styles.selectionButton}
-                  onPress={() => {
-                    const selectedMsg = displayMessages.find(m =>
-                      selectedMessageIds.has(m.id),
-                    );
-                    if (selectedMsg?.msgid) {
-                      const target =
-                        selectedMsg.channel && selectedMsg.channel !== '*'
-                          ? selectedMsg.channel
-                          : selectedMsg.from || channel || '';
-                      setPendingReply({
-                        msgid: selectedMsg.msgid,
-                        target,
-                        nick: selectedMsg.from || '',
-                      });
-                      clearSelection();
-                    }
-                  }}
-                >
-                  <Text style={styles.selectionButtonText}>{t('Reply')}</Text>
-                </TouchableOpacity>
-              )}
+              {renderReplyReactActions()}
               <TouchableOpacity
                 style={[styles.selectionButton, styles.selectionCancelButton]}
                 onPress={clearSelection}
@@ -4107,6 +4245,7 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
       />
       {/* Search and assistant buttons (floating, movable) */}
       {renderFloatingButtons(searchVisible || selectionMode)}
+      {pendingReplyBar}
       {selectionMode && (
         <Animated.View
           style={[
@@ -4128,30 +4267,7 @@ const MessageAreaView: React.FC<MessageAreaProps> = ({
             >
               <Text style={styles.selectionButtonText}>{t('Copy')}</Text>
             </TouchableOpacity>
-            {selectedMessageIds.size === 1 && (
-              <TouchableOpacity
-                style={styles.selectionButton}
-                onPress={() => {
-                  const selectedMsg = displayMessages.find(m =>
-                    selectedMessageIds.has(m.id),
-                  );
-                  if (selectedMsg?.msgid) {
-                    const target =
-                      selectedMsg.channel && selectedMsg.channel !== '*'
-                        ? selectedMsg.channel
-                        : selectedMsg.from || channel || '';
-                    setPendingReply({
-                      msgid: selectedMsg.msgid,
-                      target,
-                      nick: selectedMsg.from || '',
-                    });
-                    clearSelection();
-                  }
-                }}
-              >
-                <Text style={styles.selectionButtonText}>{t('Reply')}</Text>
-              </TouchableOpacity>
-            )}
+            {renderReplyReactActions()}
             <TouchableOpacity
               style={[styles.selectionButton, styles.selectionCancelButton]}
               onPress={clearSelection}
@@ -4292,6 +4408,26 @@ const createStyles = (
       color: colors.primary,
       fontSize: 11,
       fontWeight: '600',
+    },
+    pendingReplyBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderStartWidth: 3,
+      borderStartColor: colors.primary,
+      backgroundColor: colors.surface,
+    },
+    pendingReplyText: {
+      flex: 1,
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    pendingReplyCancel: {
+      color: colors.textSecondary || colors.text,
+      fontSize: 14,
+      paddingStart: 12,
     },
     messageWrapper: {
       flex: 1,

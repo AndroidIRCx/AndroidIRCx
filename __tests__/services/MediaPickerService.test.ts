@@ -151,25 +151,6 @@ describe('MediaPickerService', () => {
     expect(result.error).toBe('Camera permission denied');
   });
 
-  it('returns not implemented message for recordVideo when permissions granted', async () => {
-    const result = await mediaPickerService.recordVideo();
-
-    expect(result.success).toBe(false);
-    expect(result.error).toContain('not yet implemented');
-  });
-
-  it('returns permission-denied for recordVoice when mic denied', async () => {
-    mockPermissions.check.mockResolvedValueOnce(false);
-    mockPermissions.request.mockResolvedValueOnce(
-      mockPermissions.RESULTS.DENIED,
-    );
-
-    const result = await mediaPickerService.recordVoice();
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Microphone permission denied');
-  });
-
   it('reports camera availability', async () => {
     expect(await mediaPickerService.isCameraAvailable()).toBe(true);
     mockGetDefaultCameraDevice
@@ -390,39 +371,6 @@ describe('MediaPickerService', () => {
     );
   });
 
-  it('returns camera denied for recordVideo when camera permission is denied', async () => {
-    mockPermissions.check.mockResolvedValueOnce(false);
-    mockPermissions.request.mockResolvedValueOnce(
-      mockPermissions.RESULTS.DENIED,
-    );
-    const result = await mediaPickerService.recordVideo();
-    expect(result).toEqual({
-      success: false,
-      error: 'Camera permission denied',
-    });
-  });
-
-  it('returns mic denied for recordVideo when camera is granted but mic is denied', async () => {
-    mockPermissions.check
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
-    mockPermissions.request.mockResolvedValueOnce(
-      mockPermissions.RESULTS.DENIED,
-    );
-
-    const result = await mediaPickerService.recordVideo();
-    expect(result).toEqual({
-      success: false,
-      error: 'Microphone permission denied',
-    });
-  });
-
-  it('returns not implemented for recordVoice when mic permission granted', async () => {
-    const result = await mediaPickerService.recordVoice();
-    expect(result.success).toBe(false);
-    expect(result.error).toContain('not yet implemented');
-  });
-
   it('returns false when camera lookup throws', async () => {
     mockGetDefaultCameraDevice.mockRejectedValueOnce(
       new Error('camera unavailable'),
@@ -584,28 +532,11 @@ describe('MediaPickerService', () => {
     expect(result).toEqual({ success: false, error: 'perm crash' });
   });
 
-  it('returns failed record video message when internal permission method throws', async () => {
-    jest
-      .spyOn(mediaPickerService as any, 'requestCameraPermission')
-      .mockRejectedValueOnce(new Error('video crash'));
-    const result = await mediaPickerService.recordVideo();
-    expect(result).toEqual({ success: false, error: 'video crash' });
-  });
-
-  it('returns failed record voice message when internal permission method throws', async () => {
-    jest
-      .spyOn(mediaPickerService as any, 'requestMicrophonePermission')
-      .mockRejectedValueOnce(new Error('voice crash'));
-    const result = await mediaPickerService.recordVoice();
-    expect(result).toEqual({ success: false, error: 'voice crash' });
-  });
-
   it('covers iOS permission helper branches', async () => {
     const { Platform } = require('react-native');
     Platform.OS = 'ios';
     const svc = mediaPickerService as any;
     await expect(svc.requestCameraPermission()).resolves.toBe(true);
-    await expect(svc.requestMicrophonePermission()).resolves.toBe(true);
     Platform.OS = 'android';
   });
 
@@ -613,13 +544,6 @@ describe('MediaPickerService', () => {
     mockPermissions.check.mockRejectedValueOnce(new Error('camera check fail'));
     await expect(
       (mediaPickerService as any).requestCameraPermission(),
-    ).resolves.toBe(false);
-  });
-
-  it('returns false from private microphone permission helper on check error', async () => {
-    mockPermissions.check.mockRejectedValueOnce(new Error('mic check fail'));
-    await expect(
-      (mediaPickerService as any).requestMicrophonePermission(),
     ).resolves.toBe(false);
   });
 

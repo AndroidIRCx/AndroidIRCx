@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "Cap jari ini terlalu besar untuk kod QR. Kongsikannya sebagai teks."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** Satu baris terlalu panjang untuk pelayan dan telah dipendekkan"
+  },
+  "React": {
+    "string": "Beri reaksi"
+  },
+  "Replying to {nick}": {
+    "string": "Membalas {nick}"
+  },
+  "More reactions": {
+    "string": "Lebih banyak reaksi"
   }
 }

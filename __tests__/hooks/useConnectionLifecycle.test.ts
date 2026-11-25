@@ -18,8 +18,8 @@ jest.mock('../../src/services/ConnectionManager', () => ({
   },
 }));
 
-jest.mock('../../src/services/IRCService', () => ({
-  ircService: {
+jest.mock('../../src/services/IRCService', () => {
+  const ircService: any = {
     onMessage: jest.fn().mockReturnValue(jest.fn()),
     onConnectionChange: jest.fn().mockReturnValue(jest.fn()),
     on: jest.fn().mockReturnValue(jest.fn()),
@@ -31,9 +31,21 @@ jest.mock('../../src/services/IRCService', () => ({
     sendRaw: jest.fn(),
     partChannel: jest.fn(),
     emit: jest.fn(),
-  },
-  ChannelUser: {},
-}));
+  };
+  // Short text: one line through sendRaw, the way the real one sends it.
+  ircService.sendSplitText = (
+    command: string,
+    target: string,
+    text: string,
+    options?: { wrap?: (piece: string) => string },
+  ) => {
+    ircService.sendRaw(
+      `${command} ${target} :${options?.wrap ? options.wrap(text) : text}`,
+    );
+    return [text];
+  };
+  return { ircService, ChannelUser: {} };
+});
 
 jest.mock('../../src/services/UserManagementService', () => ({
   userManagementService: {

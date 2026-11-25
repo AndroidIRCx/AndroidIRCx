@@ -17,6 +17,20 @@ export interface SendMessageContext {
   // Outgoing operations
   sendRaw: (command: string) => void;
   sendCommand: (command: string) => void;
+  /** Send user text as one or more lines that fit; returns the pieces sent. */
+  sendSplitText: (
+    command: 'PRIVMSG' | 'NOTICE',
+    target: string,
+    text: string,
+    options?: { wrap?: (piece: string) => string; wrapBytes?: number },
+  ) => string[];
+  /** Send an encrypted message, split before encryption; returns pieces sent. */
+  sendEncryptedText: (
+    target: string,
+    plaintext: string,
+    marker: '!enc-msg' | '!chanenc-msg',
+    encrypt: (piece: string) => Promise<unknown>,
+  ) => Promise<string[]>;
 
   // Message display
   addMessage: (

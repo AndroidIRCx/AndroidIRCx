@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "ይህ የጣት አሻራ ለQR ኮድ በጣም ትልቅ ነው። በምትኩ እንደ ጽሑፍ ያጋሩት።"
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** አንድ መስመር ለአገልጋዩ በጣም ረጅም ስለነበረ አጠረ"
+  },
+  "React": {
+    "string": "ምላሽ ስጥ"
+  },
+  "Replying to {nick}": {
+    "string": "ለ{nick} በመመለስ ላይ"
+  },
+  "More reactions": {
+    "string": "ተጨማሪ ምላሾች"
   }
 }

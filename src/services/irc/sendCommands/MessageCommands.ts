@@ -16,20 +16,24 @@ import type {
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
+/** What `\x01ACTION ` and the closing `\x01` add to every piece of a /me. */
+const ACTION_WRAP_BYTES = '\x01ACTION \x01'.length;
+
 /** MSG / QUERY - Send a private message to a nick or channel */
 export const handleMSG: SendMessageHandler = (ctx, args) => {
   if (args.length >= 2) {
     const msgTarget = args[0];
     const msgText = args.slice(1).join(' ');
-    ctx.sendRaw(`PRIVMSG ${msgTarget} :${msgText}`);
-    ctx.addMessage({
-      type: 'message',
-      channel: msgTarget,
-      from: ctx.getCurrentNick(),
-      text: msgText,
-      timestamp: Date.now(),
-      status: 'sent',
-    });
+    ctx.sendSplitText('PRIVMSG', msgTarget, msgText).forEach(piece =>
+      ctx.addMessage({
+        type: 'message',
+        channel: msgTarget,
+        from: ctx.getCurrentNick(),
+        text: piece,
+        timestamp: Date.now(),
+        status: 'sent',
+      }),
+    );
   } else {
     ctx.addMessage({
       type: 'error',
@@ -43,15 +47,22 @@ export const handleMSG: SendMessageHandler = (ctx, args) => {
 export const handleME: SendMessageHandler = (ctx, args, target) => {
   if (args.length > 0) {
     const actionText = args.join(' ');
-    ctx.sendRaw(`PRIVMSG ${target} :${ctx.encodeCTCP('ACTION', actionText)}`);
-    ctx.addMessage({
-      type: 'message',
-      channel: target,
-      from: ctx.getCurrentNick(),
-      text: `\x01ACTION ${actionText}\x01`,
-      timestamp: Date.now(),
-      status: 'sent',
-    });
+    // Every piece of a long action is an action of its own.
+    ctx
+      .sendSplitText('PRIVMSG', target, actionText, {
+        wrap: piece => ctx.encodeCTCP('ACTION', piece),
+        wrapBytes: ACTION_WRAP_BYTES,
+      })
+      .forEach(piece =>
+        ctx.addMessage({
+          type: 'message',
+          channel: target,
+          from: ctx.getCurrentNick(),
+          text: `\x01ACTION ${piece}\x01`,
+          timestamp: Date.now(),
+          status: 'sent',
+        }),
+      );
   }
 };
 
@@ -60,15 +71,16 @@ export const handleNOTICE: SendMessageHandler = (ctx, args) => {
   if (args.length >= 2) {
     const noticeTarget = args[0];
     const noticeText = args.slice(1).join(' ');
-    ctx.sendRaw(`NOTICE ${noticeTarget} :${noticeText}`);
-    ctx.addMessage({
-      type: 'notice',
-      channel: noticeTarget,
-      from: ctx.getCurrentNick(),
-      text: noticeText,
-      timestamp: Date.now(),
-      status: 'sent',
-    });
+    ctx.sendSplitText('NOTICE', noticeTarget, noticeText).forEach(piece =>
+      ctx.addMessage({
+        type: 'notice',
+        channel: noticeTarget,
+        from: ctx.getCurrentNick(),
+        text: piece,
+        timestamp: Date.now(),
+        status: 'sent',
+      }),
+    );
   } else {
     ctx.addMessage({
       type: 'error',

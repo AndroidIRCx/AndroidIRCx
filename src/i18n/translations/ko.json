@@ -13405,5 +13405,17 @@
   },
   "This fingerprint is too large for a QR code. Share it as text instead.": {
     "string": "이 지문은 너무 커서 QR 코드로 만들 수 없습니다. 텍스트로 공유하세요."
+  },
+  "*** A line was too long for the server and was shortened": {
+    "string": "*** 줄이 서버에서 허용하는 길이보다 길어서 잘렸습니다"
+  },
+  "React": {
+    "string": "반응"
+  },
+  "Replying to {nick}": {
+    "string": "{nick}님에게 답장"
+  },
+  "More reactions": {
+    "string": "더 많은 반응"
   }
 }

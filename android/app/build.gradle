@@ -283,8 +283,8 @@ android {
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 182
-        versionName = "1.10.10"
+        versionCode = 183
+        versionName = "1.10.11"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -380,6 +380,10 @@ dependencies {
 
     // AndroidX Core for WindowCompat (edge-to-edge support)
     implementation("androidx.core:core-ktx:1.15.0")
+
+    // Emoji picker for IRCv3 reactions (EmojiPickerModule). Android has no
+    // system emoji picker call; this is Google's picker view.
+    implementation("androidx.emoji2:emoji2-emojipicker:1.7.0")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

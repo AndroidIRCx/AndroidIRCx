@@ -242,12 +242,18 @@ export class ConnectionQualityService {
       // Track message
       this.trackMessageSent(message);
 
-      // Send message directly (bypassing sendRaw to avoid recursion)
+      // Through sendRaw like every other line: the CR/LF gate, the
+      // connection's encoding and the WebSocket transport all live there.
+      // Writing to the socket directly skipped all three.
       try {
-        const socket = (this.ircService as any)?.socket;
-        const isConnected = (this.ircService as any)?.isConnected;
-        if (socket && isConnected) {
-          socket.write(message + '\r\n');
+        const irc = this.ircService as any;
+        if (!irc?.socket || !irc?.isConnected) {
+          reject(new Error(t('Not connected')));
+          return;
+        }
+        irc.sendRaw(message);
+        // sendRaw marks the connection down when the write fails.
+        if (irc.isConnected) {
           resolve();
         } else {
           reject(new Error(t('Not connected')));

@@ -28,15 +28,19 @@ jest.mock('../../src/services/MessageHistoryBatching', () => {
   return { messageHistoryBatching: batching };
 });
 
-jest.mock('../../src/services/StorageCache', () => ({
-  storageCache: {
+jest.mock('../../src/services/StorageCache', () => {
+  const storageCache: any = {
     getItem: jest.fn(),
     setItem: jest.fn().mockResolvedValue(undefined),
     removeItem: jest.fn().mockResolvedValue(undefined),
     removeBatch: jest.fn().mockResolvedValue(undefined),
     setBatch: jest.fn().mockResolvedValue(undefined),
-  },
-}));
+  };
+  // The strict read follows whatever getItem is set up to return or throw.
+  storageCache.getItemStrict = (...args: any[]) =>
+    storageCache.getItem(...args);
+  return { storageCache };
+});
 
 describe('MessageHistoryService', () => {
   beforeEach(() => {
@@ -154,6 +158,105 @@ describe('MessageHistoryService', () => {
 
       // Should be limited to 10000 messages
       expect(storageCache.setItem).toHaveBeenCalled();
+    });
+  });
+
+  describe('saveMessages when the stored history cannot be read', () => {
+    const msg = (id: string, timestamp: number, text = 'x'): IRCMessage => ({
+      ...mockMessage,
+      id,
+      channel: '#busy',
+      timestamp,
+      text,
+    });
+
+    beforeEach(() => {
+      (messageHistoryService as any).readFailures = new Map();
+    });
+
+    it('keeps the stored history and fails the save, so the batch is retried', async () => {
+      (storageCache.getItem as jest.Mock).mockRejectedValue(
+        new Error('Row too big to fit into CursorWindow'),
+      );
+      await expect(
+        messageHistoryService.saveMessages([msg('n1', 1)], 'freenode'),
+      ).rejects.toThrow('CursorWindow');
+      await expect(
+        messageHistoryService.saveMessages([msg('n1', 1)], 'freenode'),
+      ).rejects.toThrow('CursorWindow');
+      expect(storageCache.setItem).not.toHaveBeenCalled();
+    });
+
+    it('starts the channel again once its history keeps failing to read', async () => {
+      (storageCache.getItem as jest.Mock).mockRejectedValue(new Error('gone'));
+      await expect(
+        messageHistoryService.saveMessages([msg('n1', 1)], 'freenode'),
+      ).rejects.toThrow();
+      await expect(
+        messageHistoryService.saveMessages([msg('n1', 1)], 'freenode'),
+      ).rejects.toThrow();
+      await messageHistoryService.saveMessages([msg('n1', 1)], 'freenode');
+      expect(storageCache.setItem).toHaveBeenCalledTimes(1);
+      expect(
+        (storageCache.setItem as jest.Mock).mock.calls[0][1].map(
+          (m: IRCMessage) => m.id,
+        ),
+      ).toEqual(['n1']);
+    });
+
+    it('forgets earlier failures after a good read', async () => {
+      (storageCache.getItem as jest.Mock)
+        .mockRejectedValueOnce(new Error('busy'))
+        .mockRejectedValueOnce(new Error('busy'))
+        .mockResolvedValueOnce([msg('old', 0)])
+        .mockRejectedValueOnce(new Error('busy'));
+      await expect(
+        messageHistoryService.saveMessages([msg('a', 1)], 'freenode'),
+      ).rejects.toThrow();
+      await expect(
+        messageHistoryService.saveMessages([msg('a', 1)], 'freenode'),
+      ).rejects.toThrow();
+      await messageHistoryService.saveMessages([msg('a', 1)], 'freenode');
+      // The count started over, so one more failure is retried again.
+      await expect(
+        messageHistoryService.saveMessages([msg('b', 2)], 'freenode'),
+      ).rejects.toThrow();
+      expect(storageCache.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not store a batch twice when it is saved again', async () => {
+      (storageCache.getItem as jest.Mock).mockResolvedValue([
+        msg('a', 1),
+        msg('b', 2),
+      ]);
+      await messageHistoryService.saveMessages(
+        [msg('b', 2), msg('c', 3)],
+        'freenode',
+      );
+      expect(
+        (storageCache.setItem as jest.Mock).mock.calls[0][1].map(
+          (m: IRCMessage) => m.id,
+        ),
+      ).toEqual(['a', 'b', 'c']);
+    });
+
+    it('drops the oldest lines to keep a channel under 1.5 MB', async () => {
+      const big = 'ж'.repeat(5000); // ~10 KB per line
+      (storageCache.getItem as jest.Mock).mockResolvedValue(
+        Array.from({ length: 200 }, (_, i) => msg(`e${i}`, i, big)),
+      );
+      await messageHistoryService.saveMessages(
+        [msg('new', 1000, big)],
+        'freenode',
+      );
+      const saved = (storageCache.setItem as jest.Mock).mock
+        .calls[0][1] as IRCMessage[];
+      expect(
+        Buffer.byteLength(JSON.stringify(saved), 'utf8'),
+      ).toBeLessThanOrEqual(1.5 * 1024 * 1024);
+      expect(saved[saved.length - 1].id).toBe('new');
+      expect(saved.length).toBeLessThan(201);
+      expect(saved[0].id).not.toBe('e0');
     });
   });
 

@@ -85,7 +85,13 @@ describe('AutoReconnectService', () => {
     (autoReconnectService as any).connectionListeners = new Map();
     (autoReconnectService as any).messageListeners = new Map();
     (autoReconnectService as any).intentionalDisconnectListeners = new Map();
+    (autoReconnectService as any).channelEventListeners = new Map();
+    (autoReconnectService as any).pendingRejoin = new Map();
   });
+
+  /** The listener a mock registered with `on(event, listener)`. */
+  const onListener = (on: jest.Mock, event: string) =>
+    on.mock.calls.find(call => call[0] === event)?.[1];
 
   afterEach(() => {
     jest.useRealTimers();
@@ -324,18 +330,23 @@ describe('AutoReconnectService', () => {
         autoReconnectService.getConnectionState('freenode')?.channels,
       ).toEqual(['#old', '#new']);
 
-      onMessage({ type: 'part', channel: '#old', from: 'TestUser' });
+      onMessage({ type: 'part', channel: '#OLD', from: 'testuser' });
       expect(
         autoReconnectService.getConnectionState('freenode')?.channels,
       ).not.toContain('#old');
 
-      onMessage({
-        type: 'mode',
-        text: 'KICK #new TestUser :bye',
-      });
+      // A join in another case is the same channel.
+      onMessage({ type: 'join', channel: '#NEW', from: 'TestUser' });
+      expect(
+        autoReconnectService.getConnectionState('freenode')?.channels,
+      ).toEqual(['#new']);
+
+      // Kicks arrive as the 'kick' event, which fires only when we are kicked.
+      onListener(mockInstance.on, 'kick')('#new');
       expect(
         autoReconnectService.getConnectionState('freenode')?.channels,
       ).not.toContain('#new');
+      onListener(mockInstance.on, 'kick')('');
     });
 
     it('ignores channel events from other nicks and malformed kick messages', async () => {
@@ -602,14 +613,25 @@ describe('AutoReconnectService', () => {
       (ircService.getNetworkName as jest.Mock).mockReturnValue('freenode');
       onMessage({ type: 'join', channel: '#new', from: 'TestUser' });
       onMessage({ type: 'part', channel: '#old', from: 'TestUser' });
-      onMessage({ type: 'mode', text: 'KICK #new TestUser :bye' });
-      onMessage({ type: 'mode', text: 'KICK #ignored OtherUser :bye' });
+      onListener(ircService.on as jest.Mock, 'kick')('#new');
+      onListener(ircService.on as jest.Mock, 'kick')('');
       onIntentionalQuit('freenode');
       onIntentionalQuit('');
 
       expect(
         autoReconnectService.getConnectionState('freenode')?.channels,
       ).toEqual([]);
+
+      // 'registered' with no pending rejoin does nothing, nor without a network.
+      onListener(ircService.on as jest.Mock, 'registered')();
+      (ircService.getNetworkName as jest.Mock).mockReturnValueOnce(
+        'Not connected',
+      );
+      onListener(ircService.on as jest.Mock, 'registered')();
+      (ircService.getNetworkName as jest.Mock).mockReturnValueOnce(
+        'Not connected',
+      );
+      onListener(ircService.on as jest.Mock, 'kick')('#x');
       expect(
         (autoReconnectService as any).intentionalDisconnects.has('freenode'),
       ).toBe(true);
@@ -726,7 +748,7 @@ describe('AutoReconnectService', () => {
       ).resolves.toBeUndefined();
     });
 
-    it('rejoins via playback or join list branches on successful handleConnected', async () => {
+    const setUpRejoin = async () => {
       await autoReconnectService.setConfig('freenode', {
         enabled: true,
         rejoinChannels: true,
@@ -741,31 +763,132 @@ describe('AutoReconnectService', () => {
           autoJoinChannels: ['#a', '#z'],
         } as any,
       );
+    };
 
+    it('waits for registration before it rejoins', async () => {
+      await setUpRejoin();
+      const rejoin = jest
+        .spyOn(autoReconnectService as any, 'rejoinChannels')
+        .mockResolvedValue(undefined);
+      (autoReconnectService as any).handleConnected('freenode');
+      jest.advanceTimersByTime(5000);
+      expect(rejoin).not.toHaveBeenCalled();
+
+      (autoReconnectService as any).handleRegistered('freenode');
+      jest.advanceTimersByTime(2000);
+      // A connection we did not reconnect ourselves: no lost session to add.
+      expect(rejoin).toHaveBeenCalledWith('freenode', []);
+
+      // Only once per connection.
+      (autoReconnectService as any).handleRegistered('freenode');
+      jest.advanceTimersByTime(2000);
+      expect(rejoin).toHaveBeenCalledTimes(1);
+      rejoin.mockRestore();
+    });
+
+    it('rejoins the channels of the lost session after its own reconnect', async () => {
+      await setUpRejoin();
+      const rejoin = jest
+        .spyOn(autoReconnectService as any, 'rejoinChannels')
+        .mockResolvedValue(undefined);
+      (autoReconnectService as any).isReconnecting.set('freenode', true);
+      (autoReconnectService as any).handleConnected('freenode');
+      (autoReconnectService as any).handleRegistered('freenode');
+      jest.advanceTimersByTime(2000);
+      expect(rejoin).toHaveBeenCalledWith('freenode', ['#a', '#b']);
+      rejoin.mockRestore();
+    });
+
+    it('does not rejoin when the option is off', async () => {
+      await setUpRejoin();
+      await autoReconnectService.setConfig('freenode', {
+        enabled: true,
+        rejoinChannels: false,
+      });
+      const rejoin = jest.spyOn(autoReconnectService as any, 'rejoinChannels');
+      (autoReconnectService as any).handleConnected('freenode');
+      (autoReconnectService as any).handleRegistered('freenode');
+      jest.runOnlyPendingTimers();
+      expect(rejoin).not.toHaveBeenCalled();
+      rejoin.mockRestore();
+    });
+
+    it("asks the connection's own bouncer for playback instead of rejoining", async () => {
+      await setUpRejoin();
+      const ownBouncer = {
+        getBouncerInfo: jest.fn().mockReturnValue({ playbackSupported: true }),
+        requestPlayback: jest.fn(),
+      };
+      (connectionManager.getConnection as jest.Mock).mockReturnValue({
+        bouncerService: ownBouncer,
+      });
+      const rejoin = jest.spyOn(autoReconnectService as any, 'rejoinChannels');
+      (autoReconnectService as any).handleConnected('freenode');
+      (autoReconnectService as any).handleRegistered('freenode');
+      jest.advanceTimersByTime(1001);
+      expect(ownBouncer.requestPlayback).toHaveBeenCalled();
+      expect(
+        bouncerService.requestPlayback as jest.Mock,
+      ).not.toHaveBeenCalled();
+      expect(rejoin).not.toHaveBeenCalled();
+      rejoin.mockRestore();
+      (connectionManager.getConnection as jest.Mock).mockReset();
+    });
+
+    it('falls back to the shared bouncer when the connection has none', async () => {
+      await setUpRejoin();
+      (connectionManager.getConnection as jest.Mock).mockReturnValue(undefined);
       (bouncerService.getBouncerInfo as jest.Mock).mockReturnValueOnce({
         playbackSupported: true,
       });
       (autoReconnectService as any).handleConnected('freenode');
+      (autoReconnectService as any).handleRegistered('freenode');
       jest.advanceTimersByTime(1001);
-      await Promise.resolve();
       expect(bouncerService.requestPlayback as jest.Mock).toHaveBeenCalled();
+    });
 
+    it('a registered connection routes its registered event', async () => {
+      await setUpRejoin();
+      const mockInstance = {
+        onConnectionChange: jest.fn().mockReturnValue(jest.fn()),
+        onMessage: jest.fn().mockReturnValue(jest.fn()),
+        on: jest.fn().mockReturnValue(jest.fn()),
+        getCurrentNick: jest.fn().mockReturnValue('TestUser'),
+      };
+      autoReconnectService.registerConnection('freenode', mockInstance as any);
+      const spy = jest.spyOn(autoReconnectService as any, 'handleRegistered');
+      onListener(mockInstance.on, 'registered')();
+      expect(spy).toHaveBeenCalledWith('freenode');
+      spy.mockRestore();
+    });
+
+    it('joins favorites, auto-join and the lost session once each, with keys', async () => {
+      await setUpRejoin();
       const joinChannel = jest.fn();
+      const getChannelKey = jest.fn((name: string) =>
+        name === '#b' ? 'bkey' : undefined,
+      );
       (connectionManager.getConnection as jest.Mock).mockReturnValue({
-        ircService: { joinChannel },
+        ircService: { joinChannel, getChannelKey },
       });
       (settingsService.getSetting as jest.Mock).mockResolvedValueOnce(true);
       (channelFavoritesService.getFavorites as jest.Mock).mockReturnValue([
         { name: '#fav', key: 'k' },
       ]);
       await (autoReconnectService as any).rejoinChannels('freenode', [
-        '#a',
+        '#A',
         '#b',
+        '#manual',
       ]);
-      jest.runOnlyPendingTimers();
-      expect(joinChannel).toHaveBeenCalledWith('#fav', 'k');
-      expect(joinChannel).toHaveBeenCalledWith('#a', undefined);
-      expect(joinChannel).toHaveBeenCalledWith('#z', undefined);
+      jest.runAllTimers();
+      expect(joinChannel.mock.calls).toEqual([
+        ['#fav', 'k'],
+        ['#a', undefined],
+        ['#z', undefined],
+        ['#b', 'bkey'],
+        ['#manual', undefined],
+      ]);
+      (connectionManager.getConnection as jest.Mock).mockReset();
     });
   });
 });

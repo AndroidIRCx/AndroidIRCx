@@ -4,6 +4,11 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isValidReaction } from '../utils/reactionValue';
+
+/** Offered in the selection bar until the user has reactions of their own. */
+export const DEFAULT_QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+const QUICK_REACTION_COUNT = DEFAULT_QUICK_REACTIONS.length;
 
 export interface MessageReaction {
   emoji: string;
@@ -16,14 +21,124 @@ export interface MessageReactions {
   reactions: MessageReaction[];
 }
 
+/**
+ * Reactions are stored per network message: an IRCv3 msgid is unique on its
+ * network, not across networks.
+ */
+export const reactionKey = (network: string, msgid: string): string =>
+  `${network}\n${msgid}`;
+
+/** Sends a react/unreact to the network; returns whether it went out. */
+export type ReactionSender = (
+  network: string,
+  target: string,
+  msgid: string,
+  emoji: string,
+  remove: boolean,
+) => boolean;
+
 class MessageReactionsService {
+  private sender: ReactionSender | null = null;
+
+  /**
+   * ConnectionManager registers how reactions reach the network, so this
+   * module does not import it (that would be an import cycle).
+   */
+  setReactionSender(sender: ReactionSender | null): void {
+    this.sender = sender;
+  }
+
+  /**
+   * The user tapped a reaction on a network message: tell the network, and
+   * only if that worked, show it. Returns whether it was sent.
+   */
+  async toggleNetworkReaction(
+    network: string,
+    target: string,
+    msgid: string,
+    emoji: string,
+    userNick: string,
+  ): Promise<boolean> {
+    if (!isValidReaction(emoji)) return false;
+    const key = reactionKey(network, msgid);
+    const remove = this.hasUserReacted(key, emoji, userNick);
+    if (!this.sender || !this.sender(network, target, msgid, emoji, remove)) {
+      return false;
+    }
+    if (remove) {
+      await this.removeReaction(key, emoji, userNick);
+    } else {
+      await this.addReaction(key, emoji, userNick);
+      await this.rememberQuickReaction(emoji);
+    }
+    return true;
+  }
+
+  /** A react or unreact arrived from the network (client-tags/react.md). */
+  async applyRemoteReaction(
+    network: string,
+    msgid: string,
+    emoji: string,
+    userNick: string,
+    remove: boolean,
+  ): Promise<void> {
+    // Same limit we send with: a "reaction" of a paragraph is not shown.
+    if (!network || !msgid || !userNick || !isValidReaction(emoji)) return;
+    const key = reactionKey(network, msgid);
+    if (remove) {
+      await this.removeReaction(key, emoji, userNick);
+    } else {
+      await this.addReaction(key, emoji, userNick);
+    }
+  }
+
   private reactions: Map<string, MessageReactions> = new Map();
   private listeners: Array<
     (messageId: string, reactions: MessageReactions) => void
   > = [];
   private readonly STORAGE_KEY = '@AndroidIRCX:messageReactions';
+  private readonly RECENT_KEY = '@AndroidIRCX:recentReactions';
+  private recentReactions: string[] = [];
+
+  /**
+   * The reactions offered in the selection bar: the user's most recent ones
+   * first, topped up with the defaults.
+   */
+  getQuickReactions(): string[] {
+    const quick = [...this.recentReactions];
+    for (const emoji of DEFAULT_QUICK_REACTIONS) {
+      if (quick.length >= QUICK_REACTION_COUNT) break;
+      if (!quick.includes(emoji)) quick.push(emoji);
+    }
+    return quick.slice(0, QUICK_REACTION_COUNT);
+  }
+
+  private async rememberQuickReaction(emoji: string): Promise<void> {
+    this.recentReactions = [
+      emoji,
+      ...this.recentReactions.filter(item => item !== emoji),
+    ].slice(0, QUICK_REACTION_COUNT);
+    try {
+      await AsyncStorage.setItem(
+        this.RECENT_KEY,
+        JSON.stringify(this.recentReactions),
+      );
+    } catch (error) {
+      console.error('Failed to save recent reactions:', error);
+    }
+  }
 
   async initialize(): Promise<void> {
+    try {
+      const recent = JSON.parse(
+        (await AsyncStorage.getItem(this.RECENT_KEY)) || '[]',
+      );
+      this.recentReactions = Array.isArray(recent)
+        ? recent.filter(isValidReaction).slice(0, QUICK_REACTION_COUNT)
+        : [];
+    } catch {
+      this.recentReactions = [];
+    }
     try {
       const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (stored) {
